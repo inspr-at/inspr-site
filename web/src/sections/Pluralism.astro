@@ -58,7 +58,7 @@ import plateImg from "../assets/pluralism.png";
         can always bypass the agent.
       </p>
       <ul class="axis__list mono">
-        <li>family member — &ldquo;just make the photos sync&rdquo;</li>
+        <li>collector — past what a spreadsheet can hold</li>
         <li>operator — declares every byte; reviews like a PR</li>
         <li>both — first-class on the same substrate</li>
       </ul>
@@ -86,28 +86,6 @@ import plateImg from "../assets/pluralism.png";
         <span class="convergence__node">git history</span>
         <span class="convergence__node">audit / replay</span>
       </div>
-
-      <svg
-        class="convergence__arrows"
-        viewBox="0 0 1000 300"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-      >
-        <defs>
-          <marker id="cv-arrow" viewBox="0 0 10 10" refX="8" refY="5"
-                  markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
-          </marker>
-        </defs>
-        {/* In-arrows: 3 plural inputs converge to the pivot */}
-        <path d="M 320,60  C 420,60  420,150 480,150" />
-        <path d="M 320,150 C 420,150 460,150 480,150" />
-        <path d="M 320,240 C 420,240 420,150 480,150" />
-        {/* Out-arrows: pivot fans out to 3 consumers */}
-        <path d="M 520,150 C 580,150 580,60  680,60" />
-        <path d="M 520,150 C 580,150 540,150 680,150" />
-        <path d="M 520,150 C 580,150 580,240 680,240" />
-      </svg>
     </div>
 
     <figcaption class="convergence__cap marginalia">
@@ -226,59 +204,21 @@ import plateImg from "../assets/pluralism.png";
     }
   }
 
-  /* Connecting arrow layer — sits behind nodes, above the board surface. */
-  .convergence__arrows {
-    position: absolute;
-    inset: 0;
-    inline-size: 100%;
-    block-size: 100%;
-    color: var(--rule);
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.25;
-    stroke-linecap: round;
-    pointer-events: none;
-    z-index: 0;
-    /* Hidden on narrow boards (single column, no flow to draw). */
-    display: none;
-  }
-
-  @container (inline-size > 44rem) {
-    .convergence__arrows { display: block; }
-    .convergence__arrows path { marker-end: url(#cv-arrow); }
-  }
-
-  /* Stroke-draw on enter — the arrows trace as the figure scrolls in. */
-  @supports (animation-timeline: view()) {
-    .convergence__arrows path {
-      stroke-dasharray: 200;
-      stroke-dashoffset: 200;
-      animation: cv-trace both;
-      animation-timeline: view();
-      animation-range: entry 10% entry 80%;
-    }
-    @keyframes cv-trace {
-      to { stroke-dashoffset: 0; }
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .convergence__arrows path {
-      stroke-dashoffset: 0 !important;
-      animation: none !important;
-    }
-  }
-
-  /* Make sure node columns sit ABOVE the SVG arrow layer. */
-  .convergence__col,
-  .convergence__pivot-wrap {
-    position: relative;
-    z-index: 1;
-  }
-
+  /* Pills are auto-width and align to the inner edge of their column,
+     so the gap between pill and pivot reads as flow without literal
+     arrows. A tiny hairline at each pill's inner edge points toward
+     the pivot — engineered tick, not arrowhead. */
   .convergence__col {
     display: grid;
-    gap: 0.6rem;
+    gap: 0.7rem;
+  }
+
+  .convergence__col--in   { justify-items: stretch; }
+  .convergence__col--out  { justify-items: stretch; }
+
+  @container (inline-size > 44rem) {
+    .convergence__col--in   { justify-items: end; }
+    .convergence__col--out  { justify-items: start; }
   }
 
   .convergence__col--in .convergence__node,
@@ -290,11 +230,36 @@ import plateImg from "../assets/pluralism.png";
     border: 1px solid var(--rule);
     border-radius: 3px;
     background-color: var(--bg);
+    inline-size: fit-content;
+    position: relative;
+    transition: border-color var(--dur-quick) var(--ease),
+                color var(--dur-quick) var(--ease);
   }
 
+  .convergence__col--in .convergence__node:hover,
+  .convergence__col--out .convergence__node:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  /* Inner-edge tick marks: 1px hairline pointing toward the pivot. */
   @container (inline-size > 44rem) {
-    .convergence__col--in .convergence__node {
-      text-align: end;
+    .convergence__col--in .convergence__node::after,
+    .convergence__col--out .convergence__node::before {
+      content: "";
+      position: absolute;
+      inset-block-start: 50%;
+      inline-size: clamp(0.8rem, 2cqi, 1.6rem);
+      block-size: 1px;
+      background: var(--rule);
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+    .convergence__col--in .convergence__node::after {
+      inset-inline-start: calc(100% + 0.4em);
+    }
+    .convergence__col--out .convergence__node::before {
+      inset-inline-end: calc(100% + 0.4em);
     }
   }
 

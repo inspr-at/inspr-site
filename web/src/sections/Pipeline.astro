@@ -1,12 +1,17 @@
 ---
-// Pipeline — five-step horizontal flow showing how a fuzzy human want
-// becomes a declared, applied, replayable artifact. Sits between Hero
-// and Mission. Pure CSS; container-query layout (5-up wide → stacked
-// narrow).
+// Pipeline — five-step horizontal flow, mom-readable.
 //
-// The continuous hairline across all cells is drawn by the parent OL's
-// ::before; each step's mono "step 0N" marker interrupts the line via
-// background-color halo (same pattern as the section-break dot).
+// Default state shows ONE word per step (Want · Talk · Plan · Make · Keep)
+// — universal verbs anyone gets, no jargon. Hover (desktop) or tap
+// (mobile, via <details>/<summary>) reveals the engineering reading
+// underneath: a one-line description in the architecture's vocabulary.
+//
+// Reveal layering:
+//   - Fraunces SOFT axis tightens 40 → 8 (informal → engineered)
+//   - ember underline draws beneath the title (0 → 2.5em)
+//   - "+" cue rotates to "×"
+//   - description slides in via grid-template-rows 0fr → 1fr
+//   - inner content fades in 80ms behind the row open
 
 const steps = [
   {
@@ -16,22 +21,22 @@ const steps = [
   },
   {
     n: "02",
-    title: "Refine",
+    title: "Talk",
     body: "A conversation with an agent, a hand-authored draft, or a direct verb call. The platform does not care which.",
   },
   {
     n: "03",
-    title: "Declare",
+    title: "Plan",
     body: "A canonical artifact emerges. Plain Nix, plain YAML, plain verb invocations. Byte-identical regardless of entrypoint.",
   },
   {
     n: "04",
-    title: "Apply",
+    title: "Make",
     body: "Typed verbs hit the fleet. A host comes online. A secret rekeys. A service starts.",
   },
   {
     n: "05",
-    title: "Replay",
+    title: "Keep",
     body: "git history is the audit trail. Any state is reproducible from any commit.",
   },
 ];
@@ -44,19 +49,29 @@ const steps = [
     </p>
     <h2 id="pipeline-h">From a want, to a&nbsp;thing.</h2>
     <p class="lede">
-      Five steps from fuzzy intent to declarative truth — the
-      platform&rsquo;s plural entrypoints collapsing into a single
-      canonical artifact in the middle, then fanning back out to a
-      reproducible state on the fleet.
+      Five steps from fuzzy intent to durable record. Hover (or tap) any
+      step to see what the platform calls it underneath.
     </p>
   </header>
 
   <ol class="pipeline__steps" aria-label="Five-step flow">
-    {steps.map((s, i) => (
+    {steps.map((s) => (
       <li class="step">
-        <span class="step__marker mono"><span class="dim">step&nbsp;</span>{s.n}</span>
-        <h3 class="step__title">{s.title}</h3>
-        <p class="step__body">{s.body}</p>
+        <details class="step__container">
+          <summary class="step__summary">
+            <span class="step__marker mono"><span class="dim">step&nbsp;</span>{s.n}</span>
+            <h3 class="step__title">
+              {s.title}
+              <span class="step__rule" aria-hidden="true"></span>
+            </h3>
+            <span class="step__cue mono" aria-hidden="true">+</span>
+          </summary>
+          <div class="step__reveal">
+            <div class="step__reveal-inner">
+              <p class="step__body">{s.body}</p>
+            </div>
+          </div>
+        </details>
       </li>
     ))}
   </ol>
@@ -93,7 +108,7 @@ const steps = [
 
   .pipeline__head .lede { margin: 0; }
 
-  /* ---- Steps ---- */
+  /* ---- Steps grid ---- */
   .pipeline__steps {
     list-style: none;
     padding: 0;
@@ -102,6 +117,7 @@ const steps = [
     grid-template-columns: minmax(0, 1fr);
     gap: clamp(1.5rem, 3cqi, 2.5rem);
     position: relative;
+    align-items: start;
   }
 
   @container (inline-size > 56rem) {
@@ -112,7 +128,6 @@ const steps = [
       padding-block-start: 1.6rem;
     }
 
-    /* Continuous hairline across all 5 cells at the top of the row */
     .pipeline__steps::before {
       content: "";
       position: absolute;
@@ -126,10 +141,6 @@ const steps = [
 
   .step {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 0.55rem;
-    /* Narrow: each step has its own hairline above */
     border-block-start: 1px solid var(--rule);
     padding-block-start: 1.2rem;
   }
@@ -141,13 +152,39 @@ const steps = [
     }
   }
 
+  /* ---- The interactive container (details/summary) ---- */
+  .step__container {
+    /* native disclosure, no marker, our own affordance */
+  }
+
+  .step__container > summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .step__container > summary::-webkit-details-marker { display: none; }
+  .step__container > summary::marker { display: none; }
+
+  .step__summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "marker cue"
+      "title  cue";
+    column-gap: 0.6rem;
+    row-gap: 0.5rem;
+    align-items: baseline;
+  }
+
   .step__marker {
+    grid-area: marker;
     font-size: var(--t-xs);
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--accent);
     line-height: 1;
     margin: 0;
+    transition: color var(--dur-quick) var(--ease);
   }
 
   .step__marker .dim {
@@ -156,8 +193,8 @@ const steps = [
     margin-inline-end: 0.3em;
   }
 
-  /* On wide: lift the marker onto the parent's hairline, with bg halo
-     to mask the line directly behind it. */
+  /* On wide viewports, lift the marker onto the parent's continuous
+     hairline with a bg-color halo to mask the line behind it. */
   @container (inline-size > 56rem) {
     .step__marker {
       position: absolute;
@@ -167,22 +204,73 @@ const steps = [
       background-color: var(--bg);
       padding-inline-end: 0.7em;
       padding-block: 0.05em;
+      z-index: 2;
     }
   }
 
   .step__title {
+    grid-area: title;
+    --fr-soft: 40;
     font-family: var(--font-display);
-    font-variation-settings: "opsz" 36, "wght" 460, "SOFT" 30, "WONK" 0;
-    font-size: var(--t-xl);
-    line-height: 1.05;
+    font-variation-settings:
+      "opsz" 36, "wght" 460, "SOFT" var(--fr-soft), "WONK" 0;
+    font-size: var(--t-2xl);
+    line-height: 1;
     margin: 0;
     color: var(--text);
+    position: relative;
+    padding-block-end: 0.45rem;
+    transition: --fr-soft var(--dur-medium) var(--ease);
   }
 
   @container (inline-size > 56rem) {
     .step__title {
-      margin-block-start: 0.4rem;
+      margin-block-start: 0.6rem;
     }
+  }
+
+  /* Underline rule that draws from 0 to 2.5em on hover/open — engineering tick. */
+  .step__rule {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline-start: 0;
+    inline-size: 0;
+    block-size: 1px;
+    background: var(--accent);
+    transition: inline-size 380ms cubic-bezier(0.5, 0, 0.2, 1) 60ms;
+  }
+
+  /* Cue: + → × on open */
+  .step__cue {
+    grid-area: cue;
+    align-self: end;
+    color: var(--text-faint);
+    font-size: var(--t-base);
+    line-height: 1;
+    transition:
+      color var(--dur-quick) var(--ease),
+      transform var(--dur-medium) cubic-bezier(0.34, 1.4, 0.64, 1);
+    user-select: none;
+  }
+
+  /* ---- The reveal: grid-template-rows 0fr → 1fr trick ---- */
+  .step__reveal {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition:
+      grid-template-rows 360ms cubic-bezier(0.7, 0, 0.3, 1),
+      margin-block-start 360ms cubic-bezier(0.7, 0, 0.3, 1);
+    margin-block-start: 0;
+  }
+
+  .step__reveal-inner {
+    overflow: hidden;
+    min-block-size: 0;
+    opacity: 0;
+    transform: translateY(-3px);
+    transition:
+      opacity 280ms var(--ease) 100ms,
+      transform 280ms var(--ease) 100ms;
   }
 
   .step__body {
@@ -190,6 +278,54 @@ const steps = [
     font-size: var(--t-sm);
     line-height: 1.55;
     margin: 0;
-    max-inline-size: 24ch;
+    max-inline-size: 26ch;
+  }
+
+  /* ---- Reveal triggers: hover, focus-within, OR details[open] ---- */
+  .step:hover .step__title,
+  .step:focus-within .step__title,
+  .step__container[open] .step__title {
+    --fr-soft: 8;
+  }
+
+  .step:hover .step__rule,
+  .step:focus-within .step__rule,
+  .step__container[open] .step__rule {
+    inline-size: 2.5em;
+  }
+
+  .step:hover .step__marker,
+  .step:focus-within .step__marker,
+  .step__container[open] .step__marker {
+    color: var(--accent-strong);
+  }
+
+  .step:hover .step__cue,
+  .step:focus-within .step__cue,
+  .step__container[open] .step__cue {
+    color: var(--accent);
+    transform: rotate(45deg);
+  }
+
+  .step:hover .step__reveal,
+  .step:focus-within .step__reveal,
+  .step__container[open] .step__reveal {
+    grid-template-rows: 1fr;
+    margin-block-start: 0.6rem;
+  }
+
+  .step:hover .step__reveal-inner,
+  .step:focus-within .step__reveal-inner,
+  .step__container[open] .step__reveal-inner {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ---- Reduced motion: snap, don't slide ---- */
+  @media (prefers-reduced-motion: reduce) {
+    .step__title, .step__rule, .step__cue,
+    .step__reveal, .step__reveal-inner, .step__marker {
+      transition: none !important;
+    }
   }
 </style>

@@ -1,0 +1,399 @@
+---
+// v2 Pipeline — same five mom-readable verbs as ed.01, but with a
+// distinctly TECHNICAL reveal: an instrument-readout panel that
+// scan-wipes the description in left-to-right, surfaces the
+// engineering term in mono, draws a calibration tick across the
+// bottom, and stamps a small @step:0N coordinate top-right.
+//
+// All triggers (`:hover`, `:focus-within`, `[open]`) fire the same
+// effect — click-to-stick on mobile via the native <details> toggle.
+//
+// Layout never shifts on click: the reveal panel is always rendered
+// in its full natural height; we override the browser's
+// <details>:not([open]) content-hide. Visibility is controlled by
+// opacity + clip-path, not by collapsing height.
+
+const steps = [
+  {
+    n: "01",
+    title: "Want",
+    eng: "INTENT",
+    body: "Fuzzy human intent. A CI runner. A collection to organise. Photos to sync.",
+  },
+  {
+    n: "02",
+    title: "Talk",
+    eng: "REFINE",
+    body: "A conversation with an agent, a hand-authored draft, or a direct verb call. The platform does not care which.",
+  },
+  {
+    n: "03",
+    title: "Plan",
+    eng: "DECLARE",
+    body: "A canonical artifact emerges. Plain Nix, plain YAML, plain verb invocations. Byte-identical regardless of entrypoint.",
+  },
+  {
+    n: "04",
+    title: "Make",
+    eng: "APPLY",
+    body: "Typed verbs hit the fleet. A host comes online. A secret rekeys. A service starts.",
+  },
+  {
+    n: "05",
+    title: "Keep",
+    eng: "REPLAY",
+    body: "git history is the audit trail. Any state is reproducible from any commit.",
+  },
+];
+---
+
+<section class="v2-section v2-pipeline reveal-soft" id="pipeline" aria-labelledby="pipeline-h">
+  <header class="v2-pipeline__head">
+    <p class="marginalia v2-pipeline__chapter">
+      <span class="dim">Ch&nbsp;</span>00 &middot; The pipeline
+    </p>
+    <h2 id="pipeline-h">From a want, to a&nbsp;thing.</h2>
+    <p class="lede">
+      Five steps from fuzzy intent to durable record. Hover, tap, or
+      key-tab any step to scan the engineering term and the technical
+      reading underneath.
+    </p>
+  </header>
+
+  <ol class="v2-pipeline__steps" aria-label="Five-step flow">
+    {steps.map((s) => (
+      <li class="v2-step">
+        <details class="v2-step__container">
+          <summary class="v2-step__summary">
+            <span class="v2-step__marker mono">
+              <span class="dim">step&nbsp;</span>{s.n}
+            </span>
+            <h3 class="v2-step__title">
+              {s.title}
+              <span class="v2-step__rule" aria-hidden="true"></span>
+            </h3>
+            <span class="v2-step__cue mono" aria-hidden="true">+</span>
+          </summary>
+          <div class="v2-step__reveal">
+            <span class="v2-step__coord mono" aria-hidden="true">@step:{s.n}</span>
+            <span class="v2-step__corner v2-step__corner--tl" aria-hidden="true"></span>
+            <span class="v2-step__corner v2-step__corner--bl" aria-hidden="true"></span>
+            <p class="v2-step__eng mono">
+              <span class="dim">→&nbsp;</span>{s.eng}
+            </p>
+            <p class="v2-step__body">{s.body}</p>
+            <span class="v2-step__tick" aria-hidden="true"></span>
+          </div>
+        </details>
+      </li>
+    ))}
+  </ol>
+</section>
+
+<style>
+  .v2-pipeline {
+    container-type: inline-size;
+    padding-inline: clamp(1.25rem, 5cqi, 4rem);
+    padding-block: clamp(4rem, 9cqi, 8rem);
+  }
+
+  .v2-pipeline__head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    max-inline-size: var(--measure-wide);
+    margin-block-end: clamp(2.5rem, 5cqi, 4rem);
+  }
+
+  .v2-pipeline__chapter {
+    color: var(--text-faint);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-size: var(--t-xs);
+  }
+  .v2-pipeline__chapter .dim { opacity: 0.55; }
+
+  .v2-pipeline__head h2 {
+    font-size: var(--t-3xl);
+    margin: 0;
+  }
+
+  .v2-pipeline__head .lede { margin: 0; }
+
+  /* ---- Steps grid (same horizontal flow shape as ed.01) ---- */
+  .v2-pipeline__steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(1.5rem, 3cqi, 2.5rem);
+    position: relative;
+    align-items: start;
+  }
+
+  @container (inline-size > 56rem) {
+    .v2-pipeline__steps {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      column-gap: clamp(1rem, 2cqi, 1.6rem);
+      row-gap: 0;
+      padding-block-start: 1.6rem;
+    }
+
+    .v2-pipeline__steps::before {
+      content: "";
+      position: absolute;
+      inset-block-start: 0;
+      inset-inline: 0;
+      block-size: 1px;
+      background: var(--rule);
+      pointer-events: none;
+    }
+  }
+
+  .v2-step {
+    position: relative;
+    border-block-start: 1px solid var(--rule);
+    padding-block-start: 1.2rem;
+  }
+
+  @container (inline-size > 56rem) {
+    .v2-step {
+      border-block-start: 0;
+      padding-block-start: 0;
+    }
+  }
+
+  .v2-step__container > summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .v2-step__container > summary::-webkit-details-marker { display: none; }
+  .v2-step__container > summary::marker { display: none; }
+
+  .v2-step__summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "marker cue"
+      "title  cue";
+    column-gap: 0.6rem;
+    row-gap: 0.5rem;
+    align-items: baseline;
+  }
+
+  .v2-step__marker {
+    grid-area: marker;
+    font-size: var(--t-xs);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    line-height: 1;
+    margin: 0;
+    transition: color var(--dur-quick) var(--ease);
+  }
+
+  .v2-step__marker .dim {
+    color: var(--text-faint);
+    opacity: 0.55;
+    margin-inline-end: 0.3em;
+  }
+
+  @container (inline-size > 56rem) {
+    .v2-step__marker {
+      position: absolute;
+      inset-block-start: 0;
+      inset-inline-start: 0;
+      transform: translateY(-50%);
+      background-color: var(--bg);
+      padding-inline-end: 0.7em;
+      padding-block: 0.05em;
+      z-index: 2;
+    }
+  }
+
+  .v2-step__title {
+    grid-area: title;
+    --fr-soft: 30;
+    font-family: var(--font-display);
+    font-variation-settings:
+      "opsz" 36, "wght" 480, "SOFT" var(--fr-soft), "WONK" 0;
+    font-size: var(--t-2xl);
+    line-height: 1;
+    margin: 0;
+    color: var(--text);
+    position: relative;
+    padding-block-end: 0.45rem;
+    transition: --fr-soft var(--dur-medium) var(--ease);
+  }
+
+  @container (inline-size > 56rem) {
+    .v2-step__title {
+      margin-block-start: 0.6rem;
+    }
+  }
+
+  .v2-step__rule {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline-start: 0;
+    inline-size: 0;
+    block-size: 1px;
+    background: var(--accent);
+    transition: inline-size 380ms cubic-bezier(0.5, 0, 0.2, 1) 60ms;
+  }
+
+  .v2-step__cue {
+    grid-area: cue;
+    align-self: end;
+    color: var(--text-faint);
+    font-size: var(--t-base);
+    line-height: 1;
+    transition:
+      color var(--dur-quick) var(--ease),
+      transform var(--dur-medium) cubic-bezier(0.34, 1.4, 0.64, 1);
+    user-select: none;
+  }
+
+  /* ---- The technical reveal panel ---------------------------------- *
+   * Always rendered in full height (override <details> hide); visibility
+   * controlled by opacity + clip-path scan + corner ticks.
+   */
+  .v2-step__reveal {
+    position: relative;
+    margin-block-start: 0.7rem;
+    padding-inline-start: 0.85rem;
+    border-inline-start: 1px solid var(--rule);
+    /* Scan-reveal: clip-path inset(0 100% 0 0) → inset(0 0 0 0). */
+    clip-path: inset(0 100% 0 0);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      clip-path 540ms cubic-bezier(0.65, 0, 0.35, 1),
+      opacity 200ms var(--ease);
+  }
+
+  .v2-step__container:not([open]) > .v2-step__reveal {
+    display: block;
+  }
+
+  /* Engineering term ("→ REFINE") — appears just ahead of the description scan */
+  .v2-step__eng {
+    font-size: var(--t-xs);
+    letter-spacing: 0.22em;
+    color: var(--accent);
+    margin: 0 0 0.5rem;
+    line-height: 1;
+  }
+
+  .v2-step__eng .dim {
+    color: var(--text-faint);
+    opacity: 0.55;
+  }
+
+  .v2-step__body {
+    color: var(--text-muted);
+    font-size: var(--t-sm);
+    line-height: 1.55;
+    margin: 0;
+    max-inline-size: 26ch;
+  }
+
+  /* Calibration tick across the bottom of the panel — draws after scan settles */
+  .v2-step__tick {
+    display: block;
+    margin-block-start: 0.55rem;
+    inline-size: 0;
+    block-size: 1px;
+    background: var(--accent);
+    transition: inline-size 480ms cubic-bezier(0.5, 0, 0.2, 1) 280ms;
+  }
+
+  /* Corner registration marks — engineering-frame at top-left + bottom-left */
+  .v2-step__corner {
+    position: absolute;
+    inline-size: 0.55rem;
+    block-size: 1px;
+    background: var(--accent);
+    inset-inline-start: -1px;
+    opacity: 0;
+    transition: opacity var(--dur-medium) var(--ease) 200ms;
+  }
+  .v2-step__corner--tl { inset-block-start: 0; }
+  .v2-step__corner--bl { inset-block-end: 0; }
+
+  /* Coordinate stamp top-right — fixes the panel in the instrument's grid */
+  .v2-step__coord {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    font-size: 0.7em;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    opacity: 0;
+    transition: opacity var(--dur-medium) var(--ease) 320ms;
+    pointer-events: none;
+  }
+
+  /* ---- Reveal triggers ---- */
+  .v2-step:hover .v2-step__title,
+  .v2-step:focus-within .v2-step__title,
+  .v2-step__container[open] .v2-step__title {
+    --fr-soft: 4;
+  }
+
+  .v2-step:hover .v2-step__rule,
+  .v2-step:focus-within .v2-step__rule,
+  .v2-step__container[open] .v2-step__rule {
+    inline-size: 2.5em;
+  }
+
+  .v2-step:hover .v2-step__marker,
+  .v2-step:focus-within .v2-step__marker,
+  .v2-step__container[open] .v2-step__marker {
+    color: var(--accent-strong);
+  }
+
+  .v2-step:hover .v2-step__cue,
+  .v2-step:focus-within .v2-step__cue,
+  .v2-step__container[open] .v2-step__cue {
+    color: var(--accent);
+    transform: rotate(45deg);
+  }
+
+  .v2-step:hover .v2-step__reveal,
+  .v2-step:focus-within .v2-step__reveal,
+  .v2-step__container[open] .v2-step__reveal {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .v2-step:hover .v2-step__tick,
+  .v2-step:focus-within .v2-step__tick,
+  .v2-step__container[open] .v2-step__tick {
+    inline-size: 2.5em;
+  }
+
+  .v2-step:hover .v2-step__corner,
+  .v2-step:focus-within .v2-step__corner,
+  .v2-step__container[open] .v2-step__corner {
+    opacity: 1;
+  }
+
+  .v2-step:hover .v2-step__coord,
+  .v2-step:focus-within .v2-step__coord,
+  .v2-step__container[open] .v2-step__coord {
+    opacity: 1;
+  }
+
+  /* Reduced motion: snap, don't scan */
+  @media (prefers-reduced-motion: reduce) {
+    .v2-step__title, .v2-step__rule, .v2-step__cue,
+    .v2-step__reveal, .v2-step__marker, .v2-step__tick,
+    .v2-step__corner, .v2-step__coord {
+      transition: none !important;
+    }
+  }
+</style>

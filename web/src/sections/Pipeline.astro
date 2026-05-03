@@ -67,9 +67,7 @@ const steps = [
             <span class="step__cue mono" aria-hidden="true">+</span>
           </summary>
           <div class="step__reveal">
-            <div class="step__reveal-inner">
-              <p class="step__body">{s.body}</p>
-            </div>
+            <p class="step__body">{s.body}</p>
           </div>
         </details>
       </li>
@@ -253,24 +251,25 @@ const steps = [
     user-select: none;
   }
 
-  /* ---- The reveal: grid-template-rows 0fr → 1fr trick ---- */
+  /* ---- The reveal: opacity-only so layout never jumps -------------- *
+   * The description is ALWAYS rendered (we override the browser's
+   * `<details>:not([open])` hide), so the row reserves its full height
+   * up-front. Click toggles [open] without shifting any neighbouring
+   * cards. Hover and focus run the same effect.
+   */
   .step__reveal {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition:
-      grid-template-rows 360ms cubic-bezier(0.7, 0, 0.3, 1),
-      margin-block-start 360ms cubic-bezier(0.7, 0, 0.3, 1);
-    margin-block-start: 0;
-  }
-
-  .step__reveal-inner {
-    overflow: hidden;
-    min-block-size: 0;
+    margin-block-start: 0.6rem;
     opacity: 0;
     transform: translateY(-3px);
     transition:
-      opacity 280ms var(--ease) 100ms,
-      transform 280ms var(--ease) 100ms;
+      opacity 280ms var(--ease) 80ms,
+      transform 280ms var(--ease) 80ms;
+    pointer-events: none;
+  }
+
+  /* Override <details>'s default content-hide so layout stays stable. */
+  .step__container:not([open]) > .step__reveal {
+    display: block;
   }
 
   .step__body {
@@ -310,21 +309,15 @@ const steps = [
   .step:hover .step__reveal,
   .step:focus-within .step__reveal,
   .step__container[open] .step__reveal {
-    grid-template-rows: 1fr;
-    margin-block-start: 0.6rem;
-  }
-
-  .step:hover .step__reveal-inner,
-  .step:focus-within .step__reveal-inner,
-  .step__container[open] .step__reveal-inner {
     opacity: 1;
     transform: translateY(0);
+    pointer-events: auto;
   }
 
   /* ---- Reduced motion: snap, don't slide ---- */
   @media (prefers-reduced-motion: reduce) {
     .step__title, .step__rule, .step__cue,
-    .step__reveal, .step__reveal-inner, .step__marker {
+    .step__reveal, .step__marker {
       transition: none !important;
     }
   }

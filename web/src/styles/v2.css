@@ -87,6 +87,11 @@ body.edition-v2 .v2-section {
 
 body.edition-v2 main { counter-reset: v2-section 0; }
 
+/* Pipeline is the prelude (Ch 00) — don't bump the chapter counter so
+   Mission still becomes §01, not §02. */
+body.edition-v2 .v2-pipeline { counter-increment: none; }
+body.edition-v2 .v2-pipeline::before { content: "§ 00"; }
+
 body.edition-v2 .v2-section::before {
   content: "§ 0" counter(v2-section);
   position: absolute;

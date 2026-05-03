@@ -197,10 +197,17 @@ import heroImage from "../assets/hero.jpg";
     filter: contrast(1.04) saturate(0.95);
   }
 
+  /* Dark-mode: image as a framed photograph on the dark page, not an
+     inverted negative. Subtle darken + a hairline frame to set off
+     from the deep page surface. */
   @media (prefers-color-scheme: dark) {
     .hero__plate-img {
-      mix-blend-mode: screen;
-      filter: contrast(1.0) saturate(0.8) brightness(0.95) invert(0.92);
+      mix-blend-mode: normal;
+      filter: contrast(0.96) saturate(0.92) brightness(0.94);
+    }
+
+    .hero__plate {
+      box-shadow: 0 0 0 1px var(--rule-soft);
     }
   }
 

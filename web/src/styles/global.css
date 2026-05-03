@@ -169,10 +169,17 @@
   filter: contrast(1.04) saturate(0.95);
 }
 
+/* Dark-mode: drop the blend mode entirely. The cream/ink photograph
+   reads as a framed print on the dark page, not an inverted negative.
+   Slight darken to soften the contrast against a deep page surface. */
 @media (prefers-color-scheme: dark) {
   .plate img {
-    mix-blend-mode: screen;
-    filter: contrast(1.0) saturate(0.8) brightness(0.95) invert(0.92);
+    mix-blend-mode: normal;
+    filter: contrast(0.96) saturate(0.92) brightness(0.94);
+  }
+
+  .plate {
+    box-shadow: 0 0 0 1px var(--rule-soft);
   }
 }
 

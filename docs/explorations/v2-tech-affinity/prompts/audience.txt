@@ -1,0 +1,13 @@
+An ultra-detailed overhead macro photograph for a precision-printing catalogue. Same artist, same series as the inspr.at v2 portfolio.
+
+Composition: a long horizontal calibration strip — like a high-end film-stock grayscale reference target — that gradates smoothly along its length from warm cream-bone on the far left to deep warm ink-near-black on the far right. The transition is photometrically smooth, calibrated, like a Kodak Step Tablet, with a subtle photographic micro-texture visible across the entire tonal range. The strip fills the entire frame from left edge to right edge, top to bottom — there is no border, no card edge, just the calibrated material occupying the full image.
+
+Palette: warm cream (#E8E2D6) on the far left, gradating through warm tan, sienna, sepia, raw umber, deep ink-brown, to deep warm ink-near-black (#1A1714) on the far right. ALL WARM-TONED. NO blues, NO greens, NO bright saturated colours, NO cool tones.
+
+Light: even overhead studio light, soft enough that the texture of the surface remains visible across the full tonal range without crushing the dark end into solid black or blowing out the light end.
+
+Aesthetic: a precision photometric calibration reference made into a piece of editorial art.
+
+Hard exclusions: NO text, NO numerals, NO labels, NO scale marks, NO measurement notches, NO logos, NO recognisable letters. NO figures. NO digital painting look — the image must read as a real photograph of a calibrated material.
+
+Aspect ratio: 21:9 panoramic, ultrawide.

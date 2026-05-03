@@ -1,0 +1,13 @@
+An ultra-detailed long-exposure fine-art photograph for the cover of a serious technical monograph (think MIT Press, Lars Müller, Kodansha Tech).
+
+Composition: a single precise horizontal line of warm cream-coloured light traced across a deep matte black anodized aluminum surface. The line begins exactly at the left edge of the frame, traverses the centre, and ends exactly at the right edge — but with a subtle, almost imperceptible upward gesture toward the right, suggesting ascent without literal arrowing. The line is perfectly thin, perfectly bright, perfectly geometric. Below the line, the matte black aluminum surface shows tiny faint tooling marks like an extreme close-up of brushed metal grain. Above the line, deep dark negative space.
+
+Palette: deep matte ink-near-black (#0E0C0A) for the metal, warm cream-bone (#E8E2D6) for the light line. NO other colours.
+
+Light: the only luminous source is the line itself — long-exposure light trail; the surrounding metal is lit only by the faint reflection of the line. Studio macro photography, large-format film aesthetic.
+
+Aesthetic: precision engineering meets museum print. Calm, rigorous, serious. The aesthetic is a long-exposure photograph of a laser line scan or a pendulum trace, photographed by a master technical photographer.
+
+Hard exclusions: NO text, NO numerals, NO measurement marks, NO grid lines, NO recognisable letters or symbols, NO arrows, NO logos. NO figures, NO faces, NO hands. NO depth-of-field gimmicks. NO digital painting look — the image must read as a real long-exposure photograph of light on machined metal.
+
+Aspect ratio: 16:9, cinematic.

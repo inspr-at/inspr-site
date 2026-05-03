@@ -1,0 +1,223 @@
+---
+// v2 Agent Contract — image as right-edge gutter strip; rules occupy
+// the left content column. Image is a tall portrait of fine ceramic
+// hairlines (calibration-marks aesthetic).
+import { Image } from "astro:assets";
+import plateImg from "../assets/v2/contract.jpg";
+---
+
+<section class="v2-section v2-contract reveal-soft" id="agent-contract" aria-labelledby="contract-h">
+  <div class="v2-contract__grid">
+    <div class="v2-contract__main">
+      <header class="v2-contract__head">
+        <p class="marginalia v2-contract__chapter">
+          <span class="dim">Ch&nbsp;</span>03 &middot; The contract
+        </p>
+        <span class="v2-chapter-rule" aria-hidden="true"></span>
+        <h2 id="contract-h">Two rules. Bound the design space&nbsp;cleanly.</h2>
+        <p class="lede">
+          Any agent acting on an INSPR-managed fleet is bound by two
+          rules. Together they leave no room for either failure mode.
+        </p>
+      </header>
+
+      <ol class="v2-contract__rules">
+        <li class="v2-rule">
+          <p class="v2-rule__num mono"><span class="dim">Rule</span> 01</p>
+          <h3 class="v2-rule__title">
+            The agent never imperatively bypasses&nbsp;declarative.
+          </h3>
+          <div class="v2-rule__body">
+            <p>
+              Every effect on the fleet is either a draft of a
+              declarative artifact — nixcfg edit, agenix recipient list,
+              plan YAML — or a call to a typed Bosun verb. Direct
+              imperative ops are forbidden for agents.
+            </p>
+            <p>
+              If something can only be done imperatively today, that is
+              a Bosun-verb gap to file. Not a license to improvise.
+            </p>
+          </div>
+        </li>
+
+        <li class="v2-rule">
+          <p class="v2-rule__num mono"><span class="dim">Rule</span> 02</p>
+          <h3 class="v2-rule__title">
+            The user can always bypass the&nbsp;agent.
+          </h3>
+          <div class="v2-rule__body">
+            <p>
+              Every artifact the agent produces is in the same canonical
+              format an expert would hand-author: plain Nix, plain YAML
+              or JSON, plain Bosun verb invocations.
+            </p>
+            <p>
+              Hand-editing the draft, skipping the agent entirely, or
+              running the same verbs from a shell are first-class paths
+              — not fallbacks, not power-user flags.
+            </p>
+          </div>
+        </li>
+      </ol>
+
+      <p class="v2-contract__close">
+        The currency of fleet operations is declarative artifacts and
+        typed verbs. Humans and agents both spend it. Nobody has a
+        private mint.
+      </p>
+    </div>
+
+    <figure class="v2-plate v2-contract__plate">
+      <Image
+        src={plateImg}
+        alt=""
+        widths={[400, 600, 800, 1200]}
+        sizes="(min-width: 60rem) 26vw, 100vw"
+        formats={["avif", "webp", "jpeg"]}
+        quality={82}
+        loading="lazy"
+      />
+      <figcaption class="marginalia v2-contract__caption">
+        <span class="dim">§</span> 1.4 &middot; the two rules
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .v2-contract {
+    container-type: inline-size;
+    padding-inline: clamp(1.25rem, 5cqi, 4rem);
+    padding-block: clamp(4rem, 9cqi, 8rem);
+  }
+
+  .v2-contract__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(2rem, 5cqi, 3.5rem);
+  }
+
+  @container (inline-size > 60rem) {
+    .v2-contract__grid {
+      grid-template-columns: minmax(0, 2.7fr) minmax(0, 1fr);
+      column-gap: clamp(2rem, 5cqi, 4rem);
+      align-items: start;
+    }
+  }
+
+  .v2-contract__head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    margin-block-end: clamp(2rem, 4cqi, 3rem);
+  }
+
+  .v2-contract__chapter {
+    color: var(--text-faint);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-size: var(--t-xs);
+  }
+  .v2-contract__chapter .dim { opacity: 0.55; }
+
+  .v2-contract__head h2 {
+    font-size: var(--t-3xl);
+    margin: 0;
+  }
+
+  .v2-contract__head .lede { margin: 0; }
+
+  .v2-contract__rules {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: clamp(2rem, 5cqi, 3.5rem);
+  }
+
+  .v2-rule {
+    display: grid;
+    gap: 0.85rem;
+    grid-template-columns: minmax(0, 1fr);
+    border-block-start: 2px solid var(--text);
+    padding-block-start: 1.4rem;
+  }
+
+  @container (inline-size > 56rem) {
+    .v2-rule {
+      grid-template-columns: minmax(7rem, 0.22fr) minmax(0, 1fr);
+      column-gap: clamp(2rem, 4cqi, 3rem);
+      align-items: start;
+    }
+    .v2-rule__num   { grid-column: 1; grid-row: 1 / -1; }
+    .v2-rule__title { grid-column: 2; grid-row: 1; }
+    .v2-rule__body  { grid-column: 2; grid-row: 2; }
+  }
+
+  .v2-rule__num {
+    color: var(--accent);
+    font-size: var(--t-sm);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .v2-rule__num .dim {
+    color: var(--text-faint);
+    opacity: 0.55;
+    margin-inline-end: 0.4em;
+  }
+
+  .v2-rule__title {
+    font-size: var(--t-2xl);
+    line-height: 1.08;
+    margin: 0;
+    color: var(--text);
+  }
+
+  .v2-rule__body p {
+    color: var(--text-muted);
+    font-size: var(--t-base);
+    line-height: 1.6;
+    max-inline-size: 56ch;
+  }
+
+  .v2-rule__body p + p { margin-block-start: 0.85em; }
+
+  .v2-contract__close {
+    margin-block-start: clamp(2rem, 4cqi, 3rem);
+    font-family: var(--font-display);
+    font-variation-settings: "opsz" 36, "wght" 380, "SOFT" 30, "WONK" 0;
+    font-size: var(--t-xl);
+    line-height: 1.35;
+    color: var(--text);
+    max-inline-size: 60ch;
+    text-wrap: balance;
+    border-block-start: 1px solid var(--rule);
+    padding-block-start: clamp(1.5rem, 3cqi, 2.5rem);
+  }
+
+  /* Right-side gutter image */
+  .v2-contract__plate {
+    margin: 0;
+    aspect-ratio: 16 / 9;
+    inline-size: 100%;
+  }
+
+  @container (inline-size > 60rem) {
+    .v2-contract__plate {
+      aspect-ratio: 9 / 16;
+      max-block-size: 44rem;
+      position: sticky;
+      inset-block-start: clamp(2rem, 4vw, 4rem);
+    }
+  }
+
+  .v2-contract__caption {
+    margin-block-start: 0.6rem;
+    color: var(--text-faint);
+    text-align: end;
+  }
+</style>

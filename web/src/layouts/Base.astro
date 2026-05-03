@@ -12,11 +12,13 @@ import "../styles/global.css";
 interface Props {
   title?: string;
   description?: string;
+  bodyClass?: string;
 }
 
 const {
   title = "INSPR — upstream of any substrate",
   description = "A durable home for your wants — declarative at the centre, plural at the edges. INSPR outlives whichever agent, model, or tool happens to be in vogue.",
+  bodyClass = "",
 } = Astro.props;
 
 const siteOrigin = Astro.site?.toString().replace(/\/$/, "") ?? "https://inspr.at";
@@ -70,7 +72,7 @@ const canonical = `${siteOrigin}${Astro.url.pathname}`.replace(/\/$/, "") || sit
       ],
     })} />
   </head>
-  <body>
+  <body class={bodyClass}>
     <slot />
   </body>
 </html>

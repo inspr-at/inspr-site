@@ -1,0 +1,30 @@
+---
+import Base from "../../layouts/Base.astro";
+import EditionToggle from "../../components/EditionToggle.astro";
+import Hero from "../../sections-v2/Hero.astro";
+import Mission from "../../sections-v2/Mission.astro";
+import Pluralism from "../../sections-v2/Pluralism.astro";
+import AgentContract from "../../sections-v2/AgentContract.astro";
+import Artifacts from "../../sections-v2/Artifacts.astro";
+import Audience from "../../sections-v2/Audience.astro";
+import Footer from "../../sections-v2/Footer.astro";
+
+import "../../styles/v2.css";
+---
+
+<Base
+  title="INSPR — upstream of any substrate (ed. 02)"
+  description="Edition 02: a tech-affinity reading of the substrate-pluralist mission. Same content, different register."
+  bodyClass="edition-v2"
+>
+  <EditionToggle current="v2" />
+  <main id="top">
+    <Hero />
+    <Mission />
+    <Pluralism />
+    <AgentContract />
+    <Artifacts />
+    <Audience />
+  </main>
+  <Footer />
+</Base>

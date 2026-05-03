@@ -1,0 +1,132 @@
+---
+// v2 Mission — text-left, vertical companion image-right (NOT a banner).
+// Image is a tall portrait (laminate cross-section) that runs alongside
+// the body text as a compositional sibling.
+import { Image } from "astro:assets";
+import plateImg from "../assets/v2/mission.jpg";
+---
+
+<section class="v2-section v2-mission reveal-soft" id="mission" aria-labelledby="mission-h">
+  <div class="v2-mission__grid">
+    <div class="v2-mission__column">
+      <p class="marginalia v2-mission__chapter">
+        <span class="dim">Ch&nbsp;</span>01 &middot; The mission
+      </p>
+      <span class="v2-chapter-rule" aria-hidden="true"></span>
+      <h2 id="mission-h">The premise, briefly.</h2>
+
+      <div class="v2-mission__body has-dropcap">
+        <p>
+          Most platforms are built on a substrate. INSPR is built
+          <em>between</em> substrates. Whichever agent harness, model
+          provider, no-code editor, or paradigm is dominant in 2026 will
+          not be the same in 2030 — and anything built downstream of one
+          of those goes with it.
+        </p>
+        <p>
+          INSPR sits <strong>upstream</strong>. It is the durable place
+          where your wants live, get refined, and turn into things —
+          independent of which specific tool happens to be carrying the
+          weight today. Plural entrypoints around the edges. One
+          declarative truth in the middle.
+        </p>
+        <p>
+          A family member who wants the photos to sync. An operator who
+          wants to declare every byte across a hundred hosts. Both are
+          first-class users of the same platform.
+        </p>
+      </div>
+    </div>
+
+    <figure class="v2-plate v2-mission__plate">
+      <Image
+        src={plateImg}
+        alt=""
+        widths={[400, 600, 800, 1200]}
+        sizes="(min-width: 56rem) 32vw, 100vw"
+        formats={["avif", "webp", "jpeg"]}
+        quality={82}
+        loading="lazy"
+      />
+      <figcaption class="marginalia v2-mission__caption">
+        <span class="dim">§</span> 1.1 &middot; substrate-pluralism
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .v2-mission {
+    container-type: inline-size;
+    padding-inline: clamp(1.25rem, 5cqi, 4rem);
+    padding-block: clamp(4rem, 9cqi, 8rem);
+  }
+
+  .v2-mission__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(2rem, 5cqi, 3.5rem);
+  }
+
+  @container (inline-size > 56rem) {
+    .v2-mission__grid {
+      grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+      column-gap: clamp(2rem, 5cqi, 4rem);
+      align-items: start;
+    }
+  }
+
+  .v2-mission__column {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .v2-mission__chapter {
+    color: var(--text-faint);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-size: var(--t-xs);
+  }
+
+  .v2-mission__chapter .dim { opacity: 0.55; }
+
+  .v2-mission h2 {
+    font-size: var(--t-3xl);
+    margin: 0 0 0.4em;
+  }
+
+  .v2-mission__body p {
+    font-size: var(--t-lg);
+    line-height: 1.55;
+    color: var(--text);
+  }
+
+  .v2-mission__body p + p { margin-block-start: 1.15em; }
+
+  .v2-mission__body strong {
+    font-weight: 700;
+    font-style: normal;
+  }
+
+  /* The plate: tall portrait companion strip on wide; full-width 16:9 on narrow */
+  .v2-mission__plate {
+    margin: 0;
+    aspect-ratio: 16 / 9;
+    inline-size: 100%;
+  }
+
+  @container (inline-size > 56rem) {
+    .v2-mission__plate {
+      aspect-ratio: 9 / 16;
+      block-size: auto;
+      max-block-size: 38rem;
+    }
+  }
+
+  .v2-mission__caption {
+    margin-block-start: 0.6rem;
+    color: var(--text-faint);
+    text-align: end;
+  }
+</style>

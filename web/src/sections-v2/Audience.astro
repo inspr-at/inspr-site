@@ -1,0 +1,183 @@
+---
+// v2 Audience — image as backdrop behind the type-morph line.
+// The photometric calibration strip cream → ink mirrors the type's
+// SOFT-axis morph from soft to neoclassical. Image and type tell the
+// same story. Type sits ON the image with adequate contrast.
+import { Image } from "astro:assets";
+import plateImg from "../assets/v2/audience.jpg";
+---
+
+<section class="v2-section v2-audience reveal-soft" id="audience" aria-labelledby="audience-h">
+  <header class="v2-audience__head">
+    <p class="marginalia v2-audience__chapter">
+      <span class="dim">Ch&nbsp;</span>05 &middot; Audience
+    </p>
+    <span class="v2-chapter-rule" aria-hidden="true"></span>
+    <h2 id="audience-h">From end to end. <em>Same platform.</em></h2>
+    <p class="lede">
+      A family member who wants the photos to sync. An operator who
+      declares every byte across a hundred hosts. Both are first-class
+      users of INSPR. The platform sets neither persona above the other.
+    </p>
+  </header>
+
+  <div class="v2-audience__panel">
+    <Image
+      src={plateImg}
+      alt=""
+      widths={[768, 1280, 1920, 2560, 3200]}
+      sizes="100vw"
+      formats={["avif", "webp", "jpeg"]}
+      quality={82}
+      loading="lazy"
+      class="v2-audience__plate-img"
+    />
+
+    <p class="display v2-audience__line">
+      A family member who wants the photos to sync.
+      <span class="v2-audience__pivot" aria-hidden="true">&middot;</span>
+      An operator who declares every byte across a hundred hosts.
+    </p>
+  </div>
+
+  <ul class="v2-audience__contexts marginalia" aria-label="Five contexts">
+    <li><span class="dim">01</span> private</li>
+    <li><span class="dim">02</span> family</li>
+    <li><span class="dim">03</span> OSS / free</li>
+    <li><span class="dim">04</span> public&nbsp;paid</li>
+    <li><span class="dim">05</span> commercial</li>
+  </ul>
+</section>
+
+<style>
+  .v2-audience {
+    container-type: inline-size;
+    padding-inline: clamp(1.25rem, 5cqi, 4rem);
+    padding-block: clamp(4rem, 9cqi, 8rem);
+  }
+
+  .v2-audience__head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    max-inline-size: var(--measure-wide);
+    margin-block-end: clamp(2.5rem, 5cqi, 4rem);
+  }
+
+  .v2-audience__chapter {
+    color: var(--text-faint);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-size: var(--t-xs);
+  }
+  .v2-audience__chapter .dim { opacity: 0.55; }
+
+  .v2-audience__head h2 {
+    font-size: var(--t-3xl);
+    margin: 0;
+  }
+
+  .v2-audience__head h2 em {
+    font-style: italic;
+    color: var(--accent-strong);
+    font-variation-settings: "opsz" 144, "wght" 400, "SOFT" 18, "WONK" 0;
+  }
+
+  .v2-audience__head .lede { margin: 0; }
+
+  .v2-audience__panel {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border-radius: 4px;
+    margin-block-end: clamp(1.5rem, 3cqi, 2.5rem);
+    aspect-ratio: 21 / 9;
+    background-color: var(--bg-sunk);
+  }
+
+  .v2-audience__plate-img {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    z-index: 0;
+    mix-blend-mode: multiply;
+    filter: contrast(1.0) saturate(0.9);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .v2-audience__plate-img {
+      mix-blend-mode: normal;
+      filter: contrast(0.95) saturate(0.9) brightness(0.94);
+    }
+    .v2-audience__panel {
+      box-shadow: 0 0 0 1px var(--rule-soft);
+    }
+  }
+
+  .v2-audience__line {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    padding: clamp(1.5rem, 4cqi, 2.5rem) clamp(1.25rem, 3cqi, 2rem);
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3cqi + 0.5rem, 3.2rem);
+    line-height: 1.2;
+    color: var(--text);
+    text-wrap: pretty;
+    --fr-opsz: 144;
+    --fr-soft: 90;
+    --fr-wonk: 1;
+    font-variation-settings:
+      "opsz" var(--fr-opsz),
+      "wght" 380,
+      "SOFT" var(--fr-soft),
+      "WONK" var(--fr-wonk);
+    text-shadow:
+      0 0 16px oklch(from var(--bg) l c h / 0.55),
+      0 0 32px oklch(from var(--bg) l c h / 0.35);
+  }
+
+  @supports (animation-timeline: view()) {
+    .v2-audience__line {
+      animation: audience-shift both;
+      animation-timeline: view();
+      animation-range: cover 8% cover 92%;
+    }
+
+    @keyframes audience-shift {
+      from { --fr-soft: 90; --fr-wonk: 1; }
+      to   { --fr-soft: 15; --fr-wonk: 0; }
+    }
+  }
+
+  .v2-audience__pivot {
+    color: var(--accent);
+    margin-inline: 0.25em;
+  }
+
+  .v2-audience__contexts {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.4rem clamp(1.4rem, 3cqi, 2.6rem);
+    color: var(--text-faint);
+    border-block-start: 1px solid var(--rule-soft);
+    padding-block-start: 1.4rem;
+  }
+
+  .v2-audience__contexts li {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.45em;
+    white-space: nowrap;
+  }
+
+  .v2-audience__contexts .dim {
+    opacity: 0.55;
+    font-feature-settings: "tnum";
+  }
+</style>

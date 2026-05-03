@@ -1,5 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
+import EditionToggle from "../components/EditionToggle.astro";
 import Hero from "../sections/Hero.astro";
 import Mission from "../sections/Mission.astro";
 import Pluralism from "../sections/Pluralism.astro";
@@ -10,6 +11,7 @@ import Footer from "../sections/Footer.astro";
 ---
 
 <Base>
+  <EditionToggle current="v1" />
   <main id="top">
     <Hero />
     <Mission />

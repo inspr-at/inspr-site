@@ -1,0 +1,80 @@
+---
+// Edition toggle — fixed top-right pill linking between v1 and v2.
+// Pure HTML/CSS; no JS. URL is the source of truth.
+interface Props {
+  current: "v1" | "v2";
+}
+const { current } = Astro.props;
+---
+
+<aside class="edition" aria-label="Edition">
+  <a
+    class="edition__option mono"
+    href="/"
+    aria-current={current === "v1" ? "page" : undefined}
+  >
+    <span class="dim">ed.</span>01
+  </a>
+  <span class="edition__sep mono" aria-hidden="true">⇄</span>
+  <a
+    class="edition__option mono"
+    href="/v2/"
+    aria-current={current === "v2" ? "page" : undefined}
+  >
+    <span class="dim">ed.</span>02
+  </a>
+</aside>
+
+<style>
+  .edition {
+    position: fixed;
+    inset-block-start: clamp(0.85rem, 2vw, 1.4rem);
+    inset-inline-end: clamp(0.85rem, 2vw, 1.4rem);
+    z-index: 100;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.6em;
+    padding: 0.45em 0.85em;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background-color: oklch(from var(--bg) l c h / 0.78);
+    backdrop-filter: blur(10px) saturate(1.1);
+    -webkit-backdrop-filter: blur(10px) saturate(1.1);
+    font-size: var(--t-xs);
+    line-height: 1;
+    box-shadow: 0 1px 2px oklch(from var(--ink) l c h / 0.04);
+  }
+
+  .edition__option {
+    color: var(--text-faint);
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    transition: color var(--dur-quick) var(--ease);
+    padding-block: 0.15em;
+  }
+
+  .edition__option .dim {
+    opacity: 0.55;
+    margin-inline-end: 0.2em;
+  }
+
+  .edition__option[aria-current="page"] {
+    color: var(--accent);
+  }
+
+  .edition__option:hover,
+  .edition__option:focus-visible {
+    color: var(--text);
+  }
+
+  .edition__option[aria-current="page"]:hover,
+  .edition__option[aria-current="page"]:focus-visible {
+    color: var(--accent-strong);
+  }
+
+  .edition__sep {
+    color: var(--text-faint);
+    opacity: 0.45;
+    transform: translateY(-0.04em);
+  }
+</style>

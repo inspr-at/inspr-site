@@ -1,0 +1,164 @@
+/* v2 — tech-affinity overlay.
+ *
+ * Loaded on every page (small footprint), but every selector is scoped
+ * under `body.edition-v2` so v1 (`/`) is untouched. Activates only when
+ * Base.astro is rendered with bodyClass="edition-v2" — i.e., on /v2/.
+ *
+ * Adds:
+ *   - § N section ornaments (engineering-document convention) replacing v1's asterism
+ *   - persistent vertical column-rule grid behind body content
+ *   - tighter Fraunces axis presets across display + h2 + h3 + drop cap
+ *   - registration-mark corner accents at section boundaries
+ */
+
+/* ---- Persistent vertical grid behind body content ---------------------- *
+ * Engineering-document feel: a faint vertical column-rule pattern fixed
+ * to the viewport. Doesn't move on scroll. Below all content. CSS only.
+ */
+body.edition-v2::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(to right, var(--rule-soft) 1px, transparent 1px);
+  background-size: clamp(8rem, 12vw, 14rem) 100%;
+  background-position: 50% 0;
+  opacity: 0.32;
+  mix-blend-mode: multiply;
+}
+
+@media (prefers-color-scheme: dark) {
+  body.edition-v2::before {
+    mix-blend-mode: screen;
+    opacity: 0.14;
+  }
+}
+
+@media (max-width: 360px) {
+  body.edition-v2::before { display: none; }
+}
+
+body.edition-v2 main,
+body.edition-v2 footer {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- Tighter Fraunces axis presets (v2 only) -------------------------- */
+body.edition-v2 .display {
+  font-variation-settings:
+    "opsz" var(--fr-opsz, 144),
+    "wght" 380,
+    "SOFT" var(--fr-soft, 0),
+    "WONK" var(--fr-wonk, 0);
+  font-weight: 380;
+  line-height: 0.94;
+  letter-spacing: -0.025em;
+}
+
+body.edition-v2 h2 {
+  font-variation-settings: "opsz" 42, "wght" 440, "SOFT" 12, "WONK" 0;
+  letter-spacing: -0.018em;
+  line-height: 1.04;
+}
+
+body.edition-v2 h3 {
+  font-variation-settings: "opsz" 18, "wght" 480, "SOFT" 8, "WONK" 0;
+  letter-spacing: -0.012em;
+  line-height: 1.12;
+}
+
+body.edition-v2 .has-dropcap > p:first-of-type::first-letter {
+  font-variation-settings: "opsz" 144, "wght" 460, "SOFT" 18, "WONK" 0;
+  font-size: 4.4em;
+  line-height: 0.84;
+  margin-inline-end: 0.14em;
+}
+
+/* ---- § N section ornament (replaces v1's asterism on v2 pages) -------- *
+ * Pinned flush-left along the dividing rule between sections, in mono.
+ */
+body.edition-v2 .v2-section {
+  position: relative;
+  counter-increment: v2-section;
+}
+
+body.edition-v2 main { counter-reset: v2-section 0; }
+
+body.edition-v2 .v2-section::before {
+  content: "§ 0" counter(v2-section);
+  position: absolute;
+  inset-block-start: -0.65em;
+  inset-inline-start: clamp(1.25rem, 5cqi, 4rem);
+  font-family: var(--font-mono);
+  font-variation-settings: "wght" 420;
+  font-size: var(--t-xs);
+  letter-spacing: 0.18em;
+  color: var(--text-faint);
+  background-color: var(--bg);
+  padding-inline: 0.6em;
+  padding-block: 0.1em;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+  z-index: 5;
+}
+
+/* Hairline rule between sections, "interrupted" by the § N label. */
+body.edition-v2 .v2-section::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  block-size: 1px;
+  background: linear-gradient(
+    to right,
+    transparent 0,
+    var(--rule) 8%,
+    var(--rule) 92%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* Edition-v2 sections use their own ornament, not v1's asterism */
+body.edition-v2 .v2-section { border-block-start: 0; }
+
+/* ---- Image rendering: same fix as v1.0.1 (no inversion in dark mode) -- */
+body.edition-v2 .v2-plate {
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+  background-color: var(--bg-sunk);
+}
+
+body.edition-v2 .v2-plate img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  display: block;
+  mix-blend-mode: multiply;
+  filter: contrast(1.04) saturate(0.95);
+}
+
+@media (prefers-color-scheme: dark) {
+  body.edition-v2 .v2-plate img {
+    mix-blend-mode: normal;
+    filter: contrast(0.96) saturate(0.92) brightness(0.94);
+  }
+  body.edition-v2 .v2-plate {
+    box-shadow: 0 0 0 1px var(--rule-soft);
+  }
+}
+
+/* ---- Tech-affinity engineering rule across each chapter heading ------- */
+body.edition-v2 .v2-chapter-rule {
+  display: block;
+  block-size: 1px;
+  background: var(--rule);
+  inline-size: 4rem;
+  margin-block-end: 1.2em;
+}

@@ -1,0 +1,241 @@
+---
+// v2 Pluralism — image AS the convergence diagram.
+// The CSS box-flow diagram from v1 is replaced by the photographic
+// channels image, with type labels positioned on either side via grid.
+import { Image } from "astro:assets";
+import plateImg from "../assets/v2/pluralism.jpg";
+---
+
+<section class="v2-section v2-pluralism reveal-soft" id="pluralism" aria-labelledby="pluralism-h">
+  <header class="v2-pluralism__head">
+    <p class="marginalia v2-pluralism__chapter">
+      <span class="dim">Ch&nbsp;</span>02 &middot; Pluralism
+    </p>
+    <span class="v2-chapter-rule" aria-hidden="true"></span>
+    <h2 id="pluralism-h">Two axes. One canonical&nbsp;artifact.</h2>
+    <p class="lede">
+      A single fixed abstraction excludes one population. A single
+      fixed harness excludes most of the ecosystem. The architectural
+      answer is plural along two axes — and byte-identical artifacts
+      however you got there.
+    </p>
+  </header>
+
+  <div class="v2-pluralism__axes">
+    <article class="v2-axis">
+      <p class="v2-axis__label marginalia">Axis &middot; α</p>
+      <h3>Harness pluralism</h3>
+      <p>
+        Multiple peer agent harnesses sit behind an INSPR-defined
+        protocol. None is the foundation. Each adapter is welcomed;
+        none is owed.
+      </p>
+    </article>
+
+    <article class="v2-axis">
+      <p class="v2-axis__label marginalia">Axis &middot; β</p>
+      <h3>Abstraction pluralism</h3>
+      <p>
+        Multiple entrypoints produce the same canonical artifacts. The
+        agent never bypasses declarative. The user can always bypass
+        the agent.
+      </p>
+    </article>
+  </div>
+
+  <figure class="v2-pluralism__diagram">
+    <ul class="v2-pluralism__inputs marginalia" aria-label="Plural entrypoints">
+      <li><span class="dim">in&nbsp;01</span> conversational agent</li>
+      <li><span class="dim">in&nbsp;02</span> declarative authoring</li>
+      <li><span class="dim">in&nbsp;03</span> direct verb calls</li>
+    </ul>
+
+    <div class="v2-plate v2-pluralism__image">
+      <Image
+        src={plateImg}
+        alt="Three precision-machined channels enter from the left of a polished slab, converge on a single circular well at the centre, and three new channels diverge to the right edge."
+        widths={[600, 900, 1200, 1600]}
+        sizes="(min-width: 60rem) 50vw, 100vw"
+        formats={["avif", "webp", "jpeg"]}
+        quality={82}
+        loading="lazy"
+      />
+      <span class="v2-pluralism__pivot mono" aria-hidden="true">canonical&nbsp;artifact</span>
+    </div>
+
+    <ul class="v2-pluralism__outputs marginalia" aria-label="Downstream consumers">
+      <li><span class="dim">out 01</span> fleet apply</li>
+      <li><span class="dim">out 02</span> git history</li>
+      <li><span class="dim">out 03</span> audit / replay</li>
+    </ul>
+
+    <figcaption class="v2-pluralism__cap marginalia">
+      The platform&rsquo;s currency is declarative artifacts and typed verbs.
+      Humans and agents both spend it. Nobody has a private mint.
+    </figcaption>
+  </figure>
+</section>
+
+<style>
+  .v2-pluralism {
+    container-type: inline-size;
+    padding-inline: clamp(1.25rem, 5cqi, 4rem);
+    padding-block: clamp(4rem, 9cqi, 8rem);
+  }
+
+  .v2-pluralism__head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    max-inline-size: var(--measure-wide);
+    margin-block-end: clamp(2rem, 4cqi, 3.5rem);
+  }
+
+  .v2-pluralism__chapter {
+    color: var(--text-faint);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-size: var(--t-xs);
+  }
+  .v2-pluralism__chapter .dim { opacity: 0.55; }
+
+  .v2-pluralism__head h2 {
+    font-size: var(--t-3xl);
+    margin: 0;
+  }
+
+  .v2-pluralism__head .lede { margin: 0; }
+
+  /* Axis cards — same structure as v1 */
+  .v2-pluralism__axes {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(1.5rem, 4cqi, 2.5rem);
+    margin-block-end: clamp(2.5rem, 5cqi, 4rem);
+  }
+
+  @container (inline-size > 50rem) {
+    .v2-pluralism__axes {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: clamp(2.5rem, 5cqi, 4rem);
+    }
+  }
+
+  .v2-axis {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    border-block-start: 1px solid var(--rule);
+    padding-block-start: 1.2rem;
+  }
+
+  .v2-axis__label {
+    color: var(--accent);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-size: var(--t-xs);
+    margin: 0;
+  }
+
+  .v2-axis h3 { margin: 0; }
+
+  .v2-axis p {
+    color: var(--text-muted);
+    margin: 0;
+    max-inline-size: 48ch;
+  }
+
+  /* The diagram: image as centre, mono labels left and right */
+  .v2-pluralism__diagram {
+    display: grid;
+    margin: 0;
+    gap: 1.5rem;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "img"
+      "in"
+      "out"
+      "cap";
+  }
+
+  @container (inline-size > 60rem) {
+    .v2-pluralism__diagram {
+      grid-template-columns: minmax(8rem, 1fr) minmax(0, 2.4fr) minmax(8rem, 1fr);
+      grid-template-areas:
+        "in img out"
+        "cap cap cap";
+      align-items: center;
+      column-gap: clamp(1rem, 3cqi, 2.5rem);
+    }
+  }
+
+  .v2-pluralism__image {
+    grid-area: img;
+    aspect-ratio: 16 / 9;
+    inline-size: 100%;
+    position: relative;
+  }
+
+  .v2-pluralism__pivot {
+    position: absolute;
+    inset-inline-start: 50%;
+    inset-block-start: 50%;
+    transform: translate(-50%, -50%);
+    font-size: var(--t-xs);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent-strong);
+    background-color: oklch(from var(--bg) l c h / 0.85);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    padding: 0.4em 0.85em;
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .v2-pluralism__inputs,
+  .v2-pluralism__outputs {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.55em;
+    color: var(--text-muted);
+  }
+
+  .v2-pluralism__inputs { grid-area: in; }
+  .v2-pluralism__outputs { grid-area: out; }
+
+  .v2-pluralism__inputs li,
+  .v2-pluralism__outputs li {
+    display: flex;
+    gap: 0.6em;
+    align-items: baseline;
+  }
+
+  @container (inline-size > 60rem) {
+    .v2-pluralism__inputs li {
+      justify-content: end;
+      text-align: end;
+    }
+  }
+
+  .v2-pluralism__inputs .dim,
+  .v2-pluralism__outputs .dim {
+    color: var(--text-faint);
+    opacity: 0.55;
+    font-feature-settings: "tnum";
+  }
+
+  .v2-pluralism__cap {
+    grid-area: cap;
+    color: var(--text-faint);
+    max-inline-size: 56ch;
+    text-align: center;
+    margin-inline: auto;
+    line-height: 1.55;
+    margin-block-start: 1rem;
+  }
+</style>

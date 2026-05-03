@@ -109,30 +109,28 @@
   position: relative;
 }
 
+/* CSS-drawn ember dot centred on each section's hairline rule.
+   The 0.55em halo of bg-color masks the line directly behind the dot
+   so the break reads as `———— • ————`, interrupted, not as a line
+   passing through the dot. */
 .mission::before,
 .pluralism::before,
 .contract::before,
 .artifacts::before,
 .audience::before {
-  content: "✻";
+  content: "";
   position: absolute;
   inset-block-start: 0;
-  inset-inline: 0;
-  margin-block-start: -0.7em;
-  text-align: center;
-  font-family: var(--font-display);
-  font-variation-settings: "opsz" 36, "wght" 380, "SOFT" 80, "WONK" 0;
+  inset-inline-start: 50%;
+  transform: translate(-50%, -50%);
+  inline-size: 0.42em;
+  block-size: 0.42em;
+  background-color: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 0 0.55em var(--bg);
   font-size: var(--t-base);
-  color: var(--accent);
-  background-color: var(--bg);
-  inline-size: fit-content;
-  margin-inline: auto;
-  padding-inline: 0.6em;
-  line-height: 1;
   pointer-events: none;
   user-select: none;
-  letter-spacing: 0.4em;
-  text-indent: 0.4em; /* compensate the trailing tracking */
 }
 
 /* The footer doesn't take an asterism — it's the closing colophon. */

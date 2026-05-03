@@ -5,7 +5,7 @@
 // Sources of truth:
 //   architecture.md §1.6, §1.7  → Bosun verb set, fleet decision agent
 //   playbook.md "Automation horizon" → FleetCom + Bosun
-//   inspr-modules public flake (Day 2-3 in playbook) → Pattern β proof
+//   inspr-modules public flake → modular composition validated
 //
 // Status vocabulary:
 //   live        — running daily today
@@ -26,8 +26,8 @@ const artifacts = [
     name: "FleetCom",
     tagline: "Declarative fleet management plane",
     status: "in flight",
-    body: "The control plane that keeps an INSPR fleet in sync. Host-class profiles, declarative apply, and a registry of typed verbs. Runs at fleet.barta.cm in the personal context; opens to BYTEPOETS and family contexts as their adapter shape stabilises.",
-    link: null,
+    body: "The control plane that keeps an INSPR fleet in sync. Host-class profiles, declarative apply, and a registry of typed verbs. Public source; runs in the personal context today, opens to company and family contexts as their adapter shape stabilises.",
+    link: { href: "https://github.com/markus-barta/fleetcom", label: "github.com/…/fleetcom" },
   },
   {
     name: "Bosun",
@@ -40,7 +40,7 @@ const artifacts = [
     name: "inspr-modules",
     tagline: "Public flake of reusable modules",
     status: "live",
-    body: "Mechanics public, values per-context. The same module — Tailscale-on-Headscale, agenix bootstrap, dev-tool bundles — composes into a personal nixcfg, a BYTEPOETS internal flake, a family flake, future paid contexts. Pattern β, validated by two structurally-different consumers.",
+    body: "Mechanics public, values per-context. The same module — Tailscale-on-Headscale, agenix bootstrap, dev-tool bundles — composes into a personal nixcfg, a company-internal flake, a family flake, future paid contexts. Validated by two structurally-different consumers.",
     link: null,
   },
 ];

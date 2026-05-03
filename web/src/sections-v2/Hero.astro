@@ -115,7 +115,11 @@ import heroImage from "../assets/v2/hero.jpg";
     display: flex;
     flex-direction: column;
     gap: clamp(1.5rem, 3.4cqi, 3rem);
-    max-inline-size: 64ch;
+    /* 92ch matches v1; 64ch sat right at the boundary where
+       text-wrap: balance broke the H1 onto 4 lines. The lede has its
+       own 56ch constraint, so widening the wrapper only affects the
+       hero H1's wrap budget. */
+    max-inline-size: 92ch;
     z-index: 1;
   }
 

@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""Verify the SHA-256 CSP hash pinned in Caddyfile.v1 matches the inline
-JSON-LD body Astro is currently producing.
+"""Verify every inline <script> across all built pages has its SHA-256
+hash pinned in Caddyfile's CSP `script-src` directive.
 
-Run after every change to Base.astro's JSON-LD payload, OR before deploy:
-    python3 web/scripts/verify-csp.py
+Walks web/dist/**/*.html, computes hashes for every inline <script>
+(skipping external src= scripts), and asserts each one appears in the
+Caddyfile. Exit non-zero on any drift; prints the missing hashes for
+paste-in.
 
-Exit 0 = match. Exit 1 = drift; updated hash printed to stderr for paste-in.
+Run before any deploy that touches Base.astro, JSON-LD content, or any
+inlined script body.
 """
 from __future__ import annotations
 
@@ -16,36 +19,71 @@ import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
-DIST = ROOT / "web" / "dist" / "index.html"
-# Post-launch the active config lives at ./Caddyfile (Caddyfile.v1 was
-# promoted in place during the v1 deploy).
+DIST = ROOT / "web" / "dist"
 CADDYFILE = ROOT / "Caddyfile"
 
 if not DIST.exists():
     sys.exit(f"missing build output: {DIST}\nrun `cd web && npm run build` first")
 
-html = DIST.read_text(encoding="utf-8")
-match = re.search(
-    r'<script type="application/ld\+json">(.*?)</script>',
-    html,
+caddy = CADDYFILE.read_text(encoding="utf-8")
+pinned = set(re.findall(r"sha256-[A-Za-z0-9+/=]+", caddy))
+
+# Match <script ...>BODY</script> where BODY is non-empty and there is
+# no src= attribute (those are external, served from origin under 'self').
+INLINE_SCRIPT = re.compile(
+    r'<script(?P<attrs>(?:\s[^>]*)?)>(?P<body>.*?)</script>',
     re.S,
 )
-if not match:
-    sys.exit("no inline JSON-LD <script> found in dist/index.html")
 
-body = match.group(1)
-digest = hashlib.sha256(body.encode("utf-8")).digest()
-expected = "sha256-" + base64.b64encode(digest).decode("ascii")
+found: dict[str, list[str]] = {}  # hash → list of (file, kind, size) descriptors
+problems: list[str] = []
 
-caddy = CADDYFILE.read_text(encoding="utf-8")
-if expected in caddy:
-    print(f"OK  {expected} matches Caddyfile.v1", file=sys.stderr)
+for html_path in sorted(DIST.rglob("*.html")):
+    rel = html_path.relative_to(DIST)
+    html = html_path.read_text(encoding="utf-8")
+    for m in INLINE_SCRIPT.finditer(html):
+        attrs = m.group("attrs") or ""
+        body = m.group("body")
+        if not body.strip():
+            continue
+        if "src=" in attrs:
+            continue  # external; covered by 'self'
+        digest = hashlib.sha256(body.encode("utf-8")).digest()
+        b64 = base64.b64encode(digest).decode("ascii")
+        token = f"sha256-{b64}"
+        kind = (
+            "json-ld" if "@context" in body
+            else "theme-init" if "inspr-theme" in body
+            else "other"
+        )
+        found.setdefault(token, []).append(f"{rel}  {kind}  {len(body)}B")
+
+if not found:
+    print("WARN: no inline scripts found in dist", file=sys.stderr)
     sys.exit(0)
 
-# Drift: surface the new hash and the old one for diffing.
-old_hashes = re.findall(r"sha256-[A-Za-z0-9+/=]+", caddy)
-print("DRIFT — Caddyfile.v1 needs updating:", file=sys.stderr)
-print(f"  expected: {expected}", file=sys.stderr)
-for o in old_hashes:
-    print(f"  pinned:   {o}", file=sys.stderr)
-sys.exit(1)
+for token, occurrences in sorted(found.items()):
+    if token in pinned:
+        print(f"OK  {token}")
+        for o in occurrences:
+            print(f"    {o}")
+    else:
+        problems.append(token)
+        print(f"FAIL {token}  NOT PINNED IN CADDYFILE", file=sys.stderr)
+        for o in occurrences:
+            print(f"    {o}", file=sys.stderr)
+
+if problems:
+    print("", file=sys.stderr)
+    print("Add the following to script-src in Caddyfile:", file=sys.stderr)
+    for p in problems:
+        print(f"  '{p}'", file=sys.stderr)
+    sys.exit(1)
+
+# Also report any hashes pinned in Caddyfile that no longer appear in any
+# inline script — safe to remove.
+pinned_unused = [p for p in pinned if p not in found]
+if pinned_unused:
+    print("\nNote: pinned hashes no longer used (can be removed):", file=sys.stderr)
+    for p in pinned_unused:
+        print(f"  {p}", file=sys.stderr)

@@ -1,0 +1,39 @@
+---
+// Toolbar — fixed top-right shell that hosts the theme switch + the
+// edition toggle. Same pill-style language as each control; tighter
+// gap between them, no internal divider needed because each is its
+// own pill.
+import ThemeSwitch from "./ThemeSwitch.astro";
+import EditionToggle from "./EditionToggle.astro";
+
+interface Props {
+  edition: "v1" | "v2";
+}
+const { edition } = Astro.props;
+---
+
+<div class="toolbar" role="toolbar" aria-label="Site controls">
+  <ThemeSwitch />
+  <EditionToggle current={edition} />
+</div>
+
+<style is:global>
+  /* The Toolbar wrapper positions; child components define their own pill
+     visual. We override the EditionToggle's fixed positioning so it can
+     ride alongside the ThemeSwitch in a single fixed bar. */
+  .toolbar {
+    position: fixed;
+    inset-block-start: clamp(0.85rem, 2vw, 1.4rem);
+    inset-inline-end: clamp(0.85rem, 2vw, 1.4rem);
+    z-index: 100;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Strip the EditionToggle's own fixed positioning when inside .toolbar
+     (it was designed for solo use on first round). */
+  .toolbar .edition {
+    position: static;
+  }
+</style>

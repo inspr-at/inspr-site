@@ -116,11 +116,10 @@ import heroImage from "../assets/hero.jpg";
     animation: hero-soften var(--dur-bloom) var(--ease) 220ms forwards;
   }
 
-  .hero__h1:hover,
-  .hero__h1:focus-visible {
-    --fr-wonk: 1;
-    cursor: text;
-  }
+  /* No hover gimmick on the wordmark — the page-load SOFT-axis bloom
+     is the meaningful interaction; hover on body type just shows the
+     text cursor. */
+  .hero__h1 { cursor: text; }
 
   .hero__lede {
     margin: 0;

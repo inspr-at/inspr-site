@@ -1,25 +1,56 @@
 /* Design tokens.
- * Cream daylight + ink-dark, dual-mode via prefers-color-scheme.
+ * Cream daylight + ink-dark, dual-mode.
  * OKLCH everywhere; the only saturation in the system is the ember accent.
+ *
+ * Theme resolution:
+ *   - auto (default): prefers-color-scheme governs.
+ *   - data-theme="light": forces light, even on dark systems.
+ *   - data-theme="dark":  forces dark,  even on light systems.
+ *
+ * Each token holds both its light AND dark variant under namespaced
+ * --_*-light / --_*-dark vars, then aliases to the active one. Override
+ * blocks just swap the alias targets — values defined once.
  */
 @layer tokens {
   :root {
-    /* ---- Surfaces (cream daylight) ------------------------------------ */
-    --surface:        oklch(96.5% 0.013 80);
-    --surface-sunk:   oklch(94.6% 0.014 78);
-    --surface-raised: oklch(98.4% 0.010 84);
+    /* ---- Light variants ----------------------------------------------- */
+    --_surface-light:        oklch(96.5% 0.013 80);
+    --_surface-sunk-light:   oklch(94.6% 0.014 78);
+    --_surface-raised-light: oklch(98.4% 0.010 84);
+    --_ink-light:        oklch(20% 0.012 50);
+    --_ink-soft-light:   oklch(36% 0.010 52);
+    --_ink-dim-light:    oklch(58% 0.008 60);
+    --_line-light:       oklch(82% 0.010 70);
+    --_line-soft-light:  oklch(89% 0.008 70);
+    --_ember-light:         oklch(64% 0.18 38);
+    --_ember-strong-light:  oklch(58% 0.20 36);
+    --_ember-soft-light:    oklch(78% 0.10 40);
 
-    /* ---- Ink ---------------------------------------------------------- */
-    --ink:        oklch(20% 0.012 50);
-    --ink-soft:   oklch(36% 0.010 52);
-    --ink-dim:    oklch(58% 0.008 60);
-    --line:       oklch(82% 0.010 70);
-    --line-soft:  oklch(89% 0.008 70);
+    /* ---- Dark variants ----------------------------------------------- */
+    --_surface-dark:        oklch(13% 0.010 60);
+    --_surface-sunk-dark:   oklch(10% 0.008 58);
+    --_surface-raised-dark: oklch(16.5% 0.012 62);
+    --_ink-dark:        oklch(92% 0.014 80);
+    --_ink-soft-dark:   oklch(78% 0.012 76);
+    --_ink-dim-dark:    oklch(58% 0.010 70);
+    --_line-dark:       oklch(28% 0.010 65);
+    --_line-soft-dark:  oklch(22% 0.008 65);
+    --_ember-dark:         oklch(70% 0.17 40);
+    --_ember-strong-dark:  oklch(76% 0.19 38);
+    --_ember-soft-dark:    oklch(50% 0.12 42);
 
-    /* ---- Ember accent (the only true colour in the system) ------------ */
-    --ember:         oklch(64% 0.18 38);
-    --ember-strong:  oklch(58% 0.20 36);
-    --ember-soft:    oklch(78% 0.10 40);
+    /* ---- Active aliases (default to LIGHT; overridden below) --------- */
+    --surface:        var(--_surface-light);
+    --surface-sunk:   var(--_surface-sunk-light);
+    --surface-raised: var(--_surface-raised-light);
+    --ink:        var(--_ink-light);
+    --ink-soft:   var(--_ink-soft-light);
+    --ink-dim:    var(--_ink-dim-light);
+    --line:       var(--_line-light);
+    --line-soft:  var(--_line-soft-light);
+    --ember:         var(--_ember-light);
+    --ember-strong:  var(--_ember-strong-light);
+    --ember-soft:    var(--_ember-soft-light);
 
     /* ---- Semantic aliases (sections consume these, never raw values) -- */
     --text:           var(--ink);
@@ -62,23 +93,42 @@
     color-scheme: light;
   }
 
+  /* ---- Dark resolution -------------------------------------------------
+   * 1. System dark + user hasn't forced light → dark.
+   * 2. User explicitly chose dark → dark (overrides light system too).
+   * Both paths swap the alias targets to dark variants. Values defined once.
+   */
   @media (prefers-color-scheme: dark) {
-    :root {
-      --surface:        oklch(13% 0.010 60);
-      --surface-sunk:   oklch(10% 0.008 58);
-      --surface-raised: oklch(16.5% 0.012 62);
-
-      --ink:        oklch(92% 0.014 80);
-      --ink-soft:   oklch(78% 0.012 76);
-      --ink-dim:    oklch(58% 0.010 70);
-      --line:       oklch(28% 0.010 65);
-      --line-soft:  oklch(22% 0.008 65);
-
-      --ember:         oklch(70% 0.17 40);
-      --ember-strong:  oklch(76% 0.19 38);
-      --ember-soft:    oklch(50% 0.12 42);
+    :root:not([data-theme="light"]) {
+      --surface:        var(--_surface-dark);
+      --surface-sunk:   var(--_surface-sunk-dark);
+      --surface-raised: var(--_surface-raised-dark);
+      --ink:        var(--_ink-dark);
+      --ink-soft:   var(--_ink-soft-dark);
+      --ink-dim:    var(--_ink-dim-dark);
+      --line:       var(--_line-dark);
+      --line-soft:  var(--_line-soft-dark);
+      --ember:         var(--_ember-dark);
+      --ember-strong:  var(--_ember-strong-dark);
+      --ember-soft:    var(--_ember-soft-dark);
 
       color-scheme: dark;
     }
+  }
+
+  :root[data-theme="dark"] {
+    --surface:        var(--_surface-dark);
+    --surface-sunk:   var(--_surface-sunk-dark);
+    --surface-raised: var(--_surface-raised-dark);
+    --ink:        var(--_ink-dark);
+    --ink-soft:   var(--_ink-soft-dark);
+    --ink-dim:    var(--_ink-dim-dark);
+    --line:       var(--_line-dark);
+    --line-soft:  var(--_line-soft-dark);
+    --ember:         var(--_ember-dark);
+    --ember-strong:  var(--_ember-strong-dark);
+    --ember-soft:    var(--_ember-soft-dark);
+
+    color-scheme: dark;
   }
 }

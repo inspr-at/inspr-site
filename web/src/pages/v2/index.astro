@@ -1,6 +1,6 @@
 ---
 import Base from "../../layouts/Base.astro";
-import EditionToggle from "../../components/EditionToggle.astro";
+import Toolbar from "../../components/Toolbar.astro";
 import Hero from "../../sections-v2/Hero.astro";
 import Mission from "../../sections-v2/Mission.astro";
 import Pluralism from "../../sections-v2/Pluralism.astro";
@@ -17,7 +17,7 @@ import "../../styles/v2.css";
   description="Edition 02: a tech-affinity reading of the substrate-pluralist mission. Same content, different register."
   bodyClass="edition-v2"
 >
-  <EditionToggle current="v2" />
+  <Toolbar edition="v2" />
   <main id="top">
     <Hero />
     <Mission />

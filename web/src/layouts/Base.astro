@@ -57,6 +57,12 @@ const canonical = `${siteOrigin}${Astro.url.pathname}`.replace(/\/$/, "") || sit
 
     <meta name="generator" content={Astro.generator} />
 
+    {/* Pre-paint theme init: read localStorage and apply [data-theme]
+        before first render to prevent FOUC. Must stay byte-stable —
+        its SHA-256 is pinned in Caddyfile's CSP script-src list. Any
+        edit here requires re-running scripts/verify-csp.py. */}
+    <script is:inline set:html={`(function(){try{var t=localStorage.getItem('inspr-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}})();`} />
+
     <script type="application/ld+json" is:inline set:html={JSON.stringify({
       "@context": "https://schema.org",
       "@type": "Organization",

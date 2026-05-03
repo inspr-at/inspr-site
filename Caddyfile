@@ -21,12 +21,13 @@
 		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
 		Cross-Origin-Opener-Policy "same-origin"
 		Cross-Origin-Resource-Policy "same-origin"
-		# script-src: 'self' covers our hashed asset bundle (none on v1, but
-		# kept for view-transition fallback js if added later) + the
-		# SHA-256 hash of the inline JSON-LD Organization payload in
-		# src/layouts/Base.astro. Recompute via:
-		#   python3 web/scripts/verify-csp.py  (writes new hash to stderr)
-		Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; script-src 'self' 'sha256-m1oZ+c962dAU/hl4PW1RH/9IRS93TjhsGDA7JYYIXXk='; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
+		# script-src hashes pinned (recompute via web/scripts/verify-csp.py):
+		#   sha256-DSv7vgLSN1bj36CyJzlHeafVeifZaqgNDlDDlgnScFY=  pre-paint theme-init   (Base.astro inline)
+		#   sha256-m1oZ+c962dAU/hl4PW1RH/9IRS93TjhsGDA7JYYIXXk=  v1 JSON-LD Organization
+		#   sha256-eBDjGmuPzGRCCoF4yQvT6pfwxCBCv1hXC7FU0FDEu9o=  v2 JSON-LD Organization
+		# Click-handler script for the theme switch lives at /scripts/theme-switch.js
+		# (external, served from origin, allowed under script-src 'self').
+		Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; script-src 'self' 'sha256-DSv7vgLSN1bj36CyJzlHeafVeifZaqgNDlDDlgnScFY=' 'sha256-m1oZ+c962dAU/hl4PW1RH/9IRS93TjhsGDA7JYYIXXk=' 'sha256-eBDjGmuPzGRCCoF4yQvT6pfwxCBCv1hXC7FU0FDEu9o='; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
 		-Server
 	}
 

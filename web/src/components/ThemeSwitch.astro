@@ -1,0 +1,85 @@
+---
+// ThemeSwitch — three-state cycle: auto → light → dark → auto.
+// Persistent via localStorage (key 'inspr-theme'), survives reloads
+// and cross-document View Transitions.
+//
+// Behaviour split:
+//   - FOUC prevention: an inline pre-paint script in Base.astro reads
+//     the stored preference and sets [data-theme] on <html> BEFORE first
+//     render. That script is tiny + hash-pinned in CSP.
+//   - Click handler: shipped as /scripts/theme-switch.js (external file
+//     in /public/), allowed by CSP `script-src 'self'` without a hash.
+//     Kept external so editing the handler doesn't churn the CSP.
+---
+
+<button
+  type="button"
+  class="theme-switch"
+  aria-label="Theme: cycle auto / light / dark"
+  data-theme-switch
+>
+  <span class="theme-switch__icon theme-switch__icon--auto" aria-hidden="true">◑</span>
+  <span class="theme-switch__icon theme-switch__icon--light" aria-hidden="true">○</span>
+  <span class="theme-switch__icon theme-switch__icon--dark" aria-hidden="true">●</span>
+  <span class="theme-switch__label" data-theme-label>auto</span>
+</button>
+
+<script is:inline src="/scripts/theme-switch.js" defer></script>
+
+<style>
+  .theme-switch {
+    appearance: none;
+    background-color: oklch(from var(--bg) l c h / 0.78);
+    backdrop-filter: blur(10px) saturate(1.1);
+    -webkit-backdrop-filter: blur(10px) saturate(1.1);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 0.45em 0.85em;
+    font-family: var(--font-mono);
+    font-size: var(--t-xs);
+    line-height: 1;
+    color: var(--text-faint);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    transition:
+      color var(--dur-quick) var(--ease),
+      border-color var(--dur-quick) var(--ease);
+    box-shadow: 0 1px 2px oklch(from var(--ink) l c h / 0.04);
+  }
+
+  .theme-switch:hover,
+  .theme-switch:focus-visible {
+    color: var(--text);
+    border-color: var(--text-muted);
+  }
+
+  .theme-switch__icon {
+    display: none;
+    line-height: 1;
+    transform: translateY(-0.04em);
+    color: var(--accent);
+  }
+
+  /* Default state (no JS yet): show 'auto' icon */
+  [data-theme-switch] .theme-switch__icon--auto { display: inline; }
+
+  /* Once JS sets data-theme-state, show only the active icon */
+  [data-theme-switch][data-theme-state="auto"] .theme-switch__icon--auto,
+  [data-theme-switch][data-theme-state="light"] .theme-switch__icon--light,
+  [data-theme-switch][data-theme-state="dark"] .theme-switch__icon--dark {
+    display: inline;
+  }
+
+  [data-theme-switch][data-theme-state="auto"] .theme-switch__icon:not(.theme-switch__icon--auto),
+  [data-theme-switch][data-theme-state="light"] .theme-switch__icon:not(.theme-switch__icon--light),
+  [data-theme-switch][data-theme-state="dark"] .theme-switch__icon:not(.theme-switch__icon--dark) {
+    display: none;
+  }
+
+  .theme-switch__label {
+    letter-spacing: 0.08em;
+    text-transform: lowercase;
+  }
+</style>

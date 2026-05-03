@@ -1,0 +1,195 @@
+---
+// Pipeline — five-step horizontal flow showing how a fuzzy human want
+// becomes a declared, applied, replayable artifact. Sits between Hero
+// and Mission. Pure CSS; container-query layout (5-up wide → stacked
+// narrow).
+//
+// The continuous hairline across all cells is drawn by the parent OL's
+// ::before; each step's mono "step 0N" marker interrupts the line via
+// background-color halo (same pattern as the section-break dot).
+
+const steps = [
+  {
+    n: "01",
+    title: "Want",
+    body: "Fuzzy human intent. A CI runner. A collection to organise. Photos to sync.",
+  },
+  {
+    n: "02",
+    title: "Refine",
+    body: "A conversation with an agent, a hand-authored draft, or a direct verb call. The platform does not care which.",
+  },
+  {
+    n: "03",
+    title: "Declare",
+    body: "A canonical artifact emerges. Plain Nix, plain YAML, plain verb invocations. Byte-identical regardless of entrypoint.",
+  },
+  {
+    n: "04",
+    title: "Apply",
+    body: "Typed verbs hit the fleet. A host comes online. A secret rekeys. A service starts.",
+  },
+  {
+    n: "05",
+    title: "Replay",
+    body: "git history is the audit trail. Any state is reproducible from any commit.",
+  },
+];
+---
+
+<section class="pipeline reveal-soft" id="pipeline" aria-labelledby="pipeline-h">
+  <header class="pipeline__head">
+    <p class="marginalia pipeline__chapter">
+      <span class="dim">Ch&nbsp;</span>00 &middot; The pipeline
+    </p>
+    <h2 id="pipeline-h">From a want, to a&nbsp;thing.</h2>
+    <p class="lede">
+      Five steps from fuzzy intent to declarative truth — the
+      platform&rsquo;s plural entrypoints collapsing into a single
+      canonical artifact in the middle, then fanning back out to a
+      reproducible state on the fleet.
+    </p>
+  </header>
+
+  <ol class="pipeline__steps" aria-label="Five-step flow">
+    {steps.map((s, i) => (
+      <li class="step">
+        <span class="step__marker mono"><span class="dim">step&nbsp;</span>{s.n}</span>
+        <h3 class="step__title">{s.title}</h3>
+        <p class="step__body">{s.body}</p>
+      </li>
+    ))}
+  </ol>
+</section>
+
+<style>
+  .pipeline {
+    container-type: inline-size;
+    padding-inline: clamp(1.25rem, 5cqi, 4rem);
+    padding-block: clamp(4rem, 9cqi, 8rem);
+    border-block-start: 1px solid var(--rule-soft);
+  }
+
+  .pipeline__head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    max-inline-size: var(--measure-wide);
+    margin-block-end: clamp(2.5rem, 5cqi, 4rem);
+  }
+
+  .pipeline__chapter {
+    color: var(--text-faint);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-size: var(--t-xs);
+  }
+  .pipeline__chapter .dim { opacity: 0.55; }
+
+  .pipeline__head h2 {
+    font-size: var(--t-3xl);
+    margin: 0;
+  }
+
+  .pipeline__head .lede { margin: 0; }
+
+  /* ---- Steps ---- */
+  .pipeline__steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(1.5rem, 3cqi, 2.5rem);
+    position: relative;
+  }
+
+  @container (inline-size > 56rem) {
+    .pipeline__steps {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      column-gap: clamp(1rem, 2cqi, 1.6rem);
+      row-gap: 0;
+      padding-block-start: 1.6rem;
+    }
+
+    /* Continuous hairline across all 5 cells at the top of the row */
+    .pipeline__steps::before {
+      content: "";
+      position: absolute;
+      inset-block-start: 0;
+      inset-inline: 0;
+      block-size: 1px;
+      background: var(--rule);
+      pointer-events: none;
+    }
+  }
+
+  .step {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    /* Narrow: each step has its own hairline above */
+    border-block-start: 1px solid var(--rule);
+    padding-block-start: 1.2rem;
+  }
+
+  @container (inline-size > 56rem) {
+    .step {
+      border-block-start: 0;
+      padding-block-start: 0;
+    }
+  }
+
+  .step__marker {
+    font-size: var(--t-xs);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    line-height: 1;
+    margin: 0;
+  }
+
+  .step__marker .dim {
+    color: var(--text-faint);
+    opacity: 0.55;
+    margin-inline-end: 0.3em;
+  }
+
+  /* On wide: lift the marker onto the parent's hairline, with bg halo
+     to mask the line directly behind it. */
+  @container (inline-size > 56rem) {
+    .step__marker {
+      position: absolute;
+      inset-block-start: 0;
+      inset-inline-start: 0;
+      transform: translateY(-50%);
+      background-color: var(--bg);
+      padding-inline-end: 0.7em;
+      padding-block: 0.05em;
+    }
+  }
+
+  .step__title {
+    font-family: var(--font-display);
+    font-variation-settings: "opsz" 36, "wght" 460, "SOFT" 30, "WONK" 0;
+    font-size: var(--t-xl);
+    line-height: 1.05;
+    margin: 0;
+    color: var(--text);
+  }
+
+  @container (inline-size > 56rem) {
+    .step__title {
+      margin-block-start: 0.4rem;
+    }
+  }
+
+  .step__body {
+    color: var(--text-muted);
+    font-size: var(--t-sm);
+    line-height: 1.55;
+    margin: 0;
+    max-inline-size: 24ch;
+  }
+</style>

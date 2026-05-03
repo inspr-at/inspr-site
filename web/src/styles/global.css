@@ -101,6 +101,7 @@
  * every section that has chapter framing — Mission, Pluralism, Agent
  * Contract, Artifacts, Audience.
  */
+.pipeline,
 .mission,
 .pluralism,
 .contract,
@@ -113,6 +114,7 @@
    The 0.55em halo of bg-color masks the line directly behind the dot
    so the break reads as `———— • ————`, interrupted, not as a line
    passing through the dot. */
+.pipeline::before,
 .mission::before,
 .pluralism::before,
 .contract::before,

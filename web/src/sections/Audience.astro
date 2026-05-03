@@ -1,0 +1,158 @@
+---
+// Audience — the user spectrum, embodied in type.
+// As the section scrolls into view, the Fraunces SOFT and WONK axes ease
+// from soft+whimsical (family-end) to neoclassical+sober (operator-end).
+// The type itself shows the spectrum. CSS only.
+import { Image } from "astro:assets";
+import plateImg from "../assets/audience.jpg";
+---
+
+<section class="audience reveal-soft" id="audience" aria-labelledby="audience-h">
+  <figure class="plate">
+    <Image
+      src={plateImg}
+      alt=""
+      widths={[768, 1024, 1376, 1920, 2560]}
+      sizes="(min-width: 60rem) 80vw, 100vw"
+      formats={["avif", "webp", "jpeg"]}
+      quality={82}
+      loading="lazy"
+    />
+  </figure>
+
+  <header class="audience__head">
+    <p class="marginalia audience__chapter">
+      <span class="dim">Ch&nbsp;</span>05 &middot; Audience
+    </p>
+    <h2 id="audience-h">From end to end. <em>Same platform.</em></h2>
+    <p class="lede">
+      A family member who wants the photos to sync. An operator who
+      declares every byte across a hundred hosts. Both are first-class
+      users of INSPR. The platform sets neither persona above the other.
+    </p>
+  </header>
+
+  <p class="audience__line display">
+    A family member who wants the photos to sync.
+    <span class="audience__pivot" aria-hidden="true">&middot;</span>
+    An operator who declares every byte across a hundred hosts.
+  </p>
+
+  <ul class="audience__contexts marginalia" aria-label="Five contexts">
+    <li><span class="dim">01</span> private</li>
+    <li><span class="dim">02</span> family</li>
+    <li><span class="dim">03</span> OSS / free</li>
+    <li><span class="dim">04</span> public&nbsp;paid</li>
+    <li><span class="dim">05</span> commercial</li>
+  </ul>
+</section>
+
+<style>
+  .audience {
+    container-type: inline-size;
+    padding-inline: clamp(1.25rem, 5cqi, 4rem);
+    padding-block: clamp(4rem, 9cqi, 8rem);
+    border-block-start: 1px solid var(--rule-soft);
+  }
+
+  .audience__head {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-inline-size: var(--measure-wide);
+    margin-block-end: clamp(2.5rem, 5cqi, 4rem);
+  }
+
+  .audience__chapter {
+    color: var(--text-faint);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-size: var(--t-xs);
+  }
+  .audience__chapter .dim { opacity: 0.55; }
+
+  .audience__head h2 {
+    font-size: var(--t-3xl);
+    margin: 0;
+  }
+
+  .audience__head h2 em {
+    font-style: italic;
+    color: var(--accent-strong);
+    font-variation-settings: "opsz" 144, "wght" 380, "SOFT" 80, "WONK" 1;
+  }
+
+  .audience__head .lede { margin: 0; }
+
+  /* The spectrum line — Fraunces with scroll-driven SOFT/WONK shift. */
+  .audience__line {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 3.4cqi + 0.5rem, 3.4rem);
+    line-height: 1.18;
+    color: var(--text);
+    max-inline-size: var(--measure-wide);
+    text-wrap: pretty;
+    --fr-opsz: 144;
+    --fr-soft: 90;
+    --fr-wonk: 1;
+    font-variation-settings:
+      "opsz" var(--fr-opsz),
+      "wght" 380,
+      "SOFT" var(--fr-soft),
+      "WONK" var(--fr-wonk);
+    margin-block-end: clamp(2rem, 4cqi, 3rem);
+  }
+
+  /* Scroll-driven axis morph: as the section is scrolled through,
+     soft/whimsical → neoclassical/sober. The TYPE shows the spectrum. */
+  @supports (animation-timeline: view()) {
+    .audience__line {
+      animation: audience-shift both;
+      animation-timeline: view();
+      animation-range: cover 8% cover 92%;
+    }
+
+    @keyframes audience-shift {
+      from {
+        --fr-soft: 90;
+        --fr-wonk: 1;
+      }
+      to {
+        /* Endpoint keeps a hint of warmth at the operator end —
+           SOFT 15 not SOFT 0 — so the line never feels severe. */
+        --fr-soft: 15;
+        --fr-wonk: 0;
+      }
+    }
+  }
+
+  .audience__pivot {
+    color: var(--accent);
+    margin-inline: 0.25em;
+    font-feature-settings: "ss01";
+  }
+
+  .audience__contexts {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.4rem clamp(1.4rem, 3cqi, 2.6rem);
+    color: var(--text-faint);
+    border-block-start: 1px solid var(--rule-soft);
+    padding-block-start: 1.4rem;
+  }
+
+  .audience__contexts li {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.45em;
+    white-space: nowrap;
+  }
+
+  .audience__contexts .dim {
+    opacity: 0.55;
+    font-feature-settings: "tnum";
+  }
+</style>

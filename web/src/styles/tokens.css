@@ -1,0 +1,84 @@
+/* Design tokens.
+ * Cream daylight + ink-dark, dual-mode via prefers-color-scheme.
+ * OKLCH everywhere; the only saturation in the system is the ember accent.
+ */
+@layer tokens {
+  :root {
+    /* ---- Surfaces (cream daylight) ------------------------------------ */
+    --surface:        oklch(96.5% 0.013 80);
+    --surface-sunk:   oklch(94.6% 0.014 78);
+    --surface-raised: oklch(98.4% 0.010 84);
+
+    /* ---- Ink ---------------------------------------------------------- */
+    --ink:        oklch(20% 0.012 50);
+    --ink-soft:   oklch(36% 0.010 52);
+    --ink-dim:    oklch(58% 0.008 60);
+    --line:       oklch(82% 0.010 70);
+    --line-soft:  oklch(89% 0.008 70);
+
+    /* ---- Ember accent (the only true colour in the system) ------------ */
+    --ember:         oklch(64% 0.18 38);
+    --ember-strong:  oklch(58% 0.20 36);
+    --ember-soft:    oklch(78% 0.10 40);
+
+    /* ---- Semantic aliases (sections consume these, never raw values) -- */
+    --text:           var(--ink);
+    --text-muted:     var(--ink-soft);
+    --text-faint:     var(--ink-dim);
+    --bg:             var(--surface);
+    --bg-raised:      var(--surface-raised);
+    --bg-sunk:        var(--surface-sunk);
+    --rule:           var(--line);
+    --rule-soft:      var(--line-soft);
+    --accent:         var(--ember);
+    --accent-strong:  var(--ember-strong);
+    --accent-soft:    var(--ember-soft);
+
+    /* ---- Rhythm & space (fluid, container-aware) ---------------------- */
+    --measure:        62ch;
+    --measure-wide:   84ch;
+    --gutter:         clamp(1.25rem, 4cqi, 3rem);
+    --rhythm:         clamp(0.75rem, 1.5cqi, 1.25rem);
+
+    /* ---- Type scale (clamp() bounded by VW + ch) ---------------------- */
+    --t-xs:    clamp(0.78rem, 0.4vw + 0.68rem, 0.875rem);
+    --t-sm:    clamp(0.9rem, 0.4vw + 0.8rem, 1rem);
+    --t-base:  clamp(1.04rem, 0.5vw + 0.92rem, 1.18rem);
+    --t-lg:    clamp(1.18rem, 0.7vw + 1rem, 1.42rem);
+    --t-xl:    clamp(1.42rem, 1vw + 1.1rem, 1.85rem);
+    --t-2xl:   clamp(1.85rem, 1.6vw + 1.4rem, 2.6rem);
+    --t-3xl:   clamp(2.4rem, 2.6vw + 1.6rem, 3.8rem);
+    --hero:    clamp(3.2rem, 9.5vw + 0.5rem, 11rem);
+
+    /* ---- Motion ------------------------------------------------------- */
+    --ease:        cubic-bezier(0.2, 0.7, 0, 1);
+    --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in:     cubic-bezier(0.7, 0, 0.84, 0);
+    --dur-quick:   180ms;
+    --dur-medium:  420ms;
+    --dur-slow:    900ms;
+    --dur-bloom:   1600ms;
+
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface:        oklch(13% 0.010 60);
+      --surface-sunk:   oklch(10% 0.008 58);
+      --surface-raised: oklch(16.5% 0.012 62);
+
+      --ink:        oklch(92% 0.014 80);
+      --ink-soft:   oklch(78% 0.012 76);
+      --ink-dim:    oklch(58% 0.010 70);
+      --line:       oklch(28% 0.010 65);
+      --line-soft:  oklch(22% 0.008 65);
+
+      --ember:         oklch(70% 0.17 40);
+      --ember-strong:  oklch(76% 0.19 38);
+      --ember-soft:    oklch(50% 0.12 42);
+
+      color-scheme: dark;
+    }
+  }
+}

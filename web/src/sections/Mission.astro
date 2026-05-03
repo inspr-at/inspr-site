@@ -1,0 +1,162 @@
+---
+// Mission — the substrate-pluralist thesis, editorially set.
+// Three columns at >56rem container: chapter head · body · engineering-log marginalia.
+import { Image } from "astro:assets";
+import plateImg from "../assets/mission.jpg";
+---
+
+<section class="mission reveal-soft" id="mission" aria-labelledby="mission-h">
+  <figure class="plate">
+    <Image
+      src={plateImg}
+      alt=""
+      widths={[768, 1024, 1376, 1920]}
+      sizes="(min-width: 60rem) 80vw, 100vw"
+      formats={["avif", "webp", "jpeg"]}
+      quality={82}
+      loading="lazy"
+    />
+  </figure>
+
+  <div class="mission__grid">
+    <header class="mission__head">
+      <p class="marginalia mission__chapter">
+        <span class="dim">Ch&nbsp;</span>01 &middot; The mission
+      </p>
+      <h2 id="mission-h">The premise, briefly.</h2>
+    </header>
+
+    <div class="mission__body has-dropcap">
+      <p>
+        Most platforms are built on a substrate. INSPR is built
+        <em>between</em> substrates. Whichever agent harness, model
+        provider, no-code editor, or paradigm is dominant in 2026 will
+        not be the same in 2030 — and anything built downstream of one
+        of those goes with it.
+      </p>
+      <p>
+        INSPR sits <strong>upstream</strong>. It is the durable place
+        where your wants live, get refined, and turn into things —
+        independent of which specific tool happens to be carrying the
+        weight today. Plural entrypoints around the edges. One
+        declarative truth in the middle.
+      </p>
+      <p>
+        A family member who wants the photos to sync. An operator who
+        wants to declare every byte across a hundred hosts. Both are
+        first-class users of the same platform. Neither is the primary
+        persona to the exclusion of the other.
+      </p>
+    </div>
+
+    <aside class="mission__margin marginalia" aria-hidden="true">
+      <dl>
+        <dt>§</dt><dd>1.1</dd>
+        <dt>decided</dt><dd>2026&middot;05&middot;03</dd>
+        <dt>status</dt><dd>provisional<br/>but stable enough<br/>to design against</dd>
+        <dt>cf.</dt><dd>architecture.md</dd>
+      </dl>
+    </aside>
+  </div>
+</section>
+
+<style>
+  .mission {
+    container-type: inline-size;
+    padding-inline: clamp(1.25rem, 5cqi, 4rem);
+    padding-block: clamp(4rem, 9cqi, 8rem);
+    border-block-start: 1px solid var(--rule-soft);
+  }
+
+  .mission__grid {
+    display: grid;
+    gap: clamp(1.25rem, 3cqi, 2.5rem);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @container (inline-size > 56rem) {
+    .mission__grid {
+      grid-template-columns:
+        minmax(0, 0.62fr)
+        minmax(0, 1fr)
+        minmax(8rem, 0.32fr);
+      column-gap: clamp(2rem, 4cqi, 4rem);
+      align-items: start;
+    }
+  }
+
+  .mission__head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .mission__chapter {
+    color: var(--text-faint);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-size: var(--t-xs);
+  }
+
+  .mission__chapter .dim {
+    opacity: 0.55;
+  }
+
+  .mission__head h2 {
+    font-size: var(--t-3xl);
+    margin: 0;
+  }
+
+  .mission__body {
+    max-inline-size: var(--measure-wide);
+  }
+
+  .mission__body p {
+    font-size: var(--t-lg);
+    line-height: 1.55;
+    color: var(--text);
+  }
+
+  .mission__body p + p { margin-block-start: 1.15em; }
+
+  .mission__body strong {
+    font-weight: 700;
+    font-style: normal;
+    color: var(--text);
+  }
+
+  .mission__margin {
+    color: var(--text-faint);
+    align-self: start;
+    display: none;
+  }
+
+  @container (inline-size > 56rem) {
+    .mission__margin {
+      display: block;
+      border-inline-start: 1px solid var(--rule-soft);
+      padding-inline-start: clamp(1rem, 2cqi, 1.5rem);
+    }
+  }
+
+  .mission__margin dl {
+    display: grid;
+    gap: 0.4rem;
+    grid-template-columns: 1fr;
+    margin: 0;
+  }
+
+  .mission__margin dt {
+    color: var(--text-faint);
+    opacity: 0.55;
+    margin-block-start: 0.85em;
+    font-size: var(--t-xs);
+  }
+
+  .mission__margin dt:first-child { margin-block-start: 0; }
+
+  .mission__margin dd {
+    margin: 0;
+    line-height: 1.4;
+  }
+</style>

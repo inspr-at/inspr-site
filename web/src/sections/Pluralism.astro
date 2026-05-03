@@ -1,0 +1,328 @@
+---
+// Pluralism — two axes (harness × abstraction) + a CSS-only convergence
+// diagram showing plural entrypoints flowing through one canonical artifact.
+import { Image } from "astro:assets";
+import plateImg from "../assets/pluralism.png";
+---
+
+<section class="pluralism reveal-soft" id="pluralism" aria-labelledby="pluralism-h">
+  <figure class="plate">
+    <Image
+      src={plateImg}
+      alt=""
+      widths={[768, 1024, 1376, 1920]}
+      sizes="(min-width: 60rem) 80vw, 100vw"
+      formats={["avif", "webp", "jpeg"]}
+      quality={82}
+      loading="lazy"
+    />
+  </figure>
+
+  <header class="pluralism__head">
+    <p class="marginalia pluralism__chapter">
+      <span class="dim">Ch&nbsp;</span>02 &middot; Pluralism
+    </p>
+    <h2 id="pluralism-h">Two axes. One canonical&nbsp;artifact.</h2>
+    <p class="lede">
+      A single fixed abstraction excludes one population. A single
+      fixed harness excludes most of the ecosystem. The architectural
+      answer is plural along two axes — and byte-identical artifacts
+      however you got there.
+    </p>
+  </header>
+
+  <div class="pluralism__axes">
+    <article class="axis">
+      <p class="axis__label marginalia">Axis &middot; α</p>
+      <h3>Harness pluralism</h3>
+      <p>
+        Multiple peer agent harnesses — Claude Code, opencode,
+        Flue, a future local-model harness — sit behind an
+        INSPR-defined protocol. None is the foundation of the
+        platform. Each adapter is welcomed; none is owed.
+      </p>
+      <ul class="axis__list mono">
+        <li>privacy &amp; IP — work that can&rsquo;t leave the machine</li>
+        <li>availability — when a hosted vendor goes down or sanctions you</li>
+        <li>local-model preference — running fully on your own iron</li>
+      </ul>
+    </article>
+
+    <article class="axis">
+      <p class="axis__label marginalia">Axis &middot; β</p>
+      <h3>Abstraction pluralism</h3>
+      <p>
+        Multiple entrypoints — conversational agent, declarative
+        authoring, direct verb calls — produce the same canonical
+        artifacts. The agent never bypasses declarative. The user
+        can always bypass the agent.
+      </p>
+      <ul class="axis__list mono">
+        <li>family member — &ldquo;just make the photos sync&rdquo;</li>
+        <li>operator — declares every byte; reviews like a PR</li>
+        <li>both — first-class on the same substrate</li>
+      </ul>
+    </article>
+  </div>
+
+  <figure class="convergence">
+    <div
+      class="convergence__board"
+      role="img"
+      aria-label="Three plural entrypoints — conversational agent, declarative authoring, direct verb calls — converge into one canonical artifact, which then fans out to fleet apply, git history, and audit replay."
+    >
+      <div class="convergence__col convergence__col--in">
+        <span class="convergence__node">conversational agent</span>
+        <span class="convergence__node">declarative authoring</span>
+        <span class="convergence__node">direct verb calls</span>
+      </div>
+
+      <div class="convergence__pivot-wrap" aria-hidden="true">
+        <span class="convergence__pivot">canonical&nbsp;artifact</span>
+      </div>
+
+      <div class="convergence__col convergence__col--out">
+        <span class="convergence__node">fleet apply</span>
+        <span class="convergence__node">git history</span>
+        <span class="convergence__node">audit / replay</span>
+      </div>
+
+      <svg
+        class="convergence__arrows"
+        viewBox="0 0 1000 300"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <defs>
+          <marker id="cv-arrow" viewBox="0 0 10 10" refX="8" refY="5"
+                  markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+          </marker>
+        </defs>
+        {/* In-arrows: 3 plural inputs converge to the pivot */}
+        <path d="M 320,60  C 420,60  420,150 480,150" />
+        <path d="M 320,150 C 420,150 460,150 480,150" />
+        <path d="M 320,240 C 420,240 420,150 480,150" />
+        {/* Out-arrows: pivot fans out to 3 consumers */}
+        <path d="M 520,150 C 580,150 580,60  680,60" />
+        <path d="M 520,150 C 580,150 540,150 680,150" />
+        <path d="M 520,150 C 580,150 580,240 680,240" />
+      </svg>
+    </div>
+
+    <figcaption class="convergence__cap marginalia">
+      The platform&rsquo;s currency is declarative artifacts and typed verbs.
+      Humans and agents both spend it. Nobody has a private mint.
+    </figcaption>
+  </figure>
+</section>
+
+<style>
+  .pluralism {
+    container-type: inline-size;
+    padding-inline: clamp(1.25rem, 5cqi, 4rem);
+    padding-block: clamp(4rem, 9cqi, 8rem);
+    border-block-start: 1px solid var(--rule-soft);
+  }
+
+  .pluralism__head {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-inline-size: var(--measure-wide);
+    margin-block-end: clamp(2.5rem, 5cqi, 4.5rem);
+  }
+
+  .pluralism__chapter {
+    color: var(--text-faint);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-size: var(--t-xs);
+  }
+  .pluralism__chapter .dim { opacity: 0.55; }
+
+  .pluralism__head h2 {
+    font-size: var(--t-3xl);
+    margin: 0;
+  }
+
+  .pluralism__head .lede { margin: 0; }
+
+  /* ---- Axis cards ---- */
+  .pluralism__axes {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(2rem, 4cqi, 3rem);
+    margin-block-end: clamp(3rem, 6cqi, 5rem);
+  }
+
+  @container (inline-size > 50rem) {
+    .pluralism__axes {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: clamp(2.5rem, 5cqi, 4rem);
+    }
+  }
+
+  .axis {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    border-block-start: 1px solid var(--rule);
+    padding-block-start: 1.4rem;
+  }
+
+  .axis__label {
+    color: var(--accent);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-size: var(--t-xs);
+    margin: 0;
+  }
+
+  .axis h3 { margin: 0; }
+
+  .axis p {
+    color: var(--text-muted);
+    margin: 0;
+    max-inline-size: 48ch;
+  }
+
+  .axis__list {
+    list-style: none;
+    padding: 0 0 0 0.9em;
+    margin: 0.4rem 0 0;
+    color: var(--text-faint);
+    display: grid;
+    gap: 0.55em;
+    font-size: var(--t-sm);
+    border-inline-start: 1px solid var(--rule-soft);
+  }
+
+  /* ---- Convergence diagram ---- */
+  .convergence {
+    margin: 0;
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .convergence__board {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    gap: 1rem;
+    padding: clamp(1.5rem, 3cqi, 2.5rem);
+    border: 1px solid var(--rule-soft);
+    background-color: var(--bg-raised);
+    border-radius: 6px;
+    container-type: inline-size;
+    position: relative;
+    overflow: hidden;
+  }
+
+  @container (inline-size > 44rem) {
+    .convergence__board {
+      grid-template-columns: 1fr auto 1fr;
+      gap: clamp(1.5rem, 4cqi, 3rem);
+    }
+  }
+
+  /* Connecting arrow layer — sits behind nodes, above the board surface. */
+  .convergence__arrows {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    color: var(--rule);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.25;
+    stroke-linecap: round;
+    pointer-events: none;
+    z-index: 0;
+    /* Hidden on narrow boards (single column, no flow to draw). */
+    display: none;
+  }
+
+  @container (inline-size > 44rem) {
+    .convergence__arrows { display: block; }
+    .convergence__arrows path { marker-end: url(#cv-arrow); }
+  }
+
+  /* Stroke-draw on enter — the arrows trace as the figure scrolls in. */
+  @supports (animation-timeline: view()) {
+    .convergence__arrows path {
+      stroke-dasharray: 200;
+      stroke-dashoffset: 200;
+      animation: cv-trace both;
+      animation-timeline: view();
+      animation-range: entry 10% entry 80%;
+    }
+    @keyframes cv-trace {
+      to { stroke-dashoffset: 0; }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .convergence__arrows path {
+      stroke-dashoffset: 0 !important;
+      animation: none !important;
+    }
+  }
+
+  /* Make sure node columns sit ABOVE the SVG arrow layer. */
+  .convergence__col,
+  .convergence__pivot-wrap {
+    position: relative;
+    z-index: 1;
+  }
+
+  .convergence__col {
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .convergence__col--in .convergence__node,
+  .convergence__col--out .convergence__node {
+    font-family: var(--font-mono);
+    font-size: var(--t-sm);
+    color: var(--text-muted);
+    padding: 0.5em 0.85em;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    background-color: var(--bg);
+  }
+
+  @container (inline-size > 44rem) {
+    .convergence__col--in .convergence__node {
+      text-align: end;
+    }
+  }
+
+  .convergence__pivot-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .convergence__pivot {
+    font-family: var(--font-display);
+    font-variation-settings: "opsz" 36, "wght" 460, "SOFT" 50, "WONK" 0;
+    font-size: var(--t-xl);
+    color: var(--accent-strong);
+    text-align: center;
+    padding: clamp(0.7rem, 2cqi, 1.2rem) clamp(1rem, 3cqi, 1.8rem);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    background-color: oklch(from var(--accent) l c h / 0.06);
+    white-space: nowrap;
+    line-height: 1;
+  }
+
+  .convergence__cap {
+    color: var(--text-faint);
+    max-inline-size: 56ch;
+    text-align: center;
+    margin-inline: auto;
+    line-height: 1.55;
+  }
+</style>

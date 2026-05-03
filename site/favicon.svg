@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="INSPR">
+  <style>
+    .stem { fill: #1A1714; }
+    .dot  { fill: #C24E1F; }
+    @media (prefers-color-scheme: dark) {
+      .stem { fill: #E8E2D6; }
+      .dot  { fill: #E0743F; }
+    }
+  </style>
+  <circle class="dot" cx="16" cy="7.4" r="3.4"/>
+  <rect class="stem" x="12.7" y="13.4" width="6.6" height="14.8" rx="0.4"/>
+</svg>

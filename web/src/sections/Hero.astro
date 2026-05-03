@@ -1,0 +1,277 @@
+---
+// Hero — asymmetric editorial composition.
+// Left col: type (eyebrow, h1 with Fraunces SOFT/WONK animation, lede, CTAs).
+// Right col: full-bleed atmospheric plate (Nano Banana Pro generated).
+// Marginalia: overlaid bottom-right of plate column.
+import { Image } from "astro:assets";
+import heroImage from "../assets/hero.jpg";
+---
+
+<section class="hero" aria-label="INSPR">
+  <div class="hero__inner">
+    <p class="hero__eyebrow mono">
+      <span class="hero__mark" aria-hidden="true">▋</span>
+      <span>inspr.at</span>
+    </p>
+
+    <h1 class="display hero__h1">Upstream of the&nbsp;substrate.</h1>
+
+    <p class="lede hero__lede">
+      A durable home for your wants — declarative at the centre,
+      plural at the edges. INSPR outlives whichever agent, model,
+      or tool happens to be in vogue.
+    </p>
+
+    <nav class="hero__nav" aria-label="Primary">
+      <a class="hero__cta" href="#agent-contract">
+        <span>Read the architecture</span>
+        <span class="hero__cta-mark" aria-hidden="true">→</span>
+      </a>
+      <a class="hero__cta hero__cta--quiet" href="#artifacts">
+        <span>Index of artifacts</span>
+      </a>
+    </nav>
+  </div>
+
+  <figure class="hero__plate">
+    <Image
+      src={heroImage}
+      alt=""
+      widths={[768, 1024, 1376, 1920]}
+      sizes="(min-width: 60rem) 42vw, 100vw"
+      formats={["avif", "webp", "jpeg"]}
+      quality={82}
+      loading="eager"
+      fetchpriority="high"
+      class="hero__plate-img"
+    />
+    <figcaption class="hero__margin marginalia" aria-hidden="true">
+      <ul>
+        <li><span class="dim">v</span>1.0</li>
+        <li><span class="dim">date</span> 2026·05</li>
+        <li><span class="dim">mode</span> cream / ink</li>
+        <li><span class="dim">type</span> Fraunces / Inria&nbsp;Sans</li>
+      </ul>
+    </figcaption>
+  </figure>
+</section>
+
+<style>
+  .hero {
+    container-type: inline-size;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-content: center;
+    padding-inline: clamp(1.25rem, 5cqi, 4rem);
+    padding-block: clamp(3rem, 8cqi, 7rem);
+    position: relative;
+    isolation: isolate;
+    gap: clamp(2rem, 5cqi, 3.5rem);
+    min-block-size: 92dvh;
+  }
+
+  /* Two-column at 60rem+: type left, atmospheric plate right (full-bleed). */
+  @container (inline-size > 60rem) {
+    .hero {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      grid-template-rows: minmax(86dvh, auto);
+      column-gap: clamp(2rem, 4cqi, 4rem);
+      padding-inline-end: 0;
+    }
+  }
+
+  .hero__inner {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1.5rem, 3.4cqi, 3rem);
+    max-inline-size: 92ch;
+  }
+
+  .hero__eyebrow {
+    font-size: var(--t-xs);
+    color: var(--text-faint);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+  }
+
+  .hero__mark {
+    color: var(--accent);
+    transform: translateY(0.04em);
+    font-feature-settings: "ss01";
+  }
+
+  .hero__h1 {
+    font-size: var(--hero);
+    --fr-opsz: 144;
+    --fr-soft: 0;
+    --fr-wonk: 0;
+    margin: 0;
+    color: var(--text);
+    /* On first paint: ease SOFT axis from 0 → 70 — neoclassical
+       gravity into a more humane curvature. */
+    animation: hero-soften var(--dur-bloom) var(--ease) 220ms forwards;
+  }
+
+  .hero__h1:hover,
+  .hero__h1:focus-visible {
+    --fr-wonk: 1;
+    cursor: text;
+  }
+
+  .hero__lede {
+    margin: 0;
+  }
+
+  .hero__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(1rem, 2.5cqi, 1.75rem) clamp(1.5rem, 3cqi, 2.5rem);
+    margin-block-start: 0.4rem;
+    align-items: baseline;
+  }
+
+  .hero__cta {
+    --line-color: var(--text);
+    text-decoration: none;
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: var(--t-base);
+    color: var(--text);
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.55em;
+    padding-block-end: 0.32em;
+    border-block-end: 1px solid var(--line-color);
+    transition:
+      --line-color var(--dur-quick) var(--ease),
+      letter-spacing var(--dur-medium) var(--ease);
+  }
+
+  .hero__cta:hover,
+  .hero__cta:focus-visible {
+    --line-color: var(--accent);
+    letter-spacing: 0.005em;
+  }
+
+  .hero__cta-mark {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+    transition: translate var(--dur-medium) var(--ease);
+  }
+
+  .hero__cta:hover .hero__cta-mark,
+  .hero__cta:focus-visible .hero__cta-mark {
+    translate: 0.3em 0;
+  }
+
+  .hero__cta--quiet {
+    --line-color: var(--rule);
+    color: var(--text-muted);
+  }
+
+  /* ---- Atmospheric plate (Nano Banana Pro generated) ---- */
+  .hero__plate {
+    margin: 0;
+    position: relative;
+    align-self: stretch;
+    overflow: hidden;
+    border-radius: 4px;
+    inline-size: 100%;
+    aspect-ratio: 16 / 9;
+    background-color: var(--bg-sunk);
+  }
+
+  .hero__plate-img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    /* Multiply on cream lets the cream paper of the photograph blend
+       seamlessly with the page surface; screen on dark inverts cleanly. */
+    mix-blend-mode: multiply;
+    filter: contrast(1.04) saturate(0.95);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .hero__plate-img {
+      mix-blend-mode: screen;
+      filter: contrast(1.0) saturate(0.8) brightness(0.95) invert(0.92);
+    }
+  }
+
+  /* On wide viewports the plate goes full-bleed to the section's right
+     edge and stretches to the section's full height. */
+  @container (inline-size > 60rem) {
+    .hero__plate {
+      aspect-ratio: auto;
+      block-size: 100%;
+      border-radius: 0;
+      border-start-start-radius: 4px;
+      border-end-start-radius: 4px;
+    }
+  }
+
+  /* ---- Marginalia overlaid on the plate ---- */
+  .hero__margin {
+    list-style: none;
+    margin: 0;
+    padding: 0.85em 1em;
+    position: absolute;
+    inset-block-end: clamp(0.6rem, 2cqi, 1.4rem);
+    inset-inline-end: clamp(0.6rem, 2cqi, 1.4rem);
+    background-color: oklch(from var(--bg) l c h / 0.78);
+    backdrop-filter: blur(8px) saturate(1.1);
+    -webkit-backdrop-filter: blur(8px) saturate(1.1);
+    border: 1px solid var(--rule-soft);
+    border-radius: 3px;
+    pointer-events: none;
+    color: var(--text-faint);
+    font-size: var(--t-xs);
+    line-height: 1.5;
+  }
+
+  .hero__margin ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.35em;
+  }
+
+  .hero__margin .dim {
+    color: var(--text-faint);
+    opacity: 0.55;
+    margin-inline-end: 0.4em;
+  }
+
+  /* On narrow: hide marginalia (stacked layout has no good place for it). */
+  @container (inline-size < 60rem) {
+    .hero__margin {
+      display: none;
+    }
+  }
+
+  /* Subtle paper-grain backdrop. SVG noise via data-uri; GPU-cheap. */
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.06 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    opacity: 0.4;
+    mix-blend-mode: multiply;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .hero::before {
+      mix-blend-mode: screen;
+      opacity: 0.18;
+    }
+  }
+</style>

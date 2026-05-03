@@ -1,0 +1,198 @@
+---
+// Agent Contract — two rules in editorial layout. The architectural backbone.
+import { Image } from "astro:assets";
+import plateImg from "../assets/contract.png";
+---
+
+<section
+  class="contract reveal-soft"
+  id="agent-contract"
+  aria-labelledby="contract-h"
+>
+  <figure class="plate">
+    <Image
+      src={plateImg}
+      alt=""
+      widths={[768, 1024, 1376, 1920]}
+      sizes="(min-width: 60rem) 80vw, 100vw"
+      formats={["avif", "webp", "jpeg"]}
+      quality={82}
+      loading="lazy"
+    />
+  </figure>
+
+  <header class="contract__head">
+    <p class="marginalia contract__chapter">
+      <span class="dim">Ch&nbsp;</span>03 &middot; The contract
+    </p>
+    <h2 id="contract-h">Two rules. Bound the design space&nbsp;cleanly.</h2>
+    <p class="lede">
+      Any agent acting on an INSPR-managed fleet is bound by two rules.
+      Rule&nbsp;1 alone would let the platform be agent-driven but
+      non-overridable. Rule&nbsp;2 alone would let agents do anything,
+      since users can technically override afterward. Together they
+      leave no room for either failure mode.
+    </p>
+  </header>
+
+  <ol class="contract__rules">
+    <li class="rule">
+      <p class="rule__num mono"><span class="dim">Rule</span> 01</p>
+      <h3 class="rule__title">
+        The agent never imperatively bypasses&nbsp;declarative.
+      </h3>
+      <div class="rule__body">
+        <p>
+          Every effect on the fleet is either a draft of a declarative
+          artifact — nixcfg edit, agenix recipient list, plan YAML — or a
+          call to a typed Bosun verb. Direct imperative ops (ad-hoc SSH,
+          file edits outside source-of-truth, anything not auditable
+          from <code>git&nbsp;log</code>) are forbidden for agents.
+        </p>
+        <p>
+          If something can only be done imperatively today, that is a
+          Bosun-verb gap to file. Not a license to improvise.
+        </p>
+      </div>
+    </li>
+
+    <li class="rule">
+      <p class="rule__num mono"><span class="dim">Rule</span> 02</p>
+      <h3 class="rule__title">
+        The user can always bypass the&nbsp;agent.
+      </h3>
+      <div class="rule__body">
+        <p>
+          Every artifact the agent produces is in the same canonical
+          format an expert would hand-author: plain Nix, plain YAML or
+          JSON for verb arguments, plain Bosun verb invocations.
+        </p>
+        <p>
+          Hand-editing the draft, skipping the agent entirely, or
+          running the same verbs from a shell are first-class paths —
+          not fallbacks, not power-user flags, not undocumented escape
+          hatches. There is no agent-only privileged channel.
+        </p>
+      </div>
+    </li>
+  </ol>
+
+  <p class="contract__close">
+    The currency of fleet operations is declarative artifacts and typed
+    verbs. Humans and agents both spend it. Nobody has a private mint.
+  </p>
+</section>
+
+<style>
+  .contract {
+    container-type: inline-size;
+    padding-inline: clamp(1.25rem, 5cqi, 4rem);
+    padding-block: clamp(4rem, 9cqi, 8rem);
+    border-block-start: 1px solid var(--rule-soft);
+  }
+
+  .contract__head {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-inline-size: var(--measure-wide);
+    margin-block-end: clamp(2.5rem, 5cqi, 4.5rem);
+  }
+
+  .contract__chapter {
+    color: var(--text-faint);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-size: var(--t-xs);
+  }
+  .contract__chapter .dim { opacity: 0.55; }
+
+  .contract__head h2 {
+    font-size: var(--t-3xl);
+    margin: 0;
+  }
+
+  .contract__head .lede { margin: 0; }
+
+  /* ---- Rules list ---- */
+  .contract__rules {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: clamp(2rem, 5cqi, 3.5rem);
+    counter-reset: rule;
+  }
+
+  .rule {
+    display: grid;
+    gap: 0.9rem;
+    grid-template-columns: minmax(0, 1fr);
+    border-block-start: 2px solid var(--text);
+    padding-block-start: 1.4rem;
+  }
+
+  @container (inline-size > 56rem) {
+    .rule {
+      grid-template-columns: minmax(8rem, 0.26fr) minmax(0, 1fr);
+      column-gap: clamp(2rem, 4cqi, 3rem);
+      align-items: start;
+    }
+    .rule__num   { grid-column: 1; grid-row: 1 / -1; }
+    .rule__title { grid-column: 2; grid-row: 1; }
+    .rule__body  { grid-column: 2; grid-row: 2; }
+  }
+
+  .rule__num {
+    color: var(--accent);
+    font-size: var(--t-sm);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .rule__num .dim {
+    color: var(--text-faint);
+    opacity: 0.55;
+    margin-inline-end: 0.4em;
+  }
+
+  .rule__title {
+    font-size: var(--t-2xl);
+    line-height: 1.08;
+    margin: 0;
+    color: var(--text);
+  }
+
+  .rule__body p {
+    color: var(--text-muted);
+    font-size: var(--t-base);
+    line-height: 1.6;
+    max-inline-size: 56ch;
+  }
+
+  .rule__body p + p { margin-block-start: 0.85em; }
+
+  .rule__body code {
+    font-size: 0.92em;
+    color: var(--text);
+    background-color: var(--bg-raised);
+    padding: 0.1em 0.35em;
+    border: 1px solid var(--rule-soft);
+    border-radius: 3px;
+  }
+
+  .contract__close {
+    margin-block-start: clamp(2.5rem, 5cqi, 4rem);
+    font-family: var(--font-display);
+    font-variation-settings: "opsz" 36, "wght" 380, "SOFT" 60, "WONK" 0;
+    font-size: var(--t-xl);
+    line-height: 1.35;
+    color: var(--text);
+    max-inline-size: 60ch;
+    text-wrap: balance;
+    border-block-start: 1px solid var(--rule);
+    padding-block-start: clamp(1.5rem, 3cqi, 2.5rem);
+  }
+</style>

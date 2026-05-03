@@ -1,0 +1,157 @@
+/* Typography.
+ * Display: Fraunces Variable (opsz, wght, SOFT, WONK)
+ * Body:    Inria Sans (300/400/700 + italic)
+ * Mono:    JetBrains Mono Variable (wght)
+ *
+ * Variable axes that we ANIMATE (SOFT, WONK, line-color) are registered as
+ * typed custom properties so they can be transitioned smoothly.
+ */
+
+@property --fr-soft {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@property --fr-wonk {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@property --fr-opsz {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 14;
+}
+
+@property --line-color {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: transparent;
+}
+
+@layer typography {
+  :root {
+    --font-display: "Fraunces Variable", "Cambria", Georgia, "Times New Roman", serif;
+    --font-body:    "Inria Sans", "Helvetica Neue", system-ui, sans-serif;
+    --font-mono:    "JetBrains Mono Variable", "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  html {
+    font-family: var(--font-body);
+    font-size: var(--t-base);
+    line-height: 1.55;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "kern", "liga", "calt";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ---- Display class (used on .display / hero h1) ---------------------- */
+  .display {
+    font-family: var(--font-display);
+    font-variation-settings:
+      "opsz" var(--fr-opsz, 144),
+      "wght" 360,
+      "SOFT" var(--fr-soft, 0),
+      "WONK" var(--fr-wonk, 0);
+    font-weight: 360;
+    line-height: 0.96;
+    letter-spacing: -0.022em;
+    text-wrap: balance;
+    transition:
+      --fr-wonk var(--dur-medium) var(--ease),
+      --fr-soft var(--dur-slow) var(--ease);
+  }
+
+  /* ---- Section headings (calmer Fraunces, optical-size 36) ------------- */
+  h2 {
+    font-family: var(--font-display);
+    font-variation-settings: "opsz" 36, "wght" 420, "SOFT" 30, "WONK" 0;
+    font-size: var(--t-2xl);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    margin-block-end: 0.5em;
+    color: var(--text);
+  }
+
+  h3 {
+    font-family: var(--font-display);
+    font-variation-settings: "opsz" 18, "wght" 460, "SOFT" 25, "WONK" 0;
+    font-size: var(--t-xl);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin-block-end: 0.4em;
+    color: var(--text);
+  }
+
+  /* ---- Body ------------------------------------------------------------ */
+  p {
+    max-inline-size: var(--measure);
+    margin-block-end: 1.05em;
+    color: var(--text);
+  }
+
+  p.lede {
+    font-size: var(--t-lg);
+    line-height: 1.45;
+    color: var(--text-muted);
+    text-wrap: pretty;
+    max-inline-size: 56ch;
+  }
+
+  /* ---- Mono / engineering-log marginalia ------------------------------- */
+  .mono, code, kbd, samp, pre {
+    font-family: var(--font-mono);
+    font-variation-settings: "wght" 400;
+    font-feature-settings: "ss01", "ss02", "calt";
+  }
+
+  .marginalia {
+    font-family: var(--font-mono);
+    font-size: var(--t-xs);
+    line-height: 1.55;
+    color: var(--text-faint);
+    letter-spacing: 0.01em;
+    font-feature-settings: "ss01", "ss02";
+  }
+
+  /* ---- Italics (true, not synthetic) ----------------------------------- */
+  em, i, .italic { font-style: italic; }
+
+  /* ---- Links (refined: from-font underline) ---------------------------- */
+  a {
+    color: var(--text);
+    text-decoration: underline;
+    text-decoration-color: var(--rule);
+    text-decoration-thickness: from-font;
+    text-underline-offset: 0.18em;
+    transition:
+      text-decoration-color var(--dur-quick) var(--ease),
+      color var(--dur-quick) var(--ease);
+  }
+
+  a:hover {
+    text-decoration-color: var(--accent);
+  }
+
+  /* ---- Drop cap for editorial sections --------------------------------- */
+  .has-dropcap > p:first-of-type::first-letter {
+    font-family: var(--font-display);
+    font-variation-settings: "opsz" 144, "wght" 380, "SOFT" 70, "WONK" 0;
+    font-size: 4.6em;
+    float: inline-start;
+    line-height: 0.86;
+    margin-block-start: 0.04em;
+    margin-inline-end: 0.12em;
+    color: var(--accent-strong);
+  }
+
+  /* ---- Selection ------------------------------------------------------- */
+  ::selection {
+    background-color: oklch(from var(--accent) l c h / 0.28);
+    color: var(--text);
+  }
+}

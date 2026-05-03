@@ -6,6 +6,10 @@
 	}
 }
 
+# inspr.at v1 — Astro static build mounted at /srv.
+# CSP: script-src 'self' is required for the small inline JSON-LD payload
+# in Base.astro; everything else is fully locked down. No external CDN at
+# runtime, no inline styles, no eval.
 :80 {
 	root * /srv
 	encode zstd gzip
@@ -13,14 +17,28 @@
 	header {
 		X-Content-Type-Options "nosniff"
 		Referrer-Policy "strict-origin-when-cross-origin"
-		Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=()"
-		Strict-Transport-Security "max-age=31536000; includeSubDomains"
-		Content-Security-Policy "default-src 'self'; style-src 'self'; img-src 'self' data:; script-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=(), browsing-topics=()"
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		Cross-Origin-Opener-Policy "same-origin"
+		Cross-Origin-Resource-Policy "same-origin"
+		# script-src: 'self' covers our hashed asset bundle (none on v1, but
+		# kept for view-transition fallback js if added later) + the
+		# SHA-256 hash of the inline JSON-LD Organization payload in
+		# src/layouts/Base.astro. Recompute via:
+		#   python3 web/scripts/verify-csp.py  (writes new hash to stderr)
+		Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; script-src 'self' 'sha256-m1oZ+c962dAU/hl4PW1RH/9IRS93TjhsGDA7JYYIXXk='; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
 		-Server
 	}
 
-	header /style.css Cache-Control "public, max-age=3600"
-	header /robots.txt Cache-Control "public, max-age=3600"
+	# Static assets get a long cache; HTML stays short.
+	@hashed path_regexp ^/_astro/.*\.(woff2?|css|js|svg|png|webp|avif|ico)$
+	header @hashed Cache-Control "public, max-age=31536000, immutable"
+
+	@root_assets path /favicon.svg /favicon.ico /robots.txt /sitemap.xml
+	header @root_assets Cache-Control "public, max-age=3600"
+
+	header /index.html Cache-Control "public, max-age=300, must-revalidate"
+	header / Cache-Control "public, max-age=300, must-revalidate"
 
 	try_files {path} {path}.html {path}/index.html
 	file_server

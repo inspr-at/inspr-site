@@ -1,0 +1,224 @@
+---
+// Footer — engineering-log undertone. Build stamp captured at build time.
+import { execSync } from "node:child_process";
+import { Image } from "astro:assets";
+import colophonImg from "../assets/footer.jpg";
+
+let gitHash = "dev";
+try {
+  gitHash = execSync("git rev-parse --short HEAD", {
+    cwd: import.meta.dirname,
+  }).toString().trim();
+} catch {
+  /* keep "dev" */
+}
+
+const buildDate = new Date().toISOString().slice(0, 10);
+const year = new Date().getUTCFullYear();
+---
+
+<footer class="footer" aria-label="Colophon">
+  <div class="footer__grid">
+    <section class="footer__col footer__col--brand">
+      <h2 class="footer__title">INSPR</h2>
+      <p class="footer__tag">
+        Where your wants live, upstream of any substrate.
+      </p>
+      <figure class="footer__colophon" aria-hidden="true">
+        <Image
+          src={colophonImg}
+          alt=""
+          widths={[400, 600, 800]}
+          sizes="(min-width: 50rem) 18rem, 60vw"
+          formats={["avif", "webp", "jpeg"]}
+          quality={82}
+          loading="lazy"
+        />
+      </figure>
+    </section>
+
+    <nav class="footer__col" aria-label="On this page">
+      <p class="footer__heading marginalia">On this page</p>
+      <ul class="footer__list">
+        <li><a href="#mission">The premise</a></li>
+        <li><a href="#pluralism">Two axes of pluralism</a></li>
+        <li><a href="#agent-contract">The Agent Contract</a></li>
+        <li><a href="#artifacts">Artifacts</a></li>
+        <li><a href="#audience">Audience</a></li>
+      </ul>
+    </nav>
+
+    <nav class="footer__col" aria-label="Engagement">
+      <p class="footer__heading marginalia">Engage</p>
+      <ul class="footer__list">
+        <li><a href="https://github.com/markus-barta">GitHub <span aria-hidden="true">↗</span></a></li>
+        <li><a href="mailto:hello@inspr.at">hello@inspr.at</a></li>
+      </ul>
+    </nav>
+
+    <aside class="footer__col footer__stamp" aria-label="Build stamp">
+      <p class="footer__heading marginalia">Build stamp</p>
+      <dl class="footer__dl marginalia">
+        <dt><span class="dim">v</span></dt><dd>1.0</dd>
+        <dt><span class="dim">date</span></dt><dd>{buildDate}</dd>
+        <dt><span class="dim">git</span></dt><dd>{gitHash}</dd>
+        <dt><span class="dim">stack</span></dt><dd>astro&nbsp;6 + caddy</dd>
+        <dt><span class="dim">type</span></dt><dd>Fraunces / Inria&nbsp;Sans / JetBrains&nbsp;Mono</dd>
+      </dl>
+    </aside>
+  </div>
+
+  <p class="footer__legal marginalia">
+    <span>&copy; {year} Markus Barta &middot; INSPR</span>
+    <span aria-hidden="true">&middot;</span>
+    <span>Set in Fraunces, Inria Sans, JetBrains Mono.</span>
+  </p>
+</footer>
+
+<style>
+  .footer {
+    container-type: inline-size;
+    padding-inline: clamp(1.25rem, 5cqi, 4rem);
+    padding-block: clamp(3rem, 7cqi, 5rem) clamp(2rem, 4cqi, 3rem);
+    border-block-start: 1px solid var(--rule);
+    background-color: var(--bg-sunk);
+    color: var(--text-muted);
+  }
+
+  .footer__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(1.75rem, 4cqi, 3rem);
+  }
+
+  @container (inline-size > 50rem) {
+    .footer__grid {
+      grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
+      gap: clamp(2rem, 4cqi, 4rem);
+    }
+  }
+
+  .footer__col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .footer__col--brand { gap: 1rem; }
+
+  .footer__colophon {
+    margin: 0.5rem 0 0;
+    inline-size: 100%;
+    max-inline-size: 18rem;
+    aspect-ratio: 21 / 9;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: var(--bg);
+  }
+
+  .footer__colophon img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    object-position: 80% center;
+    display: block;
+    mix-blend-mode: multiply;
+    filter: contrast(1.04) saturate(0.95);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .footer__colophon img {
+      mix-blend-mode: screen;
+      filter: contrast(1.0) saturate(0.8) brightness(0.95) invert(0.92);
+    }
+  }
+
+  .footer__title {
+    font-family: var(--font-display);
+    font-variation-settings: "opsz" 144, "wght" 460, "SOFT" 40, "WONK" 0;
+    font-size: var(--t-2xl);
+    line-height: 1;
+    margin: 0;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .footer__tag {
+    font-family: var(--font-display);
+    font-variation-settings: "opsz" 18, "wght" 360, "SOFT" 60, "WONK" 0;
+    font-size: var(--t-base);
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.4;
+    max-inline-size: 30ch;
+    font-style: italic;
+  }
+
+  .footer__heading {
+    color: var(--text-faint);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-size: var(--t-xs);
+    margin: 0 0 0.4rem;
+  }
+
+  .footer__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.45em;
+  }
+
+  .footer__list a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: var(--t-sm);
+    border-block-end: 1px solid transparent;
+    padding-block-end: 0.1em;
+    transition: border-block-end-color var(--dur-quick) var(--ease);
+  }
+
+  .footer__list a:hover,
+  .footer__list a:focus-visible {
+    border-block-end-color: var(--accent);
+  }
+
+  .footer__stamp {
+    align-items: start;
+  }
+
+  .footer__dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 0.9em;
+    row-gap: 0.4em;
+    margin: 0;
+    color: var(--text-muted);
+  }
+
+  .footer__dl dt {
+    color: var(--text-faint);
+    opacity: 0.55;
+    margin: 0;
+    font-size: var(--t-xs);
+    text-transform: lowercase;
+  }
+
+  .footer__dl dd {
+    margin: 0;
+    font-size: var(--t-xs);
+    line-height: 1.4;
+  }
+
+  .footer__legal {
+    margin-block-start: clamp(2rem, 4cqi, 3rem);
+    color: var(--text-faint);
+    border-block-start: 1px solid var(--rule-soft);
+    padding-block-start: 1.2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4em 0.75em;
+    font-size: var(--t-xs);
+  }
+</style>

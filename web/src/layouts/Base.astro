@@ -1,0 +1,76 @@
+---
+// Base.astro — site shell. Self-hosts variable fonts, sets meta + theme.
+import "@fontsource-variable/fraunces/full.css";
+import "@fontsource/inria-sans/300.css";
+import "@fontsource/inria-sans/400.css";
+import "@fontsource/inria-sans/400-italic.css";
+import "@fontsource/inria-sans/700.css";
+import "@fontsource-variable/jetbrains-mono";
+
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = "INSPR — upstream of any substrate",
+  description = "A durable home for your wants — declarative at the centre, plural at the edges. INSPR outlives whichever agent, model, or tool happens to be in vogue.",
+} = Astro.props;
+
+const siteOrigin = Astro.site?.toString().replace(/\/$/, "") ?? "https://inspr.at";
+const canonical = `${siteOrigin}${Astro.url.pathname}`.replace(/\/$/, "") || siteOrigin;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <meta name="theme-color" content="#FAF7F0" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#13110E" media="(prefers-color-scheme: dark)" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={`${siteOrigin}/og.jpg`} />
+    <meta property="og:image:width" content="1376" />
+    <meta property="og:image:height" content="768" />
+    <meta property="og:image:alt" content="A single sumi-ink stroke on cream washi paper, suggesting upstream movement." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={`${siteOrigin}/og.jpg`} />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" href="/favicon.ico" />
+    <link rel="mask-icon" href="/favicon.svg" color="#1A1714" />
+
+    <meta name="generator" content={Astro.generator} />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "INSPR",
+      "url": "https://inspr.at",
+      "description": description,
+      "founder": {
+        "@type": "Person",
+        "name": "Markus Barta",
+      },
+      "sameAs": [
+        "https://github.com/markus-barta",
+      ],
+    })} />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

@@ -40,15 +40,26 @@ POST_LOGOUT_URI="https://inspr.at/"
 
 PRINT_SECRET=0
 RESET_PASSWORD=0
+ROTATE_SECRET=0
 for arg in "$@"; do
   case "$arg" in
     --write-env) WRITE_ENV=1 ;;
     --print-secret) PRINT_SECRET=1 ;;
     --reset-password) RESET_PASSWORD=1 ;;
+    --rotate-secret) ROTATE_SECRET=1 ;;
     -h|--help)
       sed -n '1,30p' "$0"; exit 0 ;;
   esac
 done
+
+# --write-env without --rotate-secret on an existing app would write the
+# OLD secret value (we don't have a way to recover the existing secret —
+# Zitadel returns it only on creation/regeneration). If the user passed
+# --write-env, they're saying "I want a fresh value in .env" → that
+# IMPLIES rotation. Auto-enable to honor intent.
+if [ "$WRITE_ENV" = "1" ] && [ "$ROTATE_SECRET" = "0" ]; then
+  ROTATE_SECRET=1
+fi
 
 log() { printf "[bootstrap] %s\n" "$*" >&2; }
 die() { log "ERROR: $*"; exit 1; }
@@ -127,15 +138,41 @@ if [ -z "$APP_ID" ] || [ "$APP_ID" = "null" ]; then
   CLIENT_ID="$(echo "$APP_RESP" | jq -r '.clientId')"
   CLIENT_SECRET="$(echo "$APP_RESP" | jq -r '.clientSecret')"
 else
-  log "App exists (id=$APP_ID); regenerating client secret…"
+  # IMPORTANT: Zitadel only returns the client secret at create time or
+  # explicit _generate_client_secret. There's no "read existing secret"
+  # path. So:
+  #   - Default re-run (no flags): leave secret untouched, just confirm
+  #     client_id. The previously-rendered .env stays valid; restart of
+  #     consumers not required.
+  #   - --rotate-secret (or --write-env, which auto-implies it): mint a
+  #     NEW secret. ALL consumers (inspr-auth) MUST be restarted with
+  #     the new .env value or OIDC token exchange will return
+  #     "invalid_client". This is the trap that bit us 2026-05-10 —
+  #     diagnostic re-runs without --write-env silently rotated the
+  #     secret and broke the live login flow.
   APP_DETAIL="$(curl -fsS "${AUTH[@]}" "${ZITADEL_BASE}/management/v1/projects/${PROJECT_ID}/apps/${APP_ID}")"
   CLIENT_ID="$(echo "$APP_DETAIL" | jq -r '.app.oidcConfig.clientId')"
-  SECRET_RESP="$(curl -fsS "${AUTH[@]}" -X POST "${ZITADEL_BASE}/management/v1/projects/${PROJECT_ID}/apps/${APP_ID}/oidc_config/_generate_client_secret")"
-  CLIENT_SECRET="$(echo "$SECRET_RESP" | jq -r '.clientSecret')"
+  if [ "$ROTATE_SECRET" = "1" ]; then
+    log "App exists (id=$APP_ID); --rotate-secret → generating new client secret…"
+    SECRET_RESP="$(curl -fsS "${AUTH[@]}" -X POST "${ZITADEL_BASE}/management/v1/projects/${PROJECT_ID}/apps/${APP_ID}/oidc_config/_generate_client_secret")"
+    CLIENT_SECRET="$(echo "$SECRET_RESP" | jq -r '.clientSecret')"
+  else
+    log "App exists (id=$APP_ID); leaving client secret unchanged (use --rotate-secret to force)"
+    CLIENT_SECRET=""  # signal: nothing to write/print
+  fi
 fi
 [ -n "$CLIENT_ID" ] && [ "$CLIENT_ID" != "null" ] || die "no clientId returned"
-[ -n "$CLIENT_SECRET" ] && [ "$CLIENT_SECRET" != "null" ] || die "no clientSecret returned"
-log "Client id=$CLIENT_ID (secret captured, ${#CLIENT_SECRET} bytes)"
+# CLIENT_SECRET may legitimately be empty when the secret was preserved
+# (re-run without --rotate-secret). Only validate when a value was
+# actually expected.
+if [ "$ROTATE_SECRET" = "1" ] || [ -z "$APP_ID" ] || [ "$APP_ID" = "null" ]; then
+  [ -n "$CLIENT_SECRET" ] && [ "$CLIENT_SECRET" != "null" ] || die "no clientSecret returned"
+fi
+if [ -n "$CLIENT_SECRET" ]; then
+  log "Client id=$CLIENT_ID (NEW secret captured, ${#CLIENT_SECRET} bytes)"
+else
+  log "Client id=$CLIENT_ID (secret unchanged)"
+fi
 
 # ── 6. Relax the org password complexity policy to admit the bootstrap pwd
 #       Default policy requires upper+lower+number+symbol; we drop the
@@ -281,7 +318,9 @@ fi
 echo
 echo "──────────────────────────────────────────────"
 echo "OIDC_CLIENT_ID=${CLIENT_ID}"
-if [ "$PRINT_SECRET" = "1" ]; then
+if [ -z "$CLIENT_SECRET" ]; then
+  echo "OIDC_CLIENT_SECRET=<unchanged — pass --rotate-secret to mint a new one>"
+elif [ "$PRINT_SECRET" = "1" ]; then
   echo "OIDC_CLIENT_SECRET=${CLIENT_SECRET}"
 else
   echo "OIDC_CLIENT_SECRET=<redacted, length=${#CLIENT_SECRET}> (use --print-secret to show)"
@@ -289,7 +328,7 @@ fi
 echo "──────────────────────────────────────────────"
 echo
 
-if [ "$WRITE_ENV" = "1" ]; then
+if [ "$WRITE_ENV" = "1" ] && [ -n "$CLIENT_SECRET" ]; then
   log "Writing OIDC_CLIENT_ID + OIDC_CLIENT_SECRET to ${ENV_FILE}…"
   # Idempotent in-place rewrite. Adds keys if missing.
   for kv in "OIDC_CLIENT_ID=${CLIENT_ID}" "OIDC_CLIENT_SECRET=${CLIENT_SECRET}"; do
@@ -300,7 +339,11 @@ if [ "$WRITE_ENV" = "1" ]; then
       echo "$kv" >> "$ENV_FILE"
     fi
   done
-  log "Done. Now: cd ${COMPOSE_DIR} && docker compose up -d --no-deps inspr-auth"
+  log "Done. Now: cd ${COMPOSE_DIR} && docker compose up -d --no-deps --force-recreate inspr-auth"
+elif [ "$WRITE_ENV" = "1" ] && [ -z "$CLIENT_SECRET" ]; then
+  # Should be unreachable due to auto-implication of --rotate-secret when
+  # --write-env is set, but defensive log just in case.
+  log "WARN: --write-env passed but no new secret was minted — .env unchanged."
 fi
 
 log "Bootstrap complete."

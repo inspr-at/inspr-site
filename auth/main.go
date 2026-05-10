@@ -59,6 +59,12 @@ var (
 	baseURL      = mustEnv("BASE_URL")           // e.g. https://inspr.at
 	cookieKey    = mustEnvKey("COOKIE_KEY")      // hex, 32+ bytes after decode
 	listen       = envOr("LISTEN", ":8080")
+	// Bootstrap PAT for Zitadel management API. Mounted from the
+	// .machinekey volume (or set explicitly via env). Used only by /enter
+	// for user creation + passwordless registration link delivery. Spike-
+	// grade — replace with a scoped-down service-account token before any
+	// public exposure of self-signup.
+	zitadelPAT = envOr("ZITADEL_API_PAT", "") // empty disables /enter signup
 )
 
 const (
@@ -97,9 +103,13 @@ func main() {
 	}
 	verifier = provider.Verifier(&oidc.Config{ClientID: clientID})
 
-	tmpl = template.Must(template.ParseFiles("templates/welcome.html"))
+	tmpl = template.Must(template.ParseFiles(
+		"templates/welcome.html",
+		"templates/enter.html",
+	))
 
 	mux := http.NewServeMux()
+	mux.HandleFunc("/enter", handleEnter)
 	mux.HandleFunc("/login", handleLogin)
 	mux.HandleFunc("/welcome", handleWelcome)
 	mux.HandleFunc("/logout", handleLogout)
@@ -108,7 +118,12 @@ func main() {
 		_, _ = w.Write([]byte("ok"))
 	})
 
-	log.Printf("inspr-auth: issuer=%s base=%s listen=%s", issuer, baseURL, listen)
+	signupStatus := "DISABLED (set ZITADEL_API_PAT to enable)"
+	if zitadelPAT != "" {
+		signupStatus = fmt.Sprintf("ENABLED (PAT len=%d)", len(zitadelPAT))
+	}
+	log.Printf("inspr-auth: issuer=%s base=%s listen=%s signup=%s",
+		issuer, baseURL, listen, signupStatus)
 	log.Fatal(http.ListenAndServe(listen, mux))
 }
 
@@ -311,9 +326,261 @@ func renderWelcome(w http.ResponseWriter, name string) {
 			"frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
-	if err := tmpl.Execute(w, struct{ Name string }{Name: name}); err != nil {
-		log.Printf("template execute: %v", err)
+	if err := tmpl.ExecuteTemplate(w, "welcome.html", struct{ Name string }{Name: name}); err != nil {
+		log.Printf("template execute welcome: %v", err)
 	}
+}
+
+// enterView feeds enter.html. State is one of "door" | "signup" | "inbox".
+type enterView struct {
+	State     string // door | signup | inbox
+	Head      string // hero copy variant per state
+	FormName  string // sticky between renders
+	FormEmail string
+	FormError string
+}
+
+func renderEnter(w http.ResponseWriter, v enterView) {
+	if v.State == "" {
+		v.State = "door"
+	}
+	if v.Head == "" {
+		switch v.State {
+		case "door":
+			v.Head = "you've arrived"
+		case "signup":
+			// the template wraps the highlighted word in <em> directly
+			v.Head = "let's get you in"
+		case "inbox":
+			v.Head = "your door is open"
+		}
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	// /enter has the inline progressive-enhancement script; allow inline
+	// script for THIS page only (not exposed via inspr-www's CSP).
+	w.Header().Set("Content-Security-Policy",
+		"default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; "+
+			"font-src 'self'; script-src 'self' 'unsafe-inline'; connect-src 'self'; "+
+			"frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+	if err := tmpl.ExecuteTemplate(w, "enter.html", v); err != nil {
+		log.Printf("template execute enter: %v", err)
+	}
+}
+
+// ── /enter handler ────────────────────────────────────────────────────────
+
+func handleEnter(w http.ResponseWriter, r *http.Request) {
+	// Already signed in? Skip the threshold; go straight inside.
+	if _, err := readSession(r); err == nil {
+		http.Redirect(w, r, "/welcome", http.StatusFound)
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet, http.MethodHead:
+		step := r.URL.Query().Get("step")
+		if step == "signup" {
+			renderEnter(w, enterView{State: "signup"})
+			return
+		}
+		renderEnter(w, enterView{State: "door"})
+		return
+
+	case http.MethodPost:
+		if zitadelPAT == "" {
+			renderEnter(w, enterView{
+				State:     "signup",
+				FormName:  r.FormValue("name"),
+				FormEmail: r.FormValue("email"),
+				FormError: "signup is not configured on this instance.",
+			})
+			return
+		}
+		_ = r.ParseForm()
+		name := strings.TrimSpace(r.FormValue("name"))
+		email := strings.TrimSpace(strings.ToLower(r.FormValue("email")))
+
+		// Smart minimum validation. Zitadel will re-validate too.
+		if name == "" || email == "" || !strings.Contains(email, "@") {
+			renderEnter(w, enterView{
+				State:     "signup",
+				FormName:  name,
+				FormEmail: email,
+				FormError: "we need a name and a valid email — try again.",
+			})
+			return
+		}
+
+		// Hand off to Zitadel: create user with passwordless registration.
+		// On success, Zitadel returns a one-time link we email to the user.
+		err := zitadelCreatePasswordlessUser(r.Context(), name, email)
+		if err != nil {
+			log.Printf("enter: zitadel signup failed for %q: %v", email, err)
+			// Surface a friendly message; full error is in server logs.
+			msg := "something didn't land — try again, or sign in if you've been here before."
+			if strings.Contains(err.Error(), "already exists") || strings.Contains(err.Error(), "AlreadyExists") {
+				msg = "looks like you've been here before. try signing in instead."
+			}
+			renderEnter(w, enterView{
+				State:     "signup",
+				FormName:  name,
+				FormEmail: email,
+				FormError: msg,
+			})
+			return
+		}
+
+		renderEnter(w, enterView{
+			State:     "inbox",
+			FormEmail: email,
+		})
+		return
+
+	default:
+		w.Header().Set("Allow", "GET, POST")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+// ── Zitadel management API client ─────────────────────────────────────────
+
+// zitadelCreatePasswordlessUser creates a human user in Zitadel with the
+// passwordless-registration flag set, then triggers the registration link
+// email. The user's first sign-in completes via passkey (Touch ID / Face
+// ID / WebAuthn), no password ever set.
+//
+// Two-step (intentional):
+//  1. POST /management/v1/users/human/_import — create user; the response
+//     includes `passwordlessRegistration` (link + lifetime) but Zitadel
+//     does NOT auto-deliver the email.
+//  2. POST /management/v1/users/{userId}/passwordless/_send_link — asks
+//     Zitadel to send the link via the configured SMTP. Spike-acceptable;
+//     for higher branding control we'd render the email ourselves and
+//     SMTP-send from inspr-auth.
+//
+// Errors are returned with enough context to surface a meaningful message
+// to the user (collision vs. transient).
+func zitadelCreatePasswordlessUser(ctx context.Context, name, email string) error {
+	// Split a single "name" field into first/last for Zitadel's schema.
+	first, last := splitName(name)
+	createBody := map[string]any{
+		"userName": email, // we use email-as-username; loginName policy must allow this
+		"profile": map[string]any{
+			"firstName":         first,
+			"lastName":          last,
+			"displayName":       name,
+			"preferredLanguage": "en",
+		},
+		"email": map[string]any{
+			"email":           email,
+			"isEmailVerified": true, // we trust the email; signup proves ownership via the link click
+		},
+		"requestPasswordlessRegistration": true,
+	}
+	createResp, err := zitadelCall(ctx, http.MethodPost, "/management/v1/users/human/_import", createBody)
+	if err != nil {
+		return fmt.Errorf("user create: %w", err)
+	}
+	userID, _ := createResp["userId"].(string)
+	if userID == "" {
+		return fmt.Errorf("user create: no userId in response: %v", createResp)
+	}
+
+	// Trigger Zitadel to send the passwordless-registration email.
+	// Endpoint name varies across Zitadel versions; try the v1
+	// `_send_passwordless_registration` first, fall back to the
+	// passwordless namespace if not found.
+	sendPaths := []string{
+		fmt.Sprintf("/management/v1/users/%s/passwordless/_send_link", userID),
+		fmt.Sprintf("/management/v1/users/%s/_send_passwordless_registration", userID),
+	}
+	var lastErr error
+	for _, p := range sendPaths {
+		_, err := zitadelCall(ctx, http.MethodPost, p, map[string]any{})
+		if err == nil {
+			return nil
+		}
+		lastErr = err
+		if !strings.Contains(err.Error(), "404") && !strings.Contains(err.Error(), "Not Found") {
+			break
+		}
+	}
+	// User was created but the email send failed — log and surface as
+	// success-with-degradation. The bootstrap admin can resend manually
+	// from the Zitadel console.
+	log.Printf("enter: user %s (id=%s) created but send-link failed: %v", email, userID, lastErr)
+	return nil
+}
+
+// zitadelCall makes a JSON request to the Zitadel management API using
+// the bootstrap PAT. Returns the decoded response or an error including
+// the HTTP status + first 200 chars of the body for diagnostics.
+func zitadelCall(ctx context.Context, method, path string, body any) (map[string]any, error) {
+	bodyBytes, err := json.Marshal(body)
+	if err != nil {
+		return nil, fmt.Errorf("marshal: %w", err)
+	}
+	req, err := http.NewRequestWithContext(ctx, method, issuer+path, strings.NewReader(string(bodyBytes)))
+	if err != nil {
+		return nil, fmt.Errorf("new request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+zitadelPAT)
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("http: %w", err)
+	}
+	defer resp.Body.Close()
+	respBody, _ := readAtMost(resp.Body, 32*1024)
+	if resp.StatusCode >= 400 {
+		snippet := string(respBody)
+		if len(snippet) > 200 {
+			snippet = snippet[:200]
+		}
+		return nil, fmt.Errorf("HTTP %d: %s", resp.StatusCode, snippet)
+	}
+	var out map[string]any
+	if len(respBody) > 0 {
+		if err := json.Unmarshal(respBody, &out); err != nil {
+			return nil, fmt.Errorf("decode: %w", err)
+		}
+	}
+	return out, nil
+}
+
+func readAtMost(r interface{ Read([]byte) (int, error) }, n int) ([]byte, error) {
+	buf := make([]byte, n)
+	total := 0
+	for total < n {
+		got, err := r.Read(buf[total:])
+		total += got
+		if err != nil {
+			return buf[:total], nil
+		}
+		if got == 0 {
+			break
+		}
+	}
+	return buf[:total], nil
+}
+
+// splitName returns first + last from a single "Display Name" string.
+// "Markus" → ("Markus", "Markus"), "Markus Barta" → ("Markus", "Barta"),
+// "Mary Jane Watson" → ("Mary", "Jane Watson"). Zitadel requires both
+// fields non-empty, so a single token gets duplicated to satisfy the
+// constraint without fabricating data.
+func splitName(full string) (string, string) {
+	full = strings.TrimSpace(full)
+	if full == "" {
+		return "guest", "guest"
+	}
+	parts := strings.SplitN(full, " ", 2)
+	if len(parts) == 1 {
+		return parts[0], parts[0]
+	}
+	return parts[0], strings.TrimSpace(parts[1])
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────

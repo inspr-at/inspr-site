@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="en" data-state="{{ .State }}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>inspr.at — enter</title>
+
+    <!--
+      enter — the moment of crossing.
+      Three states served by ONE template (same DOM, View-Transitions
+      between them):
+        door    : two typographic paths
+        signup  : two-field form (name + email)
+        inbox   : "your door is open. check your mail."
+
+      Aesthetic anchor: editorial threshold. Type-as-hero. Hairlines, not
+      borders. Ceremonial motion (cubic-bezier(0.2, 0.7, 0.2, 1)). Paper
+      grain via SVG noise overlay (1.5% opacity). Ember accent earns its
+      place by appearing only on intent (focus, hover, submit).
+    -->
+
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="/_astro/fraunces-latin-full-normal.CFFu7zhK.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="/_astro/inria-sans-latin-400-normal.Ps-oYZQA.woff2" />
+
+    <style>
+      @font-face {
+        font-family: "Fraunces";
+        font-style: normal;
+        font-weight: 100 900;
+        font-display: swap;
+        src: url("/_astro/fraunces-latin-full-normal.CFFu7zhK.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Inria Sans";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("/_astro/inria-sans-latin-400-normal.Ps-oYZQA.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Inria Sans";
+        font-style: italic;
+        font-weight: 400;
+        font-display: swap;
+        src: url("/_astro/inria-sans-latin-400-italic.DxiAPntY.woff2") format("woff2");
+      }
+
+      /* Custom typed properties for animatable Fraunces axes */
+      @property --fr-soft { syntax: "<number>"; inherits: true; initial-value: 0; }
+      @property --fr-wonk { syntax: "<number>"; inherits: true; initial-value: 0; }
+
+      :root {
+        /* Cream/ink (light, default) */
+        --surface: oklch(96.5% 0.013 80);
+        --surface-sunk: oklch(94.6% 0.014 78);
+        --ink: oklch(20% 0.012 50);
+        --ink-soft: oklch(36% 0.01 52);
+        --ink-dim: oklch(58% 0.008 60);
+        --line: oklch(82% 0.01 70);
+        --line-strong: oklch(68% 0.012 70);
+        --ember: oklch(64% 0.18 38);
+        --ember-strong: oklch(58% 0.20 36);
+
+        --t-xs: clamp(0.78rem, 0.74rem + 0.2vw, 0.875rem);
+        --t-sm: clamp(0.9rem, 0.85rem + 0.25vw, 1rem);
+        --t-base: clamp(1.04rem, 0.96rem + 0.4vw, 1.18rem);
+        --t-lg: clamp(1.18rem, 1.08rem + 0.5vw, 1.42rem);
+        --hero: clamp(2.4rem, 1.6rem + 4.5vw, 5.2rem);
+        --door: clamp(1.85rem, 1.3rem + 2.8vw, 3.4rem);
+
+        --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+        --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+        --dur-quick: 220ms;
+        --dur-deliberate: 720ms;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --surface: oklch(18% 0.012 50);
+          --surface-sunk: oklch(15% 0.012 50);
+          --ink: oklch(94% 0.012 80);
+          --ink-soft: oklch(78% 0.012 70);
+          --ink-dim: oklch(60% 0.01 65);
+          --line: oklch(32% 0.012 60);
+          --line-strong: oklch(48% 0.012 65);
+          --ember: oklch(72% 0.16 40);
+          --ember-strong: oklch(80% 0.16 38);
+        }
+      }
+
+      *, *::before, *::after { box-sizing: border-box; }
+
+      html, body { margin: 0; padding: 0; min-height: 100dvh; }
+
+      body {
+        background: var(--surface);
+        color: var(--ink);
+        font-family: "Inria Sans", system-ui, sans-serif;
+        font-size: var(--t-base);
+        line-height: 1.45;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        position: relative;
+        overflow-x: hidden;
+      }
+
+      /* Paper grain — single SVG noise overlay, 1.5% opacity. Layered
+         under content via mix-blend so it tints the cream/ink, not
+         washes it. Reused by EVERY state of this page. */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.6' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.55 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+        background-size: 200px 200px;
+        opacity: 0.030;
+        mix-blend-mode: multiply;
+        pointer-events: none;
+        z-index: 1;
+      }
+      @media (prefers-color-scheme: dark) {
+        body::before { mix-blend-mode: screen; opacity: 0.045; }
+      }
+
+      /* Page furniture — small INSPR mark (top-left), back link
+         (top-right). Both quiet, mono, baseline-aligned. */
+      .frame {
+        position: fixed;
+        top: clamp(0.85rem, 2vw, 1.4rem);
+        left: 0; right: 0;
+        z-index: 100;
+        display: flex;
+        justify-content: space-between;
+        padding-inline: clamp(1rem, 3vw, 2rem);
+        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: var(--t-xs);
+        letter-spacing: 0.08em;
+        text-transform: lowercase;
+        line-height: 1;
+        pointer-events: none;
+      }
+      .frame__mark {
+        color: var(--ink-soft);
+        font-weight: 400;
+        letter-spacing: 0.18em;
+      }
+      .frame__mark .dot { color: var(--ember); }
+      .frame__back {
+        color: var(--ink-dim);
+        text-decoration: none;
+        opacity: 0.7;
+        transition: opacity var(--dur-quick) var(--ease), color var(--dur-quick) var(--ease);
+        pointer-events: auto;
+      }
+      .frame__back:hover, .frame__back:focus-visible {
+        opacity: 1; color: var(--ink-soft); outline: none;
+      }
+
+      /* Stage — the canvas where states render. We use grid-stack so
+         each state can occupy the full center while others are hidden.
+         View-Transitions does the actual morphing between states; the
+         grid is fallback alignment. */
+      main {
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 4rem clamp(1.25rem, 4vw, 2.5rem);
+        position: relative;
+        z-index: 2;
+      }
+
+      .stage {
+        width: 100%;
+        max-width: 56rem;
+        text-align: center;
+      }
+
+      /* Headline — Fraunces hero, animated SOFT axis (slow exhale on
+         page-load, settles to 90 SOFT for a "softened" feel). The
+         italic ember word is the singular emphasis. */
+      .head {
+        font-family: Fraunces, Georgia, "Times New Roman", serif;
+        font-weight: 360;
+        font-size: var(--hero);
+        line-height: 1.02;
+        letter-spacing: -0.018em;
+        margin: 0 0 clamp(2rem, 5vw, 3.5rem) 0;
+        font-variation-settings: "opsz" 144, "SOFT" var(--fr-soft, 0), "WONK" var(--fr-wonk, 0);
+        animation: head-settle var(--dur-deliberate) var(--ease-out-soft) both,
+                   head-soft 4.5s var(--ease) 220ms forwards;
+      }
+      .head em {
+        font-style: italic;
+        color: var(--ember);
+        font-variation-settings: "opsz" 144, "SOFT" 90, "WONK" 1;
+      }
+      .head .punct { color: var(--ink-dim); font-style: normal; }
+
+      @keyframes head-settle {
+        from { opacity: 0; transform: translateY(0.5rem); filter: blur(0.5px); }
+        to   { opacity: 1; transform: translateY(0);     filter: blur(0); }
+      }
+      @keyframes head-soft {
+        from { --fr-soft: 0;  --fr-wonk: 0; }
+        to   { --fr-soft: 80; --fr-wonk: 0.3; }
+      }
+
+      /* ─── DOOR STATE ─── two typographic paths, separated by a hairline */
+      [data-state="door"] .form,
+      [data-state="door"] .inbox { display: none; }
+
+      .door {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: clamp(1.5rem, 4vw, 3.5rem);
+        align-items: center;
+        max-width: 48rem;
+        margin: 0 auto;
+        animation: stagger-1 var(--dur-deliberate) var(--ease-out-soft) 180ms both;
+      }
+      .door__path {
+        font-family: Fraunces, serif;
+        font-weight: 360;
+        font-size: var(--door);
+        line-height: 1.1;
+        color: var(--ink-soft);
+        text-decoration: none;
+        text-align: center;
+        padding: 1.5rem 0.5rem;
+        font-variation-settings: "opsz" 96, "SOFT" 30, "WONK" 0;
+        transition:
+          color var(--dur-quick) var(--ease),
+          font-variation-settings var(--dur-deliberate) var(--ease),
+          opacity var(--dur-quick) var(--ease);
+      }
+      .door__path .meta {
+        display: block;
+        font-family: "JetBrains Mono", monospace;
+        font-size: var(--t-xs);
+        font-weight: 400;
+        font-style: normal;
+        letter-spacing: 0.14em;
+        color: var(--ink-dim);
+        text-transform: lowercase;
+        margin-bottom: 0.6rem;
+        opacity: 0.7;
+        transition: opacity var(--dur-quick) var(--ease), color var(--dur-quick) var(--ease);
+      }
+      .door__path .word {
+        display: block;
+        font-style: italic;
+      }
+      .door__path:hover, .door__path:focus-visible {
+        outline: none;
+        color: var(--ink);
+        font-variation-settings: "opsz" 144, "SOFT" 70, "WONK" 1;
+      }
+      .door__path:hover .meta, .door__path:focus-visible .meta {
+        color: var(--ember); opacity: 1;
+      }
+      /* When a path is hovered, the OTHER path recedes — tonal pull */
+      .door:has(.door__path:hover) .door__path:not(:hover),
+      .door:has(.door__path:focus-visible) .door__path:not(:focus-visible) {
+        opacity: 0.45;
+        color: var(--ink-dim);
+      }
+
+      /* The vertical hairline between the two paths — fades to nothing
+         at top + bottom via masked gradient */
+      .door__hairline {
+        width: 1px;
+        height: clamp(5rem, 12vw, 9rem);
+        background: linear-gradient(
+          to bottom,
+          transparent 0%,
+          var(--line-strong) 22%,
+          var(--line-strong) 78%,
+          transparent 100%
+        );
+        position: relative;
+      }
+      .door__hairline::after {
+        content: "·";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: var(--surface);
+        color: var(--ink-dim);
+        font-family: serif;
+        font-size: 1.4em;
+        line-height: 0;
+        padding: 0 0.4em;
+        pointer-events: none;
+      }
+
+      /* Mobile: door collapses to vertical, hairline becomes horizontal */
+      @media (max-width: 640px) {
+        .door {
+          grid-template-columns: 1fr;
+          grid-template-rows: auto auto auto;
+        }
+        .door__hairline {
+          width: clamp(5rem, 30vw, 9rem);
+          height: 1px;
+          margin: 0 auto;
+          background: linear-gradient(
+            to right,
+            transparent 0%, var(--line-strong) 22%, var(--line-strong) 78%, transparent 100%
+          );
+        }
+      }
+
+      /* ─── SIGNUP STATE ─── two-field form, no chrome on inputs */
+      [data-state="signup"] .door,
+      [data-state="signup"] .inbox { display: none; }
+
+      .form {
+        max-width: 28rem;
+        margin: 0 auto;
+        text-align: left;
+        animation: stagger-1 var(--dur-deliberate) var(--ease-out-soft) 180ms both;
+      }
+      .form__field {
+        margin-bottom: 2.4rem;
+        animation: field-in var(--dur-deliberate) var(--ease-out-soft) both;
+      }
+      .form__field:nth-child(1) { animation-delay: 280ms; }
+      .form__field:nth-child(2) { animation-delay: 380ms; }
+      .form__field:nth-child(3) { animation-delay: 540ms; }
+
+      .form__label {
+        display: block;
+        font-family: "JetBrains Mono", monospace;
+        font-size: var(--t-xs);
+        letter-spacing: 0.14em;
+        text-transform: lowercase;
+        color: var(--ink-dim);
+        margin-bottom: 0.4rem;
+        transition: color var(--dur-quick) var(--ease);
+      }
+      .form__field:focus-within .form__label { color: var(--ember); }
+
+      .form__input {
+        width: 100%;
+        appearance: none;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid var(--line-strong);
+        padding: 0.55rem 0;
+        font-family: "Inria Sans", sans-serif;
+        font-size: var(--t-lg);
+        color: var(--ink);
+        outline: none;
+        transition: border-color var(--dur-quick) var(--ease);
+      }
+      .form__input::placeholder { color: var(--ink-dim); opacity: 0.5; }
+      .form__input:focus {
+        border-bottom-color: var(--ember);
+        background-image: linear-gradient(to right, var(--ember), var(--ember));
+        background-size: 100% 1px;
+        background-position: 0 100%;
+        background-repeat: no-repeat;
+        animation: focus-line 320ms var(--ease) both;
+      }
+      @keyframes focus-line {
+        from { background-size: 0% 1px; }
+        to   { background-size: 100% 1px; }
+      }
+
+      /* Submit "verb" — text + arrow, no button-shaped chrome */
+      .form__submit {
+        background: none;
+        border: none;
+        padding: 0.5rem 0;
+        cursor: pointer;
+        font-family: Fraunces, serif;
+        font-style: italic;
+        font-weight: 380;
+        font-size: var(--t-lg);
+        color: var(--ink);
+        letter-spacing: 0.005em;
+        font-variation-settings: "opsz" 36, "SOFT" 50, "WONK" 0.5;
+        transition: color var(--dur-quick) var(--ease);
+        display: inline-flex;
+        align-items: baseline;
+        gap: 0.5rem;
+      }
+      .form__submit__arrow {
+        font-style: normal;
+        color: var(--ember);
+        transition: transform var(--dur-quick) var(--ease);
+        font-family: "Inria Sans", sans-serif;
+      }
+      .form__submit:hover, .form__submit:focus-visible {
+        color: var(--ember-strong); outline: none;
+      }
+      .form__submit:hover .form__submit__arrow,
+      .form__submit:focus-visible .form__submit__arrow {
+        transform: translateX(0.3em);
+      }
+
+      /* Loading + done states — cycled by JS via [data-busy] */
+      .form__submit__dots, .form__submit__check { display: none; }
+      .form[data-busy="1"] .form__submit__label,
+      .form[data-busy="1"] .form__submit__arrow { display: none; }
+      .form[data-busy="1"] .form__submit__dots { display: inline-flex; gap: 0.25em; }
+      .form__submit__dots span {
+        width: 0.4em; height: 0.4em; border-radius: 50%;
+        background: var(--ember);
+        animation: dot-pulse 1100ms var(--ease) infinite;
+      }
+      .form__submit__dots span:nth-child(2) { animation-delay: 160ms; }
+      .form__submit__dots span:nth-child(3) { animation-delay: 320ms; }
+      @keyframes dot-pulse {
+        0%, 80%, 100% { opacity: 0.25; transform: scale(0.85); }
+        40%           { opacity: 1;    transform: scale(1.1);  }
+      }
+
+      .form__error {
+        margin-top: 1.25rem;
+        padding: 0.75rem 1rem;
+        border-left: 2px solid var(--ember);
+        background: oklch(from var(--ember) l c h / 0.08);
+        font-size: var(--t-sm);
+        color: var(--ink-soft);
+        font-family: "Inria Sans", sans-serif;
+        font-style: italic;
+        animation: field-in 320ms var(--ease) both;
+      }
+
+      .form__hint {
+        margin-top: 1.5rem;
+        font-family: "JetBrains Mono", monospace;
+        font-size: var(--t-xs);
+        letter-spacing: 0.06em;
+        color: var(--ink-dim);
+      }
+      .form__hint a {
+        color: var(--ink-soft);
+        text-decoration: none;
+        border-bottom: 1px solid var(--line);
+        transition: color var(--dur-quick) var(--ease), border-color var(--dur-quick) var(--ease);
+      }
+      .form__hint a:hover, .form__hint a:focus-visible {
+        color: var(--ember);
+        border-bottom-color: var(--ember);
+        outline: none;
+      }
+
+      @keyframes field-in {
+        from { opacity: 0; transform: translateY(0.3rem); filter: blur(0.3px); }
+        to   { opacity: 1; transform: translateY(0);     filter: blur(0); }
+      }
+      @keyframes stagger-1 {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+      }
+
+      /* ─── INBOX STATE ─── single sentence, generous space, gentle motion */
+      [data-state="inbox"] .door,
+      [data-state="inbox"] .form { display: none; }
+
+      .inbox {
+        max-width: 38rem;
+        margin: 0 auto;
+        animation: stagger-1 var(--dur-deliberate) var(--ease-out-soft) 220ms both;
+      }
+      .inbox__lede {
+        font-family: "Inria Sans", sans-serif;
+        font-size: var(--t-lg);
+        line-height: 1.55;
+        color: var(--ink-soft);
+        margin: 0 0 2rem 0;
+      }
+      .inbox__lede em {
+        color: var(--ember-strong);
+        font-style: italic;
+        font-family: Fraunces, serif;
+        font-weight: 400;
+        font-variation-settings: "opsz" 36, "SOFT" 60, "WONK" 0;
+      }
+      .inbox__envelope {
+        display: inline-block;
+        font-family: Fraunces, serif;
+        font-size: clamp(3.5rem, 8vw, 5rem);
+        color: var(--ember);
+        line-height: 1;
+        margin-bottom: 1.5rem;
+        font-variation-settings: "opsz" 144, "SOFT" 100, "WONK" 0;
+        animation: envelope-rest 6s var(--ease) infinite;
+      }
+      @keyframes envelope-rest {
+        0%, 100% { transform: translateY(0)     rotate(-1deg); }
+        50%      { transform: translateY(-0.2rem) rotate(1deg); }
+      }
+      .inbox__meta {
+        font-family: "JetBrains Mono", monospace;
+        font-size: var(--t-xs);
+        letter-spacing: 0.1em;
+        color: var(--ink-dim);
+        text-transform: lowercase;
+        margin-top: 2.5rem;
+      }
+      .inbox__meta a {
+        color: var(--ink-soft);
+        text-decoration: none;
+        border-bottom: 1px solid var(--line);
+        transition: color var(--dur-quick) var(--ease), border-color var(--dur-quick) var(--ease);
+      }
+      .inbox__meta a:hover, .inbox__meta a:focus-visible {
+        color: var(--ember); border-bottom-color: var(--ember); outline: none;
+      }
+
+      /* ─── REDUCED MOTION ─── */
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+
+      /* ─── VIEW TRANSITIONS ─── softer than crossfade-default */
+      ::view-transition-old(root),
+      ::view-transition-new(root) {
+        animation-duration: 420ms;
+        animation-timing-function: var(--ease);
+      }
+      ::view-transition-old(root) { animation-name: vt-out; }
+      ::view-transition-new(root) { animation-name: vt-in; }
+      @keyframes vt-out {
+        to { opacity: 0; transform: translateY(-0.3rem); filter: blur(0.5px); }
+      }
+      @keyframes vt-in {
+        from { opacity: 0; transform: translateY(0.3rem); filter: blur(0.5px); }
+        to   { opacity: 1; transform: translateY(0);     filter: blur(0); }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <span class="frame__mark">inspr<span class="dot">·</span>at</span>
+      <a class="frame__back" href="/">← back</a>
+    </div>
+
+    <main>
+      <div class="stage">
+        {{ if eq .State "door" }}
+          <h1 class="head">{{ .Head }}<span class="punct">.</span></h1>
+          <nav class="door" aria-label="Choose a path">
+            <a class="door__path" href="/login">
+              <span class="meta">i'm returning</span>
+              <span class="word">sign in</span>
+            </a>
+            <span class="door__hairline" aria-hidden="true"></span>
+            <a class="door__path" href="/enter?step=signup">
+              <span class="meta">i'm new here</span>
+              <span class="word">begin</span>
+            </a>
+          </nav>
+
+        {{ else if eq .State "signup" }}
+          <h1 class="head">let's get you <em>in</em><span class="punct">.</span></h1>
+          <form class="form" method="POST" action="/enter" novalidate>
+            <div class="form__field">
+              <label class="form__label" for="name">your name</label>
+              <input
+                class="form__input"
+                type="text"
+                id="name"
+                name="name"
+                value="{{ .FormName }}"
+                placeholder="markus"
+                autocomplete="name"
+                required
+                autofocus
+              />
+            </div>
+            <div class="form__field">
+              <label class="form__label" for="email">your email</label>
+              <input
+                class="form__input"
+                type="email"
+                id="email"
+                name="email"
+                value="{{ .FormEmail }}"
+                placeholder="you@somewhere"
+                autocomplete="email"
+                required
+              />
+            </div>
+            <div class="form__field">
+              <button class="form__submit" type="submit">
+                <span class="form__submit__label">step in</span>
+                <span class="form__submit__arrow" aria-hidden="true">→</span>
+                <span class="form__submit__dots" aria-hidden="true">
+                  <span></span><span></span><span></span>
+                </span>
+              </button>
+            </div>
+            {{ if .FormError }}
+              <p class="form__error">{{ .FormError }}</p>
+            {{ end }}
+            <p class="form__hint">
+              already inside? <a href="/login">sign in instead</a>
+            </p>
+          </form>
+
+        {{ else if eq .State "inbox" }}
+          <div class="inbox">
+            <div class="inbox__envelope" aria-hidden="true">✉</div>
+            <h1 class="head">your door is <em>open</em><span class="punct">.</span></h1>
+            <p class="inbox__lede">
+              we just sent <em>{{ .FormEmail }}</em> a one-tap link.
+              click it and your passkey will be set up in a single
+              gesture — no password to remember.
+            </p>
+            <p class="inbox__meta">
+              wrong address? <a href="/enter?step=signup">try again</a>
+            </p>
+          </div>
+
+        {{ else }}
+          {{/* shouldn't happen, but keep the page valid */}}
+          <h1 class="head">something is off<span class="punct">.</span></h1>
+          <p class="inbox__lede">
+            <a href="/enter">start over</a>
+          </p>
+        {{ end }}
+      </div>
+    </main>
+
+    {{/*
+      JS: progressively-enhance state transitions via View Transitions
+      API. With JS off, links navigate normally and CSS-only animations
+      still run. With JS on, the door→form click crossfades smoothly.
+    */}}
+    <script>
+      (function () {
+        if (!document.startViewTransition) return;
+
+        // Door → Form (intercept to use View Transitions)
+        document.querySelectorAll(".door__path[href^='/enter?']").forEach(function (a) {
+          a.addEventListener("click", function (e) {
+            e.preventDefault();
+            document.startViewTransition(function () {
+              window.location.href = a.href;
+            });
+          });
+        });
+
+        // Form submit — show busy state, then let the POST proceed
+        var form = document.querySelector(".form");
+        if (form) {
+          form.addEventListener("submit", function () {
+            form.setAttribute("data-busy", "1");
+          });
+        }
+
+        // "back" link — reverse the transition feel
+        var back = document.querySelector(".frame__back");
+        if (back) {
+          back.addEventListener("click", function (e) {
+            e.preventDefault();
+            document.startViewTransition(function () {
+              window.location.href = back.href;
+            });
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>

@@ -1,10 +1,11 @@
 ---
-// Toolbar — fixed top-right shell that hosts the theme switch + the
-// edition toggle. Same pill-style language as each control; tighter
-// gap between them, no internal divider needed because each is its
-// own pill.
+// Toolbar — fixed top-right shell that hosts the theme switch, the
+// edition toggle, and the login link. Same pill-style language for each
+// control; tighter gap between them, no internal divider needed because
+// each is its own pill.
 import ThemeSwitch from "./ThemeSwitch.astro";
 import EditionToggle from "./EditionToggle.astro";
+import LoginLink from "./LoginLink.astro";
 
 interface Props {
   edition: "v1" | "v2";
@@ -15,6 +16,7 @@ const { edition } = Astro.props;
 <div class="toolbar" role="toolbar" aria-label="Site controls">
   <ThemeSwitch />
   <EditionToggle current={edition} />
+  <LoginLink />
 </div>
 
 <style is:global>

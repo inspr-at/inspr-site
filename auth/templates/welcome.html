@@ -165,24 +165,51 @@
         }
       }
 
-      .signout {
+      /* Pill-shaped log-out, top-right corner — mirrors the inspr.at
+         toolbar visual language (mono, pill, blurred translucent
+         backdrop, ember accent on icon) so the surface feels coherent
+         across pages. */
+      .logout {
         position: fixed;
-        right: 1.25rem;
-        bottom: 1rem;
+        inset-block-start: clamp(0.85rem, 2vw, 1.4rem);
+        inset-inline-end: clamp(0.85rem, 2vw, 1.4rem);
+        z-index: 100;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4em;
+        padding: 0.45em 0.85em;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background-color: oklch(from var(--surface) l c h / 0.78);
+        backdrop-filter: blur(10px) saturate(1.1);
+        -webkit-backdrop-filter: blur(10px) saturate(1.1);
         font-family:
           "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
         font-size: var(--t-xs);
-        color: var(--ink-dim);
-        text-decoration: none;
-        opacity: 0.55;
-        transition: opacity 200ms ease;
-        letter-spacing: 0.02em;
-      }
-      .signout:hover,
-      .signout:focus-visible {
-        opacity: 1;
+        line-height: 1;
         color: var(--ink-soft);
+        text-decoration: none;
+        letter-spacing: 0.08em;
+        text-transform: lowercase;
+        box-shadow: 0 1px 2px oklch(from var(--ink) l c h / 0.04);
+        transition:
+          color 200ms ease,
+          border-color 200ms ease;
+      }
+      .logout:hover,
+      .logout:focus-visible {
+        color: var(--ink);
+        border-color: var(--ink-dim);
         outline: none;
+      }
+      .logout__icon {
+        color: var(--ember);
+        transform: translateY(-0.04em);
+        transition: transform 200ms ease;
+      }
+      .logout:hover .logout__icon,
+      .logout:focus-visible .logout__icon {
+        transform: translate(-0.1em, -0.04em);
       }
     </style>
   </head>
@@ -196,6 +223,9 @@
         >
       </h1>
     </main>
-    <a class="signout" href="/logout" rel="nofollow">sign&nbsp;out</a>
+    <a class="logout" href="/logout" rel="nofollow" aria-label="Log out">
+      <span class="logout__icon" aria-hidden="true">←</span>
+      <span>log&nbsp;out</span>
+    </a>
   </body>
 </html>

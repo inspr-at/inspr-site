@@ -1,0 +1,56 @@
+---
+// LoginLink — third pill in the top-right toolbar (alongside ThemeSwitch
+// + EditionToggle). Routes to /login, which is handled by the inspr-auth
+// container (Traefik path-routing) and starts the OIDC flow against
+// auth.inspr.at. Pure HTML/CSS, no JS.
+---
+
+<a class="loginlink mono" href="/login" aria-label="Log in to INSPR">
+  <span class="loginlink__icon" aria-hidden="true">→</span>
+  <span class="loginlink__label">log&nbsp;in</span>
+</a>
+
+<style>
+  .loginlink {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.45em 0.85em;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background-color: oklch(from var(--bg) l c h / 0.78);
+    backdrop-filter: blur(10px) saturate(1.1);
+    -webkit-backdrop-filter: blur(10px) saturate(1.1);
+    font-size: var(--t-xs);
+    line-height: 1;
+    color: var(--text-faint);
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    box-shadow: 0 1px 2px oklch(from var(--ink) l c h / 0.04);
+    transition:
+      color var(--dur-quick) var(--ease),
+      border-color var(--dur-quick) var(--ease);
+  }
+
+  .loginlink:hover,
+  .loginlink:focus-visible {
+    color: var(--text);
+    border-color: var(--text-muted);
+    outline: none;
+  }
+
+  .loginlink__icon {
+    color: var(--accent);
+    transform: translateY(-0.04em);
+    transition: transform var(--dur-quick) var(--ease);
+  }
+
+  .loginlink:hover .loginlink__icon,
+  .loginlink:focus-visible .loginlink__icon {
+    transform: translate(0.1em, -0.04em);
+  }
+
+  .loginlink__label {
+    text-transform: lowercase;
+  }
+</style>

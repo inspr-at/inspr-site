@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>inspr.at</title>
+
+    <!--
+      Welcome page — fully self-contained. Mirrors inspr.at v1 design
+      tokens (cream/ink + ember accent, OKLCH-native, prefers-color-scheme
+      auto-switch). Two fonts loaded same-origin from inspr-www's built
+      asset path; system serif fallback covers font-load failure.
+
+      The whole page is one greeting. No nav, no chrome — the URL bar is
+      the brand. A small mono "sign out" sits in the bottom-right corner
+      because elegance includes "you can leave."
+    -->
+
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      href="/_astro/fraunces-latin-full-normal.CFFu7zhK.woff2"
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      href="/_astro/inria-sans-latin-400-normal.Ps-oYZQA.woff2"
+    />
+
+    <style>
+      @font-face {
+        font-family: "Fraunces";
+        font-style: normal;
+        font-weight: 100 900;
+        font-display: swap;
+        src: url("/_astro/fraunces-latin-full-normal.CFFu7zhK.woff2")
+          format("woff2");
+      }
+      @font-face {
+        font-family: "Inria Sans";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("/_astro/inria-sans-latin-400-normal.Ps-oYZQA.woff2")
+          format("woff2");
+      }
+
+      :root {
+        /* light / cream — defaults */
+        --surface: oklch(96.5% 0.013 80);
+        --ink: oklch(20% 0.012 50);
+        --ink-soft: oklch(36% 0.01 52);
+        --ink-dim: oklch(58% 0.008 60);
+        --line: oklch(82% 0.01 70);
+        --ember: oklch(64% 0.18 38);
+
+        --t-xs: clamp(0.78rem, 0.74rem + 0.2vw, 0.875rem);
+        --t-sm: clamp(0.9rem, 0.85rem + 0.25vw, 1rem);
+        --hero: clamp(2.4rem, 1.6rem + 4.5vw, 5.2rem);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --surface: oklch(18% 0.012 50);
+          --ink: oklch(94% 0.012 80);
+          --ink-soft: oklch(78% 0.012 70);
+          --ink-dim: oklch(60% 0.01 65);
+          --line: oklch(32% 0.012 60);
+          --ember: oklch(72% 0.16 40);
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100dvh;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--ink);
+        font-family:
+          "Inria Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+        font-size: var(--t-sm);
+        line-height: 1.45;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        display: grid;
+        place-items: center;
+        padding: 2rem;
+        position: relative;
+      }
+
+      main {
+        text-align: center;
+        max-width: 64ch;
+      }
+
+      .greeting {
+        font-family: Fraunces, Georgia, "Times New Roman", serif;
+        font-weight: 360;
+        font-size: var(--hero);
+        line-height: 1.05;
+        letter-spacing: -0.015em;
+        color: var(--ink);
+        margin: 0;
+        font-variation-settings:
+          "opsz" 144,
+          "SOFT" 0,
+          "WONK" 0;
+        animation: settle 1400ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+      }
+
+      .greeting .name {
+        color: var(--ember);
+        font-style: italic;
+        font-variation-settings:
+          "opsz" 144,
+          "SOFT" 70,
+          "WONK" 1;
+      }
+
+      .greeting .closer {
+        display: block;
+        margin-top: 1.4rem;
+        color: var(--ink-soft);
+        font-size: clamp(1.1rem, 0.85rem + 1.1vw, 1.6rem);
+        font-style: normal;
+        font-weight: 380;
+        letter-spacing: 0;
+        font-variation-settings:
+          "opsz" 36,
+          "SOFT" 30,
+          "WONK" 0;
+        animation: settle 1400ms cubic-bezier(0.2, 0.7, 0.2, 1) 220ms both;
+      }
+
+      @keyframes settle {
+        from {
+          opacity: 0;
+          transform: translateY(0.4rem);
+          filter: blur(0.4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+          filter: blur(0);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .greeting,
+        .greeting .closer {
+          animation: none;
+        }
+      }
+
+      .signout {
+        position: fixed;
+        right: 1.25rem;
+        bottom: 1rem;
+        font-family:
+          "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: var(--t-xs);
+        color: var(--ink-dim);
+        text-decoration: none;
+        opacity: 0.55;
+        transition: opacity 200ms ease;
+        letter-spacing: 0.02em;
+      }
+      .signout:hover,
+      .signout:focus-visible {
+        opacity: 1;
+        color: var(--ink-soft);
+        outline: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1 class="greeting">
+        Hello,
+        <span class="name">{{ .Name }}</span>.
+        <span class="closer"
+          >Your inspiration is the only limit.</span
+        >
+      </h1>
+    </main>
+    <a class="signout" href="/logout" rel="nofollow">sign&nbsp;out</a>
+  </body>
+</html>

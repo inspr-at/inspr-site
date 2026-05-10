@@ -1,3 +1,8 @@
 .DS_Store
 .envrc.local
+.env
+.env.local
+.machinekey/
 node_modules/
+*.log
+auth/inspr-auth

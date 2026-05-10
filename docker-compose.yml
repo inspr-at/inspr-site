@@ -1,4 +1,28 @@
+# inspr.at — Astro static site + INSPR foundation services.
+#
+# Three logical groups:
+#
+#   1. inspr-www    — Caddy serving the Astro build for inspr.at + www.inspr.at.
+#                     Catches everything on the apex EXCEPT the auth paths
+#                     (which Traefik diverts to inspr-auth via priority).
+#
+#   2. inspr-auth   — small Go OIDC backend handling /login, /welcome, /logout.
+#                     Server-side session (HMAC cookie). Talks to Zitadel via
+#                     internal docker network; users only see inspr.at URLs.
+#
+#   3. zitadel      — the IdP itself, exposed at auth.inspr.at. Postgres-backed,
+#       + zitadel-postgres   pinned (no Watchtower) so an upstream Zitadel
+#                            release can't silently break the foundation.
+#
+# Secrets in `.env` (gitignored, deployed out-of-band to csb1):
+#   ZITADEL_MASTERKEY         — 32 raw bytes for at-rest crypto (rotate = re-init)
+#   ZITADEL_POSTGRES_PASSWORD — Zitadel DB user password
+#   ZITADEL_ADMIN_PASSWORD    — initial console admin (zitadel-admin@inspr.localhost.zitadel)
+#   OIDC_CLIENT_SECRET        — Zitadel-issued, written here AFTER bootstrap
+#   COOKIE_KEY                — 64+ hex chars for inspr-auth's HMAC session
+
 services:
+  # ── 1. Static site (unchanged from v1) ────────────────────────────────
   inspr-www:
     image: caddy:2-alpine
     container_name: inspr-www
@@ -23,6 +47,137 @@ services:
       - traefik.http.services.inspr.loadbalancer.server.port=80
       - com.centurylinklabs.watchtower.enable=true
 
+  # ── 2. inspr-auth — OIDC session backend ──────────────────────────────
+  # Routes /login, /welcome, /logout on inspr.at. Higher Traefik priority
+  # than inspr-www so the path-prefixed rule wins despite the broader
+  # Host(...) rule on inspr-www.
+  inspr-auth:
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    image: inspr-auth:local
+    container_name: inspr-auth
+    restart: unless-stopped
+    networks:
+      - traefik
+    environment:
+      OIDC_ISSUER: https://auth.inspr.at
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-PLACEHOLDER_set_after_bootstrap}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-PLACEHOLDER_set_after_bootstrap}
+      BASE_URL: https://inspr.at
+      COOKIE_KEY: ${COOKIE_KEY:?COOKIE_KEY missing — see .env.example}
+      LISTEN: ":8080"
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=csb1_traefik
+      # Catch the three auth paths on inspr.at; priority 100 > inspr-www's
+      # default so this rule wins even though inspr-www's Host() also
+      # matches the same hostname.
+      - traefik.http.routers.inspr-auth.rule=Host(`inspr.at`) && (PathPrefix(`/login`) || PathPrefix(`/welcome`) || PathPrefix(`/logout`))
+      - traefik.http.routers.inspr-auth.priority=100
+      - traefik.http.routers.inspr-auth.tls=true
+      - traefik.http.routers.inspr-auth.tls.certresolver=default
+      - traefik.http.routers.inspr-auth.middlewares=cloudflarewarp@file
+      - traefik.http.services.inspr-auth.loadbalancer.server.port=8080
+      # Pinned local build — Watchtower must NOT touch this (no upstream).
+      - com.centurylinklabs.watchtower.enable=false
+
+  # ── 3. Zitadel + dedicated Postgres ───────────────────────────────────
+  zitadel-postgres:
+    image: postgres:16-alpine
+    container_name: zitadel-postgres
+    restart: unless-stopped
+    networks:
+      - traefik
+    environment:
+      POSTGRES_USER: zitadel
+      POSTGRES_PASSWORD: ${ZITADEL_POSTGRES_PASSWORD:?missing}
+      POSTGRES_DB: zitadel
+    volumes:
+      - zitadel_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "zitadel"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    # Pinned — never auto-update the database engine.
+    labels:
+      - com.centurylinklabs.watchtower.enable=false
+
+  zitadel:
+    # Zitadel publishes :stable for the latest production-tested release.
+    # Watchtower is disabled below — pin to a sha digest for true repro
+    # once we stabilize the configuration.
+    image: ghcr.io/zitadel/zitadel:stable
+    container_name: zitadel
+    restart: unless-stopped
+    depends_on:
+      zitadel-postgres:
+        condition: service_healthy
+    networks:
+      - traefik
+    command: >
+      start-from-init
+      --masterkey ${ZITADEL_MASTERKEY:?missing}
+      --tlsMode external
+    environment:
+      # ── Database wiring ────────────────────────────────
+      ZITADEL_DATABASE_POSTGRES_HOST: zitadel-postgres
+      ZITADEL_DATABASE_POSTGRES_PORT: 5432
+      ZITADEL_DATABASE_POSTGRES_DATABASE: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_USERNAME: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: ${ZITADEL_POSTGRES_PASSWORD}
+      ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE: disable
+      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: zitadel
+      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: ${ZITADEL_POSTGRES_PASSWORD}
+      ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE: disable
+      # ── External-facing identity ───────────────────────
+      # NOTE: changing ExternalDomain after first init requires reset.
+      ZITADEL_EXTERNALDOMAIN: auth.inspr.at
+      ZITADEL_EXTERNALPORT: 443
+      ZITADEL_EXTERNALSECURE: "true"
+      # Traefik does TLS termination; Zitadel listens HTTP on the docker net.
+      ZITADEL_TLS_ENABLED: "false"
+      ZITADEL_PORT: 8080
+      # ── First instance bootstrap (admin user) ──────────
+      # Created once on first init; subsequent restarts ignore.
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: zitadel-admin
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_FIRSTNAME: Zitadel
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_LASTNAME: Admin
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL_ADDRESS: admin@auth.inspr.at
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL_VERIFIED: "true"
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: ${ZITADEL_ADMIN_PASSWORD}
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: "false"
+      ZITADEL_FIRSTINSTANCE_ORG_NAME: INSPR
+      # ── Bootstrap machine user + PAT (one-shot automation) ────────────
+      # Created once at init alongside the human admin. Gets IAM_OWNER role
+      # so it can call the management API for project/app/user creation.
+      # PAT is written to /machinekey/pat.txt on first init; we mount that
+      # path as a host volume so `bootstrap-zitadel.sh` can read it.
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_USERNAME: bootstrap-sa
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_NAME: Bootstrap
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_PAT_EXPIRATIONDATE: "2099-12-31T23:59:59Z"
+      ZITADEL_FIRSTINSTANCE_PATPATH: /machinekey/pat.txt
+    volumes:
+      # Bind mount (not named volume) so we can chown the host dir to UID
+      # 1000 — the named-volume path is root-owned at create time and
+      # Zitadel's non-root container user gets EACCES at the PAT-write
+      # step in migration 03_default_instance.
+      - ./.machinekey:/machinekey
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=csb1_traefik
+      - traefik.http.routers.zitadel.rule=Host(`auth.inspr.at`)
+      - traefik.http.routers.zitadel.tls=true
+      - traefik.http.routers.zitadel.tls.certresolver=default
+      - traefik.http.routers.zitadel.middlewares=cloudflarewarp@file
+      - traefik.http.services.zitadel.loadbalancer.server.port=8080
+      # IMPORTANT: Zitadel speaks h2c (HTTP/2 cleartext) on the backend
+      # for its gRPC services. Without this, /oauth/v2/* still works (it's
+      # plain HTTP/1.1), but the admin console gRPC calls fail.
+      - traefik.http.services.zitadel.loadbalancer.server.scheme=h2c
+      - com.centurylinklabs.watchtower.enable=false
+
 networks:
   traefik:
     external: true
@@ -31,3 +186,7 @@ networks:
 volumes:
   caddy_data:
   caddy_config:
+  zitadel_postgres_data:
+  # Note: zitadel_machinekey was a named volume in v1; switched to a host
+  # bind-mount (./.machinekey) to fix EACCES on the PAT write — see
+  # comment on the zitadel service's volumes block.

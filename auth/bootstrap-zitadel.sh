@@ -38,9 +38,13 @@ APP_NAME="inspr-www-auth"
 REDIRECT_URI="https://inspr.at/welcome"
 POST_LOGOUT_URI="https://inspr.at/"
 
+PRINT_SECRET=0
+RESET_PASSWORD=0
 for arg in "$@"; do
   case "$arg" in
     --write-env) WRITE_ENV=1 ;;
+    --print-secret) PRINT_SECRET=1 ;;
+    --reset-password) RESET_PASSWORD=1 ;;
     -h|--help)
       sed -n '1,30p' "$0"; exit 0 ;;
   esac
@@ -139,16 +143,32 @@ log "Client id=$CLIENT_ID (secret captured, ${#CLIENT_SECRET} bytes)"
 #       The user is expected to rotate via the console; this is a spike-
 #       grade convenience, not a long-term setting.
 log "Relaxing org password complexity (drop uppercase requirement)…"
-# Try update first (200 if a custom policy exists); fall back to create.
+# Idempotent across runs:
+#   - First run: no custom policy → PUT 404 → POST creates it
+#   - Subsequent runs: custom policy exists → PUT 200 (or 409 "no changes")
+# We treat 200/201/409 all as success; only abort on truly unexpected codes.
 RELAX_PAYLOAD='{"minLength":"8","hasLowercase":true,"hasUppercase":false,"hasNumber":true,"hasSymbol":true}'
 HTTP_CODE="$(curl -sS -o /tmp/policy.out -w '%{http_code}' "${AUTH[@]}" -X PUT "${ZITADEL_BASE}/management/v1/policies/password/complexity" -d "$RELAX_PAYLOAD")"
-if [ "$HTTP_CODE" = "404" ] || [ "$HTTP_CODE" = "400" ]; then
-  log "  no custom policy yet → creating one"
-  curl -fsS "${AUTH[@]}" -X POST "${ZITADEL_BASE}/management/v1/policies/password/complexity" -d "$RELAX_PAYLOAD" > /dev/null
-elif [ "$HTTP_CODE" != "200" ]; then
-  log "  policy update returned HTTP $HTTP_CODE — body:"
-  cat /tmp/policy.out >&2
-fi
+case "$HTTP_CODE" in
+  200|201)
+    log "  policy updated (HTTP $HTTP_CODE)"
+    ;;
+  409)
+    log "  policy already at desired state (HTTP 409 — no-op)"
+    ;;
+  404|400)
+    log "  no custom policy yet → creating one"
+    POST_CODE="$(curl -sS -o /tmp/policy.out -w '%{http_code}' "${AUTH[@]}" -X POST "${ZITADEL_BASE}/management/v1/policies/password/complexity" -d "$RELAX_PAYLOAD")"
+    case "$POST_CODE" in
+      200|201|409) log "  created (HTTP $POST_CODE)" ;;
+      *) log "  WARN: create returned HTTP $POST_CODE — body:"; cat /tmp/policy.out >&2 ;;
+    esac
+    ;;
+  *)
+    log "  WARN: policy PUT returned HTTP $HTTP_CODE — body:"
+    cat /tmp/policy.out >&2
+    ;;
+esac
 
 # ── 7. Create the human user ────────────────────────────────────────────
 log "Looking for existing user '${USER_LOGIN_NAME}'…"
@@ -166,19 +186,34 @@ if [ -z "$USER_ID" ]; then
         requestPasswordlessRegistration: false
       }')")"
   USER_ID="$(echo "$USER_RESP" | jq -r '.userId')"
+elif [ "$RESET_PASSWORD" = "1" ]; then
+  log "User exists (id=$USER_ID); resetting password (--reset-password requested)…"
+  PWRESP="$(curl -sS -o /tmp/pwreset.out -w '%{http_code}' "${AUTH[@]}" -X POST "${ZITADEL_BASE}/management/v1/users/${USER_ID}/password" \
+    -d "$(jq -n --arg pw "$USER_PASSWORD" '{newPassword:{password:$pw, changeRequired:false}}')")"
+  if [ "$PWRESP" != "200" ]; then
+    log "  WARN: password reset returned HTTP $PWRESP — body:"
+    cat /tmp/pwreset.out >&2
+    log "  (continuing — secret rotation has already succeeded; existing user password unchanged)"
+  fi
 else
-  log "User exists (id=$USER_ID); resetting password…"
-  curl -fsS "${AUTH[@]}" -X POST "${ZITADEL_BASE}/management/v1/users/${USER_ID}/password" \
-    -d "$(jq -n --arg pw "$USER_PASSWORD" '{newPassword:{password:$pw, changeRequired:false}}')" > /dev/null
+  log "User exists (id=$USER_ID); leaving password unchanged (use --reset-password to force)"
 fi
 [ -n "$USER_ID" ] && [ "$USER_ID" != "null" ] || die "user create failed"
 log "User id=$USER_ID"
 
-# ── 7. Print + optionally write to .env ─────────────────────────────────
+# ── 8. Display + optionally write to .env ───────────────────────────────
+# DEFAULT: redact the secret (only length printed) so stdout-captured runs
+# don't leak it into terminals/transcripts/CI logs. Pass --print-secret
+# explicitly to opt in to cleartext output (e.g. when you need to copy it
+# manually into a different env file).
 echo
 echo "──────────────────────────────────────────────"
 echo "OIDC_CLIENT_ID=${CLIENT_ID}"
-echo "OIDC_CLIENT_SECRET=${CLIENT_SECRET}"
+if [ "$PRINT_SECRET" = "1" ]; then
+  echo "OIDC_CLIENT_SECRET=${CLIENT_SECRET}"
+else
+  echo "OIDC_CLIENT_SECRET=<redacted, length=${#CLIENT_SECRET}> (use --print-secret to show)"
+fi
 echo "──────────────────────────────────────────────"
 echo
 

@@ -201,7 +201,79 @@ fi
 [ -n "$USER_ID" ] && [ "$USER_ID" != "null" ] || die "user create failed"
 log "User id=$USER_ID"
 
-# ── 8. Display + optionally write to .env ───────────────────────────────
+# ── 8. Patch ZITADEL Console OIDC app — enable refresh tokens ───────────
+# Self-hosted Zitadel ships the built-in Console OIDC app with ONLY the
+# AUTHORIZATION_CODE grant. The browser-side console can therefore obtain
+# an access token but never refresh it, so after the access-token TTL
+# (default ~12h) the user gets stuck on a persistent "Token.Invalid"
+# error toast with no auto-recovery path. Adding REFRESH_TOKEN to the
+# grant set lets the console silently refresh and the toast disappears
+# from the UX entirely.
+#
+# Idempotent: PUT-with-full-config replaces the OIDC config wholesale.
+# Re-runs are no-ops (HTTP 200 with no functional change, or 409 from
+# Zitadel's "no change" guard, both treated as success).
+#
+# References:
+#   - https://github.com/zitadel/zitadel/issues/8392
+#   - This trap was discovered the hard way on 2026-05-10; baking the
+#     fix here prevents anyone re-bootstrapping a fresh Zitadel from
+#     hitting it again.
+log "Patching ZITADEL Console OIDC app — enabling refresh-token grant…"
+ZP_SYSTEM="$(curl -fsS "${AUTH[@]}" -X POST "${ZITADEL_BASE}/management/v1/projects/_search" -d '{}' \
+  | jq -r '.result[]? | select(.name=="ZITADEL") | .id' | head -1)"
+if [ -z "$ZP_SYSTEM" ] || [ "$ZP_SYSTEM" = "null" ]; then
+  log "  WARN: ZITADEL system project not found — skipping console fix"
+else
+  CONSOLE_APP_ID="$(curl -fsS "${AUTH[@]}" -X POST "${ZITADEL_BASE}/management/v1/projects/${ZP_SYSTEM}/apps/_search" -d '{}' \
+    | jq -r '.result[]? | select(.name=="Console") | .id' | head -1)"
+  if [ -z "$CONSOLE_APP_ID" ] || [ "$CONSOLE_APP_ID" = "null" ]; then
+    log "  WARN: Console app not found in system project — skipping console fix"
+  else
+    CONSOLE_PAYLOAD="$(jq -n \
+      --arg redir    "${ZITADEL_BASE}/ui/console/auth/callback" \
+      --arg signedout "${ZITADEL_BASE}/ui/console/signedout" \
+      --arg origin   "${ZITADEL_BASE}" '{
+        redirectUris:             [$redir],
+        responseTypes:            ["OIDC_RESPONSE_TYPE_CODE"],
+        grantTypes:               ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE", "OIDC_GRANT_TYPE_REFRESH_TOKEN"],
+        appType:                  "OIDC_APP_TYPE_USER_AGENT",
+        authMethodType:           "OIDC_AUTH_METHOD_TYPE_NONE",
+        postLogoutRedirectUris:   [$signedout],
+        version:                  "OIDC_VERSION_1_0",
+        devMode:                  false,
+        accessTokenType:          "OIDC_TOKEN_TYPE_BEARER",
+        accessTokenRoleAssertion: false,
+        idTokenRoleAssertion:     false,
+        idTokenUserinfoAssertion: false,
+        clockSkew:                "0s",
+        allowedOrigins:           [$origin],
+        skipNativeAppSuccessPage: false
+      }')"
+    PUT_CODE="$(curl -sS -o /tmp/console.out -w '%{http_code}' "${AUTH[@]}" -X PUT \
+      "${ZITADEL_BASE}/management/v1/projects/${ZP_SYSTEM}/apps/${CONSOLE_APP_ID}/oidc_config" \
+      -d "$CONSOLE_PAYLOAD")"
+    case "$PUT_CODE" in
+      200|201) log "  Console refresh-token grant ENABLED (HTTP $PUT_CODE)" ;;
+      409)     log "  Console already at desired config (HTTP 409 — no-op)" ;;
+      400)
+        # Zitadel returns 400 + "No changes" when the PUT body matches
+        # the existing config (idempotent re-run path). Real 400s have a
+        # different message; surface those.
+        if grep -q "No changes" /tmp/console.out 2>/dev/null; then
+          log "  Console already at desired config (HTTP 400 — \"No changes\")"
+        else
+          log "  WARN: Console patch returned HTTP 400 — body:"
+          cat /tmp/console.out >&2
+        fi
+        ;;
+      *)       log "  WARN: Console patch returned HTTP $PUT_CODE — body:"
+               cat /tmp/console.out >&2 ;;
+    esac
+  fi
+fi
+
+# ── 9. Display + optionally write to .env ───────────────────────────────
 # DEFAULT: redact the secret (only length printed) so stdout-captured runs
 # don't leak it into terminals/transcripts/CI logs. Pass --print-secret
 # explicitly to opt in to cleartext output (e.g. when you need to copy it

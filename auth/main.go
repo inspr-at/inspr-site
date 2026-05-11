@@ -59,12 +59,17 @@ var (
 	baseURL      = mustEnv("BASE_URL")           // e.g. https://inspr.at
 	cookieKey    = mustEnvKey("COOKIE_KEY")      // hex, 32+ bytes after decode
 	listen       = envOr("LISTEN", ":8080")
-	// Bootstrap PAT for Zitadel management API. Mounted from the
-	// .machinekey volume (or set explicitly via env). Used only by /enter
-	// for user creation + passwordless registration link delivery. Spike-
-	// grade — replace with a scoped-down service-account token before any
-	// public exposure of self-signup.
-	zitadelPAT = envOr("ZITADEL_API_PAT", "") // empty disables /enter signup
+	// PAT for the Zitadel management API. Used only by /enter for user
+	// creation + passwordless registration link delivery.
+	//
+	// Prefer the scoped service-account PAT (INSPR_AUTH_SA_PAT — minted
+	// by auth/bootstrap-zitadel.sh step 10, has only ORG_USER_MANAGER on
+	// the INSPR org). Fall back to the legacy ZITADEL_API_PAT variable
+	// for backward compatibility during the migration window — it
+	// historically held the IAM_OWNER bootstrap PAT, which is too broad
+	// for production use (see INSPR-162). Empty value disables /enter
+	// signup gracefully (door + login still work).
+	zitadelPAT = firstNonEmptyEnv("INSPR_AUTH_SA_PAT", "ZITADEL_API_PAT")
 )
 
 const (
@@ -118,9 +123,16 @@ func main() {
 		_, _ = w.Write([]byte("ok"))
 	})
 
-	signupStatus := "DISABLED (set ZITADEL_API_PAT to enable)"
+	signupStatus := "DISABLED (set INSPR_AUTH_SA_PAT to enable)"
 	if zitadelPAT != "" {
-		signupStatus = fmt.Sprintf("ENABLED (PAT len=%d)", len(zitadelPAT))
+		// Identify which env var supplied the PAT so an operator can
+		// confirm post-bootstrap that the scoped SA token (not the
+		// legacy IAM_OWNER bootstrap PAT) is in effect.
+		patSource := "ZITADEL_API_PAT (legacy / IAM_OWNER — migrate to INSPR_AUTH_SA_PAT)"
+		if os.Getenv("INSPR_AUTH_SA_PAT") != "" {
+			patSource = "INSPR_AUTH_SA_PAT (scoped / ORG_USER_MANAGER)"
+		}
+		signupStatus = fmt.Sprintf("ENABLED (PAT len=%d source=%s)", len(zitadelPAT), patSource)
 	}
 	log.Printf("inspr-auth: issuer=%s base=%s listen=%s signup=%s",
 		issuer, baseURL, listen, signupStatus)
@@ -598,6 +610,18 @@ func envOr(k, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+// firstNonEmptyEnv returns the first env var in `keys` whose value is non-
+// empty, or "" if none are set. Used for migration windows where a new
+// preferred env name should take precedence over an older fallback.
+func firstNonEmptyEnv(keys ...string) string {
+	for _, k := range keys {
+		if v := os.Getenv(k); v != "" {
+			return v
+		}
+	}
+	return ""
 }
 
 // mustEnvKey decodes a hex-encoded symmetric key from env. Requires ≥ 32

@@ -67,10 +67,18 @@ services:
       BASE_URL: https://inspr.at
       COOKIE_KEY: ${COOKIE_KEY:?COOKIE_KEY missing — see .env.example}
       LISTEN: ":8080"
-      # Zitadel management API token for /enter signup flow.
-      # Empty value disables signup gracefully (door + login still work).
-      # Spike-grade: this is the same bootstrap PAT (IAM_OWNER) — replace
-      # with a scoped service account before any public exposure.
+      # Zitadel management API tokens for /enter signup flow.
+      # Empty values disable signup gracefully (door + login still work).
+      #
+      # PREFERRED: INSPR_AUTH_SA_PAT — scoped to ORG_USER_MANAGER on
+      # the INSPR org, minted by auth/bootstrap-zitadel.sh step 10
+      # (INSPR-162). Blast radius is bounded if the container env leaks.
+      #
+      # LEGACY: ZITADEL_API_PAT held the IAM_OWNER bootstrap PAT in v1.
+      # Kept as a fallback during the migration window so existing
+      # deploys keep working until next bootstrap re-run; main.go logs
+      # the source at startup so operators can confirm the migration.
+      INSPR_AUTH_SA_PAT: ${INSPR_AUTH_SA_PAT:-}
       ZITADEL_API_PAT: ${ZITADEL_API_PAT:-}
     labels:
       - traefik.enable=true

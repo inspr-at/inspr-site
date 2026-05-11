@@ -7,18 +7,45 @@
 # resources, but the OIDC client_secret is only revealed on creation — so
 # don't lose the .env writeback the first time around.
 #
-# WHAT IT DOES:
-#   1. Reads the bootstrap machine-user PAT from the zitadel_machinekey
-#      docker volume (written by Zitadel at first init via
-#      ZITADEL_FIRSTINSTANCE_PATPATH).
-#   2. Discovers the org (= "INSPR") and project ID.
-#   3. Creates the project "inspr.at" (idempotent on title collision).
-#   4. Creates an OIDC web application with redirect URI
-#      https://inspr.at/welcome and post-logout https://inspr.at/.
-#   5. Creates the human user "markus" with the bootstrap password.
-#   6. Grants the user a project role so the OIDC token includes them.
-#   7. Prints the OIDC_CLIENT_ID + OIDC_CLIENT_SECRET (and appends them
-#      to .env if --write-env is passed).
+# WHAT IT DOES (in order — each step is idempotent):
+#   1. Reads the bootstrap machine-user PAT (IAM_OWNER) from
+#      ./.machinekey/pat.txt — written by Zitadel at first init via
+#      ZITADEL_FIRSTINSTANCE_PATPATH. This PAT is used ONLY by this script.
+#   2. Discovers the INSPR org via /management/v1/orgs/me.
+#   3. Finds or creates the project "inspr.at".
+#   4. Finds or creates the OIDC web application; rotates client_secret
+#      only when --rotate-secret (or --write-env) is passed.
+#   5. Relaxes org password complexity (drops uppercase requirement) so
+#      the bootstrap human-user password admits.
+#   6. Finds or creates the human user "markus"; resets password only
+#      when --reset-password is passed.
+#   7. (skipped — folded into 6)
+#   8. Patches the built-in ZITADEL Console OIDC app to enable the
+#      REFRESH_TOKEN grant (works around upstream issue #8392).
+#   9. SMTP relay config (INSPR-163) — finds-or-creates an SMTP config
+#      pointed at the docker network alias `smtp:25` (csb1-smtp-1) and
+#      activates it. Idempotent via description-based lookup.
+#  10. Scoped service-account (INSPR-162) — finds-or-creates the
+#      `inspr-auth-sa` machine user with ORG_USER_MANAGER (only the
+#      scope inspr-auth needs: create users + send passwordless link),
+#      grants it the role, and mints a long-lived PAT. The PAT is
+#      retrievable only at creation, so re-runs preserve the existing
+#      one unless --rotate-sa-pat (or --write-env, which auto-implies)
+#      is passed.
+#  11. Prints OIDC_CLIENT_ID/SECRET + INSPR_AUTH_SA_PAT (redacted by
+#      default; use --print-secret for cleartext) and writes them to
+#      .env when --write-env is passed.
+#
+# FLAGS:
+#   --write-env       Persist all minted values to .env (auto-implies
+#                     --rotate-secret + --rotate-sa-pat for newly-minted
+#                     values). After this, restart inspr-auth.
+#   --rotate-secret   Mint a NEW OIDC client_secret. Requires inspr-auth
+#                     restart immediately after.
+#   --rotate-sa-pat   Mint a NEW INSPR_AUTH_SA_PAT (revokes the old one
+#                     by replacement). Requires inspr-auth restart.
+#   --reset-password  Reset the bootstrap human-user password.
+#   --print-secret    Print secrets in cleartext (default: <redacted>).
 #
 # REQUIRES on host: docker, jq, curl. (Standard csb1 toolchain.)
 
@@ -41,24 +68,45 @@ POST_LOGOUT_URI="https://inspr.at/"
 PRINT_SECRET=0
 RESET_PASSWORD=0
 ROTATE_SECRET=0
+ROTATE_SA_PAT=0
 for arg in "$@"; do
   case "$arg" in
     --write-env) WRITE_ENV=1 ;;
     --print-secret) PRINT_SECRET=1 ;;
     --reset-password) RESET_PASSWORD=1 ;;
     --rotate-secret) ROTATE_SECRET=1 ;;
+    --rotate-sa-pat) ROTATE_SA_PAT=1 ;;
     -h|--help)
-      sed -n '1,30p' "$0"; exit 0 ;;
+      sed -n '1,55p' "$0"; exit 0 ;;
   esac
 done
 
-# --write-env without --rotate-secret on an existing app would write the
-# OLD secret value (we don't have a way to recover the existing secret —
-# Zitadel returns it only on creation/regeneration). If the user passed
-# --write-env, they're saying "I want a fresh value in .env" → that
-# IMPLIES rotation. Auto-enable to honor intent.
-if [ "$WRITE_ENV" = "1" ] && [ "$ROTATE_SECRET" = "0" ]; then
-  ROTATE_SECRET=1
+# Per-key writeback gates. Default off — we never silently overwrite a
+# secret in .env unless the user opted in (--write-env) OR the key is
+# missing entirely (first-install convenience).
+WRITE_OIDC=0
+WRITE_SA_PAT=0
+
+# --write-env on an existing resource would write the OLD value back —
+# Zitadel returns the OIDC client_secret and PAT tokens ONLY at the
+# create/regenerate moment. If the user passed --write-env, they're
+# saying "I want fresh values in .env" → that IMPLIES rotation AND
+# writeback of every such resource. Auto-enable to honor intent.
+if [ "$WRITE_ENV" = "1" ]; then
+  [ "$ROTATE_SECRET" = "0" ] && ROTATE_SECRET=1
+  [ "$ROTATE_SA_PAT" = "0" ] && ROTATE_SA_PAT=1
+  WRITE_OIDC=1
+  WRITE_SA_PAT=1
+fi
+
+# First-install convenience for the SA PAT only: if INSPR_AUTH_SA_PAT
+# isn't in .env yet, we have no token to preserve — auto-mint + auto-
+# write JUST that key (PATs are returned only at creation, so without
+# this it'd vanish into the void). Critically, this does NOT touch
+# OIDC rotation — that keeps a known-good live system intact.
+if [ ! -f "$ENV_FILE" ] || ! grep -qE '^INSPR_AUTH_SA_PAT=' "$ENV_FILE" 2>/dev/null; then
+  ROTATE_SA_PAT=1
+  WRITE_SA_PAT=1
 fi
 
 log() { printf "[bootstrap] %s\n" "$*" >&2; }
@@ -310,11 +358,155 @@ else
   fi
 fi
 
-# ── 9. Display + optionally write to .env ───────────────────────────────
-# DEFAULT: redact the secret (only length printed) so stdout-captured runs
-# don't leak it into terminals/transcripts/CI logs. Pass --print-secret
-# explicitly to opt in to cleartext output (e.g. when you need to copy it
-# manually into a different env file).
+# ── 9. SMTP relay configuration (INSPR-163) ─────────────────────────────
+# Zitadel needs SMTP wired BEFORE the magic-link signup flow can deliver
+# its passwordless-registration emails. We point at the host-local namshi
+# relay (csb1-smtp-1, alias `smtp:25` on csb1_traefik) which smarthosts
+# to mail.hover.com — inspr-auth never touches SMTP credentials.
+#
+# v2.54 quirks captured (probed 2026-05-11):
+#   - SMTP API is multi-config: each POST creates a NEW config (no
+#     idempotent body-match). PUT on /admin/v1/smtp returns 405. We
+#     dedupe via description-string match in /_search.
+#   - Each config has a `state` ENUM; only "SMTP_CONFIG_ACTIVE" (numeric
+#     2) is used for outbound mail. New configs are inactive by default
+#     → must POST /admin/v1/smtp/{id}/_activate.
+#   - Empty-string `password` triggers a Zitadel nil-deref at decrypt
+#     time. A single-char placeholder ("x") satisfies the cipher path.
+#     Empty `user` is fine — Zitadel skips AUTH cleanly.
+#   - Empty `user` against the namshi relay matters because the relay
+#     advertises no AUTH; Zitadel only sends AUTH if user is non-empty.
+SMTP_HOST="${SMTP_HOST:-smtp:25}"
+SMTP_USER="${SMTP_USER:-}"
+SMTP_PASSWORD="${SMTP_PASSWORD:-x}"
+SMTP_FROM_ADDRESS="${SMTP_FROM_ADDRESS:-markus@barta.com}"
+SMTP_FROM_NAME="${SMTP_FROM_NAME:-INSPR}"
+SMTP_REPLY_TO="${SMTP_REPLY_TO:-markus@barta.com}"
+SMTP_DESCRIPTION="INSPR local relay (no auth — trusted docker net)"
+
+log "Configuring Zitadel SMTP relay…"
+SMTP_LIST="$(curl -fsS "${AUTH[@]}" -X POST "${ZITADEL_BASE}/admin/v1/smtp/_search" -d '{}')"
+EXISTING_SMTP_ID="$(echo "$SMTP_LIST" | jq -r --arg d "$SMTP_DESCRIPTION" '.result[]? | select(.description==$d) | .id' | head -1)"
+EXISTING_SMTP_STATE="$(echo "$SMTP_LIST" | jq -r --arg d "$SMTP_DESCRIPTION" '.result[]? | select(.description==$d) | .state' | head -1)"
+
+activate_smtp() {
+  # POST /admin/v1/smtp/{id}/_activate. Returns 200 fresh, 409 if already
+  # active. Both are success.
+  local id="$1"
+  local code
+  code="$(curl -sS -o /tmp/smtp-act.out -w '%{http_code}' "${AUTH[@]}" -X POST "${ZITADEL_BASE}/admin/v1/smtp/${id}/_activate" -d '{}')"
+  case "$code" in
+    200|201) log "  Activated SMTP id=$id (HTTP $code)" ;;
+    409)     log "  SMTP id=$id already active (HTTP 409 — no-op)" ;;
+    *)       log "  WARN: activation returned HTTP $code — body:"; cat /tmp/smtp-act.out >&2 ;;
+  esac
+}
+
+if [ -z "$EXISTING_SMTP_ID" ] || [ "$EXISTING_SMTP_ID" = "null" ]; then
+  log "  No matching SMTP config → creating + activating…"
+  SMTP_PAYLOAD="$(jq -n \
+    --arg sender "$SMTP_FROM_ADDRESS" --arg name "$SMTP_FROM_NAME" \
+    --arg host   "$SMTP_HOST"         --arg user "$SMTP_USER" --arg pwd "$SMTP_PASSWORD" \
+    --arg reply  "$SMTP_REPLY_TO"     --arg desc "$SMTP_DESCRIPTION" '{
+      senderAddress:  $sender,
+      senderName:     $name,
+      tls:            false,
+      host:           $host,
+      user:           $user,
+      password:       $pwd,
+      replyToAddress: $reply,
+      description:    $desc
+    }')"
+  SMTP_CREATE="$(curl -fsS "${AUTH[@]}" -X POST "${ZITADEL_BASE}/admin/v1/smtp" -d "$SMTP_PAYLOAD")"
+  SMTP_ID="$(echo "$SMTP_CREATE" | jq -r '.id')"
+  if [ -z "$SMTP_ID" ] || [ "$SMTP_ID" = "null" ]; then
+    log "  WARN: SMTP create returned no id — body: $SMTP_CREATE"
+  else
+    log "  Created SMTP config id=$SMTP_ID"
+    activate_smtp "$SMTP_ID"
+  fi
+elif [ "$EXISTING_SMTP_STATE" = "SMTP_CONFIG_ACTIVE" ] || [ "$EXISTING_SMTP_STATE" = "2" ]; then
+  log "  SMTP config exists + active (id=$EXISTING_SMTP_ID) — no change"
+else
+  log "  SMTP config exists but state=$EXISTING_SMTP_STATE → activating…"
+  activate_smtp "$EXISTING_SMTP_ID"
+fi
+
+# ── 10. Scoped service account for inspr-auth (INSPR-162) ───────────────
+# Replace the IAM_OWNER bootstrap PAT in inspr-auth's env with a scoped
+# machine user that only has the org-level permissions /enter actually
+# needs: create users + send the passwordless-registration link email.
+# ORG_USER_MANAGER is the canonical least-privilege role
+# (org.user.read + org.user.write).
+#
+# Threat model: before this change, an inspr-auth env leak compromised
+# the entire Zitadel instance (org create, user delete instance-wide,
+# masterkey-protected secrets read). After: the blast radius is bounded
+# to org-scope user manipulation within a single org.
+#
+# Idempotent:
+#   - SA user created if missing, else preserved (uname-based search).
+#   - Role grant always re-asserted (409 = already member = success).
+#   - PAT minted only when ROTATE_SA_PAT=1 — set automatically on first
+#     install (key missing from .env) or via --rotate-sa-pat flag.
+SA_USERNAME="inspr-auth-sa"
+SA_DISPLAY="Inspr Auth Service Account"
+SA_ROLE="ORG_USER_MANAGER"
+
+log "Looking for scoped service account '${SA_USERNAME}'…"
+SA_SEARCH="$(curl -fsS "${AUTH[@]}" -X POST "${ZITADEL_BASE}/management/v1/users/_search" \
+  -d "$(jq -n --arg ln "$SA_USERNAME" '{queries:[{userNameQuery:{userName:$ln, method:"TEXT_QUERY_METHOD_EQUALS"}}]}')")"
+SA_USER_ID="$(echo "$SA_SEARCH" | jq -r '.result[0].id // empty')"
+if [ -z "$SA_USER_ID" ]; then
+  log "  Creating machine user…"
+  SA_CREATE="$(curl -fsS "${AUTH[@]}" -X POST "${ZITADEL_BASE}/management/v1/users/machine" \
+    -d "$(jq -n --arg ln "$SA_USERNAME" --arg n "$SA_DISPLAY" '{
+      userName:        $ln,
+      name:            $n,
+      description:     "Scoped to ORG_USER_MANAGER for inspr-auth /enter signup flow.",
+      accessTokenType: "ACCESS_TOKEN_TYPE_BEARER"
+    }')")"
+  SA_USER_ID="$(echo "$SA_CREATE" | jq -r '.userId')"
+  if [ -z "$SA_USER_ID" ] || [ "$SA_USER_ID" = "null" ]; then
+    die "SA create failed: $SA_CREATE"
+  fi
+fi
+log "  SA user id=$SA_USER_ID"
+
+log "  Asserting role ${SA_ROLE} on org…"
+ROLE_CODE="$(curl -sS -o /tmp/sarole.out -w '%{http_code}' "${AUTH[@]}" -X POST "${ZITADEL_BASE}/management/v1/orgs/me/members" \
+  -d "$(jq -n --arg uid "$SA_USER_ID" --arg r "$SA_ROLE" '{userId:$uid, roles:[$r]}')")"
+case "$ROLE_CODE" in
+  200|201) log "  Role granted (HTTP $ROLE_CODE)" ;;
+  409)     log "  Role already granted (HTTP 409 — no-op)" ;;
+  *)       log "  WARN: role grant returned HTTP $ROLE_CODE — body:"; cat /tmp/sarole.out >&2 ;;
+esac
+
+NEW_SA_PAT=""
+if [ "$ROTATE_SA_PAT" = "1" ]; then
+  log "  Minting new PAT (rotate=1)…"
+  # Long-dated expiration so we don't surprise-rotate via expiry alone.
+  # Real rotation must come from --rotate-sa-pat with --write-env.
+  PAT_RESP="$(curl -fsS "${AUTH[@]}" -X POST "${ZITADEL_BASE}/management/v1/users/${SA_USER_ID}/pats" \
+    -d '{"expirationDate": "2099-12-31T23:59:59Z"}')"
+  NEW_SA_PAT="$(echo "$PAT_RESP" | jq -r '.token')"
+  if [ -z "$NEW_SA_PAT" ] || [ "$NEW_SA_PAT" = "null" ]; then
+    die "PAT mint failed — body: $PAT_RESP"
+  fi
+  log "  Minted PAT (len=${#NEW_SA_PAT})"
+else
+  log "  Leaving SA PAT unchanged (use --rotate-sa-pat to mint a new one)"
+fi
+
+# ── 11. Display + optionally write to .env ──────────────────────────────
+# DEFAULT: redact every secret (only length printed) so stdout-captured
+# runs don't leak into terminals/transcripts/CI logs. Pass --print-secret
+# to opt into cleartext (e.g. when copying to a different env file).
+#
+# Per-key writeback gates: WRITE_OIDC + WRITE_SA_PAT, set up at flag-
+# parse time. --write-env sets both; first-install (missing SA PAT in
+# .env) sets only WRITE_SA_PAT — so a one-time bootstrap doesn't
+# silently rotate a working OIDC client_secret on the side.
 echo
 echo "──────────────────────────────────────────────"
 echo "OIDC_CLIENT_ID=${CLIENT_ID}"
@@ -325,25 +517,49 @@ elif [ "$PRINT_SECRET" = "1" ]; then
 else
   echo "OIDC_CLIENT_SECRET=<redacted, length=${#CLIENT_SECRET}> (use --print-secret to show)"
 fi
+if [ -z "$NEW_SA_PAT" ]; then
+  echo "INSPR_AUTH_SA_PAT=<unchanged — pass --rotate-sa-pat to mint a new one>"
+elif [ "$PRINT_SECRET" = "1" ]; then
+  echo "INSPR_AUTH_SA_PAT=${NEW_SA_PAT}"
+else
+  echo "INSPR_AUTH_SA_PAT=<redacted, length=${#NEW_SA_PAT}> (use --print-secret to show)"
+fi
 echo "──────────────────────────────────────────────"
 echo
 
-if [ "$WRITE_ENV" = "1" ] && [ -n "$CLIENT_SECRET" ]; then
+write_env_kv() {
+  # Idempotent .env in-place rewrite. Adds the key if missing.
+  local kv="$1"
+  local key="${kv%%=*}"
+  if grep -qE "^${key}=" "$ENV_FILE" 2>/dev/null; then
+    sed -i "s|^${key}=.*|${kv}|" "$ENV_FILE"
+  else
+    echo "$kv" >> "$ENV_FILE"
+  fi
+}
+
+WROTE_ANYTHING=0
+if [ "$WRITE_OIDC" = "1" ] && [ -n "$CLIENT_SECRET" ]; then
   log "Writing OIDC_CLIENT_ID + OIDC_CLIENT_SECRET to ${ENV_FILE}…"
-  # Idempotent in-place rewrite. Adds keys if missing.
-  for kv in "OIDC_CLIENT_ID=${CLIENT_ID}" "OIDC_CLIENT_SECRET=${CLIENT_SECRET}"; do
-    key="${kv%%=*}"
-    if grep -qE "^${key}=" "$ENV_FILE" 2>/dev/null; then
-      sed -i "s|^${key}=.*|${kv}|" "$ENV_FILE"
-    else
-      echo "$kv" >> "$ENV_FILE"
-    fi
-  done
+  write_env_kv "OIDC_CLIENT_ID=${CLIENT_ID}"
+  write_env_kv "OIDC_CLIENT_SECRET=${CLIENT_SECRET}"
+  WROTE_ANYTHING=1
+elif [ "$WRITE_OIDC" = "1" ] && [ -z "$CLIENT_SECRET" ]; then
+  # Should be unreachable due to auto-implication of --rotate-secret
+  # when --write-env is set, but defensive log just in case.
+  log "WARN: --write-env passed but no new OIDC secret minted — OIDC keys unchanged in .env."
+fi
+
+if [ "$WRITE_SA_PAT" = "1" ] && [ -n "$NEW_SA_PAT" ]; then
+  log "Writing INSPR_AUTH_SA_PAT to ${ENV_FILE}…"
+  write_env_kv "INSPR_AUTH_SA_PAT=${NEW_SA_PAT}"
+  WROTE_ANYTHING=1
+elif [ "$WRITE_SA_PAT" = "1" ] && [ -z "$NEW_SA_PAT" ]; then
+  log "WARN: --write-env passed but no new SA PAT minted — INSPR_AUTH_SA_PAT unchanged in .env."
+fi
+
+if [ "$WROTE_ANYTHING" = "1" ]; then
   log "Done. Now: cd ${COMPOSE_DIR} && docker compose up -d --no-deps --force-recreate inspr-auth"
-elif [ "$WRITE_ENV" = "1" ] && [ -z "$CLIENT_SECRET" ]; then
-  # Should be unreachable due to auto-implication of --rotate-secret when
-  # --write-env is set, but defensive log just in case.
-  log "WARN: --write-env passed but no new secret was minted — .env unchanged."
 fi
 
 log "Bootstrap complete."

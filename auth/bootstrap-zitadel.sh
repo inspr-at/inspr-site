@@ -46,6 +46,14 @@
 #                     by replacement). Requires inspr-auth restart.
 #   --reset-password  Reset the bootstrap human-user password.
 #   --print-secret    Print secrets in cleartext (default: <redacted>).
+#   --remove-legacy-pat
+#                     Remove the legacy ZITADEL_API_PAT line from .env
+#                     after the migration to INSPR_AUTH_SA_PAT is
+#                     complete. Idempotent — does nothing if the key is
+#                     already absent. Run AFTER inspr-auth has been
+#                     restarted with the new scoped PAT (otherwise the
+#                     fallback in main.go would have nothing to fall
+#                     back to during a brief window).
 #
 # REQUIRES on host: docker, jq, curl. (Standard csb1 toolchain.)
 
@@ -69,6 +77,7 @@ PRINT_SECRET=0
 RESET_PASSWORD=0
 ROTATE_SECRET=0
 ROTATE_SA_PAT=0
+REMOVE_LEGACY_PAT=0
 for arg in "$@"; do
   case "$arg" in
     --write-env) WRITE_ENV=1 ;;
@@ -76,8 +85,9 @@ for arg in "$@"; do
     --reset-password) RESET_PASSWORD=1 ;;
     --rotate-secret) ROTATE_SECRET=1 ;;
     --rotate-sa-pat) ROTATE_SA_PAT=1 ;;
+    --remove-legacy-pat) REMOVE_LEGACY_PAT=1 ;;
     -h|--help)
-      sed -n '1,55p' "$0"; exit 0 ;;
+      sed -n '1,60p' "$0"; exit 0 ;;
   esac
 done
 
@@ -355,6 +365,23 @@ else
       *)       log "  WARN: Console patch returned HTTP $PUT_CODE — body:"
                cat /tmp/console.out >&2 ;;
     esac
+
+    # ── 8b. VERIFY the Console refresh-token grant actually landed. ──
+    # The PUT could succeed (200/201/400-No-changes) but Zitadel might
+    # silently keep its prior config (some upstream versions had this
+    # bug pattern). Re-GET the oidc_config and assert REFRESH_TOKEN is
+    # in the active grant set. Without this verification step, a future
+    # Console regression could re-introduce the Token.Invalid trap with
+    # nobody noticing until a user complaint surfaces ~12h later.
+    CONSOLE_VERIFY="$(curl -fsS "${AUTH[@]}" "${ZITADEL_BASE}/management/v1/projects/${ZP_SYSTEM}/apps/${CONSOLE_APP_ID}" 2>/dev/null \
+      | jq -r '.app.oidcConfig.grantTypes // [] | join(",")')"
+    if echo "$CONSOLE_VERIFY" | grep -q "OIDC_GRANT_TYPE_REFRESH_TOKEN"; then
+      log "  Verify: REFRESH_TOKEN present in active grants (\"$CONSOLE_VERIFY\")"
+    else
+      log "  WARN: Verify FAILED — REFRESH_TOKEN missing from active grants (\"$CONSOLE_VERIFY\")"
+      log "        Console UX will hit Token.Invalid (QUERY-IJL3H) ~12h after each login."
+      log "        Investigate manually via the Zitadel admin UI."
+    fi
   fi
 fi
 
@@ -560,6 +587,29 @@ fi
 
 if [ "$WROTE_ANYTHING" = "1" ]; then
   log "Done. Now: cd ${COMPOSE_DIR} && docker compose up -d --no-deps --force-recreate inspr-auth"
+fi
+
+# ── 12. Optional legacy-PAT cleanup ─────────────────────────────────────
+# Post-migration to INSPR_AUTH_SA_PAT, the legacy ZITADEL_API_PAT line in
+# .env is dead weight — kept as a fallback in main.go for the migration
+# window but never read once INSPR_AUTH_SA_PAT is set. Holding it adds
+# blast-radius if .env leaks (it's the IAM_OWNER bootstrap PAT). Opt-in
+# cleanup removes that residual exposure.
+#
+# Safe to run only AFTER inspr-auth has been restarted with
+# INSPR_AUTH_SA_PAT active (startup log confirms scope: see main.go).
+# Idempotent: no-op if the key is already absent.
+if [ "$REMOVE_LEGACY_PAT" = "1" ]; then
+  if [ ! -f "$ENV_FILE" ]; then
+    log "Legacy-PAT cleanup: .env not found — nothing to do"
+  elif grep -qE "^ZITADEL_API_PAT=" "$ENV_FILE" 2>/dev/null; then
+    log "Removing legacy ZITADEL_API_PAT line from ${ENV_FILE}…"
+    sed -i "/^ZITADEL_API_PAT=/d" "$ENV_FILE"
+    log "  Removed. Restart inspr-auth so the env reload picks up the absence:"
+    log "    cd ${COMPOSE_DIR} && docker compose up -d --no-deps --force-recreate inspr-auth"
+  else
+    log "Legacy-PAT cleanup: ZITADEL_API_PAT already absent from .env — no-op"
+  fi
 fi
 
 log "Bootstrap complete."

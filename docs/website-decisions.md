@@ -164,3 +164,49 @@ build phase. Launch is a single replacement of `site/` contents from
 - The architecture doc's tone, distilled. If a sentence wouldn't survive
   a cold read by a senior operator, it doesn't ship.
 - No filler CTAs. Every link goes somewhere real.
+
+---
+
+## D-008 — Deploy ritual
+
+**Date:** 2026-05-13
+**Ticket:** INSPR-177
+**Status:** Committed
+
+Deploy is **one command**: `./deploy.sh` from the repo root.
+
+Pipeline (idempotent, safe to re-run):
+
+1. `cd web && npm run build` — Astro static build into `web/dist/`.
+2. `python3 web/scripts/verify-csp.py` — abort if a new inline script
+   would violate `script-src` (forces a Caddyfile hash pin BEFORE
+   shipping, never after).
+3. `rsync -a --delete web/dist/ site/` — local mirror of the build.
+4. `rsync -avz --delete site/ csb1:/home/mba/docker/inspr-at/site/` —
+   bind-mounted read-only into `inspr-www`, picked up on the next
+   request (no reload needed for content changes).
+5. If `Caddyfile` differs from remote (SHA-256 compare): `scp` it over,
+   then `docker exec inspr-www caddy reload --address
+   unix//config/caddy-admin.sock` — **zero-downtime** reload via the
+   unix-socket admin API. Falls back to `docker compose restart
+   inspr-www` if the socket is unreachable (e.g. the first deploy after
+   switching from `admin off`).
+6. `curl` probe of `/`, `/v1/`, `/v2/` to confirm the cutover landed.
+
+**Why a push-based script (and not git-pull-on-host):** the remote
+`/home/mba/docker/inspr-at/` is a flat directory, not a git checkout.
+Making it a checkout adds a deploy-key materialization + a "what if
+local and remote drift?" failure mode for negligible benefit — build
+artifacts have to land there either way. Push-based rsync from one
+machine keeps the deploy surface tiny. `inspr.nixos.pull-on-host`
+(INSPR-176) is the right answer once the pattern shows up on a second
+host; for inspr.at alone, a script is the right grain.
+
+**Why a Unix-socket admin API:** the Caddyfile previously hardcoded
+`admin off`, so any Caddyfile change required a container restart
+(~1–2s downtime). `admin unix//config/caddy-admin.sock` keeps the API
+off TCP (no external surface, no port published) while making `caddy
+reload` work from inside the container — zero downtime for routine
+config changes (new CSP hash, route tweak, header edit). The socket
+lives in the `caddy_config` volume, which is never bind-mounted to the
+host.

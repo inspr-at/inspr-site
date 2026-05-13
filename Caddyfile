@@ -1,5 +1,13 @@
 {
-	admin off
+	# Admin API bound to a Unix socket inside the caddy_config volume.
+	# Never bind-mounted to the host, never exposed via TCP — only reachable
+	# from a process running INSIDE this container. Enables zero-downtime
+	# config reloads via:
+	#   docker exec inspr-www caddy reload \
+	#     --address unix//config/caddy-admin.sock \
+	#     --config /etc/caddy/Caddyfile
+	# (see deploy.sh).
+	admin unix//config/caddy-admin.sock
 	auto_https off
 	servers {
 		trusted_proxies static 172.16.0.0/12 192.168.0.0/16 10.0.0.0/8 127.0.0.1/32

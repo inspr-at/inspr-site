@@ -1,26 +1,122 @@
 ---
+// Splash — minimal first-touch surface at `/`. A single animated
+// Five-Petal Spiral spinner centered on an empty page, flanked by two
+// affordances: `enter` (sign-in) on the left, `learn` (editorial home,
+// /v1/) on the right. No toolbar, no chrome.
+//
+// Spinner animation is shipped from /public/scripts/splash-spinner.js
+// (external; CSP `script-src 'self'` covers it without a hash pin).
 import Base from "../layouts/Base.astro";
-import Toolbar from "../components/Toolbar.astro";
-import Hero from "../sections/Hero.astro";
-import Pipeline from "../sections/Pipeline.astro";
-import Mission from "../sections/Mission.astro";
-import Pluralism from "../sections/Pluralism.astro";
-import AgentContract from "../sections/AgentContract.astro";
-import Artifacts from "../sections/Artifacts.astro";
-import Audience from "../sections/Audience.astro";
-import Footer from "../sections/Footer.astro";
 ---
 
-<Base>
-  <Toolbar edition="v1" />
-  <main id="top">
-    <Hero />
-    <Pipeline />
-    <Mission />
-    <Pluralism />
-    <AgentContract />
-    <Artifacts />
-    <Audience />
+<Base
+  title="INSPR"
+  description="Upstream of any substrate. Choose: enter, or learn."
+  bodyClass="splash"
+>
+  <main class="splash-stage" aria-label="Welcome to INSPR">
+    <a class="splash-affordance splash-affordance--left mono" href="/enter">enter</a>
+
+    <div class="splash-spinner" aria-hidden="true">
+      <svg viewBox="0 0 100 100" fill="none" focusable="false">
+        <g data-splash-group>
+          <path
+            data-splash-path
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            opacity="0.1"
+          ></path>
+        </g>
+      </svg>
+    </div>
+
+    <a class="splash-affordance splash-affordance--right mono" href="/v1/">learn</a>
   </main>
-  <Footer />
+
+  <script is:inline src="/scripts/splash-spinner.js" defer></script>
 </Base>
+
+<style>
+  /* Body is full-bleed and centered for the splash surface; no scroll. */
+  :global(body.splash) {
+    min-block-size: 100dvh;
+    overflow: hidden;
+  }
+
+  .splash-stage {
+    min-block-size: 100dvh;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    justify-items: center;
+    gap: clamp(1.5rem, 6vw, 4rem);
+    padding-inline: clamp(1rem, 4vw, 3rem);
+    color: var(--accent);
+  }
+
+  .splash-spinner {
+    inline-size: min(56vmin, 360px);
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+  }
+
+  .splash-spinner svg {
+    inline-size: 100%;
+    block-size: 100%;
+    overflow: visible;
+  }
+
+  .splash-affordance {
+    font-family: var(--font-mono);
+    font-size: var(--t-sm);
+    letter-spacing: 0.18em;
+    text-transform: lowercase;
+    color: var(--text-faint);
+    text-decoration: none;
+    padding-block: 0.6em;
+    padding-inline: 0.4em;
+    transition:
+      color var(--dur-quick, 180ms) var(--ease, ease),
+      letter-spacing var(--dur-quick, 180ms) var(--ease, ease);
+  }
+
+  .splash-affordance:hover,
+  .splash-affordance:focus-visible {
+    color: var(--accent);
+    letter-spacing: 0.24em;
+  }
+
+  .splash-affordance--left {
+    justify-self: end;
+  }
+
+  .splash-affordance--right {
+    justify-self: start;
+  }
+
+  /* Stacked layout for portrait / narrow viewports. */
+  @media (max-width: 540px) {
+    .splash-stage {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto;
+      gap: clamp(1rem, 5vw, 2rem);
+    }
+
+    .splash-spinner {
+      order: 1;
+      inline-size: min(70vmin, 320px);
+    }
+
+    .splash-affordance--left {
+      order: 2;
+      justify-self: center;
+    }
+
+    .splash-affordance--right {
+      order: 3;
+      justify-self: center;
+    }
+  }
+</style>

@@ -23,11 +23,13 @@
 		Cross-Origin-Resource-Policy "same-origin"
 		# script-src hashes pinned (recompute via web/scripts/verify-csp.py):
 		#   sha256-DSv7vgLSN1bj36CyJzlHeafVeifZaqgNDlDDlgnScFY=  pre-paint theme-init   (Base.astro inline)
+		#   sha256-Fv81oDJzdp+/94PhyvQ+peTsyAV+EVPhgH5qCPv1PSg=  splash JSON-LD Organization
 		#   sha256-m1oZ+c962dAU/hl4PW1RH/9IRS93TjhsGDA7JYYIXXk=  v1 JSON-LD Organization
 		#   sha256-eBDjGmuPzGRCCoF4yQvT6pfwxCBCv1hXC7FU0FDEu9o=  v2 JSON-LD Organization
-		# Click-handler script for the theme switch lives at /scripts/theme-switch.js
-		# (external, served from origin, allowed under script-src 'self').
-		Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; script-src 'self' 'sha256-DSv7vgLSN1bj36CyJzlHeafVeifZaqgNDlDDlgnScFY=' 'sha256-m1oZ+c962dAU/hl4PW1RH/9IRS93TjhsGDA7JYYIXXk=' 'sha256-eBDjGmuPzGRCCoF4yQvT6pfwxCBCv1hXC7FU0FDEu9o='; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
+		# Click-handler script for the theme switch lives at /scripts/theme-switch.js,
+		# splash spinner at /scripts/splash-spinner.js — both external, served from
+		# origin under script-src 'self' (no hash pin needed).
+		Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; script-src 'self' 'sha256-DSv7vgLSN1bj36CyJzlHeafVeifZaqgNDlDDlgnScFY=' 'sha256-Fv81oDJzdp+/94PhyvQ+peTsyAV+EVPhgH5qCPv1PSg=' 'sha256-m1oZ+c962dAU/hl4PW1RH/9IRS93TjhsGDA7JYYIXXk=' 'sha256-eBDjGmuPzGRCCoF4yQvT6pfwxCBCv1hXC7FU0FDEu9o='; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
 		-Server
 	}
 

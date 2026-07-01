@@ -18,7 +18,8 @@
 #   5. Relaxes org password complexity (drops uppercase requirement) so
 #      the bootstrap human-user password admits.
 #   6. Finds or creates the human user "markus"; resets password only
-#      when --reset-password is passed.
+#      when --reset-password is passed, and grants ORG_OWNER so the
+#      user can administer the INSPR org in the Console.
 #   7. (skipped — folded into 6)
 #   8. Patches the built-in ZITADEL Console OIDC app to enable the
 #      REFRESH_TOKEN grant (works around upstream issue #8392).
@@ -68,6 +69,7 @@ USER_FIRST="Markus"
 USER_LAST="Barta"
 USER_EMAIL="markus@barta.com"
 USER_PASSWORD="${USER_PASSWORD:-changemesoon26!}"
+USER_ORG_ROLE="${USER_ORG_ROLE:-ORG_OWNER}"
 PROJECT_NAME="inspr.at"
 APP_NAME="inspr-www-auth"
 REDIRECT_URI="https://inspr.at/welcome"
@@ -121,6 +123,22 @@ fi
 
 log() { printf "[bootstrap] %s\n" "$*" >&2; }
 die() { log "ERROR: $*"; exit 1; }
+
+assert_org_role() {
+  local user_id="$1"
+  local role="$2"
+  local label="$3"
+  local code
+
+  log "Asserting role ${role} on org for ${label}…"
+  code="$(curl -sS -o /tmp/org-role.out -w '%{http_code}' "${AUTH[@]}" -X POST "${ZITADEL_BASE}/management/v1/orgs/me/members" \
+    -d "$(jq -n --arg uid "$user_id" --arg r "$role" '{userId:$uid, roles:[$r]}')")"
+  case "$code" in
+    200|201) log "  Role granted (HTTP $code)" ;;
+    409)     log "  Role already granted (HTTP 409 — no-op)" ;;
+    *)       log "  WARN: role grant returned HTTP $code — body:"; cat /tmp/org-role.out >&2 ;;
+  esac
+}
 
 # ── 1. Read bootstrap PAT from volume ───────────────────────────────────
 log "Reading bootstrap PAT from ./.machinekey/pat.txt…"
@@ -295,6 +313,7 @@ else
 fi
 [ -n "$USER_ID" ] && [ "$USER_ID" != "null" ] || die "user create failed"
 log "User id=$USER_ID"
+assert_org_role "$USER_ID" "$USER_ORG_ROLE" "$USER_LOGIN_NAME"
 
 # ── 8. Patch ZITADEL Console OIDC app — enable refresh tokens ───────────
 # Self-hosted Zitadel ships the built-in Console OIDC app with ONLY the

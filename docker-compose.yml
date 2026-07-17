@@ -2,9 +2,10 @@
 #
 # Three logical groups:
 #
-#   1. inspr-www    — Caddy serving the Astro build for inspr.at + www.inspr.at.
-#                     Catches everything on the apex EXCEPT the auth paths
-#                     (which Traefik diverts to inspr-auth via priority).
+#   1. inspr-www    - Caddy serving one current Astro build for www.inspr.at
+#                     and the three product subdomains, plus the frozen v1
+#                     archive at v1.inspr.at. Catches everything on the apex
+#                     EXCEPT auth paths (diverted by Traefik via priority).
 #
 #   2. inspr-auth   — small Go OIDC backend handling /login, /welcome, /logout.
 #                     Server-side session (HMAC cookie). Talks to Zitadel via
@@ -22,7 +23,7 @@
 #   COOKIE_KEY                — 64+ hex chars for inspr-auth's HMAC session
 
 services:
-  # ── 1. Static site (unchanged from v1) ────────────────────────────────
+  # ── 1. Static microsites + frozen v1 archive ─────────────────────────
   inspr-www:
     image: caddy:2-alpine
     container_name: inspr-www
@@ -30,21 +31,73 @@ services:
     networks:
       - traefik
     volumes:
-      - ./site:/srv:ro
+      # deploy.sh writes immutable builds below releases/builds/, keeps an
+      # append-only content-addressed asset pool in releases/assets/ and
+      # atomically changes releases/current. Mounting the parent keeps symlink
+      # promotion visible without restarting Caddy and preserves previous
+      # releases for immediate rollback. site/ remains the stable archive.
+      - ./releases:/srv/releases:ro
+      - ./site:/srv/v1:ro
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
     labels:
       - traefik.enable=true
       - traefik.docker.network=csb1_traefik
-      - traefik.http.routers.inspr.rule=Host(`inspr.at`) || Host(`www.inspr.at`)
-      - traefik.http.routers.inspr.tls=true
-      - traefik.http.routers.inspr.tls.certresolver=default
-      - traefik.http.routers.inspr.middlewares=inspr-www-redirect@docker,cloudflarewarp@file
-      - traefik.http.middlewares.inspr-www-redirect.redirectregex.regex=^https?://www\.inspr\.at/(.*)
-      - traefik.http.middlewares.inspr-www-redirect.redirectregex.replacement=https://inspr.at/$${1}
-      - traefik.http.middlewares.inspr-www-redirect.redirectregex.permanent=true
-      - traefik.http.services.inspr.loadbalancer.server.port=80
+      # One router per public hostname keeps certificate issuance isolated:
+      # a missing product DNS record cannot block the other microsites.
+      - traefik.http.routers.inspr-www.rule=Host(`www.inspr.at`)
+      - traefik.http.routers.inspr-www.tls=true
+      - traefik.http.routers.inspr-www.tls.certresolver=default
+      - traefik.http.routers.inspr-www.middlewares=cloudflarewarp@file
+      - traefik.http.routers.inspr-www.service=inspr-sites
+
+      - traefik.http.routers.inspr-paimos.rule=Host(`paimos.inspr.at`)
+      - traefik.http.routers.inspr-paimos.tls=true
+      - traefik.http.routers.inspr-paimos.tls.certresolver=default
+      - traefik.http.routers.inspr-paimos.middlewares=cloudflarewarp@file
+      - traefik.http.routers.inspr-paimos.service=inspr-sites
+
+      - traefik.http.routers.inspr-pharos.rule=Host(`pharos.inspr.at`)
+      - traefik.http.routers.inspr-pharos.tls=true
+      - traefik.http.routers.inspr-pharos.tls.certresolver=default
+      - traefik.http.routers.inspr-pharos.middlewares=cloudflarewarp@file
+      - traefik.http.routers.inspr-pharos.service=inspr-sites
+
+      - traefik.http.routers.inspr-janus.rule=Host(`janus.inspr.at`)
+      - traefik.http.routers.inspr-janus.tls=true
+      - traefik.http.routers.inspr-janus.tls.certresolver=default
+      - traefik.http.routers.inspr-janus.middlewares=cloudflarewarp@file
+      - traefik.http.routers.inspr-janus.service=inspr-sites
+
+      - traefik.http.routers.inspr-v1.rule=Host(`v1.inspr.at`)
+      - traefik.http.routers.inspr-v1.tls=true
+      - traefik.http.routers.inspr-v1.tls.certresolver=default
+      - traefik.http.routers.inspr-v1.middlewares=cloudflarewarp@file
+      - traefik.http.routers.inspr-v1.service=inspr-sites
+
+      # Catch first-time plain-HTTP visits before HSTS can apply. One router is
+      # sufficient because redirectScheme preserves the requested hostname,
+      # path and query string for every public site in this deployment.
+      - traefik.http.routers.inspr-sites-http.rule=Host(`inspr.at`) || Host(`www.inspr.at`) || Host(`paimos.inspr.at`) || Host(`pharos.inspr.at`) || Host(`janus.inspr.at`) || Host(`v1.inspr.at`)
+      - traefik.http.routers.inspr-sites-http.entrypoints=web
+      - traefik.http.routers.inspr-sites-http.middlewares=inspr-sites-https@docker
+      - traefik.http.routers.inspr-sites-http.service=inspr-sites
+      - traefik.http.middlewares.inspr-sites-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.inspr-sites-https.redirectscheme.permanent=true
+
+      # Keep identity routes on the apex, but make www.inspr.at canonical for
+      # all ordinary site traffic. inspr-auth wins for its paths at priority 100.
+      - traefik.http.routers.inspr-apex.rule=Host(`inspr.at`)
+      - traefik.http.routers.inspr-apex.tls=true
+      - traefik.http.routers.inspr-apex.tls.certresolver=default
+      - traefik.http.routers.inspr-apex.middlewares=inspr-canonical-redirect@docker,cloudflarewarp@file
+      - traefik.http.routers.inspr-apex.service=inspr-sites
+      - traefik.http.middlewares.inspr-canonical-redirect.redirectregex.regex=^https?://inspr\.at/(.*)
+      - traefik.http.middlewares.inspr-canonical-redirect.redirectregex.replacement=https://www.inspr.at/$${1}
+      - traefik.http.middlewares.inspr-canonical-redirect.redirectregex.permanent=true
+
+      - traefik.http.services.inspr-sites.loadbalancer.server.port=80
       - com.centurylinklabs.watchtower.enable=true
 
   # ── 2. inspr-auth — OIDC session backend ──────────────────────────────

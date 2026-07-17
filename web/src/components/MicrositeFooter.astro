@@ -1,0 +1,71 @@
+---
+import { productLinks, siteUrls } from "../content/urls";
+
+interface Props {
+  name: string;
+  repositoryUrl: string;
+  licenseName?: string;
+  licenseUrl?: string;
+  ctaTitle: string;
+  ctaBody: string;
+}
+
+const {
+  name,
+  repositoryUrl,
+  licenseName,
+  licenseUrl,
+  ctaTitle,
+  ctaBody,
+} = Astro.props;
+
+const year = new Date().getUTCFullYear();
+const usesAgpl = licenseName?.toUpperCase().includes("AGPL") ?? false;
+---
+
+<footer class="site-footer">
+  <section class="footer-cta page-shell" aria-labelledby="footer-cta-title">
+    <div>
+      <p class="eyebrow">Professional path</p>
+      <h2 id="footer-cta-title">{ctaTitle}</h2>
+      <p>{ctaBody}</p>
+    </div>
+    <a class="button button--light" href={siteUrls.business}>
+      Explore Augmentoring services <span aria-hidden="true">↗</span>
+    </a>
+  </section>
+
+  <div class="site-footer__grid page-shell">
+    <div class="site-footer__brand">
+      <strong>{name}</strong>
+      <p>Part of INSPR, an open operating layer for people and AI agents.</p>
+    </div>
+
+    <nav aria-label="INSPR products">
+      <p class="footer-label">Product family</p>
+      {productLinks.map((item) => <a href={item.href}>{item.label}</a>)}
+    </nav>
+
+    <nav aria-label="Source and license">
+      <p class="footer-label">Source</p>
+      <a href={repositoryUrl}>GitHub <span aria-hidden="true">↗</span></a>
+      {licenseName && licenseUrl && <a href={licenseUrl}>{licenseName} <span aria-hidden="true">↗</span></a>}
+      <a href={siteUrls.agpl}>
+        {usesAgpl ? "Official GNU AGPL-3.0 text" : "GNU AGPL-3.0 reference for other INSPR projects"}
+        <span aria-hidden="true">↗</span>
+      </a>
+    </nav>
+
+    <nav aria-label="Services and identity">
+      <p class="footer-label">Operate</p>
+      <a href={siteUrls.business}>Professional services <span aria-hidden="true">↗</span></a>
+      <a href={siteUrls.identity}>Zitadel identity <span aria-hidden="true">↗</span></a>
+      <a href="mailto:hello@inspr.at">hello@inspr.at</a>
+    </nav>
+  </div>
+
+  <div class="site-footer__legal page-shell">
+    <span>© {year} Markus Barta · INSPR</span>
+    <span>Built to stay inspectable.</span>
+  </div>
+</footer>

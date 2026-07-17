@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Verify every inline <script> across all built pages has its SHA-256
-hash pinned in Caddyfile's CSP `script-src` directive.
+"""Verify every inline <script> across all built and archived pages has its
+SHA-256 hash pinned in Caddyfile's CSP `script-src` directive.
 
-Walks web/dist/**/*.html, computes hashes for every inline <script>
-(skipping external src= scripts), and asserts each one appears in the
-Caddyfile. Exit non-zero on any drift; prints the missing hashes for
-paste-in.
+Walks web/dist/**/*.html and the frozen site/**/*.html archive, computes
+hashes for every inline <script> (skipping external src= scripts), and asserts
+each one appears in the Caddyfile. Exit non-zero on any drift; prints the
+missing hashes for paste-in.
 
 Run before any deploy that touches Base.astro, JSON-LD content, or any
 inlined script body.
@@ -20,10 +20,13 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 DIST = ROOT / "web" / "dist"
+ARCHIVE = ROOT / "site"
 CADDYFILE = ROOT / "Caddyfile"
 
 if not DIST.exists():
     sys.exit(f"missing build output: {DIST}\nrun `cd web && npm run build` first")
+if not ARCHIVE.exists():
+    sys.exit(f"missing frozen archive: {ARCHIVE}")
 
 caddy = CADDYFILE.read_text(encoding="utf-8")
 pinned = set(re.findall(r"sha256-[A-Za-z0-9+/=]+", caddy))
@@ -38,8 +41,10 @@ INLINE_SCRIPT = re.compile(
 found: dict[str, list[str]] = {}  # hash → list of (file, kind, size) descriptors
 problems: list[str] = []
 
-for html_path in sorted(DIST.rglob("*.html")):
-    rel = html_path.relative_to(DIST)
+html_paths = sorted(DIST.rglob("*.html")) + sorted(ARCHIVE.rglob("*.html"))
+
+for html_path in html_paths:
+    rel = html_path.relative_to(ROOT)
     html = html_path.read_text(encoding="utf-8")
     for m in INLINE_SCRIPT.finditer(html):
         attrs = m.group("attrs") or ""

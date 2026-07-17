@@ -1,12 +1,8 @@
 {
 	# Admin API bound to a Unix socket inside the caddy_config volume.
-	# Never bind-mounted to the host, never exposed via TCP — only reachable
+	# Never bind-mounted to the host, never exposed via TCP - only reachable
 	# from a process running INSIDE this container. Enables zero-downtime
-	# config reloads via:
-	#   docker exec inspr-www caddy reload \
-	#     --address unix//config/caddy-admin.sock \
-	#     --config /etc/caddy/Caddyfile
-	# (see deploy.sh).
+	# config reloads via deploy.sh.
 	admin unix//config/caddy-admin.sock
 	auto_https off
 	servers {
@@ -14,14 +10,22 @@
 	}
 }
 
-# inspr.at v1 — Astro static build mounted at /srv.
-# CSP: script-src 'self' is required for the small inline JSON-LD payload
-# in Base.astro; everything else is fully locked down. No external CDN at
-# runtime, no inline styles, no eval.
+# One Caddy process serves two immutable inputs:
+#
+#   /srv/releases/current  an atomic symlink to an immutable Astro build.
+#   /srv/releases/assets   append-only content-addressed Astro assets. Keeping
+#                          old hashes prevents cached HTML from losing assets
+#                          during and after a release switch.
+#   /srv/v1                the pre-relaunch site/ snapshot. It is only exposed
+#                          through v1.inspr.at and is never written by deploy.sh.
+#
+# Traefik terminates TLS and preserves the original Host header.
 :80 {
-	root * /srv
 	encode zstd gzip
 
+	# Applied to the umbrella site, all product microsites, the v1 archive and
+	# error responses. The four hashes belong to inline scripts in the archived
+	# site. New hashes are rejected by web/scripts/verify-csp.py before deploy.
 	header {
 		X-Content-Type-Options "nosniff"
 		Referrer-Policy "strict-origin-when-cross-origin"
@@ -29,30 +33,93 @@
 		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
 		Cross-Origin-Opener-Policy "same-origin"
 		Cross-Origin-Resource-Policy "same-origin"
-		# script-src hashes pinned (recompute via web/scripts/verify-csp.py):
-		#   sha256-DSv7vgLSN1bj36CyJzlHeafVeifZaqgNDlDDlgnScFY=  pre-paint theme-init   (Base.astro inline)
-		#   sha256-Fv81oDJzdp+/94PhyvQ+peTsyAV+EVPhgH5qCPv1PSg=  splash JSON-LD Organization
-		#   sha256-m1oZ+c962dAU/hl4PW1RH/9IRS93TjhsGDA7JYYIXXk=  v1 JSON-LD Organization
-		#   sha256-eBDjGmuPzGRCCoF4yQvT6pfwxCBCv1hXC7FU0FDEu9o=  v2 JSON-LD Organization
-		# Click-handler script for the theme switch lives at /scripts/theme-switch.js,
-		# splash spinner at /scripts/splash-spinner.js — both external, served from
-		# origin under script-src 'self' (no hash pin needed).
-		Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; script-src 'self' 'sha256-DSv7vgLSN1bj36CyJzlHeafVeifZaqgNDlDDlgnScFY=' 'sha256-Fv81oDJzdp+/94PhyvQ+peTsyAV+EVPhgH5qCPv1PSg=' 'sha256-m1oZ+c962dAU/hl4PW1RH/9IRS93TjhsGDA7JYYIXXk=' 'sha256-eBDjGmuPzGRCCoF4yQvT6pfwxCBCv1hXC7FU0FDEu9o='; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
+		Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; script-src 'self' 'sha256-DSv7vgLSN1bj36CyJzlHeafVeifZaqgNDlDDlgnScFY=' 'sha256-Fv81oDJzdp+/94PhyvQ+peTsyAV+EVPhgH5qCPv1PSg=' 'sha256-m1oZ+c962dAU/hl4PW1RH/9IRS93TjhsGDA7JYYIXXk=' 'sha256-eBDjGmuPzGRCCoF4yQvT6pfwxCBCv1hXC7FU0FDEu9o='; connect-src 'self'; media-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
 		-Server
 	}
 
-	# Static assets get a long cache; HTML stays short.
-	@hashed path_regexp ^/_astro/.*\.(woff2?|css|js|svg|png|webp|avif|ico)$
+	# Everything is short-lived by default. Astro's content-addressed assets are
+	# safe to cache indefinitely; stable root assets get a one-hour lifetime.
+	header ?Cache-Control "public, max-age=300, must-revalidate"
+	@hashed path /_astro/*
 	header @hashed Cache-Control "public, max-age=31536000, immutable"
-
-	@root_assets path /favicon.svg /favicon.ico /robots.txt /sitemap.xml
+	@root_assets path /favicon.svg /favicon.ico /og.jpg /robots.txt /sitemap.xml
 	header @root_assets Cache-Control "public, max-age=3600"
 
-	header /index.html Cache-Control "public, max-age=300, must-revalidate"
-	header / Cache-Control "public, max-age=300, must-revalidate"
+	# The frozen pre-relaunch build. This handle intentionally precedes the
+	# shared current-build asset route so v1 gets its own matching hashed files.
+	@archive host v1.inspr.at
+	handle @archive {
+		root * /srv/v1
+		header X-Robots-Tag "noindex, nofollow, noarchive"
+		try_files {path} {path}.html {path}/index.html
+		file_server
+	}
 
-	try_files {path} {path}.html {path}/index.html
-	file_server
+	# Keep the historical edition URLs useful after www.inspr.at changes over.
+	@legacy_editions {
+		host www.inspr.at
+		path /v1 /v1/* /v2 /v2/*
+	}
+	redir @legacy_editions https://v1.inspr.at{uri} 308
+
+	# Defence in depth. Traefik normally performs this redirect before Caddy;
+	# the higher-priority inspr-auth router still owns /enter, /login, /welcome
+	# and /logout on the apex.
+	@apex host inspr.at
+	redir @apex https://www.inspr.at{uri} 308
+
+	# Publish hashed assets before HTML is switched and retain old hashes for
+	# clients with cached documents. Stable public files follow `current`.
+	@current_hashed {
+		host www.inspr.at paimos.inspr.at pharos.inspr.at janus.inspr.at
+		path /_astro/*
+	}
+	handle @current_hashed {
+		root * /srv/releases/assets
+		file_server
+	}
+
+	@current_public {
+		host www.inspr.at paimos.inspr.at pharos.inspr.at janus.inspr.at
+		path /favicon.svg /favicon.ico /og.jpg /scripts/*
+	}
+	handle @current_public {
+		root * /srv/releases/current
+		file_server
+	}
+
+	@paimos host paimos.inspr.at
+	handle @paimos {
+		root * /srv/releases/current/paimos
+		try_files {path} {path}.html {path}/index.html
+		file_server
+	}
+
+	@pharos host pharos.inspr.at
+	handle @pharos {
+		root * /srv/releases/current/pharos
+		try_files {path} {path}.html {path}/index.html
+		file_server
+	}
+
+	@janus host janus.inspr.at
+	handle @janus {
+		root * /srv/releases/current/janus
+		try_files {path} {path}.html {path}/index.html
+		file_server
+	}
+
+	@www host www.inspr.at
+	handle @www {
+		root * /srv/releases/current
+		try_files {path} {path}.html {path}/index.html
+		file_server
+	}
+
+	# Do not serve a microsite for an unrecognised Host header.
+	handle {
+		respond "404 Not Found" 404
+	}
 
 	handle_errors {
 		respond "{err.status_code} {err.status_text}" {err.status_code}

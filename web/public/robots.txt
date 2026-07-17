@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://inspr.at/sitemap.xml
+Sitemap: https://www.inspr.at/sitemap.xml

@@ -6,3 +6,5 @@
 node_modules/
 *.log
 auth/inspr-auth
+/sites/
+/releases/

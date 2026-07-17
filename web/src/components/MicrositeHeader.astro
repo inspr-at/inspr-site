@@ -1,0 +1,47 @@
+---
+import { productLinks, siteUrls } from "../content/urls";
+
+interface Props {
+  name: string;
+  category: string;
+  logo: string;
+  active: "inspr" | "paimos" | "pharos" | "janus";
+  nav: Array<{ label: string; href: string }>;
+  showSignIn?: boolean;
+}
+
+const { name, category, logo, active, nav, showSignIn = false } = Astro.props;
+---
+
+<header class="site-header">
+  <div class="site-header__bar page-shell">
+    <a class="site-brand" href={siteUrls[active]}>
+      <img src={logo} alt="" width="48" height="48" />
+      <span>
+        <strong>{name}</strong>
+        <small>{category}</small>
+      </span>
+    </a>
+
+    <nav class="site-nav" aria-label="Primary navigation">
+      {nav.map((item) => <a href={item.href}>{item.label}</a>)}
+    </nav>
+
+    <div class="site-header__actions">
+      {showSignIn && <a class="quiet-link" href={siteUrls.signIn}>Sign in</a>}
+      <details class="product-switcher">
+        <summary>Products</summary>
+        <div class="product-switcher__panel">
+          {productLinks.map((item) => (
+            <a
+              href={item.href}
+              aria-current={item.label.toLowerCase() === active ? "page" : undefined}
+            >
+              {item.label}
+            </a>
+          ))}
+        </div>
+      </details>
+    </div>
+  </div>
+</header>

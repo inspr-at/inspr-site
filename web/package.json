@@ -9,13 +9,14 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "test:content": "node --test tests/content-static.test.mjs"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.2.9",
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
     "@fontsource/inria-sans": "^5.2.8",
-    "astro": "^6.2.1"
+    "astro": "^7.1.1"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",

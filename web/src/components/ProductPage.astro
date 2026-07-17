@@ -1,0 +1,298 @@
+---
+import { Image } from "astro:assets";
+import MicrositeLayout from "../layouts/MicrositeLayout.astro";
+import MicrositeHeader from "./MicrositeHeader.astro";
+import MicrositeFooter from "./MicrositeFooter.astro";
+import ServiceRibbon from "./ServiceRibbon.astro";
+import type { ProductContent } from "../content/types";
+
+import paimosHero from "../assets/products/paimos/hero.png";
+import paimosLogo from "../assets/products/paimos/logo.svg";
+import pharosHero from "../assets/products/pharos/hero.png";
+import pharosLogo from "../assets/products/pharos/mark.svg";
+import janusHero from "../assets/products/janus/hero.png";
+import janusLogo from "../assets/products/janus/logo.svg";
+
+interface Props {
+  content: ProductContent;
+}
+
+const { content } = Astro.props;
+const assets = {
+  paimos: { hero: paimosHero, logo: paimosLogo },
+  pharos: { hero: pharosHero, logo: pharosLogo },
+  janus: { hero: janusHero, logo: janusLogo },
+}[content.slug];
+
+const ogImage = new URL(assets.hero.src, content.canonicalUrl).href;
+const nav = [
+  { label: "Why", href: "#why" },
+  { label: "Model", href: "#model" },
+  { label: "Capabilities", href: "#capabilities" },
+  { label: "Architecture", href: "#architecture" },
+  { label: "Trust", href: "#trust" },
+  { label: "Source", href: "#open-source" },
+];
+---
+
+<MicrositeLayout
+  title={content.seo.title}
+  description={content.seo.description}
+  canonical={content.canonicalUrl}
+  ogImage={ogImage}
+  ogImageAlt={content.hero.alt}
+  favicon={assets.logo.src}
+  theme={content.slug}
+>
+  <MicrositeHeader
+    name={content.name}
+    category={content.category}
+    logo={assets.logo.src}
+    active={content.slug}
+    nav={nav}
+  />
+
+  <main id="main-content">
+    <ServiceRibbon text={content.serviceIntro} />
+
+    <section class="product-hero page-shell" aria-labelledby="hero-title">
+      <div class="product-hero__copy">
+        <p class="eyebrow">{content.hero.eyebrow}</p>
+        <h1 id="hero-title">{content.hero.title}</h1>
+        <p class="hero-lead">{content.hero.lead}</p>
+        <div class="button-row">
+          <a class="button" href={content.hero.primaryHref}>
+            {content.hero.primaryLabel} <span aria-hidden="true">↓</span>
+          </a>
+          <a class="button button--ghost" href={content.repositoryUrl}>
+            View the source <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </div>
+
+      <figure class="product-hero__visual">
+        <Image
+          src={assets.hero}
+          alt={content.hero.alt}
+          widths={[720, 960, 1280, 1600]}
+          sizes="(min-width: 64rem) 55vw, 100vw"
+          formats={["avif", "webp", "png"]}
+          quality={84}
+          loading="eager"
+          fetchpriority="high"
+        />
+      </figure>
+    </section>
+
+    <ul class="proof-strip page-shell" aria-label="Product characteristics">
+      {content.proof.map((item) => <li>{item}</li>)}
+    </ul>
+
+    <section class="section page-shell" id="why" aria-labelledby="problem-title">
+      <header class="section-intro">
+        <p class="eyebrow">{content.problem.eyebrow}</p>
+        <h2 id="problem-title">{content.problem.title}</h2>
+        <p class="section-lead">{content.problem.lead}</p>
+      </header>
+      <div
+        class:list={[
+          "card-grid",
+          content.problem.items.length === 4 ? "card-grid--two" : "card-grid--three",
+        ]}
+      >
+        {content.problem.items.map((item) => (
+          <article class="info-card">
+            {item.meta && <p class="card-meta">{item.meta}</p>}
+            <h3>{item.title}</h3>
+            <p>{item.body}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="section section--ink" id="model" aria-labelledby="model-title">
+      <div class="page-shell">
+        <header class="section-intro section-intro--wide">
+          <p class="eyebrow">{content.model.eyebrow}</p>
+          <h2 id="model-title">{content.model.title}</h2>
+          <p class="section-lead">{content.model.lead}</p>
+        </header>
+        <ol class="step-grid">
+          {content.model.steps.map((step) => (
+            <li>
+              <span class="step-number">{step.number}</span>
+              <h3>{step.title}</h3>
+              <p>{step.body}</p>
+            </li>
+          ))}
+        </ol>
+        {content.model.closing && <p class="section-closing">{content.model.closing}</p>}
+      </div>
+    </section>
+
+    <div id="capabilities">
+      {content.featureSections.map((feature, index) => (
+        <section
+          class:list={["section", "page-shell", { "section--tint": index % 2 === 1 }]}
+          id={`feature-${feature.id}`}
+          aria-labelledby={`${feature.id}-title`}
+        >
+          <header class="section-intro">
+            <p class="eyebrow">{feature.eyebrow}</p>
+            <h2 id={`${feature.id}-title`}>{feature.title}</h2>
+            <p class="section-lead">{feature.lead}</p>
+          </header>
+          <div class="card-grid card-grid--two">
+            {feature.items.map((item) => (
+              <article class="feature-card">
+                {item.meta && <p class="card-meta">{item.meta}</p>}
+                <h3>{item.title}</h3>
+                <p>{item.body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+
+    <section class="section page-shell" aria-labelledby="audience-title">
+      <header class="section-intro">
+        <p class="eyebrow">{content.audiences.eyebrow}</p>
+        <h2 id="audience-title">{content.audiences.title}</h2>
+        <p class="section-lead">{content.audiences.lead}</p>
+      </header>
+      <div
+        class:list={[
+          "card-grid",
+          content.audiences.items.length === 4 ? "card-grid--two" : "card-grid--three",
+        ]}
+      >
+        {content.audiences.items.map((item) => (
+          <article class="info-card">
+            {item.meta && <p class="card-meta">{item.meta}</p>}
+            <h3>{item.title}</h3>
+            <p>{item.body}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="section architecture" id="architecture" aria-labelledby="architecture-title">
+      <div class="page-shell architecture__grid">
+        <div>
+          <p class="eyebrow">{content.architecture.eyebrow}</p>
+          <h2 id="architecture-title">{content.architecture.title}</h2>
+          <p class="section-lead">{content.architecture.lead}</p>
+          {content.architecture.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+        </div>
+        <div class="architecture__diagram" aria-label="Architecture flow">
+          {content.architecture.flow.map((item, index) => (
+            <div class="architecture__node">
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <strong>{item}</strong>
+            </div>
+          ))}
+        </div>
+        <ul class="architecture__facts">
+          {content.architecture.facts.map((fact) => <li>{fact}</li>)}
+        </ul>
+      </div>
+    </section>
+
+    <section class="section section--ink" id="trust" aria-labelledby="trust-title">
+      <div class="page-shell">
+        <header class="section-intro section-intro--wide">
+          <p class="eyebrow">{content.trust.eyebrow}</p>
+          <h2 id="trust-title">{content.trust.title}</h2>
+          <p class="section-lead">{content.trust.lead}</p>
+        </header>
+        <div class="card-grid card-grid--two">
+          {content.trust.items.map((item) => (
+            <article class="dark-card">
+              {item.meta && <p class="card-meta">{item.meta}</p>}
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section page-shell" aria-labelledby="integrations-title">
+      <header class="section-intro">
+        <p class="eyebrow">{content.integrations.eyebrow}</p>
+        <h2 id="integrations-title">{content.integrations.title}</h2>
+        <p class="section-lead">{content.integrations.lead}</p>
+      </header>
+      <p class="table-scroll-hint" aria-hidden="true">Swipe to inspect details <span>→</span></p>
+      <div class="table-wrap" tabindex="0" aria-label="Integration matrix">
+        <table>
+          <thead>
+            <tr><th>Integration</th><th>Status</th><th>What it does</th></tr>
+          </thead>
+          <tbody>
+            {content.integrations.items.map((item) => (
+              <tr>
+                <th scope="row">{item.name}</th>
+                <td><span class="status-label">{item.status}</span></td>
+                <td>{item.description}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section section--tint" aria-labelledby="limits-title">
+      <div class="page-shell limits-grid">
+        <header class="section-intro">
+          <p class="eyebrow">{content.limits.eyebrow}</p>
+          <h2 id="limits-title">{content.limits.title}</h2>
+          <p class="section-lead">{content.limits.lead}</p>
+        </header>
+        <ul class="check-list check-list--limits">
+          {content.limits.items.map((item) => <li>{item}</li>)}
+        </ul>
+      </div>
+    </section>
+
+    <section class="section page-shell open-source" id="open-source" aria-labelledby="source-title">
+      <div>
+        <p class="eyebrow">{content.openSource.eyebrow}</p>
+        <h2 id="source-title">{content.openSource.title}</h2>
+        <p class="section-lead">{content.openSource.body}</p>
+      </div>
+      <div class="source-links">
+        {content.openSource.links.map((link) => (
+          <a href={link.href}>
+            {link.label} {link.external !== false && <span aria-hidden="true">↗</span>}
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="section page-shell faq" aria-labelledby="faq-title">
+      <header class="section-intro">
+        <p class="eyebrow">Practical questions</p>
+        <h2 id="faq-title">Before you adopt it.</h2>
+      </header>
+      <div class="faq-list">
+        {content.faq.map((item) => (
+          <details>
+            <summary>{item.question}</summary>
+            <p>{item.answer}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+  </main>
+
+  <MicrositeFooter
+    name={content.name}
+    repositoryUrl={content.repositoryUrl}
+    licenseName={content.license.name}
+    licenseUrl={content.license.url}
+    ctaTitle={content.finalCta.title}
+    ctaBody={content.finalCta.body}
+  />
+</MicrositeLayout>

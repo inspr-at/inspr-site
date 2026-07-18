@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { stat } from "node:fs/promises";
 import test from "node:test";
 
 const sourceUrl = new URL("../src/", import.meta.url);
@@ -108,4 +109,52 @@ test("each canonical host publishes its own robots and sitemap pair", async () =
     assert.match(robots, new RegExp(`${canonical.replaceAll(".", "\\.")}\\/sitemap\\.xml`));
     assert.ok(sitemap.includes(`<loc>${canonical}/</loc>`));
   }
+});
+
+test("all four microsites render claim visuals and accessible workflow controls", async () => {
+  const productPage = await source("components/ProductPage.astro");
+  const workflow = await source("components/WorkflowExplorer.astro");
+  const umbrella = await source("pages/index.astro");
+
+  assert.match(productPage, /<WorkflowExplorer/);
+  assert.match(productPage, /content\.slug === "paimos" && <PaimosProductSurface/);
+  assert.match(productPage, /data-integration-filter/);
+  assert.match(workflow, /role="tablist"/);
+  assert.match(workflow, /aria-selected/);
+  assert.match(workflow, /prefers-reduced-motion: reduce/);
+  assert.match(workflow, /IntersectionObserver/);
+  assert.match(umbrella, /title="Continuity is the advantage\."/);
+
+  const assets = [
+    "assets/products/inspr/continuity.png",
+    "assets/products/paimos/context-ledger.png",
+    "assets/products/pharos/fleet-gate.png",
+    "assets/products/janus/value-boundary.png",
+    "assets/products/paimos/product-surface.png",
+  ];
+  for (const asset of assets) {
+    const metadata = await stat(new URL(asset, sourceUrl));
+    assert.ok(metadata.size > 10_000, `${asset} must be a real image asset`);
+  }
+});
+
+test("workflow stages expose icons, evidence signals and source references", async () => {
+  for (const { slug } of products) {
+    const content = await source(`content/${slug}.ts`);
+    const model = content.slice(content.indexOf("model:"), content.indexOf("featureSections:"));
+
+    assert.match(model, /icon:/, `${slug} workflow needs contextual SVG icons`);
+    assert.match(model, /signal:/, `${slug} workflow needs a concrete result signal`);
+    assert.match(model, /reference:/, `${slug} workflow needs inspectable evidence`);
+    assert.match(content, /github\.com\/markus-barta\//, `${slug} evidence must link to source`);
+  }
+});
+
+test("the positive INSPR product constellation remains present", async () => {
+  const umbrella = await source("pages/index.astro");
+
+  assert.match(umbrella, /Three focused tools\. One coherent way of working\./);
+  assert.match(umbrella, /class="product-showcase"/);
+  assert.match(umbrella, /class:list=\{\["product-story"/);
+  assert.match(umbrella, /Explore \{product\.name\}/);
 });

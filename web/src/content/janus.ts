@@ -24,7 +24,7 @@ export const janusContent = {
   },
   hero: {
     eyebrow: "SECRET GOVERNANCE FOR HUMAN AND AGENT SYSTEMS",
-    title: "Let agents request secret-backed work without handing them the secret.",
+    title: "Use secrets. Keep values hidden.",
     lead:
       "Janus separates what may be used, who may request it and where it may go. Humans and AI work with opaque references and narrow, policy-bound permits. Secret values stay inside reviewed execution paths.",
     alt: "A translucent Janus gate with two profiles separating a protected credential from approved human, service and agent workflows.",
@@ -41,26 +41,30 @@ export const janusContent = {
   ],
   problem: {
     eyebrow: "THE PROBLEM",
-    title: "Secret access is too broad a primitive for agents.",
+    title: "Agents should not hold credentials.",
     lead:
       "A service may genuinely need a deployment credential. An AI agent rarely needs to read it. Yet many integrations still hand automation a reusable token, an environment variable or a generic vault read tool.",
     items: [
       {
+        icon: "key-round",
         title: "Access and intent collapse into one operation",
         body:
           "Once an agent can retrieve a credential, a legitimate task and an unintended destination are separated only by instructions. Prompt injection, a bad tool call or an over-scoped workload can turn useful automation into credential disclosure.",
       },
       {
+        icon: "timer-off",
         title: "Long-lived credentials outlive the job",
         body:
           "A PAT or environment variable placed directly in a workload can be reused beyond the request that justified it. The system loses the connection between purpose, actor, destination and time.",
       },
       {
+        icon: "scroll-text",
         title: "Audit logs often record access, not use",
         body:
           "Knowing that a value was read does not answer which reviewed command received it, which consumer depended on it or whether the requested destination matched policy.",
       },
       {
+        icon: "database-zap",
         title: "Backend choice becomes architecture",
         body:
           "When policy is embedded in one vendor's paths, tokens and clients, changing custody systems becomes a security redesign. Janus keeps the governance contract above the backend.",
@@ -75,24 +79,45 @@ export const janusContent = {
     steps: [
       {
         number: "01",
+        icon: "list-tree",
         title: "SecretRef",
         body:
           "An opaque reference identifies one manifest-declared secret. It contains no value, avoids exposing backend paths and grants no authority by itself.",
         meta: "Stable identifier, not a credential",
+        signal: "Opaque identity without value or authority",
+        reference: {
+          label: "Inspect the SecretRef type",
+          href: `${repositoryUrl}/blob/main/crates/janus-core/src/refs.rs`,
+          external: true,
+        },
       },
       {
         number: "02",
+        icon: "ticket-check",
         title: "UsePermit",
         body:
           "A short-lived permit approves one profile-bound use. It is checked against the principal, scope, executor, destination, profile, expiry, classification and lifecycle state.",
         meta: "Narrow, bound and optionally single-use",
+        signal: "One principal, purpose, destination and lifetime",
+        reference: {
+          label: "Inspect permit policy",
+          href: `${repositoryUrl}/blob/main/crates/janus-core/src/policy.rs`,
+          external: true,
+        },
       },
       {
         number: "03",
+        icon: "workflow",
         title: "Approved path",
         body:
           "A reviewed command, private service handoff or future purpose-built connector receives the value internally. The requesting agent cannot choose a new sink or retrieve the literal.",
         meta: "Policy owns the execution boundary",
+        signal: "The value crosses only inside the reviewed executor",
+        reference: {
+          label: "Inspect the executor boundary",
+          href: `${repositoryUrl}/blob/main/crates/janus-executor/src/lib.rs`,
+          external: true,
+        },
       },
     ],
     closing:
@@ -102,17 +127,24 @@ export const janusContent = {
     {
       id: "capabilities",
       eyebrow: "CAPABILITIES",
-      title: "Narrow by design. Useful in practice.",
+      title: "A deliberately bounded surface.",
       lead:
         "The released Rust engine combines reference-only discovery with policy-bound execution, lifecycle controls and a native encrypted store.",
       items: [
         {
+          icon: "scan-search",
           title: "Reference-only MCP",
           body:
             "Janus Warden exposes exactly four tools: list safe descriptors, describe a reference, request an approved use and check health. There is no reveal, set, delete, rotate or raw-resolve MCP tool.",
           meta: "list_secrets · describe_secret · request_use · health",
+          reference: {
+            label: "Inspect the Warden tool boundary",
+            href: `${repositoryUrl}/blob/main/crates/janus-warden/src/lib.rs`,
+            external: true,
+          },
         },
         {
+          icon: "shield-check",
           title: "Manifest allowlist",
           body:
             "Only secrets declared in the reviewed manifest enter the broker. Model-facing responses use curated labels and opaque references instead of raw names and backend paths.",
@@ -135,17 +167,19 @@ export const janusContent = {
     {
       id: "lifecycle",
       eyebrow: "LIFECYCLE",
-      title: "Govern the credential after the first successful use.",
+      title: "Govern every lifecycle state.",
       lead:
         "A safe use path is incomplete without ownership, rotation, retirement and evidence that survives the operation.",
       items: [
         {
+          icon: "user-round-check",
           title: "Ownership and classification",
           body:
             "Owner, class, scope, safe label and lifecycle metadata are evaluated before normal use. Missing ownership or classification blocks approved-use paths instead of becoming an undocumented exception.",
           meta: "Normal · high-value · break-glass policy classes",
         },
         {
+          icon: "rotate-ccw",
           title: "Explicit lifecycle",
           body:
             "Janus models draft, active, rotating, deprecated, disabled, pending-delete and destroyed states. Disabled or retired material cannot silently return to a normal use path.",
@@ -156,6 +190,11 @@ export const janusContent = {
           body:
             "Generated credentials can be prepared with encrypted rollback material, validated, reloaded into declared consumers and committed. Failed validation or reload restores the previous material.",
           meta: "Plan · prepare · validate · reload · commit",
+          reference: {
+            label: "Inspect the rotation contract",
+            href: `${repositoryUrl}/blob/main/crates/janus-core/src/rotation.rs`,
+            external: true,
+          },
         },
         {
           title: "Retirement and reconciliation",
@@ -168,17 +207,19 @@ export const janusContent = {
     {
       id: "oversight",
       eyebrow: "HUMAN OVERSIGHT",
-      title: "A control room that does not need the decryption key.",
+      title: "Oversight without decryption.",
       lead:
         "The live Go envelope is a separate, metadata-only oversight plane. It gives people operational context without turning the browser into another secret-bearing surface.",
       items: [
         {
+          icon: "badge-check",
           title: "Role-gated workspace",
           body:
             "The deployed envelope uses admin, auditor, operator and viewer roles across the catalog, request, access, ledger, assurance and settings surfaces.",
           meta: "Zitadel OIDC with explicit role bindings",
         },
         {
+          icon: "scroll-text",
           title: "Value-free evidence",
           body:
             "Descriptors, action receipts, posture views and audit rows omit secret values. Sensitive operations are blocked when readiness or local audit storage is degraded.",
@@ -189,6 +230,11 @@ export const janusContent = {
           body:
             "Audit entries include request correlation, severity and previous-event linkage. The envelope verifies the local chain and exposes redacted evidence to the auditor role.",
           meta: "Evidence, not raw debug output",
+          reference: {
+            label: "Inspect audit chain integrity",
+            href: `${repositoryUrl}/blob/main/go-envelope/audit.go`,
+            external: true,
+          },
         },
         {
           title: "No reveal path today",
@@ -201,7 +247,7 @@ export const janusContent = {
   ],
   audiences: {
     eyebrow: "REAL WORKFLOWS",
-    title: "What Janus is built to mediate",
+    title: "Outcomes, not credentials.",
     lead:
       "The strongest Janus use cases are concrete, repeatable workflows where the caller needs an outcome, not possession of a credential.",
     items: [
@@ -233,7 +279,7 @@ export const janusContent = {
   },
   architecture: {
     eyebrow: "ARCHITECTURE",
-    title: "One policy model, two deliberately separated planes.",
+    title: "Two planes. One policy.",
     lead:
       "The Rust engine handles references, policy, permits, storage, execution, rotation and lifecycle. The Go envelope is the live human oversight layer.",
     paragraphs: [
@@ -260,7 +306,7 @@ export const janusContent = {
   },
   trust: {
     eyebrow: "TRUST MODEL",
-    title: "Security expressed as boundaries that can be tested.",
+    title: "Test every boundary.",
     lead:
       "Janus avoids relying on a prompt to protect a secret. The control sits in types, reviewed configuration, execution bindings and negative-path tests.",
     items: [
@@ -293,12 +339,17 @@ export const janusContent = {
         title: "Release evidence",
         body:
           "Engine and envelope images are keyless-signed, accompanied by SPDX SBOMs and published with build-provenance attestations. Release CI smokes the exact published engine digest.",
+        reference: {
+          label: "Inspect the release assurance gate",
+          href: `${repositoryUrl}/blob/main/scripts/assure-engine-release.sh`,
+          external: true,
+        },
       },
     ],
   },
   integrations: {
     eyebrow: "INTEGRATIONS",
-    title: "Consolidate the interface, not the storage vendor.",
+    title: "One policy contract. Explicit backends.",
     lead:
       "The manifest, references, policy, permits and evidence stay stable while custody and consumers can vary by deployment. Status labels distinguish implemented paths from roadmap intent.",
     items: [
@@ -354,7 +405,7 @@ export const janusContent = {
   },
   limits: {
     eyebrow: "CURRENT STATUS",
-    title: "Useful now, explicit about what comes next.",
+    title: "What ships. What does not.",
     lead:
       "Janus is an early product with deployed and released components. It is not presented as a finished general-purpose enterprise secrets platform.",
     items: [
@@ -370,7 +421,7 @@ export const janusContent = {
   },
   openSource: {
     eyebrow: "OPEN SOURCE",
-    title: "Inspectable, self-hostable and backed by release evidence.",
+    title: "Inspect every layer.",
     body:
       "Janus is public under AGPL-3.0-only. The source, tests, release workflows, image signatures, SPDX SBOMs and build-provenance attestations are available for review. The current public engine release is v0.1.6.",
     links: [
@@ -439,7 +490,7 @@ export const janusContent = {
     },
   ],
   finalCta: {
-    title: "Build the boundary around your real workflows.",
+    title: "Build the boundary around real workflows.",
     body:
       "Augmentoring can map secret consumers, define approved-use profiles, integrate identity and custody, deploy Janus and operate the resulting system with your team.",
   },

@@ -43,6 +43,7 @@
     --accent-strong: #8d5705;
     --accent-soft: #f6e5bd;
     --secondary: #137b79;
+    --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
   }
 
   html[data-product="janus"] {
@@ -50,6 +51,11 @@
     --accent-strong: #055b59;
     --accent-soft: #d6ece8;
     --secondary: #d69b31;
+    --font-display: "Unbounded Variable", "Arial Black", sans-serif;
+  }
+
+  html[data-product="paimos"] {
+    --font-display: "Space Grotesk Variable", "Helvetica Neue", sans-serif;
   }
 
   html[data-product="inspr"] {
@@ -162,6 +168,30 @@
     font-variation-settings: "opsz" 90, "wght" 420, "SOFT" 12, "WONK" 0;
     letter-spacing: -0.035em;
     text-wrap: balance;
+  }
+
+  html[data-product="paimos"] :is(h1, h2, h3),
+  html[data-product="janus"] :is(h1, h2, h3) {
+    font-variation-settings: "wght" 680;
+    font-weight: 680;
+    letter-spacing: -0.055em;
+  }
+
+  html[data-product="pharos"] :is(h1, h2, h3) {
+    font-variation-settings: normal;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
+
+  html[data-product="janus"] h1 {
+    max-width: 11ch;
+    font-size: clamp(2.7rem, 4.9vw, 5.35rem);
+    line-height: 1.02;
+  }
+
+  html[data-product="janus"] h2 {
+    font-size: clamp(2.1rem, 3.6vw, 4rem);
+    line-height: 1.08;
   }
 
   h1 {
@@ -429,7 +459,7 @@
   }
 
   html[data-product="janus"] .product-hero h1 {
-    font-size: clamp(3.25rem, 5.6vw, 6rem);
+    font-size: clamp(2.7rem, 4.9vw, 5.35rem);
   }
 
   .product-hero__copy {
@@ -676,10 +706,50 @@
     margin-top: 1.15rem;
   }
 
-  .info-card p:last-child,
-  .feature-card p:last-child,
-  .dark-card p:last-child {
+  .info-card > p:not(.card-meta),
+  .feature-card > p:not(.card-meta),
+  .dark-card > p:not(.card-meta) {
     margin-top: 0.85rem;
+  }
+
+  .card-icon {
+    display: grid;
+    width: 3rem;
+    height: 3rem;
+    place-items: center;
+    color: var(--accent-strong);
+    border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+    border-radius: 0.9rem;
+    background: color-mix(in srgb, var(--accent-soft) 62%, transparent);
+  }
+
+  .dark-card .card-icon {
+    color: color-mix(in srgb, var(--accent) 70%, white);
+    border-color: rgb(255 255 255 / 0.12);
+    background: rgb(255 255 255 / 0.07);
+  }
+
+  .card-icon + .card-meta {
+    margin-top: 1rem;
+  }
+
+  .card-reference {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 1.15rem;
+    color: var(--accent-strong);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .dark-card .card-reference {
+    color: color-mix(in srgb, var(--secondary) 72%, white);
+  }
+
+  .card-reference:hover {
+    text-decoration: underline;
   }
 
   .section--tint {
@@ -814,7 +884,7 @@
   .architecture__node {
     position: relative;
     display: grid;
-    grid-template-columns: 2.2rem 1fr;
+    grid-template-columns: 2rem 2.6rem 1fr;
     gap: 0.85rem;
     align-items: center;
     min-height: 3.8rem;
@@ -834,7 +904,7 @@
     background: var(--accent);
   }
 
-  .architecture__node span {
+  .architecture__node .architecture__node-index {
     display: grid;
     width: 2rem;
     height: 2rem;
@@ -844,6 +914,17 @@
     border-radius: 50%;
     font-family: var(--font-mono);
     font-size: 0.68rem;
+  }
+
+  .architecture__node .architecture__node-icon {
+    display: grid;
+    width: 2.6rem;
+    height: 2.6rem;
+    place-items: center;
+    color: var(--accent-strong);
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+    background: var(--accent-soft);
   }
 
   .architecture__node strong {
@@ -885,6 +966,43 @@
     border-radius: var(--radius-md);
     background: var(--surface);
     box-shadow: var(--shadow-sm);
+  }
+
+  .integration-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    align-items: center;
+    margin: 2rem 0 1rem;
+  }
+
+  .integration-filters button {
+    min-height: 2.55rem;
+    padding: 0.55rem 0.9rem;
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.5);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    transition: color 180ms ease, border-color 180ms ease, background 180ms ease;
+  }
+
+  .integration-filters button:hover,
+  .integration-filters button[aria-pressed="true"] {
+    color: var(--accent-strong);
+    border-color: color-mix(in srgb, var(--accent) 42%, transparent);
+    background: var(--accent-soft);
+  }
+
+  .integration-filters__count {
+    margin-left: auto;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
   }
 
   .table-scroll-hint {

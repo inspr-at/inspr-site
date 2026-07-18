@@ -54,6 +54,12 @@ web/src/content/pharos.ts
 web/src/content/janus.ts
 ```
 
+The product-specific visual layer remains code-native: Lucide SVG symbols,
+accessible workflow explorers, responsive Astro images and self-hosted fonts.
+Generated editorial artwork supports a concrete claim; it never replaces
+product UI or carries generated text. Paimos also includes a clearly labelled
+screen from its synthetic visual-test fixture.
+
 Shared URLs, including the professional-services destination, are centralized
 in `web/src/content/urls.ts`. Set `PUBLIC_BUSINESS_URL` at build time when
 the business hostname changes.
@@ -77,7 +83,10 @@ The content tests protect:
 - the centralized business URL;
 - the no-em-dash copy rule;
 - exact `AGPL-3.0-only` product license claims; and
-- per-host robots and sitemap output.
+- per-host robots and sitemap output;
+- workflow icons, evidence signals and source references;
+- the four claim-supporting image assets; and
+- the preserved INSPR product constellation.
 
 `verify-csp.py` compares every inline script in the generated and archived
 HTML against the hashes allowed by `Caddyfile`.

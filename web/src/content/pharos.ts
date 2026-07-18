@@ -20,7 +20,7 @@ export const pharosContent = {
   },
   hero: {
     eyebrow: "PHAROS / FLEET OPERATIONS",
-    title: "See what is running. Change only what is ready.",
+    title: "Fleet truth before action.",
     lead:
       "Pharos gives operations teams a current view of servers, configuration drift, backups and maintenance. It keeps observed state, declared intent and pending work separate, so a request is never presented as if it had already become reality.",
     alt: "A lighthouse overlooking a calm network of connected fleet nodes",
@@ -37,7 +37,7 @@ export const pharosContent = {
   ],
   problem: {
     eyebrow: "THE OPERATING GAP",
-    title: "Fleet operations fail in the gaps between tools.",
+    title: "The gaps are the risk.",
     lead:
       "A server can answer a ping while its configuration is drifting. A backup job can succeed without proving that anything can be restored. A deployment button can work while leaving no trustworthy record of what was reviewed. Pharos brings those facts together without pretending they are the same thing.",
     items: [
@@ -46,18 +46,21 @@ export const pharosContent = {
         body:
           "Pharos derives liveness from server-received heartbeats and each host's expected reporting cadence. Historic signals are real reports, not generated decoration.",
         meta: "Live · Stale · Down · Awaiting",
+        icon: "radio-tower",
       },
       {
         title: "A successful backup is not a recovery",
         body:
           "Backup freshness and restore validation remain separate. Operators can see whether a job ran, whether the repository was checked and whether recovery evidence is still current.",
         meta: "Run state · Repository check · Restore evidence",
+        icon: "database-backup",
       },
       {
         title: "A button is not a change process",
         body:
           "Sensitive maintenance begins with review. Backup readiness, build results, authorization and explicit confirmation are recorded before the target host can apply anything.",
         meta: "Review · Confirm · Apply · Verify",
+        icon: "shield-check",
       },
     ],
   },
@@ -72,24 +75,52 @@ export const pharosContent = {
         title: "Observe",
         body:
           "A small beacon sends bounded, non-secret facts over an outbound connection: heartbeat cadence, Nix freshness, kernel posture, service state, backup posture and optional coarse location.",
+        icon: "radio-tower",
+        signal: "Fresh host evidence, stamped on receipt.",
+        reference: {
+          label: "Inspect the host report contract",
+          href: "https://github.com/markus-barta/pharos/blob/main/crates/pharos-core/src/lib.rs#L206-L250",
+          external: true,
+        },
       },
       {
         number: "02",
         title: "Compare",
         body:
           "Pharos keeps runtime observations separate from nixcfg declarations and operator requests. You can tell what is running now, what has been declared and what is still waiting to be applied.",
+        icon: "git-compare-arrows",
+        signal: "Observed and declared remain separate.",
+        reference: {
+          label: "See the five-state truth model",
+          href: "https://github.com/markus-barta/pharos/blob/main/README.md#L37-L47",
+          external: true,
+        },
       },
       {
         number: "03",
         title: "Gate",
         body:
           "Fixed maintenance workflows require the relevant checks before execution. The browser creates a review record; it never sends arbitrary commands to a host.",
+        icon: "shield-check",
+        signal: "No review, no lease, no action.",
+        reference: {
+          label: "Review the guarded workflow",
+          href: "https://github.com/markus-barta/pharos/blob/main/README.md#L323-L340",
+          external: true,
+        },
       },
       {
         number: "04",
         title: "Verify",
         body:
           "After a switch or restart, Pharos waits for fresh host evidence, checks the running kernel and reconciles the result with the original workflow. Recovery verifies state without silently replaying the change.",
+        icon: "badge-check",
+        signal: "A fresh report closes the loop.",
+        reference: {
+          label: "Trace verification and recovery",
+          href: "https://github.com/markus-barta/pharos/blob/main/README.md#L329-L340",
+          external: true,
+        },
       },
     ],
     closing:
@@ -99,7 +130,7 @@ export const pharosContent = {
     {
       id: "fleet",
       eyebrow: "FLEET VISIBILITY",
-      title: "Quiet when healthy. Precise when not.",
+      title: "Quiet when healthy.",
       lead:
         "Fleet cards and compact rows show the same operational truth: host identity, liveness, last report, signal history, drift, backup posture and the reason a host needs attention. Healthy systems stay visually calm. Missing evidence remains visible instead of being converted into a green status.",
       items: [
@@ -107,11 +138,18 @@ export const pharosContent = {
           title: "Heartbeat truth",
           body:
             "Liveness is derived from server-stamped reports and the host's declared cadence. Selectable signal windows show real arrival history, including honest gaps.",
+          icon: "radio-tower",
+          reference: {
+            label: "Read the heartbeat contract",
+            href: "https://github.com/markus-barta/pharos/blob/main/crates/pharos-core/src/lib.rs#L219-L246",
+            external: true,
+          },
         },
         {
           title: "Attention without alarm fatigue",
           body:
             "Search and sorting surface hosts by need, name or last change. Workstations can remain honestly offline without producing the false down alerts expected only from always-on servers.",
+          icon: "list-filter",
         },
         {
           title: "A fleet you can place",
@@ -123,7 +161,7 @@ export const pharosContent = {
     {
       id: "drift",
       eyebrow: "CONFIGURATION AND DRIFT",
-      title: "Know what changed before users notice.",
+      title: "See drift early.",
       lead:
         "For NixOS hosts, Pharos reports how old the active flake lock is, how far the host is behind nixcfg and whether a newer kernel is already staged. Non-Nix hosts still participate in liveness, backup, location and service reporting through the portable beacon.",
       items: [
@@ -131,11 +169,13 @@ export const pharosContent = {
           title: "Nix freshness in plain language",
           body:
             "Operators see a concise answer such as flake.lock age and commits behind nixcfg instead of having to reconstruct drift from a checkout and deployment history.",
+          icon: "git-compare-arrows",
         },
         {
           title: "Running versus ready",
           body:
             "Kernel posture distinguishes the version currently running from the version staged in the active system configuration. A restart requirement is evidence, not an inference from a deployment timestamp.",
+          icon: "binary",
         },
         {
           title: "Declared services, runtime observations",
@@ -147,7 +187,7 @@ export const pharosContent = {
     {
       id: "backups",
       eyebrow: "BACKUP POSTURE",
-      title: "Did it run? Could it restore?",
+      title: "A run is not recovery.",
       lead:
         "Pharos treats backup posture as an operating signal, not a checkbox. It distinguishes healthy, stale, failed, missing and unknown backups, then tracks validation evidence separately from the last successful run.",
       items: [
@@ -155,11 +195,13 @@ export const pharosContent = {
           title: "Restore evidence has levels",
           body:
             "Snapshot existence, repository checks, mount or list tests, isolated restore samples, checksum comparisons and recorded recovery drills remain distinct forms of evidence.",
+          icon: "badge-check",
         },
         {
           title: "Native Restic, open adapter boundary",
           body:
             "Restic posture is collected directly. Borg, Kopia, provider snapshots and other systems can report through the same sanitized status-file or command adapter contract without sending backup contents or credentials.",
+          icon: "database-backup",
         },
         {
           title: "Protection begins during onboarding",
@@ -171,7 +213,7 @@ export const pharosContent = {
     {
       id: "onboarding",
       eyebrow: "ONBOARDING",
-      title: "Bring an existing host or prepare a new one.",
+      title: "Every host starts with preflight.",
       lead:
         "The setup assistant keeps one decision in view at a time, records safe progress and waits for first-host evidence before treating onboarding as complete.",
       items: [
@@ -179,11 +221,13 @@ export const pharosContent = {
           title: "Existing Linux servers",
           body:
             "Pharos checks the SSH route, operating system, privilege path, available disk and existing backup signals before recording an automated handoff. Failed preflight produces a concrete next action instead of a partial install.",
+          icon: "server-cog",
         },
         {
           title: "NixOS and portable paths",
           body:
             "NixOS hosts can use the native module and guarded nixos-anywhere path. Other Linux hosts can use the hardened systemd beacon installer with a private runtime token file.",
+          icon: "network",
         },
         {
           title: "Provider-backed jobs",
@@ -195,7 +239,7 @@ export const pharosContent = {
     {
       id: "guarded-actions",
       eyebrow: "GUARDED ACTIONS",
-      title: "An action is a workflow, not a shortcut.",
+      title: "Change through a gate.",
       lead:
         "Pharos supports a deliberately small set of operational actions: settings changes, a shared system-update proposal, per-host update and restart, recovery and host retirement. Each begins with review and exposes one clear next step.",
       items: [
@@ -203,11 +247,18 @@ export const pharosContent = {
           title: "Review before execution",
           body:
             "The workflow validates the target, records changed areas and requires all-host evaluation, target build, fresh backup and rollback evidence where applicable.",
+          icon: "shield-check",
+          reference: {
+            label: "Inspect the persisted action stages",
+            href: "https://github.com/markus-barta/pharos/blob/main/README.md#L323-L340",
+            external: true,
+          },
         },
         {
           title: "Attended change boundary",
           body:
             "Authorization and explicit confirmation happen immediately before a fixed target-local phase. A host agent claims only the reviewed phase and cannot turn the workflow into a general command channel.",
+          icon: "key-round",
         },
         {
           title: "Verification after restart",
@@ -224,7 +275,7 @@ export const pharosContent = {
   ],
   audiences: {
     eyebrow: "WHO IT SERVES",
-    title: "For teams that operate real infrastructure without a large platform department.",
+    title: "Built for small fleets.",
     lead:
       "Pharos is most useful where a small group owns a mixed fleet and needs clear operating evidence without introducing another unrestricted automation surface.",
     items: [
@@ -247,7 +298,7 @@ export const pharosContent = {
   },
   architecture: {
     eyebrow: "ARCHITECTURE",
-    title: "Small enough to understand. Strict where it matters.",
+    title: "Small core. Hard boundaries.",
     lead:
       "Pharos is a Rust workspace with shared contracts between server and beacon, preventing their report schema from drifting independently.",
     paragraphs: [
@@ -272,7 +323,7 @@ export const pharosContent = {
   },
   trust: {
     eyebrow: "TRUST BOUNDARIES",
-    title: "Keep secrets behind the operating surface.",
+    title: "Secrets stay behind the surface.",
     lead:
       "Human identity, machine identity, provider credentials and operational evidence have separate paths. Pharos exposes the facts an operator needs without moving secret values into the browser or workflow history.",
     items: [
@@ -280,6 +331,11 @@ export const pharosContent = {
         title: "Human access",
         body:
           "Zitadel provides OIDC identity. Pharos applies its own operator and per-host access policy, with an empty view by default for authenticated users who have no grants.",
+        reference: {
+          label: "Inspect fail-closed access grants",
+          href: "https://github.com/markus-barta/pharos/blob/main/crates/pharosd/src/auth.rs#L293-L329",
+          external: true,
+        },
       },
       {
         title: "Machine access",
@@ -295,12 +351,17 @@ export const pharosContent = {
         title: "Restricted host service",
         body:
           "The native beacon runs as an unprivileged system user with no-new-privileges, strict filesystem protection, restricted namespaces and a narrow set of network address families.",
+        reference: {
+          label: "Inspect beacon hardening",
+          href: "https://github.com/markus-barta/pharos/blob/main/nix/modules/pharos-beacon.nix#L172-L197",
+          external: true,
+        },
       },
     ],
   },
   integrations: {
     eyebrow: "INTEGRATIONS",
-    title: "Deep where it is proven. Explicit where it is not.",
+    title: "Maturity stays visible.",
     lead:
       "Pharos uses maturity labels so a planned connector never looks like a production-ready path.",
     items: [
@@ -362,7 +423,7 @@ export const pharosContent = {
   },
   limits: {
     eyebrow: "DELIBERATE LIMITS",
-    title: "What Pharos deliberately does not do",
+    title: "Boundaries by design.",
     lead:
       "A smaller operating surface is easier to reason about. Pharos focuses on fleet posture and guarded change while specialist systems keep their specialist jobs.",
     items: [

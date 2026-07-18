@@ -4,10 +4,12 @@ import MicrositeLayout from "../layouts/MicrositeLayout.astro";
 import MicrositeHeader from "../components/MicrositeHeader.astro";
 import MicrositeFooter from "../components/MicrositeFooter.astro";
 import ServiceRibbon from "../components/ServiceRibbon.astro";
+import WorkflowExplorer from "../components/WorkflowExplorer.astro";
 import { siteUrls } from "../content/urls";
 
 import insprHero from "../assets/products/inspr/hero.png";
 import insprLogo from "../assets/products/inspr/logo.svg";
+import insprContinuity from "../assets/products/inspr/continuity.png";
 import paimosHero from "../assets/products/paimos/hero.png";
 import paimosLogo from "../assets/products/paimos/logo.svg";
 import pharosHero from "../assets/products/pharos/hero.png";
@@ -84,6 +86,61 @@ const principles = [
     title: "State should be recoverable",
     body:
       "Declare what can be declared, keep source and evidence, and make the path back to a working system understandable without folklore.",
+  },
+];
+
+const continuitySteps = [
+  {
+    number: "01",
+    title: "Intent",
+    body:
+      "Name the outcome before choosing a model, runner or deployment path. The goal remains stable even when the implementation changes.",
+    icon: "route",
+    signal: "A legible outcome with an accountable owner.",
+    reference: {
+      label: "Inspect the umbrella source",
+      href: "https://github.com/markus-barta/inspr",
+      external: true,
+    },
+  },
+  {
+    number: "02",
+    title: "Context",
+    body:
+      "Bring forward the project, repository, system state and operating rules that matter now, without reconstructing the situation from scratch.",
+    icon: "book-open-check",
+    signal: "Relevant facts travel with the work.",
+    reference: {
+      label: "Explore shared doctrine",
+      href: "https://github.com/markus-barta/inspr-modules",
+      external: true,
+    },
+  },
+  {
+    number: "03",
+    title: "Bounded action",
+    body:
+      "Keep suggestion, code change and production operation as separate capabilities. Each actor receives only the authority the task needs.",
+    icon: "shield-check",
+    signal: "Authority stays explicit at the point of use.",
+    reference: {
+      label: "See the product boundaries",
+      href: "#products",
+      external: false,
+    },
+  },
+  {
+    number: "04",
+    title: "Evidence",
+    body:
+      "Return what ran, what changed and what was verified to the same operating context, so the next decision starts from evidence instead of folklore.",
+    icon: "file-check-2",
+    signal: "The next action begins with a recoverable record.",
+    reference: {
+      label: "Read the working principles",
+      href: "#principles",
+      external: false,
+    },
   },
 ];
 ---
@@ -241,24 +298,16 @@ const principles = [
       </div>
     </section>
 
-    <section class="operating-flow" aria-labelledby="flow-title">
-      <div class="page-shell operating-flow__inner">
-        <header>
-          <p class="eyebrow">From intent to evidence</p>
-          <h2 id="flow-title">The useful part is the continuity.</h2>
-          <p class="section-lead">
-            Models, runtimes and infrastructure can change. The operating context and
-            the record of what happened should remain legible.
-          </p>
-        </header>
-        <ol>
-          <li><span>01</span><strong>Intent</strong><small>What are we trying to change?</small></li>
-          <li><span>02</span><strong>Context</strong><small>Which project and system facts apply?</small></li>
-          <li><span>03</span><strong>Bounded action</strong><small>What is this actor allowed to do?</small></li>
-          <li><span>04</span><strong>Evidence</strong><small>What ran, changed and returned?</small></li>
-        </ol>
-      </div>
-    </section>
+    <WorkflowExplorer
+      id="flow"
+      eyebrow="From intent to evidence"
+      title="Continuity is the advantage."
+      lead="Models, runtimes and infrastructure can change. The operating context and the record of what happened should remain legible."
+      steps={continuitySteps}
+      image={insprContinuity}
+      alt="Four connected white, grey and ice-blue chambers carrying intent, context, bounded action and evidence through a shared operating layer."
+      tone="light"
+    />
 
     <section class="umbrella-principles page-shell" id="principles" aria-labelledby="principles-title">
       <header class="section-intro">
@@ -292,7 +341,7 @@ const principles = [
       </div>
       <nav class="source-panel__links" aria-label="INSPR source links">
         <a href={repositoryUrl}>
-          <span>INSPR umbrella</span><small>Vision and operating map</small><b aria-hidden="true">↗</b>
+          <span>INSPR umbrella</span><small>Vision and working source</small><b aria-hidden="true">↗</b>
         </a>
         <a href={modulesUrl}>
           <span>INSPR modules</span><small>Doctrine and shared operating modules</small><b aria-hidden="true">↗</b>

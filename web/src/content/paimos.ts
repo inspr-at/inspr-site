@@ -2,6 +2,8 @@ import { siteUrls } from "./urls";
 import type { ProductContent } from "./types";
 
 const repositoryUrl = "https://github.com/markus-barta/paimos";
+const docsUrl = (document: string) =>
+  `${repositoryUrl}/blob/main/docs/${document}`;
 
 export const paimosContent = {
   slug: "paimos",
@@ -22,7 +24,7 @@ export const paimosContent = {
   },
   hero: {
     eyebrow: "Project context, shared",
-    title: "One project picture for people and AI agents.",
+    title: "One shared project picture.",
     lead:
       "Paimos is self-hosted project management for engineering and delivery teams that work with AI agents. It keeps issues, repository context, operating knowledge, execution choices and run evidence together, so an agent can act with context and a human can see what happened.",
     alt: "Abstract project agora with people and AI participants around a shared operating surface",
@@ -39,24 +41,27 @@ export const paimosContent = {
   ],
   problem: {
     eyebrow: "Why Paimos",
-    title: "AI work becomes unreliable when the project lives in fragments.",
+    title: "Fragments break AI work.",
     lead:
       "A ticket says what should change. The repository says where. A runbook says how. A chat window says what an agent tried. None of those systems alone can answer who acted, which context they received, what authority they had and what came back.",
     items: [
       {
         title: "Context is scattered",
+        icon: "unplug",
         body:
           "Requirements, code, runbooks, project conventions and operational knowledge often live in different tools or on one developer's machine. Every new run starts by reconstructing the project.",
         meta: "The agent sees a task, not the system around it.",
       },
       {
         title: "Execution is opaque",
+        icon: "eye-off",
         body:
           "A model draft, a local coding agent and a deploy-capable runner have very different authority. When those differences are hidden behind one generic AI button, review and accountability become guesswork.",
         meta: "Provider, context and capability need to be explicit.",
       },
       {
         title: "Delivery loses its evidence",
+        icon: "file-warning",
         body:
           "Work can move from prompt to pull request without its tests, version, decisions or customer-facing result returning to the project record. Done becomes a claim instead of a reviewable state.",
         meta: "The loop is incomplete until evidence comes back.",
@@ -72,37 +77,72 @@ export const paimosContent = {
       {
         number: "01",
         title: "Plan",
+        icon: "folder-kanban",
         body:
           "Structure work as epics, tickets and tasks. Add typed dependencies, sprints, releases, estimates, time and customer-facing delivery state.",
         meta: "One hierarchy for human and agent work",
+        signal: "Hierarchy, dependencies and delivery state",
+        reference: {
+          label: "Planning hierarchy",
+          href: docsUrl("PLANNING_HIERARCHY.md"),
+          external: true,
+        },
       },
       {
         number: "02",
         title: "Context",
+        icon: "book-open-check",
         body:
           "Link repositories and durable knowledge. Add runbooks, guidelines, external systems, agent definitions and issue-to-file anchors.",
         meta: "Project knowledge survives the current machine and agent runtime",
+        signal: "Repositories, knowledge and code anchors",
+        reference: {
+          label: "Agent integration",
+          href: docsUrl("AGENT_INTEGRATION.md"),
+          external: true,
+        },
       },
       {
         number: "03",
         title: "Run",
+        icon: "play",
         body:
           "Choose the provider, execution profile, effort, prompt preset, context pack and agent before work begins. Capability stays visible before authority is granted.",
         meta: "Draft, edit, test and deploy remain distinct actions",
+        signal: "Explicit provider, profile and capability",
+        reference: {
+          label: "Execution providers",
+          href: docsUrl("IMPLEMENT_THIS_PROVIDERS.md"),
+          external: true,
+        },
       },
       {
         number: "04",
         title: "Evidence",
+        icon: "file-check-2",
         body:
           "Keep run status, provider identity, safe provenance, test results, version and optional deploy outcome attached to the project history.",
         meta: "What ran and what returned remain reviewable",
+        signal: "Status, tests, version and safe provenance",
+        reference: {
+          label: "Agent interface",
+          href: docsUrl("AGENT_INTERFACE.md"),
+          external: true,
+        },
       },
       {
         number: "05",
         title: "Accept",
+        icon: "badge-check",
         body:
           "Publish only selected work to the customer portal, produce delivery reports and close the loop with explicit acceptance.",
         meta: "Internal truth and customer communication stay connected",
+        signal: "Selected delivery and explicit acceptance",
+        reference: {
+          label: "Customer portal",
+          href: docsUrl("CUSTOMER_PORTAL.md"),
+          external: true,
+        },
       },
     ],
     closing:
@@ -112,18 +152,25 @@ export const paimosContent = {
     {
       id: "structured-work",
       eyebrow: "Work",
-      title: "Structured project work without enterprise theatre.",
+      title: "Structure, without theatre.",
       lead:
         "Paimos provides enough structure for real delivery without turning the tool into a process consultancy. The work model is explicit, searchable and usable from the interface, CLI or API.",
       items: [
         {
           title: "A hierarchy that stays legible",
+          icon: "list-tree",
           body:
             "Epics, tickets and tasks form the core hierarchy. Sprints, releases and cost units add planning and commercial context without forcing every project into the same ceremony.",
           meta: "Epic, ticket, task, sprint, release and cost unit",
+          reference: {
+            label: "Planning hierarchy",
+            href: docsUrl("PLANNING_HIERARCHY.md"),
+            external: true,
+          },
         },
         {
           title: "Relations with meaning",
+          icon: "git-compare-arrows",
           body:
             "Groups, sprint membership, dependencies, impacts, follow-ups, blocks and related links are typed relations rather than prose hidden in a description.",
           meta: "Seven relation types with directional rendering",
@@ -151,18 +198,20 @@ export const paimosContent = {
     {
       id: "agent-context",
       eyebrow: "Context",
-      title: "Give agents the project, not just the ticket.",
+      title: "Give agents the project.",
       lead:
         "A coding agent needs to know which repository matters, which rules apply and where the change belongs. Paimos exposes that context as structured, permission-aware project data.",
       items: [
         {
           title: "Linked repositories",
+          icon: "git-branch",
           body:
             "Projects carry their repository inventory and default branches, so an agent can resolve the correct source before it starts searching or editing.",
           meta: "Multi-repository project context",
         },
         {
           title: "Durable knowledge plane",
+          icon: "library",
           body:
             "Memories, runbooks, guidelines, external systems and related projects become project-owned knowledge instead of a loose collection of machine-local files.",
           meta: "Browsable, searchable and reusable context",
@@ -190,18 +239,20 @@ export const paimosContent = {
     {
       id: "execution-control",
       eyebrow: "Execution",
-      title: "Choose where AI work happens before it starts.",
+      title: "Authority before action.",
       lead:
         "A hosted model draft is not a local agent with repository access. Paimos keeps provider, model, context, execution location and capability visible instead of collapsing them into one ambiguous action.",
       items: [
         {
           title: "Built-in AI assistance",
+          icon: "sparkles",
           body:
             "Thirteen actions cover tasks such as text refinement, translation, specification, subtask generation, effort estimation, duplicate detection and customer or executive summaries.",
           meta: "Admin-tunable prompts with usage and cost metadata",
         },
         {
           title: "Shared execution controls",
+          icon: "sliders-horizontal",
           body:
             "Profiles, effort, prompt presets and context packs use the same concepts across in-app AI actions and Implement-this runs. Project defaults and policies can narrow the available choices.",
           meta: "One control vocabulary across actions and runs",
@@ -211,6 +262,11 @@ export const paimosContent = {
           body:
             "Claude Code and Codex runners operate in an explicitly selected local checkout. They may edit and test when their advertised capability allows it. Each workstation opts in and processes one job at a time.",
           meta: "Local repository authority remains local",
+          reference: {
+            label: "Provider boundaries",
+            href: docsUrl("IMPLEMENT_THIS_PROVIDERS.md"),
+            external: true,
+          },
         },
         {
           title: "Draft providers stay drafts",
@@ -235,18 +291,20 @@ export const paimosContent = {
     {
       id: "customer-delivery",
       eyebrow: "Delivery",
-      title: "Keep the customer loop connected to the work.",
+      title: "Keep delivery connected.",
       lead:
         "Internal implementation and customer communication should not drift into separate realities. Paimos turns selected project state into a deliberate, reviewable customer surface.",
       items: [
         {
           title: "Visibility is opt-in",
+          icon: "eye",
           body:
             "Internal editors explicitly mark which issues are customer-visible. Hidden issues return no identifying detail through portal endpoints, while customer-submitted requests are visible by design.",
           meta: "Internal knowledge stays internal unless deliberately published",
         },
         {
           title: "A focused external portal",
+          icon: "panels-top-left",
           body:
             "External users see the projects and issues they are allowed to access, can submit requests and can review delivery state without entering the internal workspace.",
           meta: "Project access plus explicit issue visibility",
@@ -262,13 +320,18 @@ export const paimosContent = {
           body:
             "Short links and QR codes lead to explicit acceptance. Included delivery items can be accepted as a batch, and a signed report artifact can remain attached to the snapshot.",
           meta: "From delivered to accepted without a parallel spreadsheet",
+          reference: {
+            label: "Customer portal",
+            href: docsUrl("CUSTOMER_PORTAL.md"),
+            external: true,
+          },
         },
       ],
     },
   ],
   audiences: {
     eyebrow: "For teams",
-    title: "Built for speed and accountability at the same time.",
+    title: "Move fast. Stay accountable.",
     lead:
       "Paimos is most useful where software delivery, AI-assisted work and client responsibility meet. Each role sees the same project truth from a different operational angle.",
     items: [
@@ -326,7 +389,7 @@ export const paimosContent = {
   },
   trust: {
     eyebrow: "Trust",
-    title: "Trust is an evidence trail, not a badge.",
+    title: "Trust leaves evidence.",
     lead:
       "Paimos backs public claims with code, tests, signed artifacts, runbooks and an explicit list of limits. The goal is reviewable behavior, not compliance theatre.",
     items: [
@@ -347,6 +410,11 @@ export const paimosContent = {
         body:
           "Tagged container images are signed keylessly with cosign through GitHub OIDC. CycloneDX SBOMs for Go and frontend dependencies are attached as attestations against the same image digest.",
         meta: "A release can be traced back to source and dependency evidence",
+        reference: {
+          label: "Release verification",
+          href: docsUrl("RELEASE.md"),
+          external: true,
+        },
       },
       {
         title: "Data control",
@@ -370,7 +438,7 @@ export const paimosContent = {
   },
   integrations: {
     eyebrow: "Integrations",
-    title: "Open surfaces first, optional providers second.",
+    title: "Open surfaces first.",
     lead:
       "Paimos exposes its own project model through documented interfaces, then adds focused import and provider paths where teams already have operational systems.",
     items: [
@@ -462,7 +530,7 @@ export const paimosContent = {
   },
   limits: {
     eyebrow: "Operational fit",
-    title: "What Paimos does not pretend to be.",
+    title: "No pretending.",
     lead:
       "A useful deployment decision depends on the boundaries as much as the feature list. These limits describe the current product rather than a future roadmap.",
     items: [
@@ -559,7 +627,7 @@ export const paimosContent = {
     },
   ],
   finalCta: {
-    title: "Run it yourself, or run it with support.",
+    title: "Run it your way.",
     body:
       "Deploy Paimos from the public source and keep the complete operating model under your control. If you need architecture, rollout, integration or ongoing operations, Augmentoring provides the commercial path around the same open product.",
   },

@@ -1,0 +1,361 @@
+---
+import { Image } from "astro:assets";
+import ContextIcon from "./ContextIcon.astro";
+import productSurface from "../assets/products/paimos/product-surface.png";
+
+const details = [
+  {
+    label: "Issue context",
+    title: "The issue stays the unit of intent.",
+    body:
+      "Type, state, priority and project membership remain visible while agent work is prepared. The run starts from a real work item, not a detached chat.",
+    icon: "folder-kanban",
+    href: "https://github.com/markus-barta/paimos/blob/main/docs/AI_CONTROL_PLANE_UX.md",
+  },
+  {
+    label: "Execution boundary",
+    title: "Authority is chosen before work starts.",
+    body:
+      "The selected runner and deployment mode define what may happen. Draft providers can prepare work; trusted runners can edit and test; deployment remains separately deliberate.",
+    icon: "shield-check",
+    href: "https://github.com/markus-barta/paimos/blob/main/docs/IMPLEMENT_THIS_PROVIDERS.md",
+  },
+  {
+    label: "Retrieved knowledge",
+    title: "Applicable memory returns with provenance.",
+    body:
+      "Project knowledge, issue links and file anchors can be attached to the task. Agents receive relevant context without turning every run into a manual prompt-engineering exercise.",
+    icon: "book-open-check",
+    href: "https://github.com/markus-barta/paimos/blob/main/docs/agent-retrieval.md",
+  },
+];
+---
+
+<section class="product-surface section page-shell" aria-labelledby="surface-title" data-product-surface>
+  <header class="section-intro section-intro--wide">
+    <p class="eyebrow">Inside the product</p>
+    <h2 id="surface-title">A real issue. Context attached.</h2>
+    <p class="section-lead">
+      This Paimos issue workbench is captured from the visual test suite with synthetic
+      data. Select a marker to inspect how intent, authority and retrieved knowledge meet
+      in one work surface.
+    </p>
+  </header>
+
+  <div class="product-surface__grid">
+    <figure class="product-surface__frame">
+      <Image
+        src={productSurface}
+        alt="Paimos issue workbench with synthetic data, execution controls, applicable memory and activity evidence"
+        widths={[720, 1080, 1440]}
+        sizes="(min-width: 64rem) 68vw, 100vw"
+        formats={["avif", "webp", "png"]}
+        quality={86}
+        loading="lazy"
+      />
+      {details.map((detail, index) => (
+        <button
+          type="button"
+          class:list={["product-surface__hotspot", `product-surface__hotspot--${index + 1}`]}
+          aria-label={`Marker ${index + 1}: Inspect ${detail.label}`}
+          aria-pressed={index === 0 ? "true" : "false"}
+          aria-controls={`surface-panel-${index}`}
+          data-surface-trigger={index}
+        >
+          <span>{index + 1}</span>
+        </button>
+      ))}
+      <figcaption>Interface fixture captured from the Paimos visual test suite.</figcaption>
+    </figure>
+
+    <div class="product-surface__details">
+      <div class="product-surface__nav" role="tablist" aria-label="Screenshot annotations">
+        {details.map((detail, index) => (
+          <button
+            type="button"
+            role="tab"
+            id={`surface-tab-${index}`}
+            aria-selected={index === 0 ? "true" : "false"}
+            aria-controls={`surface-panel-${index}`}
+            tabindex={index === 0 ? 0 : -1}
+            data-surface-trigger={index}
+          >
+            <ContextIcon name={detail.icon} size={19} strokeWidth={2.1} />
+            <span>{detail.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {details.map((detail, index) => (
+        <article
+          id={`surface-panel-${index}`}
+          role="tabpanel"
+          aria-labelledby={`surface-tab-${index}`}
+          hidden={index !== 0}
+          data-surface-panel={index}
+        >
+          <p class="card-meta">Marker {String(index + 1).padStart(2, "0")}</p>
+          <h3>{detail.title}</h3>
+          <p>{detail.body}</p>
+          <a href={detail.href} target="_blank" rel="noreferrer">
+            Inspect the implementation <span aria-hidden="true">↗</span>
+          </a>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  const initProductSurfaces = () => {
+    document.querySelectorAll<HTMLElement>("[data-product-surface]").forEach((root) => {
+      if (root.dataset.surfaceReady === "true") return;
+      root.dataset.surfaceReady = "true";
+      const triggers = [...root.querySelectorAll<HTMLButtonElement>("[data-surface-trigger]")];
+      const panels = [...root.querySelectorAll<HTMLElement>("[data-surface-panel]")];
+
+      const activate = (index: number) => {
+        root.dataset.activeMarker = String(index);
+        triggers.forEach((trigger) => {
+          const active = Number(trigger.dataset.surfaceTrigger) === index;
+          if (trigger.getAttribute("role") === "tab") {
+            trigger.setAttribute("aria-selected", String(active));
+            trigger.tabIndex = active ? 0 : -1;
+          } else {
+            trigger.setAttribute("aria-pressed", String(active));
+          }
+        });
+        panels.forEach((panel) => {
+          panel.hidden = Number(panel.dataset.surfacePanel) !== index;
+        });
+      };
+
+      triggers.forEach((trigger) => {
+        trigger.addEventListener("click", () => activate(Number(trigger.dataset.surfaceTrigger)));
+        if (trigger.getAttribute("role") === "tab") {
+          trigger.addEventListener("keydown", (event) => {
+            const tabs = triggers.filter((item) => item.getAttribute("role") === "tab");
+            const current = tabs.indexOf(trigger);
+            if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+            event.preventDefault();
+            const direction = event.key === "ArrowRight" ? 1 : -1;
+            const next = tabs[(current + direction + tabs.length) % tabs.length];
+            activate(Number(next.dataset.surfaceTrigger));
+            next.focus();
+          });
+        }
+      });
+      activate(0);
+    });
+  };
+
+  initProductSurfaces();
+  document.addEventListener("astro:page-load", initProductSurfaces);
+</script>
+
+<style>
+  .product-surface {
+    padding-block: var(--section-space);
+  }
+
+  .product-surface__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.65fr);
+    gap: clamp(1.25rem, 3vw, 3rem);
+    align-items: stretch;
+    margin-top: clamp(2.5rem, 5vw, 4.5rem);
+  }
+
+  .product-surface__frame {
+    position: relative;
+    aspect-ratio: 8 / 5;
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 0.84);
+    border-radius: var(--radius-lg);
+    background: #e9eff4;
+    box-shadow: var(--shadow-md);
+  }
+
+  .product-surface__frame :global(img) {
+    width: 100%;
+    height: calc(100% + 2.2rem);
+    object-fit: cover;
+    object-position: center top;
+    transform: translateY(-2.2rem);
+  }
+
+  .product-surface__frame::after {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    content: "";
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px rgb(11 43 65 / 0.09);
+  }
+
+  .product-surface__hotspot {
+    position: absolute;
+    z-index: 3;
+    display: grid;
+    width: 2.45rem;
+    height: 2.45rem;
+    place-items: center;
+    color: white;
+    border: 2px solid white;
+    border-radius: 50%;
+    background: var(--accent-strong);
+    box-shadow: 0 0 0 0.5rem color-mix(in srgb, var(--accent) 20%, transparent), var(--shadow-sm);
+    cursor: pointer;
+    transition: transform 220ms var(--ease), background 180ms ease;
+  }
+
+  .product-surface__hotspot:hover,
+  .product-surface__hotspot[aria-pressed="true"] {
+    background: var(--secondary);
+    transform: scale(1.12);
+  }
+
+  .product-surface__hotspot span {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .product-surface__hotspot--1 {
+    top: 30%;
+    right: 16%;
+  }
+
+  .product-surface__hotspot--2 {
+    top: 44%;
+    right: 18%;
+  }
+
+  .product-surface__hotspot--3 {
+    right: 22%;
+    bottom: 13%;
+  }
+
+  .product-surface__frame figcaption {
+    position: absolute;
+    z-index: 2;
+    right: 0.8rem;
+    bottom: 0.8rem;
+    left: 0.8rem;
+    padding: 0.5rem 0.7rem;
+    color: rgb(255 255 255 / 0.88);
+    border: 1px solid rgb(255 255 255 / 0.15);
+    border-radius: 0.65rem;
+    background: rgb(5 31 47 / 0.62);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    line-height: 1.4;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+
+  .product-surface__details {
+    display: flex;
+    flex-direction: column;
+    min-height: 31rem;
+    padding: clamp(1rem, 2vw, 1.5rem);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: rgb(255 255 255 / 0.62);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .product-surface__nav {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .product-surface__nav button {
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+    gap: 0.65rem;
+    align-items: center;
+    min-height: 3.4rem;
+    padding: 0.55rem 0.7rem;
+    color: var(--ink-soft);
+    border: 1px solid transparent;
+    border-radius: 0.75rem;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-align: left;
+    transition: color 180ms ease, border-color 180ms ease, background 180ms ease;
+  }
+
+  .product-surface__nav button[aria-selected="true"] {
+    color: var(--accent-strong);
+    border-color: color-mix(in srgb, var(--accent) 22%, transparent);
+    background: var(--accent-soft);
+  }
+
+  .product-surface__details article {
+    margin-top: auto;
+    padding: clamp(1.25rem, 2.5vw, 2rem) 0.25rem 0.25rem;
+    animation: surface-detail-in 420ms var(--ease) both;
+  }
+
+  .product-surface__details article[hidden] {
+    display: none;
+  }
+
+  .product-surface__details h3 {
+    margin-top: 0.85rem;
+    font-size: clamp(1.9rem, 2.7vw, 3rem);
+  }
+
+  .product-surface__details article > p:not(.card-meta) {
+    margin-top: 1rem;
+  }
+
+  .product-surface__details article > a {
+    display: inline-flex;
+    gap: 0.4rem;
+    margin-top: 1.25rem;
+    color: var(--accent-strong);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  @keyframes surface-detail-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.55rem);
+    }
+  }
+
+  @media (max-width: 66rem) {
+    .product-surface__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .product-surface__details {
+      min-height: auto;
+    }
+
+    .product-surface__details article {
+      margin-top: 1rem;
+    }
+  }
+
+  @media (max-width: 42rem) {
+    .product-surface__hotspot {
+      width: 2.1rem;
+      height: 2.1rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .product-surface__hotspot,
+    .product-surface__details article {
+      animation: none;
+      transition: none;
+    }
+  }
+</style>

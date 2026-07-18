@@ -8,10 +8,13 @@ export type CardItem = {
   title: string;
   body: string;
   meta?: string;
+  icon?: string;
+  reference?: LinkItem;
 };
 
 export type StepItem = CardItem & {
   number: string;
+  signal?: string;
 };
 
 export type FeatureSection = {

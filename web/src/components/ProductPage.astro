@@ -4,14 +4,20 @@ import MicrositeLayout from "../layouts/MicrositeLayout.astro";
 import MicrositeHeader from "./MicrositeHeader.astro";
 import MicrositeFooter from "./MicrositeFooter.astro";
 import ServiceRibbon from "./ServiceRibbon.astro";
+import ContextIcon from "./ContextIcon.astro";
+import PaimosProductSurface from "./PaimosProductSurface.astro";
+import WorkflowExplorer from "./WorkflowExplorer.astro";
 import type { ProductContent } from "../content/types";
 
 import paimosHero from "../assets/products/paimos/hero.png";
 import paimosLogo from "../assets/products/paimos/logo.svg";
+import paimosWorkflow from "../assets/products/paimos/context-ledger.png";
 import pharosHero from "../assets/products/pharos/hero.png";
 import pharosLogo from "../assets/products/pharos/mark.svg";
+import pharosWorkflow from "../assets/products/pharos/fleet-gate.png";
 import janusHero from "../assets/products/janus/hero.png";
 import janusLogo from "../assets/products/janus/logo.svg";
+import janusWorkflow from "../assets/products/janus/value-boundary.png";
 
 interface Props {
   content: ProductContent;
@@ -19,9 +25,42 @@ interface Props {
 
 const { content } = Astro.props;
 const assets = {
-  paimos: { hero: paimosHero, logo: paimosLogo },
-  pharos: { hero: pharosHero, logo: pharosLogo },
-  janus: { hero: janusHero, logo: janusLogo },
+  paimos: {
+    hero: paimosHero,
+    logo: paimosLogo,
+    workflow: paimosWorkflow,
+    workflowAlt:
+      "A shared translucent project ledger connecting work, context, execution and evidence.",
+  },
+  pharos: {
+    hero: pharosHero,
+    logo: pharosLogo,
+    workflow: pharosWorkflow,
+    workflowAlt:
+      "A fleet control instrument comparing observed state with declared state through a guarded change gate.",
+  },
+  janus: {
+    hero: janusHero,
+    logo: janusLogo,
+    workflow: janusWorkflow,
+    workflowAlt:
+      "A secret-backed request crossing a transparent policy boundary while the secret value remains sealed.",
+  },
+}[content.slug];
+
+const architectureIcons = {
+  paimos: ["panels-top-left", "server", "braces", "database", "cloud"],
+  pharos: ["server", "radio-tower", "database-zap", "panels-top-left"],
+  janus: [
+    "route",
+    "key-round",
+    "shield-check",
+    "user-round-check",
+    "ticket-check",
+    "workflow",
+    "lock-keyhole",
+    "scroll-text",
+  ],
 }[content.slug];
 
 const ogImage = new URL(assets.hero.src, content.canonicalUrl).href;
@@ -33,6 +72,7 @@ const nav = [
   { label: "Trust", href: "#trust" },
   { label: "Source", href: "#open-source" },
 ];
+const integrationStatuses = [...new Set(content.integrations.items.map((item) => item.status))];
 ---
 
 <MicrositeLayout
@@ -102,33 +142,37 @@ const nav = [
       >
         {content.problem.items.map((item) => (
           <article class="info-card">
+            {item.icon && (
+              <span class="card-icon" aria-hidden="true">
+                <ContextIcon name={item.icon} size={25} strokeWidth={2.05} />
+              </span>
+            )}
             {item.meta && <p class="card-meta">{item.meta}</p>}
             <h3>{item.title}</h3>
             <p>{item.body}</p>
+            {item.reference && (
+              <a class="card-reference" href={item.reference.href} target="_blank" rel="noreferrer">
+                {item.reference.label} <span aria-hidden="true">↗</span>
+              </a>
+            )}
           </article>
         ))}
       </div>
     </section>
 
-    <section class="section section--ink" id="model" aria-labelledby="model-title">
-      <div class="page-shell">
-        <header class="section-intro section-intro--wide">
-          <p class="eyebrow">{content.model.eyebrow}</p>
-          <h2 id="model-title">{content.model.title}</h2>
-          <p class="section-lead">{content.model.lead}</p>
-        </header>
-        <ol class="step-grid">
-          {content.model.steps.map((step) => (
-            <li>
-              <span class="step-number">{step.number}</span>
-              <h3>{step.title}</h3>
-              <p>{step.body}</p>
-            </li>
-          ))}
-        </ol>
-        {content.model.closing && <p class="section-closing">{content.model.closing}</p>}
-      </div>
-    </section>
+    <WorkflowExplorer
+      id="model"
+      eyebrow={content.model.eyebrow}
+      title={content.model.title}
+      lead={content.model.lead}
+      steps={content.model.steps}
+      image={assets.workflow}
+      alt={assets.workflowAlt}
+      closing={content.model.closing}
+      tone="ink"
+    />
+
+    {content.slug === "paimos" && <PaimosProductSurface />}
 
     <div id="capabilities">
       {content.featureSections.map((feature, index) => (
@@ -145,9 +189,24 @@ const nav = [
           <div class="card-grid card-grid--two">
             {feature.items.map((item) => (
               <article class="feature-card">
+                {item.icon && (
+                  <span class="card-icon" aria-hidden="true">
+                    <ContextIcon name={item.icon} size={25} strokeWidth={2.05} />
+                  </span>
+                )}
                 {item.meta && <p class="card-meta">{item.meta}</p>}
                 <h3>{item.title}</h3>
                 <p>{item.body}</p>
+                {item.reference && (
+                  <a
+                    class="card-reference"
+                    href={item.reference.href}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {item.reference.label} <span aria-hidden="true">↗</span>
+                  </a>
+                )}
               </article>
             ))}
           </div>
@@ -188,7 +247,14 @@ const nav = [
         <div class="architecture__diagram" aria-label="Architecture flow">
           {content.architecture.flow.map((item, index) => (
             <div class="architecture__node">
-              <span>{String(index + 1).padStart(2, "0")}</span>
+              <span class="architecture__node-index">{String(index + 1).padStart(2, "0")}</span>
+              <span class="architecture__node-icon" aria-hidden="true">
+                <ContextIcon
+                  name={architectureIcons[index] ?? "circle-dot"}
+                  size={23}
+                  strokeWidth={2}
+                />
+              </span>
               <strong>{item}</strong>
             </div>
           ))}
@@ -209,21 +275,46 @@ const nav = [
         <div class="card-grid card-grid--two">
           {content.trust.items.map((item) => (
             <article class="dark-card">
+              {item.icon && (
+                <span class="card-icon" aria-hidden="true">
+                  <ContextIcon name={item.icon} size={25} strokeWidth={2.05} />
+                </span>
+              )}
               {item.meta && <p class="card-meta">{item.meta}</p>}
               <h3>{item.title}</h3>
               <p>{item.body}</p>
+              {item.reference && (
+                <a class="card-reference" href={item.reference.href} target="_blank" rel="noreferrer">
+                  {item.reference.label} <span aria-hidden="true">↗</span>
+                </a>
+              )}
             </article>
           ))}
         </div>
       </div>
     </section>
 
-    <section class="section page-shell" aria-labelledby="integrations-title">
+    <section
+      class="section page-shell"
+      aria-labelledby="integrations-title"
+      data-integration-matrix
+    >
       <header class="section-intro">
         <p class="eyebrow">{content.integrations.eyebrow}</p>
         <h2 id="integrations-title">{content.integrations.title}</h2>
         <p class="section-lead">{content.integrations.lead}</p>
       </header>
+      <div class="integration-filters" role="group" aria-label="Filter integrations by maturity">
+        <button type="button" aria-pressed="true" data-integration-filter="all">All</button>
+        {integrationStatuses.map((status) => (
+          <button type="button" aria-pressed="false" data-integration-filter={status}>
+            {status}
+          </button>
+        ))}
+        <span class="integration-filters__count" aria-live="polite">
+          {content.integrations.items.length} shown
+        </span>
+      </div>
       <p class="table-scroll-hint" aria-hidden="true">Swipe to inspect details <span>→</span></p>
       <div class="table-wrap" tabindex="0" aria-label="Integration matrix">
         <table>
@@ -232,7 +323,7 @@ const nav = [
           </thead>
           <tbody>
             {content.integrations.items.map((item) => (
-              <tr>
+              <tr data-integration-row={item.status}>
                 <th scope="row">{item.name}</th>
                 <td><span class="status-label">{item.status}</span></td>
                 <td>{item.description}</td>
@@ -296,3 +387,35 @@ const nav = [
     ctaBody={content.finalCta.body}
   />
 </MicrositeLayout>
+
+<script>
+  const initIntegrationMatrices = () => {
+    document.querySelectorAll<HTMLElement>("[data-integration-matrix]").forEach((root) => {
+      if (root.dataset.integrationReady === "true") return;
+      root.dataset.integrationReady = "true";
+      const filters = [
+        ...root.querySelectorAll<HTMLButtonElement>("[data-integration-filter]"),
+      ];
+      const rows = [...root.querySelectorAll<HTMLTableRowElement>("[data-integration-row]")];
+      const count = root.querySelector<HTMLElement>(".integration-filters__count");
+
+      filters.forEach((filter) => {
+        filter.addEventListener("click", () => {
+          const selected = filter.dataset.integrationFilter ?? "all";
+          let visible = 0;
+          filters.forEach((item) => {
+            item.setAttribute("aria-pressed", String(item === filter));
+          });
+          rows.forEach((row) => {
+            row.hidden = selected !== "all" && row.dataset.integrationRow !== selected;
+            if (!row.hidden) visible += 1;
+          });
+          if (count) count.textContent = `${visible} shown`;
+        });
+      });
+    });
+  };
+
+  initIntegrationMatrices();
+  document.addEventListener("astro:page-load", initIntegrationMatrices);
+</script>

@@ -1,0 +1,123 @@
+---
+import {
+  BadgeCheck,
+  Binary,
+  BookOpenCheck,
+  Braces,
+  CheckCircle2,
+  CircleDot,
+  CircleOff,
+  Cloud,
+  Database,
+  DatabaseBackup,
+  DatabaseZap,
+  Eye,
+  EyeOff,
+  FileCheck2,
+  FolderKanban,
+  GitBranch,
+  GitCompareArrows,
+  HardDrive,
+  KeyRound,
+  Layers3,
+  Library,
+  ListFilter,
+  ListTree,
+  LockKeyhole,
+  Network,
+  PanelsTopLeft,
+  Play,
+  RadioTower,
+  Route,
+  RotateCcw,
+  ScanSearch,
+  ScrollText,
+  Server,
+  ServerCog,
+  ShieldCheck,
+  SlidersHorizontal,
+  Sparkles,
+  TicketCheck,
+  TimerOff,
+  TriangleAlert,
+  Unplug,
+  UserRoundCheck,
+  UsersRound,
+  Waypoints,
+  Workflow,
+} from "@lucide/astro";
+
+interface Props {
+  name?: string;
+  size?: number;
+  strokeWidth?: number;
+  label?: string;
+  class?: string;
+}
+
+const {
+  name = "circle-dot",
+  size = 24,
+  strokeWidth = 2,
+  label,
+  class: className,
+} = Astro.props;
+
+const iconMap = {
+  "badge-check": BadgeCheck,
+  binary: Binary,
+  "book-open-check": BookOpenCheck,
+  braces: Braces,
+  "check-circle-2": CheckCircle2,
+  "circle-dot": CircleDot,
+  "circle-off": CircleOff,
+  cloud: Cloud,
+  database: Database,
+  "database-backup": DatabaseBackup,
+  "database-zap": DatabaseZap,
+  eye: Eye,
+  "eye-off": EyeOff,
+  "file-check-2": FileCheck2,
+  "file-warning": TriangleAlert,
+  "folder-kanban": FolderKanban,
+  "git-branch": GitBranch,
+  "git-compare-arrows": GitCompareArrows,
+  "hard-drive": HardDrive,
+  "key-round": KeyRound,
+  "layers-3": Layers3,
+  library: Library,
+  "list-filter": ListFilter,
+  "list-tree": ListTree,
+  "lock-keyhole": LockKeyhole,
+  network: Network,
+  "panels-top-left": PanelsTopLeft,
+  play: Play,
+  "radio-tower": RadioTower,
+  route: Route,
+  "rotate-ccw": RotateCcw,
+  "scan-search": ScanSearch,
+  "scroll-text": ScrollText,
+  server: Server,
+  "server-cog": ServerCog,
+  "shield-check": ShieldCheck,
+  "sliders-horizontal": SlidersHorizontal,
+  sparkles: Sparkles,
+  "ticket-check": TicketCheck,
+  "timer-off": TimerOff,
+  unplug: Unplug,
+  "user-round-check": UserRoundCheck,
+  "users-round": UsersRound,
+  waypoints: Waypoints,
+  workflow: Workflow,
+};
+
+const Icon = iconMap[name as keyof typeof iconMap] ?? CircleDot;
+---
+
+<Icon
+  class={className}
+  size={size}
+  stroke-width={strokeWidth}
+  aria-hidden={label ? undefined : "true"}
+  aria-label={label}
+/>

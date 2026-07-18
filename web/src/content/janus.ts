@@ -13,8 +13,8 @@ export const janusContent = {
   repositoryUrl,
   releaseUrl,
   license: {
-    name: "GNU Affero General Public License v3.0 only",
-    url: siteUrls.agpl,
+    name: "AGPL-3.0-only",
+    url: `${repositoryUrl}/blob/main/LICENSE`,
     note: "The Janus repository declares SPDX license AGPL-3.0-only.",
   },
   seo: {
@@ -372,7 +372,7 @@ export const janusContent = {
     eyebrow: "OPEN SOURCE",
     title: "Inspectable, self-hostable and backed by release evidence.",
     body:
-      "Janus is public under the GNU Affero General Public License v3.0 only. The source, tests, release workflows, image signatures, SPDX SBOMs and build-provenance attestations are available for review. The current public engine release is v0.1.6.",
+      "Janus is public under AGPL-3.0-only. The source, tests, release workflows, image signatures, SPDX SBOMs and build-provenance attestations are available for review. The current public engine release is v0.1.6.",
     links: [
       {
         label: "GitHub repository",
@@ -385,7 +385,12 @@ export const janusContent = {
         external: true,
       },
       {
-        label: "GNU AGPL v3.0",
+        label: "Project license (AGPL-3.0-only)",
+        href: `${repositoryUrl}/blob/main/LICENSE`,
+        external: true,
+      },
+      {
+        label: "Official AGPL text",
         href: siteUrls.agpl,
         external: true,
       },
@@ -430,7 +435,7 @@ export const janusContent = {
     {
       question: "How is Janus licensed?",
       answer:
-        "The repository declares AGPL-3.0-only. You can inspect, self-host and modify the software under the terms of the GNU Affero General Public License v3.0.",
+        "The repository declares AGPL-3.0-only. You can inspect, self-host and modify the software under those terms.",
     },
   ],
   finalCta: {

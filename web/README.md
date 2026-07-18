@@ -1,43 +1,48 @@
-# Astro Starter Kit: Minimal
+# INSPR Astro frontend
 
-```sh
-npm create astro@latest -- --template minimal
+This directory builds the current INSPR umbrella and product microsites from
+one Astro application.
+
+## Routes
+
+| Route | Production host |
+| --- | --- |
+| `/` | `www.inspr.at` |
+| `/paimos/` | `paimos.inspr.at` |
+| `/pharos/` | `pharos.inspr.at` |
+| `/janus/` | `janus.inspr.at` |
+
+Caddy performs the host-to-directory mapping in production. The local Astro
+server exposes the same pages by path.
+
+## Commands
+
+```bash
+npm install
+npm run dev -- --host 127.0.0.1 --port 4321
+npm run test:content
+npm run build
+npm audit --audit-level=high
+python3 scripts/verify-csp.py
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+The build is static and writes to `dist/`.
 
-## 🚀 Project Structure
+## Content model
 
-Inside of your Astro project, you'll see the following folders and files:
+`src/components/ProductPage.astro` renders all product pages from the typed
+objects in `src/content/`. Keep product facts grounded in the corresponding
+source repository and keep current limits visible.
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+Cross-site URLs live in `src/content/urls.ts`. The professional-services URL
+is configurable through `PUBLIC_BUSINESS_URL`; do not hardcode its current
+hostname in product content.
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+Artwork in `src/assets/products/` is part of the shared INSPR visual system.
+Prefer optimized Astro image imports over public-directory copies.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## License
 
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+The original INSPR site code and content are licensed under
+`AGPL-3.0-only`; see the repository root `LICENSE`. Dependencies and bundled
+third-party assets retain their own licenses.

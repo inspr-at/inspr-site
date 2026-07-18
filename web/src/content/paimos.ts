@@ -11,9 +11,9 @@ export const paimosContent = {
   repositoryUrl,
   releaseUrl: `${repositoryUrl}/releases`,
   license: {
-    name: "GNU AGPL v3",
+    name: "AGPL-3.0-only",
     url: `${repositoryUrl}/blob/main/LICENSE`,
-    note: "Inspect, self-host, fork and modify it. Network users retain the right to the corresponding source of the running version.",
+    note: "The Paimos repository declares SPDX license AGPL-3.0-only. Inspect it, self-host it, fork it and modify it under those terms.",
   },
   seo: {
     title: "Paimos | Project context for people and AI agents",
@@ -35,7 +35,7 @@ export const paimosContent = {
     "Self-hosted",
     "CLI, MCP and REST",
     "Human and agent work in one history",
-    "GNU AGPL v3",
+    "AGPL-3.0-only",
   ],
   problem: {
     eyebrow: "Why Paimos",
@@ -482,7 +482,7 @@ export const paimosContent = {
     eyebrow: "Open source",
     title: "Open by architecture, not by campaign.",
     body:
-      "Paimos is licensed under the GNU Affero General Public License v3. You can inspect it, self-host it, fork it and modify it. If you operate a modified version as a network service, your users retain the right to receive the corresponding source. Open source is not the hero claim, but it keeps the product, its trust boundaries and its future inspectable.",
+      "Paimos is licensed under AGPL-3.0-only. You can inspect it, self-host it, fork it and modify it under those terms. If you operate a modified version as a network service, its users retain the right to receive the corresponding source. Open source is not the hero claim, but it keeps the product, its trust boundaries and its future inspectable.",
     links: [
       {
         label: "GitHub repository",
@@ -495,7 +495,7 @@ export const paimosContent = {
         external: true,
       },
       {
-        label: "Project license (GNU AGPL v3)",
+        label: "Project license (AGPL-3.0-only)",
         href: `${repositoryUrl}/blob/main/LICENSE`,
         external: true,
       },

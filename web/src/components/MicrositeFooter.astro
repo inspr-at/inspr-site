@@ -20,7 +20,6 @@ const {
 } = Astro.props;
 
 const year = new Date().getUTCFullYear();
-const usesAgpl = licenseName?.toUpperCase().includes("AGPL") ?? false;
 ---
 
 <footer class="site-footer">
@@ -51,7 +50,7 @@ const usesAgpl = licenseName?.toUpperCase().includes("AGPL") ?? false;
       <a href={repositoryUrl}>GitHub <span aria-hidden="true">↗</span></a>
       {licenseName && licenseUrl && <a href={licenseUrl}>{licenseName} <span aria-hidden="true">↗</span></a>}
       <a href={siteUrls.agpl}>
-        {usesAgpl ? "Official GNU AGPL-3.0 text" : "GNU AGPL-3.0 reference for other INSPR projects"}
+        Official GNU AGPL-3.0 text
         <span aria-hidden="true">↗</span>
       </a>
     </nav>

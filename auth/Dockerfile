@@ -17,6 +17,7 @@ ENV CGO_ENABLED=0 GOOS=linux
 RUN go build -trimpath -ldflags="-s -w" -o /out/inspr-auth ./...
 
 FROM gcr.io/distroless/static-debian12:nonroot
+LABEL org.opencontainers.image.licenses="AGPL-3.0-only"
 WORKDIR /app
 COPY --from=build /out/inspr-auth /app/inspr-auth
 COPY --from=build /src/templates /app/templates

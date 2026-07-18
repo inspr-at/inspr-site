@@ -9,9 +9,9 @@ export const pharosContent = {
   repositoryUrl: "https://github.com/markus-barta/pharos",
   releaseUrl: "https://github.com/markus-barta/pharos/releases",
   license: {
-    name: "MIT",
-    url: siteUrls.mit,
-    note: "The Pharos Cargo package declares MIT. A standalone repository LICENSE file has not yet been added.",
+    name: "AGPL-3.0-only",
+    url: "https://github.com/markus-barta/pharos/blob/main/LICENSE",
+    note: "The Pharos repository declares SPDX license AGPL-3.0-only.",
   },
   seo: {
     title: "Pharos - Clear fleet operations for servers and backups",
@@ -33,7 +33,7 @@ export const pharosContent = {
     "Self-hosted control plane",
     "Outbound host beacon",
     "Zitadel OIDC",
-    "NixOS and standard Linux",
+    "AGPL-3.0-only",
   ],
   problem: {
     eyebrow: "THE OPERATING GAP",
@@ -380,7 +380,7 @@ export const pharosContent = {
     eyebrow: "SOURCE AND SELF-HOSTING",
     title: "Run it on your terms.",
     body:
-      "The control plane, beacon, Docker Compose template, NixOS module and portable installer live in the Pharos source repository. Deploy the complete system yourself, inspect its operating boundaries and adapt it to your infrastructure. The Cargo package currently declares MIT; a standalone repository license file is still pending.",
+      "The control plane, beacon, Docker Compose template, NixOS module and portable installer live in the Pharos source repository under AGPL-3.0-only. Deploy the complete system yourself, inspect its operating boundaries and adapt it to your infrastructure under those terms.",
     links: [
       {
         label: "Source repository",
@@ -388,8 +388,13 @@ export const pharosContent = {
         external: true,
       },
       {
-        label: "MIT license reference",
-        href: siteUrls.mit,
+        label: "Project license (AGPL-3.0-only)",
+        href: "https://github.com/markus-barta/pharos/blob/main/LICENSE",
+        external: true,
+      },
+      {
+        label: "Official AGPL text",
+        href: siteUrls.agpl,
         external: true,
       },
       {

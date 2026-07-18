@@ -9,7 +9,6 @@ export const siteUrls = {
   identity: "https://auth.inspr.at",
   signIn: "https://inspr.at/login",
   agpl: "https://www.gnu.org/licenses/agpl-3.0.html",
-  mit: "https://opensource.org/license/mit",
 } as const;
 
 export const productLinks = [

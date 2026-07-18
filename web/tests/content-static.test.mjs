@@ -10,19 +10,19 @@ const products = [
     slug: "paimos",
     exportName: "paimosContent",
     canonical: "https://paimos.inspr.at",
-    licensePattern: /name:\s*"GNU AGPL v3"/,
+    licensePattern: /name:\s*"AGPL-3\.0-only"/,
   },
   {
     slug: "pharos",
     exportName: "pharosContent",
     canonical: "https://pharos.inspr.at",
-    licensePattern: /name:\s*"MIT"/,
+    licensePattern: /name:\s*"AGPL-3\.0-only"/,
   },
   {
     slug: "janus",
     exportName: "janusContent",
     canonical: "https://janus.inspr.at",
-    licensePattern: /Affero General Public License v3\.0 only/,
+    licensePattern: /name:\s*"AGPL-3\.0-only"/,
   },
 ];
 
@@ -81,25 +81,17 @@ test("product copy contains no em dashes and no hardcoded business host", async 
   }
 });
 
-test("product license claims stay within what repository metadata supports", async () => {
+test("all product license claims match repository metadata", async () => {
   for (const { slug, licensePattern } of products) {
     const content = await source(`content/${slug}.ts`);
     assert.match(content, licensePattern, `${slug} has an unexpected license claim`);
   }
 
-  const pharos = await source("content/pharos.ts");
-  const paimos = await source("content/paimos.ts");
-  const janus = await source("content/janus.ts");
-
-  assert.doesNotMatch(pharos, /name:\s*"[^"]*AGPL/i, "Pharos is MIT, not AGPL");
-  assert.match(paimos, /name:\s*"GNU AGPL v3"/);
-  assert.doesNotMatch(
-    paimos,
-    /AGPL-3\.0-(?:only|or-later)/,
-    "Paimos docs and API metadata currently disagree on the SPDX qualifier",
-  );
-  assert.match(pharos, /standalone repository LICENSE file has not yet been added/);
-  assert.match(janus, /AGPL-3\.0-only/);
+  for (const { slug } of products) {
+    const content = await source(`content/${slug}.ts`);
+    assert.match(content, /name:\s*"AGPL-3\.0-only"/);
+    assert.doesNotMatch(content, /name:\s*"MIT"/);
+  }
 });
 
 test("each canonical host publishes its own robots and sitemap pair", async () => {

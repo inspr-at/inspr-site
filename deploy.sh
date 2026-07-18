@@ -158,7 +158,15 @@ probe_headers() {
   local probe_host
   local probe_port
   local probe_scheme
-  local resolve_args=()
+  local curl_args=(
+    --silent
+    --show-error
+    --dump-header -
+    --output /dev/null
+    --connect-timeout 10
+    --max-time "$PROBE_TIMEOUT"
+    --header 'Cache-Control: no-cache'
+  )
 
   if [[ "$url" == *\?* ]]; then
     separator="&"
@@ -173,19 +181,10 @@ probe_headers() {
       http) probe_port=80 ;;
       *) die "probe URL must use http or https" ;;
     esac
-    resolve_args=(--resolve "$probe_host:$probe_port:$PROBE_RESOLVE_IP")
+    curl_args+=(--resolve "$probe_host:$probe_port:$PROBE_RESOLVE_IP")
   fi
 
-  curl \
-    --silent \
-    --show-error \
-    --dump-header - \
-    --output /dev/null \
-    --connect-timeout 10 \
-    --max-time "$PROBE_TIMEOUT" \
-    --header 'Cache-Control: no-cache' \
-    "${resolve_args[@]}" \
-    "${url}${separator}probe=$(date +%s)"
+  curl "${curl_args[@]}" "${url}${separator}probe=$(date +%s)"
 }
 
 probe_page() {
@@ -198,7 +197,6 @@ probe_page() {
   local content_type
   local body
   local probe_host
-  local resolve_args=()
   local attempt=1
   local matched=0
 
@@ -231,20 +229,20 @@ probe_page() {
     die "$label -> X-Content-Type-Options missing"
 
   if [ -n "$body_token" ]; then
+    local body_curl_args=(
+      --silent
+      --show-error
+      --fail
+      --connect-timeout 10
+      --max-time "$PROBE_TIMEOUT"
+      --header 'Cache-Control: no-cache'
+    )
     if [ -n "$PROBE_RESOLVE_IP" ]; then
       probe_host="${url#https://}"
       probe_host="${probe_host%%/*}"
-      resolve_args=(--resolve "$probe_host:443:$PROBE_RESOLVE_IP")
+      body_curl_args+=(--resolve "$probe_host:443:$PROBE_RESOLVE_IP")
     fi
-    if ! body=$(curl \
-      --silent \
-      --show-error \
-      --fail \
-      --connect-timeout 10 \
-      --max-time "$PROBE_TIMEOUT" \
-      --header 'Cache-Control: no-cache' \
-      "${resolve_args[@]}" \
-      "$url"); then
+    if ! body=$(curl "${body_curl_args[@]}" "$url"); then
       die "$label -> body request failed"
     fi
     [[ "$body" == *"$body_token"* ]] || die "$label -> expected content missing"

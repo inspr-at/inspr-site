@@ -28,6 +28,12 @@ python3 scripts/verify-csp.py
 
 The build is static and writes to `dist/`.
 
+`npm run build` also writes `dist/release.json` from the centralized release
+metadata helper. Direct local builds render a truthful `local build` footer.
+`deploy.sh` injects the non-secret `INSPR_GIT_SHA`, `INSPR_GIT_DIRTY`,
+`INSPR_RELEASE_ID` and `INSPR_DEPLOYED_AT` values so all four production
+footers and the manifest identify the exact immutable release transaction.
+
 ## Content model
 
 `src/components/ProductPage.astro` renders all product pages from the typed

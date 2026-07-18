@@ -1,5 +1,6 @@
 ---
 import { productLinks, siteUrls } from "../content/urls";
+import { releaseMetadata } from "../../release-metadata.mjs";
 
 interface Props {
   name: string;
@@ -20,6 +21,13 @@ const {
 } = Astro.props;
 
 const year = new Date().getUTCFullYear();
+const deployedAtLabel = releaseMetadata.deployedAt
+  ? `${new Intl.DateTimeFormat("en-GB", {
+      dateStyle: "medium",
+      timeStyle: "short",
+      timeZone: "UTC",
+    }).format(new Date(releaseMetadata.deployedAt))} UTC`
+  : "Local build";
 ---
 
 <footer class="site-footer">
@@ -64,7 +72,36 @@ const year = new Date().getUTCFullYear();
   </div>
 
   <div class="site-footer__legal page-shell">
-    <span>© {year} Markus Barta · INSPR</span>
-    <span>Built to stay inspectable.</span>
+    <p class="site-footer__legal-copy">
+      <span>© {year} Markus Barta · INSPR</span>
+      <span>Built to stay inspectable.</span>
+    </p>
+
+    <dl
+      class="site-footer__release"
+      aria-label="Site release"
+      data-release-id={releaseMetadata.releaseId}
+    >
+      <div>
+        <dt>Site</dt>
+        <dd title={`Package ${releaseMetadata.packageName}`}>v{releaseMetadata.version}</dd>
+      </div>
+      <div>
+        <dt>Git</dt>
+        <dd><code>{releaseMetadata.gitLabel}</code></dd>
+      </div>
+      <div>
+        <dt>Release</dt>
+        <dd><code>{releaseMetadata.releaseId}</code></dd>
+      </div>
+      <div>
+        <dt>Deployed</dt>
+        <dd>
+          {releaseMetadata.deployedAt
+            ? <time datetime={releaseMetadata.deployedAt}>{deployedAtLabel}</time>
+            : deployedAtLabel}
+        </dd>
+      </div>
+    </dl>
   </div>
 </footer>

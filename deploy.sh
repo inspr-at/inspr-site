@@ -22,6 +22,10 @@
 #   PROBE_ATTEMPTS      attempts while routing converges (default: 20)
 #   PROBE_RESOLVE_IP    optional IPv4 override for fresh-DNS cutover probes
 #
+# deploy.sh supplies INSPR_GIT_SHA, INSPR_GIT_DIRTY, INSPR_RELEASE_ID and
+# INSPR_DEPLOYED_AT only to the Astro build process. They are non-secret,
+# allowlisted release evidence and are written into web/dist/release.json.
+#
 # Releases are retained on the server. `previous` points at the prior healthy
 # release; older immutable builds remain available for an operator-selected
 # rollback. Production execution remains user-driven.
@@ -73,6 +77,45 @@ remote_scp() {
 remote_hash() {
   local relative_path="$1"
   remote_ssh "sha256sum '$REMOTE_DIR/$relative_path' 2>/dev/null | awk '{print \$1}'" || true
+}
+
+read_release_manifest() {
+  local manifest_path="$1"
+
+  node - "$manifest_path" <<'NODE'
+const { readFileSync } = require("node:fs");
+
+const manifestPath = process.argv[2];
+const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+const releaseId = manifest?.deployment?.releaseId;
+const deployedAt = manifest?.deployment?.deployedAt;
+const gitRevision = manifest?.source?.git;
+const gitDirty = manifest?.source?.dirty;
+const version = manifest?.package?.version;
+
+if (manifest?.schemaVersion !== 1) throw new Error("unsupported release manifest schema");
+if (!/^[a-z0-9][a-z0-9._-]{0,127}$/i.test(releaseId) || releaseId === "local") {
+  throw new Error("release manifest has no deployable release id");
+}
+if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(deployedAt)) {
+  throw new Error("release manifest has no UTC deployment timestamp");
+}
+if (!/^[0-9a-f]{7,64}$/i.test(gitRevision)) {
+  throw new Error("release manifest has no valid Git revision");
+}
+if (typeof gitDirty !== "boolean") throw new Error("release manifest has no Git state");
+if (typeof version !== "string" || !version.trim()) {
+  throw new Error("release manifest has no package version");
+}
+
+process.stdout.write([
+  releaseId,
+  deployedAt,
+  gitRevision.toLowerCase(),
+  gitDirty ? "1" : "0",
+  version,
+].join("\t"));
+NODE
 }
 
 atomic_release_link() {
@@ -192,6 +235,7 @@ probe_page() {
   local url="$2"
   local body_token="$3"
   local expected_content_type="$4"
+  local expected_release_id="${5:-}"
   local headers
   local code
   local content_type
@@ -228,7 +272,7 @@ probe_page() {
   printf '%s\n' "$headers" | tr -d '\r' | grep -qi '^x-content-type-options:[[:space:]]*nosniff' || \
     die "$label -> X-Content-Type-Options missing"
 
-  if [ -n "$body_token" ]; then
+  if [ -n "$body_token" ] || [ -n "$expected_release_id" ]; then
     local body_curl_args=(
       --silent
       --show-error
@@ -245,7 +289,13 @@ probe_page() {
     if ! body=$(curl "${body_curl_args[@]}" "$url"); then
       die "$label -> body request failed"
     fi
-    [[ "$body" == *"$body_token"* ]] || die "$label -> expected content missing"
+    if [ -n "$body_token" ]; then
+      [[ "$body" == *"$body_token"* ]] || die "$label -> expected content missing"
+    fi
+    if [ -n "$expected_release_id" ]; then
+      [[ "$body" == *"data-release-id=\"$expected_release_id\""* ]] || \
+        die "$label -> expected release metadata missing"
+    fi
   fi
 
   ok "$label -> 200, content and security headers verified"
@@ -288,12 +338,31 @@ probe_redirect() {
   ok "$label -> $code, target verified"
 }
 
-# 1. Build the single static application.
+# 1. Build the single static application with one truthful release identity.
 if [ "${SKIP_BUILD:-}" = "1" ]; then
   say "build skipped (SKIP_BUILD=1); reusing web/dist/"
 else
+  DEPLOYED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  GIT_SHA="$(git -C "$ROOT" rev-parse --verify HEAD)"
+  [[ "$GIT_SHA" =~ ^[0-9a-fA-F]{40,64}$ ]] || die "unable to resolve the source Git revision"
+  GIT_SHORT="${GIT_SHA:0:12}"
+  GIT_DIRTY=0
+  if [ -n "$(git -C "$ROOT" status --porcelain --untracked-files=normal)" ]; then
+    GIT_DIRTY=1
+  fi
+  [ "$GIT_DIRTY" = "0" ] || die "refusing to deploy a dirty working tree; commit the release first"
+  RELEASE_TIMESTAMP="${DEPLOYED_AT//[-:]/}"
+  RELEASE_ID="$RELEASE_TIMESTAMP-$GIT_SHORT"
+
   say "building Astro microsites"
-  (cd "$ROOT/web" && npm run build)
+  (
+    cd "$ROOT/web"
+    INSPR_GIT_SHA="$GIT_SHA" \
+      INSPR_GIT_DIRTY="$GIT_DIRTY" \
+      INSPR_RELEASE_ID="$RELEASE_ID" \
+      INSPR_DEPLOYED_AT="$DEPLOYED_AT" \
+      npm run build
+  )
 fi
 
 # 2. Reject unpinned inline scripts before any remote write.
@@ -306,6 +375,7 @@ required_documents=(
   "paimos/index.html"
   "pharos/index.html"
   "janus/index.html"
+  "release.json"
 )
 for document in "${required_documents[@]}"; do
   [ -f "$ROOT/web/dist/$document" ] || die "missing build output: web/dist/$document"
@@ -315,17 +385,43 @@ shared_asset=$(find "$ROOT/web/dist/_astro" -maxdepth 1 -type f -name '*.css' -p
 [ -n "$shared_asset" ] || die "missing shared Astro assets in web/dist/_astro/"
 shared_asset_path="/_astro/${shared_asset##*/}"
 [ -f "$ROOT/site/index.html" ] || die "local v1 archive is missing: site/index.html"
-ok "build contract verified"
 
-# 4. Identify this immutable release. The timestamp makes the deploy traceable;
-# the content hash prevents accidental ambiguity between same-time builds.
+MANIFEST_FIELDS=$(read_release_manifest "$ROOT/web/dist/release.json") || \
+  die "release manifest validation failed"
+IFS=$'\t' read -r MANIFEST_RELEASE_ID MANIFEST_DEPLOYED_AT MANIFEST_GIT_SHA \
+  MANIFEST_GIT_DIRTY MANIFEST_VERSION <<<"$MANIFEST_FIELDS"
+
+if [ "${SKIP_BUILD:-}" != "1" ]; then
+  [ "$MANIFEST_RELEASE_ID" = "$RELEASE_ID" ] || die "release id changed during the build"
+  [ "$MANIFEST_DEPLOYED_AT" = "$DEPLOYED_AT" ] || die "deployment timestamp changed during the build"
+  [ "$MANIFEST_GIT_SHA" = "${GIT_SHA:0:12}" ] || die "Git revision changed during the build"
+  [ "$MANIFEST_GIT_DIRTY" = "$GIT_DIRTY" ] || die "Git state changed during the build"
+fi
+
+CURRENT_GIT_SHA="$(git -C "$ROOT" rev-parse --verify HEAD)"
+CURRENT_GIT_DIRTY=0
+if [ -n "$(git -C "$ROOT" status --porcelain --untracked-files=normal)" ]; then
+  CURRENT_GIT_DIRTY=1
+fi
+[ "$CURRENT_GIT_DIRTY" = "0" ] || die "source changed during the build; refusing remote writes"
+[ "$MANIFEST_GIT_DIRTY" = "0" ] || die "release manifest describes a dirty source tree"
+[ "$MANIFEST_GIT_SHA" = "${CURRENT_GIT_SHA:0:12}" ] || \
+  die "release manifest does not match the current Git revision"
+
+RELEASE_ID="$MANIFEST_RELEASE_ID"
+DEPLOYED_AT="$MANIFEST_DEPLOYED_AT"
+ok "build contract verified for site v$MANIFEST_VERSION, release $RELEASE_ID"
+
+# 4. Fingerprint the rendered content. The release id already embedded in the
+# build combines its deployment transaction timestamp and source revision;
+# the full content hash remains the byte-level verification identity.
 BUILD_HASH=$(
   cd "$ROOT/web/dist"
   find . -type f -print | LC_ALL=C sort | while IFS= read -r file; do
     shasum -a 256 "$file"
   done | shasum -a 256 | awk '{print $1}'
 )
-RELEASE_ID="$(date -u +%Y%m%dT%H%M%SZ)-${BUILD_HASH:0:12}"
+ok "rendered content fingerprint ${BUILD_HASH:0:12}"
 RELEASE_TARGET="builds/$RELEASE_ID"
 REMOTE_INCOMING="$REMOTE_RELEASE_ROOT/.incoming-$RELEASE_ID"
 REMOTE_RELEASE="$REMOTE_RELEASE_ROOT/$RELEASE_TARGET"
@@ -480,10 +576,10 @@ if [ "${SKIP_PROBE:-}" = "1" ]; then
   ok "probes skipped (SKIP_PROBE=1)"
 else
   say "probing live host routing"
-  probe_page "INSPR umbrella" "https://www.inspr.at/" "Ideas should outlive" "text/html"
-  probe_page "Paimos microsite" "https://paimos.inspr.at/" "One shared project picture." "text/html"
-  probe_page "Pharos microsite" "https://pharos.inspr.at/" "Fleet truth before action." "text/html"
-  probe_page "Janus microsite" "https://janus.inspr.at/" "Use secrets. Keep values hidden." "text/html"
+  probe_page "INSPR umbrella" "https://www.inspr.at/" "Ideas should outlive" "text/html" "$RELEASE_ID"
+  probe_page "Paimos microsite" "https://paimos.inspr.at/" "One shared project picture." "text/html" "$RELEASE_ID"
+  probe_page "Pharos microsite" "https://pharos.inspr.at/" "Fleet truth before action." "text/html" "$RELEASE_ID"
+  probe_page "Janus microsite" "https://janus.inspr.at/" "Use secrets. Keep values hidden." "text/html" "$RELEASE_ID"
   probe_page "v1 archive" "https://v1.inspr.at/" "Upstream of any substrate" "text/html"
   probe_page "shared product asset" "https://paimos.inspr.at$shared_asset_path" "" "text/css"
   probe_redirect "legacy edition redirect" "https://www.inspr.at/v1/" "301,302,307,308" "https://v1.inspr.at/v1/"

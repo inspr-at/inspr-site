@@ -101,14 +101,25 @@ Traefik terminates public TLS. A Caddy container serves:
 
 The deployment script:
 
-1. builds and validates the static site;
-2. uploads into an unreachable incoming directory;
-3. verifies the remote content byte-for-byte;
-4. seals the release under a unique build ID;
-5. validates routing changes before promotion;
-6. switches one symlink atomically;
-7. verifies the result inside Caddy and through every public hostname; and
-8. preserves the previous release for rollback.
+1. assigns one UTC deployment timestamp, Git revision and immutable release ID;
+2. builds and validates the static site with that release identity;
+3. uploads into an unreachable incoming directory;
+4. verifies the remote content byte-for-byte;
+5. seals the release under its unique build ID;
+6. validates routing changes before promotion;
+7. switches one symlink atomically;
+8. verifies the release stamp and result through every public hostname; and
+9. preserves the previous release for rollback.
+
+Every current site displays the shared site-package version, short Git
+revision, immutable release ID and UTC deployment time in its footer. The
+deployment transaction supplies `INSPR_GIT_SHA`, `INSPR_GIT_DIRTY`,
+`INSPR_RELEASE_ID` and `INSPR_DEPLOYED_AT` only to the build process, which
+also records the allowlisted values in `web/dist/release.json`. A direct local
+build is labelled `local build` and never invents a deployment timestamp.
+`SKIP_BUILD=1` accepts only a previously prepared deploy build with a valid
+release manifest. Production deployment also requires a clean working tree
+and re-checks the source revision after the build before any remote write.
 
 Run production deployment from the repository root with the configured SSH
 alias:

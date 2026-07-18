@@ -3,6 +3,10 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { stat } from "node:fs/promises";
 import test from "node:test";
+import {
+  createReleaseMetadata,
+  releaseManifest,
+} from "../release-metadata.mjs";
 
 const sourceUrl = new URL("../src/", import.meta.url);
 
@@ -244,4 +248,78 @@ test("Janus headlines use the precise IBM Plex Sans display family", async () =>
   assert.doesNotMatch(layout, /@fontsource-variable\/sora/);
   assert.doesNotMatch(manifest, /"@fontsource-variable\/sora"/);
   assert.doesNotMatch(styles, /Unbounded Variable/);
+});
+
+test("one validated release identity is visible across the site family", async () => {
+  const revision = "0123456789abcdef0123456789abcdef01234567";
+  const deployedAt = "2026-07-18T15:30:00Z";
+  const releaseId = "20260718T153000Z-0123456789ab";
+  const metadata = createReleaseMetadata(
+    {
+      INSPR_GIT_SHA: revision,
+      INSPR_GIT_DIRTY: "0",
+      INSPR_RELEASE_ID: releaseId,
+      INSPR_DEPLOYED_AT: deployedAt,
+    },
+    { revision: "ffffffffffffffffffffffffffffffffffffffff", dirty: true },
+  );
+
+  assert.equal(metadata.gitRevision, revision.slice(0, 12));
+  assert.equal(metadata.gitLabel, revision.slice(0, 12));
+  assert.equal(metadata.releaseId, releaseId);
+  assert.equal(metadata.deployedAt, deployedAt);
+  assert.equal(metadata.isDeployment, true);
+  assert.deepEqual(releaseManifest(metadata).deployment, {
+    releaseId,
+    deployedAt,
+  });
+
+  const local = createReleaseMetadata(
+    {},
+    { revision: "fedcba9876543210fedcba9876543210fedcba98", dirty: true },
+  );
+  assert.equal(local.releaseId, "local");
+  assert.equal(local.deployedAt, null);
+  assert.equal(local.gitLabel, "fedcba987654-dirty");
+  assert.equal(local.isDeployment, false);
+
+  assert.throws(
+    () => createReleaseMetadata(
+      { INSPR_RELEASE_ID: releaseId },
+      { revision, dirty: false },
+    ),
+    /must be supplied together/,
+  );
+  assert.throws(
+    () => createReleaseMetadata(
+      { INSPR_GIT_DIRTY: "1" },
+      { revision, dirty: false },
+    ),
+    /must be supplied together/,
+  );
+
+  const footer = await source("components/MicrositeFooter.astro");
+  assert.match(footer, /import \{ releaseMetadata \}/);
+  assert.match(footer, /aria-label="Site release"/);
+  assert.match(footer, /data-release-id=\{releaseMetadata\.releaseId\}/);
+  assert.match(footer, /<dt>Site<\/dt>/);
+  assert.match(footer, /<dt>Git<\/dt>/);
+  assert.match(footer, /<dt>Release<\/dt>/);
+  assert.match(footer, /<dt>Deployed<\/dt>/);
+
+  const manifestWriter = await readFile(
+    new URL("../scripts/write-release-manifest.mjs", import.meta.url),
+    "utf8",
+  );
+  const deploy = await readFile(new URL("../../deploy.sh", import.meta.url), "utf8");
+  assert.match(manifestWriter, /dist\/release\.json/);
+  assert.match(deploy, /INSPR_GIT_SHA="\$GIT_SHA"/);
+  assert.match(deploy, /INSPR_RELEASE_ID="\$RELEASE_ID"/);
+  assert.match(deploy, /INSPR_DEPLOYED_AT="\$DEPLOYED_AT"/);
+  assert.match(deploy, /read_release_manifest/);
+  assert.match(deploy, /RELEASE_ID="\$MANIFEST_RELEASE_ID"/);
+  assert.match(deploy, /RELEASE_TARGET="builds\/\$RELEASE_ID"/);
+  assert.match(deploy, /refusing to deploy a dirty working tree/);
+  assert.match(deploy, /source changed during the build; refusing remote writes/);
+  assert.match(deploy, /data-release-id=/);
 });

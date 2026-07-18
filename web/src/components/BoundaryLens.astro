@@ -1,0 +1,72 @@
+---
+import ContextIcon from "./ContextIcon.astro";
+
+interface Props {
+  id: string;
+  items: string[];
+}
+
+const { id, items } = Astro.props;
+---
+
+<div class="boundary-lens" style={`--boundary-count: ${items.length}`}>
+  <div class="boundary-lens__list" role="radiogroup" aria-label="Inspect declared boundaries">
+    {
+      items.map((item, index) => {
+        const controlId = `${id}-control-${index}`;
+        const panelId = `${id}-panel-${index}`;
+
+        const angle = (360 / items.length) * index;
+
+        return (
+          <>
+            <input
+              class="boundary-lens__radio"
+              type="radio"
+              id={controlId}
+              name={`${id}-selection`}
+              checked={index === 0}
+              aria-controls={panelId}
+            />
+            <label class="boundary-lens__selector" id={`${controlId}-label`} for={controlId}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <strong>Declared boundary</strong>
+              <span aria-hidden="true">↗</span>
+            </label>
+            <article
+              class="boundary-lens__panel"
+              id={panelId}
+              role="region"
+              aria-live="polite"
+              aria-labelledby={`${controlId}-label`}
+              style={`--boundary-angle: ${angle}deg; --boundary-angle-reverse: ${-angle}deg`}
+            >
+              <div class="boundary-lens__scope" aria-hidden="true">
+                <span class="boundary-lens__ring boundary-lens__ring--outer"></span>
+                <span class="boundary-lens__ring boundary-lens__ring--middle"></span>
+                <span class="boundary-lens__ring boundary-lens__ring--inner"></span>
+                <span class="boundary-lens__marker">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span class="boundary-lens__core">
+                  <ContextIcon name="shield-check" size={28} strokeWidth={1.9} />
+                </span>
+              </div>
+              <div class="boundary-lens__readout">
+                <p class="boundary-lens__kicker">Scope lens</p>
+                <p class="boundary-lens__count">
+                  Boundary {String(index + 1).padStart(2, "0")} of {String(items.length).padStart(2, "0")}
+                </p>
+                <p class="boundary-lens__statement">{item}</p>
+                <p class="boundary-lens__note">
+                  This statement marks the current product boundary. It is not hidden behind roadmap
+                  language or implied capability.
+                </p>
+              </div>
+            </article>
+          </>
+        );
+      })
+    }
+  </div>
+</div>

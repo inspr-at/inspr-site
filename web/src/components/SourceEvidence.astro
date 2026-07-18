@@ -1,0 +1,43 @@
+---
+import ContextIcon from "./ContextIcon.astro";
+import type { LinkItem } from "../content/types";
+
+interface Props {
+  links: LinkItem[];
+}
+
+const { links } = Astro.props;
+---
+
+<div class="source-evidence">
+  <div class="source-evidence__hub">
+    <span class="source-evidence__orbit" aria-hidden="true"></span>
+    <span class="source-evidence__icon" aria-hidden="true">
+      <ContextIcon name="git-branch" size={30} strokeWidth={1.85} />
+    </span>
+    <p>Inspection surface</p>
+    <strong>{String(links.length).padStart(2, "0")} direct routes</strong>
+    <span>Source, terms and release evidence stay one click away.</span>
+  </div>
+
+  <ol class="source-evidence__routes">
+    {
+      links.map((link, index) => (
+        <li>
+          <a href={link.href} target={link.external === false ? undefined : "_blank"} rel={link.external === false ? undefined : "noreferrer"}>
+            <span class="source-evidence__route-index" aria-hidden="true">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <span>
+              <small>Evidence route</small>
+              <strong>{link.label}</strong>
+            </span>
+            <span class="source-evidence__route-arrow" aria-hidden="true">
+              {link.external === false ? "→" : "↗"}
+            </span>
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+</div>

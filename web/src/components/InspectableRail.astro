@@ -1,0 +1,141 @@
+---
+import ContextIcon from "./ContextIcon.astro";
+import type { CardItem } from "../content/types";
+
+interface Props {
+  id: string;
+  items: CardItem[];
+  label: string;
+  signalLabel: string;
+  tone?: "paper" | "ink";
+}
+
+const { id, items, label, signalLabel, tone = "paper" } = Astro.props;
+const fallbackIcons = [
+  "circle-dot",
+  "waypoints",
+  "layers-3",
+  "shield-check",
+  "workflow",
+  "check-circle-2",
+];
+---
+
+<div
+  class:list={["inspectable-rail", { "inspectable-rail--ink": tone === "ink" }]}
+  style={`--inspector-count: ${items.length}`}
+>
+  <p class="inspectable-rail__instruction" id={`${id}-instruction`}>
+    <span aria-hidden="true"></span>
+    {label}
+  </p>
+
+  <div
+    class="inspectable-rail__system"
+    role="radiogroup"
+    aria-labelledby={`${id}-instruction`}
+  >
+    {
+      items.map((item, index) => {
+        const controlId = `${id}-control-${index}`;
+        const panelId = `${id}-panel-${index}`;
+        const icon = item.icon ?? fallbackIcons[index % fallbackIcons.length];
+
+        return (
+          <>
+            <input
+              class="inspectable-rail__radio"
+              type="radio"
+              id={controlId}
+              name={`${id}-selection`}
+              value={String(index)}
+              checked={index === 0}
+              aria-controls={panelId}
+            />
+            <label
+              class="inspectable-rail__selector"
+              id={`${controlId}-label`}
+              for={controlId}
+              style={`--inspector-row: ${index + 1}`}
+            >
+              <span class="inspectable-rail__index" aria-hidden="true">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <span class="inspectable-rail__selector-icon" aria-hidden="true">
+                <ContextIcon name={icon} size={22} strokeWidth={2.1} />
+              </span>
+              <span class="inspectable-rail__selector-copy">
+                <strong>{item.title}</strong>
+                {item.meta && <small>{item.meta}</small>}
+              </span>
+              <span class="inspectable-rail__selector-arrow" aria-hidden="true">→</span>
+            </label>
+
+            <article
+              class="inspectable-rail__panel"
+              id={panelId}
+              style={`--active-node: ${index}; --node-count: ${items.length}`}
+              role="region"
+              aria-live="polite"
+              aria-labelledby={`${controlId}-label`}
+            >
+              <div class="inspectable-rail__map" aria-hidden="true">
+                <span class="inspectable-rail__map-core">
+                  <ContextIcon name={icon} size={26} strokeWidth={1.9} />
+                </span>
+                {
+                  items.map((_, nodeIndex) => {
+                    const angle = (360 / items.length) * nodeIndex;
+                    return (
+                      <span
+                        class:list={[
+                          "inspectable-rail__map-node",
+                          { "is-active": nodeIndex === index },
+                        ]}
+                        style={`--node-angle: ${angle}deg; --node-angle-reverse: ${-angle}deg`}
+                      >
+                        {String(nodeIndex + 1).padStart(2, "0")}
+                      </span>
+                    );
+                  })
+                }
+              </div>
+
+              <div class="inspectable-rail__readout">
+                <p class="inspectable-rail__signal">
+                  <span aria-hidden="true"></span>
+                  {signalLabel}
+                </p>
+                <p class="inspectable-rail__readout-index">
+                  Signal {String(index + 1).padStart(2, "0")} / {String(items.length).padStart(2, "0")}
+                </p>
+                <h3>{item.title}</h3>
+                <p>{item.body}</p>
+                {
+                  item.meta && (
+                    <p class="inspectable-rail__evidence">
+                      <strong>Operational signal</strong>
+                      <span>{item.meta}</span>
+                    </p>
+                  )
+                }
+                {
+                  item.reference && (
+                    <a
+                      class="card-reference"
+                      href={item.reference.href}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {item.reference.label} <span aria-hidden="true">↗</span>
+                    </a>
+                  )
+                }
+              </div>
+            </article>
+          </>
+        );
+      })
+    }
+  </div>
+</div>

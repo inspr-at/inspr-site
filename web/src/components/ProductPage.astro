@@ -7,6 +7,9 @@ import ServiceRibbon from "./ServiceRibbon.astro";
 import ContextIcon from "./ContextIcon.astro";
 import PaimosProductSurface from "./PaimosProductSurface.astro";
 import WorkflowExplorer from "./WorkflowExplorer.astro";
+import InspectableRail from "./InspectableRail.astro";
+import BoundaryLens from "./BoundaryLens.astro";
+import SourceEvidence from "./SourceEvidence.astro";
 import type { ProductContent } from "../content/types";
 
 import paimosHero from "../assets/products/paimos/hero.png";
@@ -124,9 +127,24 @@ const integrationStatuses = [...new Set(content.integrations.items.map((item) =>
       </figure>
     </section>
 
-    <ul class="proof-strip page-shell" aria-label="Product characteristics">
-      {content.proof.map((item) => <li>{item}</li>)}
-    </ul>
+    <div class="proof-console page-shell" aria-label="Product characteristics">
+      <div class="proof-console__label" aria-hidden="true">
+        <span>Operating posture</span>
+        <strong>{String(content.proof.length).padStart(2, "0")}</strong>
+      </div>
+      <ol class="proof-strip">
+        {
+          content.proof.map((item, index) => (
+            <li>
+              <span class="proof-strip__index" aria-hidden="true">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <span>{item}</span>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
 
     <section class="section page-shell" id="why" aria-labelledby="problem-title">
       <header class="section-intro">
@@ -134,30 +152,12 @@ const integrationStatuses = [...new Set(content.integrations.items.map((item) =>
         <h2 id="problem-title">{content.problem.title}</h2>
         <p class="section-lead">{content.problem.lead}</p>
       </header>
-      <div
-        class:list={[
-          "card-grid",
-          content.problem.items.length === 4 ? "card-grid--two" : "card-grid--three",
-        ]}
-      >
-        {content.problem.items.map((item) => (
-          <article class="info-card">
-            {item.icon && (
-              <span class="card-icon" aria-hidden="true">
-                <ContextIcon name={item.icon} size={25} strokeWidth={2.05} />
-              </span>
-            )}
-            {item.meta && <p class="card-meta">{item.meta}</p>}
-            <h3>{item.title}</h3>
-            <p>{item.body}</p>
-            {item.reference && (
-              <a class="card-reference" href={item.reference.href} target="_blank" rel="noreferrer">
-                {item.reference.label} <span aria-hidden="true">↗</span>
-              </a>
-            )}
-          </article>
-        ))}
-      </div>
+      <InspectableRail
+        id={`${content.slug}-problem`}
+        items={content.problem.items}
+        label="Inspect the fracture points"
+        signalLabel="Selected fracture"
+      />
     </section>
 
     <WorkflowExplorer
@@ -186,30 +186,12 @@ const integrationStatuses = [...new Set(content.integrations.items.map((item) =>
             <h2 id={`${feature.id}-title`}>{feature.title}</h2>
             <p class="section-lead">{feature.lead}</p>
           </header>
-          <div class="card-grid card-grid--two">
-            {feature.items.map((item) => (
-              <article class="feature-card">
-                {item.icon && (
-                  <span class="card-icon" aria-hidden="true">
-                    <ContextIcon name={item.icon} size={25} strokeWidth={2.05} />
-                  </span>
-                )}
-                {item.meta && <p class="card-meta">{item.meta}</p>}
-                <h3>{item.title}</h3>
-                <p>{item.body}</p>
-                {item.reference && (
-                  <a
-                    class="card-reference"
-                    href={item.reference.href}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {item.reference.label} <span aria-hidden="true">↗</span>
-                  </a>
-                )}
-              </article>
-            ))}
-          </div>
+          <InspectableRail
+            id={`${content.slug}-${feature.id}`}
+            items={feature.items}
+            label="Trace the capability system"
+            signalLabel="Selected capability"
+          />
         </section>
       ))}
     </div>
@@ -220,20 +202,12 @@ const integrationStatuses = [...new Set(content.integrations.items.map((item) =>
         <h2 id="audience-title">{content.audiences.title}</h2>
         <p class="section-lead">{content.audiences.lead}</p>
       </header>
-      <div
-        class:list={[
-          "card-grid",
-          content.audiences.items.length === 4 ? "card-grid--two" : "card-grid--three",
-        ]}
-      >
-        {content.audiences.items.map((item) => (
-          <article class="info-card">
-            {item.meta && <p class="card-meta">{item.meta}</p>}
-            <h3>{item.title}</h3>
-            <p>{item.body}</p>
-          </article>
-        ))}
-      </div>
+      <InspectableRail
+        id={`${content.slug}-audiences`}
+        items={content.audiences.items}
+        label="Select an operating perspective"
+        signalLabel="Role perspective"
+      />
     </section>
 
     <section class="section architecture" id="architecture" aria-labelledby="architecture-title">
@@ -272,25 +246,13 @@ const integrationStatuses = [...new Set(content.integrations.items.map((item) =>
           <h2 id="trust-title">{content.trust.title}</h2>
           <p class="section-lead">{content.trust.lead}</p>
         </header>
-        <div class="card-grid card-grid--two">
-          {content.trust.items.map((item) => (
-            <article class="dark-card">
-              {item.icon && (
-                <span class="card-icon" aria-hidden="true">
-                  <ContextIcon name={item.icon} size={25} strokeWidth={2.05} />
-                </span>
-              )}
-              {item.meta && <p class="card-meta">{item.meta}</p>}
-              <h3>{item.title}</h3>
-              <p>{item.body}</p>
-              {item.reference && (
-                <a class="card-reference" href={item.reference.href} target="_blank" rel="noreferrer">
-                  {item.reference.label} <span aria-hidden="true">↗</span>
-                </a>
-              )}
-            </article>
-          ))}
-        </div>
+        <InspectableRail
+          id={`${content.slug}-trust`}
+          items={content.trust.items}
+          label="Inspect each enforced boundary"
+          signalLabel="Boundary evidence"
+          tone="ink"
+        />
       </div>
     </section>
 
@@ -341,9 +303,7 @@ const integrationStatuses = [...new Set(content.integrations.items.map((item) =>
           <h2 id="limits-title">{content.limits.title}</h2>
           <p class="section-lead">{content.limits.lead}</p>
         </header>
-        <ul class="check-list check-list--limits">
-          {content.limits.items.map((item) => <li>{item}</li>)}
-        </ul>
+        <BoundaryLens id={`${content.slug}-limits`} items={content.limits.items} />
       </div>
     </section>
 
@@ -353,13 +313,7 @@ const integrationStatuses = [...new Set(content.integrations.items.map((item) =>
         <h2 id="source-title">{content.openSource.title}</h2>
         <p class="section-lead">{content.openSource.body}</p>
       </div>
-      <div class="source-links">
-        {content.openSource.links.map((link) => (
-          <a href={link.href}>
-            {link.label} {link.external !== false && <span aria-hidden="true">↗</span>}
-          </a>
-        ))}
-      </div>
+      <SourceEvidence links={content.openSource.links} />
     </section>
 
     <section class="section page-shell faq" aria-labelledby="faq-title">

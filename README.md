@@ -24,7 +24,7 @@ web/                  Astro source for all four current sites
 site/                 frozen pre-relaunch archive served at v1.inspr.at
 auth/                 small Go OIDC session and signup bridge
 Caddyfile             host routing, cache policy and security headers
-docker-compose.yml    Caddy, auth bridge, Zitadel and Postgres
+docker-compose.yml    Caddy, auth bridge, ZITADEL and Postgres
 deploy.sh             immutable release upload, promotion, rollback and probes
 ```
 
@@ -124,7 +124,7 @@ are managed on the host.
 ## Identity boundary
 
 `auth/` is a small server-side OIDC bridge for `/login`, `/welcome`,
-`/logout`, and the guarded signup entry path on the apex domain. Zitadel is a
+`/logout`, and the guarded signup entry path on the apex domain. ZITADEL is a
 third-party identity service and remains operationally separate from the four
 public product sites.
 

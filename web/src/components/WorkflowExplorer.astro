@@ -56,9 +56,21 @@ const {
           loading="lazy"
         />
         <span class="workflow__glass" aria-hidden="true"></span>
-        <span class="workflow__signal workflow__signal--one" aria-hidden="true"></span>
-        <span class="workflow__signal workflow__signal--two" aria-hidden="true"></span>
-        <figcaption>Explore the operating sequence. Each stage shows what it contributes.</figcaption>
+        <div class="workflow__annotations" aria-hidden="true">
+          {steps.map((step, index) => (
+            <span
+              class="workflow__annotation"
+              data-workflow-annotation={index}
+              data-active={index === 0 ? "true" : "false"}
+              data-low={(step.visual?.y ?? 52) > 57 ? "true" : "false"}
+              style={`--annotation-x: ${step.visual?.x ?? 18 + (index * 64) / Math.max(steps.length - 1, 1)}%; --annotation-y: ${step.visual?.y ?? 52}%;`}
+            >
+              <span class="workflow__annotation-node">{step.number}</span>
+              <span class="workflow__annotation-label">{step.title}</span>
+            </span>
+          ))}
+        </div>
+        <figcaption>Follow the active marker. Each stage maps to a point in the system.</figcaption>
       </figure>
 
       <div class="workflow__control">
@@ -82,20 +94,23 @@ const {
           ))}
         </div>
 
-        <div class="workflow__progress" aria-hidden="true">
-          <span class="workflow__progress-fill"></span>
-          {steps.map((_, index) => <i style={`--marker-index: ${index}`}></i>)}
-        </div>
+        <div class="workflow__timeline">
+          <div class="workflow__progress" aria-hidden="true">
+            <span class="workflow__progress-fill" data-workflow-progress></span>
+          </div>
 
-        <button
-          class="workflow__toggle"
-          type="button"
-          aria-pressed="false"
-          data-workflow-toggle
-        >
-          <span class="workflow__toggle-state" aria-hidden="true"></span>
-          <span data-workflow-toggle-label>Pause sequence</span>
-        </button>
+          <button
+            class="workflow__toggle"
+            type="button"
+            aria-label="Pause automatic progression"
+            aria-pressed="false"
+            title="Pause automatic progression"
+            data-workflow-toggle
+          >
+            <span class="workflow__toggle-state" aria-hidden="true"><i></i><i></i></span>
+            <span>Pause</span>
+          </button>
+        </div>
 
         <div class="workflow__panels">
           {steps.map((step, index) => (
@@ -138,6 +153,8 @@ const {
 </section>
 
 <script>
+  const WORKFLOW_STAGE_DURATION = 5000;
+
   const initWorkflowExplorers = () => {
     document.querySelectorAll<HTMLElement>("[data-workflow-explorer]").forEach((root) => {
       if (root.dataset.workflowReady === "true") return;
@@ -145,31 +162,37 @@ const {
 
       const tabs = [...root.querySelectorAll<HTMLButtonElement>("[data-workflow-tab]")];
       const panels = [...root.querySelectorAll<HTMLElement>("[data-workflow-panel]")];
+      const annotations = [
+        ...root.querySelectorAll<HTMLElement>("[data-workflow-annotation]"),
+      ];
       const tabStrip = root.querySelector<HTMLElement>(".workflow__tabs");
       const toggle = root.querySelector<HTMLButtonElement>("[data-workflow-toggle]");
-      const toggleLabel = toggle?.querySelector<HTMLElement>("[data-workflow-toggle-label]");
+      const progress = root.querySelector<HTMLElement>("[data-workflow-progress]");
+      const experience = root.querySelector<HTMLElement>(".workflow__experience") ?? root;
+      const observedControl = root.querySelector<HTMLElement>(".workflow__control") ?? root;
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-      let activeIndex = 0;
+      const hoverCapable = window.matchMedia("(hover: hover)");
+      const listeners = new AbortController();
+      let activeIndex = -1;
       let inView = false;
-      let interactionPaused = false;
       let userPaused = false;
-      let timer: number | undefined;
+      let hoverHeld = false;
+      let focusHeld = false;
+      let progressAnimation: Animation | undefined;
 
-      const stop = () => {
-        if (timer !== undefined) window.clearInterval(timer);
-        timer = undefined;
+      const stopCycle = () => {
+        progressAnimation?.cancel();
+        progressAnimation = undefined;
+        root.dataset.cycleState = "idle";
       };
 
       const updateToggle = () => {
-        if (!toggle || !toggleLabel) return;
-        const motionPaused = reducedMotion.matches;
-        toggle.disabled = motionPaused;
-        toggle.setAttribute("aria-pressed", String(motionPaused || userPaused));
-        toggleLabel.textContent = motionPaused
-          ? "Sequence paused"
-          : userPaused
-            ? "Play sequence"
-            : "Pause sequence";
+        if (!toggle) return;
+        toggle.disabled = reducedMotion.matches;
+        toggle.setAttribute("aria-pressed", String(userPaused));
+        toggle.setAttribute("aria-label", "Pause automatic progression");
+        toggle.title = "Pause automatic progression";
+        root.dataset.userPaused = String(userPaused);
       };
 
       const centerActiveTab = () => {
@@ -188,103 +211,181 @@ const {
         });
       };
 
-      const activate = (index: number, moveFocus = false, manual = false) => {
-        activeIndex = (index + tabs.length) % tabs.length;
-        if (manual) {
-          userPaused = true;
-          updateToggle();
-        }
-        root.dataset.activeStage = String(activeIndex);
-        root.style.setProperty(
-          "--workflow-ratio",
-          String(tabs.length > 1 ? activeIndex / (tabs.length - 1) : 1),
-        );
+      const interactionHeld = () => hoverHeld || focusHeld;
 
-        tabs.forEach((tab, tabIndex) => {
-          const active = tabIndex === activeIndex;
-          tab.setAttribute("aria-selected", String(active));
-          tab.tabIndex = active ? 0 : -1;
-          if (active && moveFocus) tab.focus();
-        });
-        panels.forEach((panel, panelIndex) => {
-          panel.hidden = panelIndex !== activeIndex;
-        });
-        centerActiveTab();
+      const refreshInteractionState = () => {
+        hoverHeld = hoverCapable.matches && experience.matches(":hover");
+        focusHeld = experience.querySelector(":focus-visible") !== null;
       };
 
-      const start = () => {
-        stop();
-        if (
-          !inView ||
-          interactionPaused ||
-          userPaused ||
-          reducedMotion.matches ||
-          tabs.length < 2
-        ) return;
-        timer = window.setInterval(() => activate(activeIndex + 1), 4600);
+      const runCycle = () => {
+        stopCycle();
+        if (!progress || !inView || reducedMotion.matches || tabs.length < 2) return;
+
+        const animation = progress.animate(
+          [{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }],
+          {
+            duration: WORKFLOW_STAGE_DURATION,
+            easing: "linear",
+            fill: "both",
+          },
+        );
+        progressAnimation = animation;
+
+        if (userPaused || interactionHeld()) {
+          animation.pause();
+          root.dataset.cycleState = "paused";
+        } else {
+          root.dataset.cycleState = "running";
+        }
+
+        animation.finished
+          .then(() => {
+            if (progressAnimation !== animation) return;
+            animation.cancel();
+            progressAnimation = undefined;
+            if (!inView || userPaused || interactionHeld() || reducedMotion.matches) return;
+            activate(activeIndex + 1);
+          })
+          .catch(() => undefined);
+      };
+
+      const syncCycle = () => {
+        if (!inView || reducedMotion.matches || tabs.length < 2) {
+          stopCycle();
+          return;
+        }
+        if (!progressAnimation) {
+          runCycle();
+          return;
+        }
+        if (userPaused || interactionHeld()) {
+          progressAnimation.pause();
+          root.dataset.cycleState = "paused";
+        } else {
+          progressAnimation.play();
+          root.dataset.cycleState = "running";
+        }
+      };
+
+      const activate = (index: number, moveFocus = false) => {
+        if (tabs.length === 0) return;
+        const nextIndex = ((index % tabs.length) + tabs.length) % tabs.length;
+        const stageChanged = nextIndex !== activeIndex;
+
+        if (stageChanged) {
+          activeIndex = nextIndex;
+          root.dataset.activeStage = String(activeIndex);
+          root.style.setProperty(
+            "--workflow-ratio",
+            String(tabs.length > 1 ? activeIndex / (tabs.length - 1) : 1),
+          );
+
+          tabs.forEach((tab, tabIndex) => {
+            const active = tabIndex === activeIndex;
+            tab.setAttribute("aria-selected", String(active));
+            tab.tabIndex = active ? 0 : -1;
+          });
+          panels.forEach((panel, panelIndex) => {
+            panel.hidden = panelIndex !== activeIndex;
+          });
+          annotations.forEach((annotation, annotationIndex) => {
+            annotation.dataset.active = String(annotationIndex === activeIndex);
+          });
+          centerActiveTab();
+          runCycle();
+        }
+
+        if (moveFocus) tabs[nextIndex]?.focus();
       };
 
       tabs.forEach((tab, index) => {
         tab.addEventListener("click", () => {
-          activate(index, false, true);
-          start();
-        });
+          activate(index);
+        }, { signal: listeners.signal });
+        tab.addEventListener("pointerenter", (event) => {
+          if (event.pointerType === "touch") return;
+          activate(index);
+        }, { signal: listeners.signal });
         tab.addEventListener("keydown", (event) => {
           if (event.key === "ArrowRight" || event.key === "ArrowDown") {
             event.preventDefault();
-            activate(activeIndex + 1, true, true);
+            activate(activeIndex + 1, true);
           } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
             event.preventDefault();
-            activate(activeIndex - 1, true, true);
+            activate(activeIndex - 1, true);
           } else if (event.key === "Home") {
             event.preventDefault();
-            activate(0, true, true);
+            activate(0, true);
           } else if (event.key === "End") {
             event.preventDefault();
-            activate(tabs.length - 1, true, true);
+            activate(tabs.length - 1, true);
           }
-        });
+        }, { signal: listeners.signal });
       });
+
+      experience.addEventListener("pointerenter", (event) => {
+        if (event.pointerType === "touch") return;
+        hoverHeld = true;
+        syncCycle();
+      }, { signal: listeners.signal });
+      experience.addEventListener("pointerleave", (event) => {
+        if (event.pointerType === "touch") return;
+        hoverHeld = false;
+        syncCycle();
+      }, { signal: listeners.signal });
+
+      const syncFocusHold = () => {
+        queueMicrotask(() => {
+          if (listeners.signal.aborted) return;
+          focusHeld = experience.querySelector(":focus-visible") !== null;
+          syncCycle();
+        });
+      };
+      experience.addEventListener("focusin", syncFocusHold, { signal: listeners.signal });
+      experience.addEventListener("focusout", syncFocusHold, { signal: listeners.signal });
 
       toggle?.addEventListener("click", () => {
         userPaused = !userPaused;
         updateToggle();
-        if (userPaused) stop();
-        else {
-          interactionPaused = false;
-          start();
-        }
-      });
-
-      root.addEventListener("pointerenter", () => {
-        interactionPaused = true;
-        stop();
-      });
-      root.addEventListener("pointerleave", () => {
-        interactionPaused = false;
-        start();
-      });
-      root.addEventListener("focusin", () => {
-        interactionPaused = true;
-        stop();
-      });
-      root.addEventListener("focusout", (event) => {
-        if (event.relatedTarget instanceof Node && root.contains(event.relatedTarget)) return;
-        interactionPaused = false;
-        start();
-      });
+        syncCycle();
+      }, { signal: listeners.signal });
 
       const observer = new IntersectionObserver(
         ([entry]) => {
-          inView = entry?.isIntersecting === true && entry.intersectionRatio >= 0.28;
-          start();
+          const nextInView = entry?.isIntersecting === true && entry.intersectionRatio >= 0.18;
+          if (nextInView === inView) return;
+          inView = nextInView;
+          if (!inView) {
+            userPaused = false;
+            updateToggle();
+            stopCycle();
+            return;
+          }
+          refreshInteractionState();
+          runCycle();
         },
-        { threshold: [0, 0.28, 0.65] },
+        { threshold: [0, 0.18, 0.55] },
       );
-      observer.observe(root);
+      observer.observe(observedControl);
       reducedMotion.addEventListener("change", () => {
         updateToggle();
-        start();
+        if (reducedMotion.matches) stopCycle();
+        else {
+          refreshInteractionState();
+          runCycle();
+        }
+      }, { signal: listeners.signal });
+
+      const cleanup = () => {
+        stopCycle();
+        observer.disconnect();
+        listeners.abort();
+        delete root.dataset.workflowReady;
+      };
+      document.addEventListener("astro:before-swap", cleanup, {
+        once: true,
+        signal: listeners.signal,
       });
       updateToggle();
       activate(0);
@@ -341,7 +442,7 @@ const {
     display: grid;
     grid-template-columns: minmax(0, 1.08fr) minmax(22rem, 0.92fr);
     gap: clamp(1.25rem, 3vw, 3rem);
-    align-items: center;
+    align-items: start;
     min-width: 0;
   }
 
@@ -354,7 +455,7 @@ const {
   .workflow__visual {
     position: relative;
     aspect-ratio: 3 / 2;
-    align-self: center;
+    align-self: start;
     overflow: hidden;
     background: var(--surface-solid);
     box-shadow: var(--shadow-deep);
@@ -392,30 +493,89 @@ const {
     box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.42);
   }
 
-  .workflow__signal {
+  .workflow__annotations {
     position: absolute;
+    inset: 0;
     z-index: 2;
-    width: 0.72rem;
-    height: 0.72rem;
-    border: 2px solid white;
+    pointer-events: none;
+  }
+
+  .workflow__annotation {
+    position: absolute;
+    top: var(--annotation-y);
+    left: var(--annotation-x);
+    display: grid;
+    place-items: center;
+    opacity: 0.34;
+    transform: translate(-50%, -50%) scale(0.78);
+    transition: opacity 240ms ease, transform 380ms var(--ease);
+  }
+
+  .workflow__annotation[data-active="true"] {
+    z-index: 2;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .workflow__annotation-node {
+    display: grid;
+    width: 1.75rem;
+    height: 1.75rem;
+    place-items: center;
+    color: white;
+    border: 2px solid rgb(255 255 255 / 0.95);
     border-radius: 50%;
-    background: var(--secondary);
-    box-shadow: 0 0 0 0.45rem color-mix(in srgb, var(--secondary) 24%, transparent);
-    transform: scale(calc(0.8 + var(--workflow-ratio) * 0.35));
-    transition: transform 500ms var(--ease), opacity 350ms ease;
+    background: color-mix(in srgb, var(--accent) 86%, #05283d);
+    box-shadow:
+      0 0 0 0.42rem color-mix(in srgb, var(--accent) 18%, transparent),
+      0 0.4rem 1rem rgb(2 24 38 / 0.2);
+    font-family: var(--font-mono);
+    font-size: 0.54rem;
+    font-weight: 700;
   }
 
-  .workflow__signal--one {
-    top: 23%;
-    left: 19%;
+  .workflow__annotation[data-active="true"] .workflow__annotation-node {
+    color: white;
+    background: color-mix(in srgb, var(--night) 88%, var(--accent));
+    box-shadow:
+      0 0 0 0.52rem color-mix(in srgb, var(--secondary) 24%, transparent),
+      0 0 0 0.78rem rgb(255 255 255 / 0.16),
+      0 0.6rem 1.4rem rgb(2 24 38 / 0.26);
+    animation: workflow-marker-breathe 2.4s ease-in-out infinite;
   }
 
-  .workflow__signal--two {
-    right: 19%;
-    bottom: 24%;
-    background: var(--accent);
-    box-shadow: 0 0 0 0.45rem color-mix(in srgb, var(--accent) 25%, transparent);
-    transform: scale(calc(1.15 - var(--workflow-ratio) * 0.25));
+  .workflow__annotation-label {
+    position: absolute;
+    top: calc(100% + 0.65rem);
+    left: 50%;
+    min-width: max-content;
+    max-width: 10rem;
+    padding: 0.38rem 0.58rem;
+    color: rgb(255 255 255 / 0.94);
+    border: 1px solid rgb(255 255 255 / 0.22);
+    border-radius: 999px;
+    background: rgb(5 31 47 / 0.72);
+    box-shadow: 0 0.5rem 1.2rem rgb(2 24 38 / 0.14);
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    font-weight: 700;
+    line-height: 1.2;
+    opacity: 0;
+    transform: translate(-50%, -0.3rem);
+    transition: opacity 220ms ease, transform 320ms var(--ease);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+
+  .workflow__annotation[data-low="true"] .workflow__annotation-label {
+    top: auto;
+    bottom: calc(100% + 0.65rem);
+    transform: translate(-50%, 0.3rem);
+  }
+
+  .workflow__annotation[data-active="true"] .workflow__annotation-label {
+    opacity: 1;
+    transform: translate(-50%, 0);
   }
 
   .workflow__visual figcaption {
@@ -440,7 +600,7 @@ const {
   .workflow__control {
     display: flex;
     flex-direction: column;
-    min-height: clamp(28rem, 42vw, 36rem);
+    min-height: 0;
     padding: clamp(1rem, 2.2vw, 1.7rem);
     border: 1px solid rgb(255 255 255 / 0.18);
     background: rgb(255 255 255 / 0.075);
@@ -509,10 +669,18 @@ const {
     background: color-mix(in srgb, var(--secondary) 13%, transparent);
   }
 
+  .workflow__timeline {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.85rem;
+    align-items: center;
+    margin: 1rem 0 1.3rem;
+  }
+
   .workflow__progress {
     position: relative;
     height: 1.4rem;
-    margin: 1rem 0 1.3rem;
+    margin-inline: 0;
   }
 
   .workflow__progress::before,
@@ -521,7 +689,7 @@ const {
     top: 50%;
     right: 0;
     left: 0;
-    height: 1px;
+    height: 2px;
     content: "";
     background: rgb(255 255 255 / 0.16);
   }
@@ -532,56 +700,62 @@ const {
 
   .workflow__progress-fill {
     background: linear-gradient(90deg, var(--accent), var(--secondary));
-    transform: scaleX(var(--workflow-ratio));
+    box-shadow: 0 0 0.8rem color-mix(in srgb, var(--secondary) 24%, transparent);
+    transform: scaleX(0);
     transform-origin: left center;
-    transition: transform 600ms var(--ease);
-  }
-
-  .workflow__progress i {
-    position: absolute;
-    top: 50%;
-    left: calc(var(--marker-index) * 100% / (var(--workflow-count) - 1));
-    width: 0.42rem;
-    height: 0.42rem;
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--night-soft) 60%, var(--night));
-    transform: translate(-50%, -50%);
   }
 
   .workflow__toggle {
     display: inline-flex;
     gap: 0.55rem;
     align-items: center;
-    align-self: flex-end;
-    min-height: 2.5rem;
-    margin: -0.55rem 0 1.1rem;
-    padding: 0.45rem 0.75rem;
+    min-height: 2.35rem;
+    margin: 0;
+    padding: 0.4rem 0.68rem;
     color: var(--night-soft);
     border: 1px solid rgb(255 255 255 / 0.16);
     border-radius: 999px;
-    background: rgb(1 18 30 / 0.24);
+    background: transparent;
     cursor: pointer;
     font-family: var(--font-mono);
     font-size: 0.68rem;
     font-weight: 700;
+    opacity: 0.68;
+    transition: opacity 180ms ease, border-color 180ms ease, background 180ms ease;
+  }
+
+  .workflow:hover .workflow__toggle,
+  .workflow:focus-within .workflow__toggle,
+  .workflow__toggle[aria-pressed="true"] {
+    opacity: 1;
   }
 
   .workflow--light .workflow__toggle {
     color: var(--ink);
     border-color: var(--line);
-    background: rgb(255 255 255 / 0.7);
+    background: transparent;
   }
 
   .workflow__toggle-state {
-    width: 0.58rem;
-    height: 0.58rem;
-    border-radius: 0.16rem;
+    display: inline-flex;
+    gap: 0.18rem;
+    align-items: center;
+    justify-content: center;
+    width: 0.7rem;
+    height: 0.75rem;
+  }
+
+  .workflow__toggle-state i {
+    display: block;
+    width: 0.16rem;
+    height: 0.66rem;
+    border-radius: 999px;
     background: var(--secondary);
   }
 
-  .workflow__toggle[aria-pressed="true"] .workflow__toggle-state {
-    border-radius: 50%;
-    background: var(--accent);
+  .workflow__toggle[aria-pressed="true"] {
+    border-color: color-mix(in srgb, var(--secondary) 62%, transparent);
+    background: color-mix(in srgb, var(--secondary) 10%, transparent);
   }
 
   .workflow__toggle:disabled {
@@ -592,6 +766,7 @@ const {
   .workflow__panels {
     display: grid;
     flex: 1;
+    min-height: clamp(15rem, 18vw, 18rem);
   }
 
   .workflow__panel {
@@ -695,6 +870,15 @@ const {
     }
   }
 
+  @keyframes workflow-marker-breathe {
+    50% {
+      box-shadow:
+        0 0 0 0.68rem color-mix(in srgb, var(--secondary) 12%, transparent),
+        0 0 0 0.92rem rgb(255 255 255 / 0.08),
+        0 0.6rem 1.4rem rgb(2 24 38 / 0.22);
+    }
+  }
+
   @media (max-width: 68rem) {
     .workflow__intro,
     .workflow__experience {
@@ -702,7 +886,7 @@ const {
     }
 
     .workflow__control {
-      min-height: 31rem;
+      min-height: 0;
     }
   }
 
@@ -718,7 +902,23 @@ const {
     }
 
     .workflow__control {
-      min-height: 29rem;
+      min-height: 0;
+    }
+
+    .workflow__timeline {
+      grid-template-columns: 1fr auto;
+    }
+
+    .workflow__toggle {
+      min-height: 2.75rem;
+    }
+
+    .workflow__progress {
+      margin-inline: 0;
+    }
+
+    .workflow__visual figcaption {
+      display: none;
     }
 
     .workflow__evidence {
@@ -733,12 +933,24 @@ const {
   @media (prefers-reduced-motion: reduce) {
     .workflow__visual::after,
     .workflow__visual img,
-    .workflow__signal,
+    .workflow__annotation,
+    .workflow__annotation-node,
+    .workflow__annotation-label,
     .workflow__progress-fill,
     .workflow__panel,
     .workflow__tab {
       animation: none;
       transition: none;
+    }
+
+    .workflow__toggle {
+      display: none;
+    }
+  }
+
+  @media (hover: none) {
+    .workflow__toggle {
+      opacity: 0.85;
     }
   }
 </style>

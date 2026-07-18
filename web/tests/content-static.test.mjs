@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { stat } from "node:fs/promises";
 import test from "node:test";
 
 const sourceUrl = new URL("../src/", import.meta.url);
-const contentUrl = new URL("content/", sourceUrl);
 
 const products = [
   {
@@ -157,4 +157,91 @@ test("the positive INSPR product constellation remains present", async () => {
   assert.match(umbrella, /class="product-showcase"/);
   assert.match(umbrella, /class:list=\{\["product-story"/);
   assert.match(umbrella, /Explore \{product\.name\}/);
+});
+
+test("interactive explorers use one five-second, pause-only lifecycle", async () => {
+  const workflow = await source("components/WorkflowExplorer.astro");
+  const surface = await source("components/PaimosProductSurface.astro");
+
+  for (const [name, component] of [["workflow", workflow], ["surface", surface]]) {
+    assert.match(component, /STAGE_DURATION = 5000/, `${name} must advance every five seconds`);
+    assert.match(component, /\.animate\(/, `${name} must animate elapsed stage time`);
+    assert.match(component, /easing: "linear"/, `${name} progress must remain linear`);
+    assert.match(component, /pointerenter/, `${name} stages must respond to hover`);
+    assert.match(component, /IntersectionObserver/, `${name} must stop work offscreen`);
+    assert.match(component, /focusin/, `${name} must hold while keyboard focus is inside`);
+    assert.match(component, /focusout/, `${name} must resume after focus leaves`);
+    assert.match(
+      component,
+      /querySelector\(":focus-visible"\)/,
+      `${name} must not treat residual pointer focus as an interaction hold`,
+    );
+    assert.match(component, /AbortController/, `${name} must clean up its interaction listeners`);
+    assert.match(component, /animation\.cancel\(\)/, `${name} must release finished animations`);
+    assert.match(component, />Pause</, `${name} exposes one stable pause label`);
+    assert.doesNotMatch(component, /Play sequence/, `${name} must not expose a play control`);
+    assert.doesNotMatch(
+      component,
+      /Resume automatic progression/,
+      `${name} must keep the Pause toggle's accessible name stable`,
+    );
+  }
+
+  assert.match(workflow, /data-workflow-annotation/);
+  assert.match(workflow, /experience\.addEventListener\(\s*"pointerenter"/);
+  assert.match(workflow, /observer\.observe\(observedControl\)/);
+  assert.match(surface, /interactionArea\.addEventListener\(\s*"pointerenter"/);
+  assert.match(surface, /observer\.observe\(observedDetails\)/);
+  assert.match(surface, /data-surface-progress/);
+  assert.doesNotMatch(
+    surface,
+    /interactionArea\.contains\(document\.activeElement\)/,
+    "surface autoplay must not be locked by residual pointer focus",
+  );
+  assert.match(surface, /\.product-surface__toggle \{\s*min-height: 2\.75rem;/);
+  assert.match(workflow, /\.workflow__toggle \{\s*min-height: 2\.75rem;/);
+});
+
+test("workflow stages map their explanation back onto each image", async () => {
+  const umbrella = await source("pages/index.astro");
+  const janus = await source("content/janus.ts");
+  assert.match(umbrella, /visual: \{ x: 18, y: 61 \}/);
+  assert.match(janus, /visual: \{ x: 15, y: 50 \}/);
+  assert.match(janus, /visual: \{ x: 55, y: 50 \}/);
+  assert.match(janus, /visual: \{ x: 80, y: 47 \}/);
+
+  for (const { slug } of products) {
+    const content = await source(`content/${slug}.ts`);
+    const model = content.slice(content.indexOf("model:"), content.indexOf("featureSections:"));
+    assert.match(model, /visual: \{ x: \d+, y: \d+ \}/, `${slug} needs image-linked stages`);
+  }
+});
+
+test("the identity utility uses the unmodified official ZITADEL mark", async () => {
+  const umbrella = await source("pages/index.astro");
+  const footer = await source("components/MicrositeFooter.astro");
+  const logo = await readFile(
+    new URL("assets/brands/zitadel-logo-solo-dark-icon.svg", sourceUrl),
+  );
+  const digest = createHash("sha256").update(logo).digest("hex");
+
+  assert.equal(digest, "6767d70158d40a666378108c1fc22cfd10f2295615c68c35c104605973e6a07c");
+  assert.match(umbrella, /zitadel-logo-solo-dark-icon\.svg/);
+  assert.match(umbrella, /alt="ZITADEL logo"/);
+  assert.match(umbrella, /Self-hosted/);
+  assert.match(umbrella, /powered by ZITADEL/);
+  assert.match(footer, /ZITADEL identity/);
+});
+
+test("Janus headlines use the precise IBM Plex Sans display family", async () => {
+  const layout = await source("layouts/MicrositeLayout.astro");
+  const styles = await source("styles/microsites.css");
+  const manifest = await readFile(new URL("../package.json", import.meta.url), "utf8");
+
+  assert.match(layout, /@fontsource-variable\/ibm-plex-sans/);
+  assert.match(styles, /--font-display: "IBM Plex Sans Variable"/);
+  assert.match(manifest, /"@fontsource-variable\/ibm-plex-sans"/);
+  assert.doesNotMatch(layout, /@fontsource-variable\/sora/);
+  assert.doesNotMatch(manifest, /"@fontsource-variable\/sora"/);
+  assert.doesNotMatch(styles, /Unbounded Variable/);
 });

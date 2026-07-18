@@ -86,65 +86,291 @@ const details = [
         ))}
       </div>
 
-      {details.map((detail, index) => (
-        <article
-          id={`surface-panel-${index}`}
-          role="tabpanel"
-          aria-labelledby={`surface-tab-${index}`}
-          hidden={index !== 0}
-          data-surface-panel={index}
+      <div class="product-surface__timeline">
+        <span class="product-surface__progress" aria-hidden="true">
+          <i data-surface-progress></i>
+        </span>
+        <button
+          class="product-surface__toggle"
+          type="button"
+          aria-label="Pause automatic progression"
+          aria-pressed="false"
+          title="Pause automatic progression"
+          data-surface-toggle
         >
-          <p class="card-meta">Marker {String(index + 1).padStart(2, "0")}</p>
-          <h3>{detail.title}</h3>
-          <p>{detail.body}</p>
-          <a href={detail.href} target="_blank" rel="noreferrer">
-            Inspect the implementation <span aria-hidden="true">↗</span>
-          </a>
-        </article>
-      ))}
+          <span aria-hidden="true"><i></i><i></i></span>
+          <b>Pause</b>
+        </button>
+      </div>
+
+      <div class="product-surface__panels">
+        {details.map((detail, index) => (
+          <article
+            id={`surface-panel-${index}`}
+            role="tabpanel"
+            aria-labelledby={`surface-tab-${index}`}
+            hidden={index !== 0}
+            data-surface-panel={index}
+          >
+            <p class="card-meta">Marker {String(index + 1).padStart(2, "0")}</p>
+            <h3>{detail.title}</h3>
+            <p>{detail.body}</p>
+            <a href={detail.href} target="_blank" rel="noreferrer">
+              Inspect the implementation <span aria-hidden="true">↗</span>
+            </a>
+          </article>
+        ))}
+      </div>
     </div>
   </div>
 </section>
 
 <script>
+  const SURFACE_STAGE_DURATION = 5000;
+
   const initProductSurfaces = () => {
     document.querySelectorAll<HTMLElement>("[data-product-surface]").forEach((root) => {
       if (root.dataset.surfaceReady === "true") return;
       root.dataset.surfaceReady = "true";
+      const controller = new AbortController();
       const triggers = [...root.querySelectorAll<HTMLButtonElement>("[data-surface-trigger]")];
       const panels = [...root.querySelectorAll<HTMLElement>("[data-surface-panel]")];
+      const progress = root.querySelector<HTMLElement>("[data-surface-progress]");
+      const toggle = root.querySelector<HTMLButtonElement>("[data-surface-toggle]");
+      const interactionArea = root.querySelector<HTMLElement>(".product-surface__grid") ?? root;
+      const observedDetails = root.querySelector<HTMLElement>(".product-surface__details") ?? root;
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const hoverCapable = window.matchMedia("(hover: hover)");
+      let activeIndex = 0;
+      let inView = false;
+      let userPaused = false;
+      let hoverHeld = false;
+      let focusHeld = false;
+      let destroyed = false;
+      let progressAnimation: Animation | undefined;
 
-      const activate = (index: number) => {
-        root.dataset.activeMarker = String(index);
+      const stopCycle = () => {
+        const animation = progressAnimation;
+        progressAnimation = undefined;
+        animation?.cancel();
+        root.dataset.surfaceCycle = "idle";
+      };
+
+      const interactionHeld = () => hoverHeld || focusHeld;
+
+      const recomputeInteractionState = () => {
+        hoverHeld = hoverCapable.matches && interactionArea.matches(":hover");
+        focusHeld = interactionArea.querySelector(":focus-visible") !== null;
+      };
+
+      const updateToggle = () => {
+        if (!toggle) return;
+        toggle.disabled = reducedMotion.matches;
+        toggle.setAttribute("aria-pressed", String(userPaused));
+        toggle.setAttribute("aria-label", "Pause automatic progression");
+        toggle.title = "Pause automatic progression";
+      };
+
+      const runCycle = () => {
+        stopCycle();
+        if (destroyed || !progress || !inView || reducedMotion.matches || panels.length < 2) return;
+        const animation = progress.animate(
+          [{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }],
+          { duration: SURFACE_STAGE_DURATION, easing: "linear", fill: "both" },
+        );
+        progressAnimation = animation;
+        if (userPaused || interactionHeld()) {
+          animation.pause();
+          root.dataset.surfaceCycle = "paused";
+        } else {
+          root.dataset.surfaceCycle = "running";
+        }
+        animation.finished
+          .then(() => {
+            if (progressAnimation !== animation) return;
+            progressAnimation = undefined;
+            animation.cancel();
+            if (!inView || userPaused || interactionHeld() || reducedMotion.matches) return;
+            activate(activeIndex + 1);
+          })
+          .catch(() => undefined);
+      };
+
+      const syncCycle = () => {
+        if (destroyed) return;
+        if (!inView || reducedMotion.matches || panels.length < 2) {
+          stopCycle();
+          return;
+        }
+        if (!progressAnimation) {
+          runCycle();
+          return;
+        }
+        if (userPaused || interactionHeld()) {
+          progressAnimation.pause();
+          root.dataset.surfaceCycle = "paused";
+        } else {
+          progressAnimation.play();
+          root.dataset.surfaceCycle = "running";
+        }
+      };
+
+      const activate = (index: number, moveFocus = false) => {
+        const nextIndex = (index + panels.length) % panels.length;
+        const changed = nextIndex !== activeIndex;
+        activeIndex = nextIndex;
+        root.dataset.activeMarker = String(activeIndex);
+        let activeTab: HTMLButtonElement | undefined;
+
         triggers.forEach((trigger) => {
-          const active = Number(trigger.dataset.surfaceTrigger) === index;
+          const active = Number(trigger.dataset.surfaceTrigger) === activeIndex;
           if (trigger.getAttribute("role") === "tab") {
             trigger.setAttribute("aria-selected", String(active));
             trigger.tabIndex = active ? 0 : -1;
+            if (active) activeTab = trigger;
           } else {
             trigger.setAttribute("aria-pressed", String(active));
           }
         });
         panels.forEach((panel) => {
-          panel.hidden = Number(panel.dataset.surfacePanel) !== index;
+          panel.hidden = Number(panel.dataset.surfacePanel) !== activeIndex;
         });
+
+        if (moveFocus && activeTab && document.activeElement !== activeTab) {
+          activeTab.focus();
+        }
+
+        if (changed) runCycle();
+        else syncCycle();
       };
 
       triggers.forEach((trigger) => {
-        trigger.addEventListener("click", () => activate(Number(trigger.dataset.surfaceTrigger)));
+        trigger.addEventListener(
+          "click",
+          () => activate(Number(trigger.dataset.surfaceTrigger)),
+          { signal: controller.signal },
+        );
+        trigger.addEventListener(
+          "pointerenter",
+          (event) => {
+            if (event.pointerType === "touch") return;
+            activate(Number(trigger.dataset.surfaceTrigger));
+          },
+          { signal: controller.signal },
+        );
+        trigger.addEventListener(
+          "focus",
+          () => activate(Number(trigger.dataset.surfaceTrigger)),
+          { signal: controller.signal },
+        );
         if (trigger.getAttribute("role") === "tab") {
-          trigger.addEventListener("keydown", (event) => {
-            const tabs = triggers.filter((item) => item.getAttribute("role") === "tab");
-            const current = tabs.indexOf(trigger);
-            if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
-            event.preventDefault();
-            const direction = event.key === "ArrowRight" ? 1 : -1;
-            const next = tabs[(current + direction + tabs.length) % tabs.length];
-            activate(Number(next.dataset.surfaceTrigger));
-            next.focus();
-          });
+          trigger.addEventListener(
+            "keydown",
+            (event) => {
+              const tabs = triggers.filter((item) => item.getAttribute("role") === "tab");
+              const current = tabs.indexOf(trigger);
+              const keys = ["ArrowRight", "ArrowLeft", "ArrowDown", "ArrowUp", "Home", "End"];
+              if (!keys.includes(event.key)) return;
+              event.preventDefault();
+              const next = event.key === "Home"
+                ? tabs[0]
+                : event.key === "End"
+                  ? tabs.at(-1)
+                  : tabs[
+                      (current + (event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : -1) + tabs.length) % tabs.length
+                    ];
+              if (next) activate(Number(next.dataset.surfaceTrigger), true);
+            },
+            { signal: controller.signal },
+          );
         }
       });
+
+      interactionArea.addEventListener(
+        "pointerenter",
+        (event) => {
+          if (event.pointerType === "touch") return;
+          hoverHeld = true;
+          syncCycle();
+        },
+        { signal: controller.signal },
+      );
+      interactionArea.addEventListener(
+        "pointerleave",
+        (event) => {
+          if (event.pointerType === "touch") return;
+          hoverHeld = false;
+          syncCycle();
+        },
+        { signal: controller.signal },
+      );
+      const syncFocusHold = () => {
+        queueMicrotask(() => {
+          if (destroyed) return;
+          focusHeld = interactionArea.querySelector(":focus-visible") !== null;
+          syncCycle();
+        });
+      };
+      interactionArea.addEventListener("focusin", syncFocusHold, {
+        signal: controller.signal,
+      });
+      interactionArea.addEventListener("focusout", syncFocusHold, {
+        signal: controller.signal,
+      });
+
+      toggle?.addEventListener(
+        "click",
+        () => {
+          userPaused = !userPaused;
+          updateToggle();
+          syncCycle();
+        },
+        { signal: controller.signal },
+      );
+
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          const nextInView = entry?.isIntersecting === true && entry.intersectionRatio >= 0.18;
+          const visibilityChanged = nextInView !== inView;
+          inView = nextInView;
+          recomputeInteractionState();
+
+          if (!inView) {
+            userPaused = false;
+            updateToggle();
+            stopCycle();
+            return;
+          }
+
+          if (visibilityChanged) runCycle();
+          else syncCycle();
+        },
+        { threshold: [0, 0.18, 0.55] },
+      );
+      observer.observe(observedDetails);
+
+      const handleReducedMotionChange = () => {
+        updateToggle();
+        if (reducedMotion.matches) stopCycle();
+        else runCycle();
+      };
+      reducedMotion.addEventListener("change", handleReducedMotionChange);
+
+      const cleanup = () => {
+        if (destroyed) return;
+        destroyed = true;
+        controller.abort();
+        observer.disconnect();
+        reducedMotion.removeEventListener("change", handleReducedMotionChange);
+        stopCycle();
+        delete root.dataset.surfaceReady;
+      };
+      document.addEventListener("astro:before-swap", cleanup, {
+        once: true,
+        signal: controller.signal,
+      });
+
+      updateToggle();
       activate(0);
     });
   };
@@ -160,9 +386,9 @@ const details = [
 
   .product-surface__grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.65fr);
+    grid-template-columns: minmax(0, 1.14fr) minmax(22rem, 0.86fr);
     gap: clamp(1.25rem, 3vw, 3rem);
-    align-items: stretch;
+    align-items: start;
     margin-top: clamp(2.5rem, 5vw, 4.5rem);
   }
 
@@ -178,10 +404,9 @@ const details = [
 
   .product-surface__frame :global(img) {
     width: 100%;
-    height: calc(100% + 2.2rem);
+    height: 100%;
     object-fit: cover;
     object-position: center top;
-    transform: translateY(-2.2rem);
   }
 
   .product-surface__frame::after {
@@ -197,8 +422,8 @@ const details = [
     position: absolute;
     z-index: 3;
     display: grid;
-    width: 2.45rem;
-    height: 2.45rem;
+    width: 2.75rem;
+    height: 2.75rem;
     place-items: center;
     color: white;
     border: 2px solid white;
@@ -206,13 +431,21 @@ const details = [
     background: var(--accent-strong);
     box-shadow: 0 0 0 0.5rem color-mix(in srgb, var(--accent) 20%, transparent), var(--shadow-sm);
     cursor: pointer;
+    transform: translate(-50%, -50%);
     transition: transform 220ms var(--ease), background 180ms ease;
   }
 
   .product-surface__hotspot:hover,
   .product-surface__hotspot[aria-pressed="true"] {
-    background: var(--secondary);
-    transform: scale(1.12);
+    background: var(--night-deep);
+    box-shadow:
+      0 0 0 0.5rem color-mix(in srgb, var(--secondary) 44%, transparent),
+      var(--shadow-sm);
+    transform: translate(-50%, -50%) scale(1.12);
+  }
+
+  .product-surface__hotspot:focus-visible {
+    outline-color: white;
   }
 
   .product-surface__hotspot span {
@@ -222,18 +455,18 @@ const details = [
   }
 
   .product-surface__hotspot--1 {
-    top: 30%;
-    right: 16%;
+    top: 38%;
+    left: 84%;
   }
 
   .product-surface__hotspot--2 {
-    top: 44%;
-    right: 18%;
+    top: 47%;
+    left: 88%;
   }
 
   .product-surface__hotspot--3 {
-    right: 22%;
-    bottom: 13%;
+    top: 82%;
+    left: 73%;
   }
 
   .product-surface__frame figcaption {
@@ -255,9 +488,9 @@ const details = [
   }
 
   .product-surface__details {
-    display: flex;
-    flex-direction: column;
-    min-height: 31rem;
+    display: grid;
+    grid-template-rows: auto auto minmax(15rem, 1fr);
+    min-height: 0;
     padding: clamp(1rem, 2vw, 1.5rem);
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
@@ -267,15 +500,17 @@ const details = [
 
   .product-surface__nav {
     display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.5rem;
   }
 
   .product-surface__nav button {
     display: grid;
-    grid-template-columns: 2rem 1fr;
-    gap: 0.65rem;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 0.45rem;
     align-items: center;
-    min-height: 3.4rem;
+    min-height: 5rem;
     padding: 0.55rem 0.7rem;
     color: var(--ink-soft);
     border: 1px solid transparent;
@@ -284,7 +519,7 @@ const details = [
     cursor: pointer;
     font-size: 0.8rem;
     font-weight: 700;
-    text-align: left;
+    text-align: center;
     transition: color 180ms ease, border-color 180ms ease, background 180ms ease;
   }
 
@@ -294,9 +529,93 @@ const details = [
     background: var(--accent-soft);
   }
 
+  .product-surface__timeline {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.85rem;
+    align-items: center;
+    margin-top: 1rem;
+  }
+
+  .product-surface__progress {
+    position: relative;
+    height: 1.2rem;
+  }
+
+  .product-surface__progress::before,
+  .product-surface__progress > i {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 0;
+    height: 2px;
+    content: "";
+    background: var(--line);
+  }
+
+  .product-surface__progress > i {
+    background: linear-gradient(90deg, var(--accent), var(--secondary));
+    box-shadow: 0 0 0.8rem color-mix(in srgb, var(--secondary) 22%, transparent);
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+
+  .product-surface__toggle {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    min-height: 2.35rem;
+    padding: 0.4rem 0.68rem;
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: transparent;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    opacity: 0.8;
+    transition: opacity 180ms ease, border-color 180ms ease, background 180ms ease;
+  }
+
+  .product-surface:hover .product-surface__toggle,
+  .product-surface:focus-within .product-surface__toggle,
+  .product-surface__toggle[aria-pressed="true"] {
+    opacity: 1;
+  }
+
+  .product-surface__toggle > span {
+    display: inline-flex;
+    gap: 0.18rem;
+    align-items: center;
+    width: 0.7rem;
+    height: 0.75rem;
+  }
+
+  .product-surface__toggle i {
+    display: block;
+    width: 0.16rem;
+    height: 0.66rem;
+    border-radius: 999px;
+    background: var(--secondary);
+  }
+
+  .product-surface__toggle b {
+    font-weight: 700;
+  }
+
+  .product-surface__toggle[aria-pressed="true"] {
+    border-color: color-mix(in srgb, var(--secondary) 62%, transparent);
+    background: color-mix(in srgb, var(--secondary) 10%, transparent);
+  }
+
+  .product-surface__panels {
+    display: grid;
+    min-height: clamp(15rem, 20vw, 18rem);
+  }
+
   .product-surface__details article {
-    margin-top: auto;
-    padding: clamp(1.25rem, 2.5vw, 2rem) 0.25rem 0.25rem;
+    align-self: start;
+    padding: clamp(1.1rem, 2vw, 1.65rem) 0.25rem 0.25rem;
     animation: surface-detail-in 420ms var(--ease) both;
   }
 
@@ -306,7 +625,7 @@ const details = [
 
   .product-surface__details h3 {
     margin-top: 0.85rem;
-    font-size: clamp(1.9rem, 2.7vw, 3rem);
+    font-size: clamp(1.8rem, 2.35vw, 2.65rem);
   }
 
   .product-surface__details article > p:not(.card-meta) {
@@ -339,23 +658,52 @@ const details = [
       min-height: auto;
     }
 
-    .product-surface__details article {
-      margin-top: 1rem;
+    .product-surface__panels {
+      min-height: 16rem;
     }
   }
 
   @media (max-width: 42rem) {
+    .product-surface__hotspot--1 {
+      top: 30%;
+      left: 78%;
+    }
+
+    .product-surface__hotspot--2 {
+      top: 55%;
+      left: 89%;
+    }
+
     .product-surface__hotspot {
-      width: 2.1rem;
-      height: 2.1rem;
+      width: 2.75rem;
+      height: 2.75rem;
+    }
+
+    .product-surface__toggle {
+      min-height: 2.75rem;
+    }
+
+    .product-surface__frame figcaption {
+      display: none;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .product-surface__hotspot,
+    .product-surface__progress > i,
     .product-surface__details article {
       animation: none;
       transition: none;
+    }
+
+    .product-surface__toggle {
+      display: none;
+    }
+  }
+
+  @media (hover: none) {
+    .product-surface__toggle {
+      opacity: 0.85;
     }
   }
 </style>

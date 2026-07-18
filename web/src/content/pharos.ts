@@ -32,7 +32,7 @@ export const pharosContent = {
   proof: [
     "Self-hosted control plane",
     "Outbound host beacon",
-    "Zitadel OIDC",
+    "ZITADEL OIDC",
     "AGPL-3.0-only",
   ],
   problem: {
@@ -73,6 +73,7 @@ export const pharosContent = {
       {
         number: "01",
         title: "Observe",
+        visual: { x: 30, y: 19 },
         body:
           "A small beacon sends bounded, non-secret facts over an outbound connection: heartbeat cadence, Nix freshness, kernel posture, service state, backup posture and optional coarse location.",
         icon: "radio-tower",
@@ -86,6 +87,7 @@ export const pharosContent = {
       {
         number: "02",
         title: "Compare",
+        visual: { x: 29, y: 66 },
         body:
           "Pharos keeps runtime observations separate from nixcfg declarations and operator requests. You can tell what is running now, what has been declared and what is still waiting to be applied.",
         icon: "git-compare-arrows",
@@ -99,6 +101,7 @@ export const pharosContent = {
       {
         number: "03",
         title: "Gate",
+        visual: { x: 63, y: 50 },
         body:
           "Fixed maintenance workflows require the relevant checks before execution. The browser creates a review record; it never sends arbitrary commands to a host.",
         icon: "shield-check",
@@ -112,6 +115,7 @@ export const pharosContent = {
       {
         number: "04",
         title: "Verify",
+        visual: { x: 86, y: 48 },
         body:
           "After a switch or restart, Pharos waits for fresh host evidence, checks the running kernel and reconciles the result with the original workflow. Recovery verifies state without silently replaying the change.",
         icon: "badge-check",
@@ -303,7 +307,7 @@ export const pharosContent = {
       "Pharos is a Rust workspace with shared contracts between server and beacon, preventing their report schema from drifting independently.",
     paragraphs: [
       "The control plane uses axum, server-rendered HTML and a small vanilla JavaScript layer over stable JSON APIs. A host beacon reports through an outbound connection, while the browser reads the reconciled fleet model and creates review records for the fixed actions Pharos understands.",
-      "nixcfg supplies declared host and service intent. Janus owns machine credentials and secure provider handoffs. Zitadel supplies human identity, while Pharos retains the final per-host authorization decision.",
+      "nixcfg supplies declared host and service intent. Janus owns machine credentials and secure provider handoffs. ZITADEL supplies human identity, while Pharos retains the final per-host authorization decision.",
       "State is persisted as JSON today. That keeps deployment compact and the backup boundary explicit. SQLite remains a demand-driven future option rather than an architectural promise.",
     ],
     flow: [
@@ -330,7 +334,7 @@ export const pharosContent = {
       {
         title: "Human access",
         body:
-          "Zitadel provides OIDC identity. Pharos applies its own operator and per-host access policy, with an empty view by default for authenticated users who have no grants.",
+          "ZITADEL provides OIDC identity. Pharos applies its own operator and per-host access policy, with an empty view by default for authenticated users who have no grants.",
         reference: {
           label: "Inspect fail-closed access grants",
           href: "https://github.com/markus-barta/pharos/blob/main/crates/pharosd/src/auth.rs#L293-L329",
@@ -378,7 +382,7 @@ export const pharosContent = {
           "Portable outbound systemd beacon with local private state and no inbound listener.",
       },
       {
-        name: "Zitadel",
+        name: "ZITADEL",
         status: "Native",
         description:
           "Human OIDC login. Final operator and host authorization remains in Pharos.",
@@ -494,7 +498,7 @@ export const pharosContent = {
     {
       question: "How are people authenticated?",
       answer:
-        "Zitadel provides OIDC identity. Pharos then applies its own operator and per-host access policy. Machine authentication for beacons is separate.",
+        "ZITADEL provides OIDC identity. Pharos then applies its own operator and per-host access policy. Machine authentication for beacons is separate.",
     },
     {
       question: "What is the status of managed cloud provisioning?",

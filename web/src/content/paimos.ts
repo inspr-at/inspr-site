@@ -77,6 +77,7 @@ export const paimosContent = {
       {
         number: "01",
         title: "Plan",
+        visual: { x: 24, y: 18 },
         icon: "folder-kanban",
         body:
           "Structure work as epics, tickets and tasks. Add typed dependencies, sprints, releases, estimates, time and customer-facing delivery state.",
@@ -91,6 +92,7 @@ export const paimosContent = {
       {
         number: "02",
         title: "Context",
+        visual: { x: 22, y: 68 },
         icon: "book-open-check",
         body:
           "Link repositories and durable knowledge. Add runbooks, guidelines, external systems, agent definitions and issue-to-file anchors.",
@@ -105,6 +107,7 @@ export const paimosContent = {
       {
         number: "03",
         title: "Run",
+        visual: { x: 50, y: 40 },
         icon: "play",
         body:
           "Choose the provider, execution profile, effort, prompt preset, context pack and agent before work begins. Capability stays visible before authority is granted.",
@@ -119,6 +122,7 @@ export const paimosContent = {
       {
         number: "04",
         title: "Evidence",
+        visual: { x: 77, y: 69 },
         icon: "file-check-2",
         body:
           "Keep run status, provider identity, safe provenance, test results, version and optional deploy outcome attached to the project history.",
@@ -133,6 +137,7 @@ export const paimosContent = {
       {
         number: "05",
         title: "Accept",
+        visual: { x: 50, y: 78 },
         icon: "badge-check",
         body:
           "Publish only selected work to the customer portal, produce delivery reports and close the loop with explicit acceptance.",
@@ -397,7 +402,7 @@ export const paimosContent = {
         title: "Identity and local authorization",
         body:
           "Generic OIDC with authorization code and PKCE handles identity. Verified-email matching and invite-only provisioning are the default. Roles and project permissions stay local, with local login and TOTP available as an alternative.",
-        meta: "Zitadel is the validated reference identity provider",
+        meta: "ZITADEL is the validated reference identity provider",
       },
       {
         title: "Audit and retention",
@@ -464,7 +469,7 @@ export const paimosContent = {
         name: "Generic OIDC",
         status: "Supported",
         description:
-          "Authorization code with PKCE, verified-email matching and local project authorization. Zitadel is the validated reference provider.",
+          "Authorization code with PKCE, verified-email matching and local project authorization. ZITADEL is the validated reference provider.",
       },
       {
         name: "Jira",
@@ -598,7 +603,7 @@ export const paimosContent = {
     {
       question: "Can we use our identity provider?",
       answer:
-        "Paimos supports one generic OIDC provider using authorization code and PKCE. Zitadel is the validated reference. Local login and TOTP remain available. SAML is not currently supported.",
+        "Paimos supports one generic OIDC provider using authorization code and PKCE. ZITADEL is the validated reference. Local login and TOTP remain available. SAML is not currently supported.",
     },
     {
       question: "Can customers see internal work?",

@@ -15,6 +15,10 @@ export type CardItem = {
 export type StepItem = CardItem & {
   number: string;
   signal?: string;
+  visual?: {
+    x: number;
+    y: number;
+  };
 };
 
 export type FeatureSection = {

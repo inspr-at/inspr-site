@@ -81,6 +81,7 @@ export const janusContent = {
         number: "01",
         icon: "list-tree",
         title: "SecretRef",
+        visual: { x: 15, y: 50 },
         body:
           "An opaque reference identifies one manifest-declared secret. It contains no value, avoids exposing backend paths and grants no authority by itself.",
         meta: "Stable identifier, not a credential",
@@ -95,6 +96,7 @@ export const janusContent = {
         number: "02",
         icon: "ticket-check",
         title: "UsePermit",
+        visual: { x: 55, y: 50 },
         body:
           "A short-lived permit approves one profile-bound use. It is checked against the principal, scope, executor, destination, profile, expiry, classification and lifecycle state.",
         meta: "Narrow, bound and optionally single-use",
@@ -109,6 +111,7 @@ export const janusContent = {
         number: "03",
         icon: "workflow",
         title: "Approved path",
+        visual: { x: 80, y: 47 },
         body:
           "A reviewed command, private service handoff or future purpose-built connector receives the value internally. The requesting agent cannot choose a new sink or retrieve the literal.",
         meta: "Policy owns the execution boundary",
@@ -216,7 +219,7 @@ export const janusContent = {
           title: "Role-gated workspace",
           body:
             "The deployed envelope uses admin, auditor, operator and viewer roles across the catalog, request, access, ledger, assurance and settings surfaces.",
-          meta: "Zitadel OIDC with explicit role bindings",
+          meta: "ZITADEL OIDC with explicit role bindings",
         },
         {
           icon: "scroll-text",
@@ -378,7 +381,7 @@ export const janusContent = {
           "The public flake packages janusd and janus-warden. Signed multi-architecture container images are published through the same assurance gate.",
       },
       {
-        name: "Zitadel OIDC",
+        name: "ZITADEL OIDC",
         status: "Live in oversight plane",
         description:
           "The deployed Go envelope uses OIDC, nonce, PKCE and explicit role bindings for human access. Broader invited-user automation is still being hardened.",

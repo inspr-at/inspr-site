@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.2.9",
-    "@fontsource-variable/ibm-plex-sans": "^5.2.8",
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
     "@fontsource-variable/space-grotesk": "^5.2.10",
     "@fontsource/barlow-condensed": "^5.2.8",

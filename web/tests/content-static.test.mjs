@@ -35,6 +35,23 @@ async function source(relativePath) {
   return readFile(new URL(relativePath, sourceUrl), "utf8");
 }
 
+function relativeLuminance(hex) {
+  const channels = hex.match(/[0-9a-f]{2}/gi).map((channel) => {
+    const normalized = Number.parseInt(channel, 16) / 255;
+    return normalized <= 0.04045
+      ? normalized / 12.92
+      : ((normalized + 0.055) / 1.055) ** 2.4;
+  });
+
+  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+}
+
+function contrastRatio(foreground, background) {
+  const luminances = [relativeLuminance(foreground), relativeLuminance(background)]
+    .sort((left, right) => right - left);
+  return (luminances[0] + 0.05) / (luminances[1] + 0.05);
+}
+
 test("each product route renders its canonical content through ProductPage", async () => {
   const urls = await source("content/urls.ts");
 
@@ -142,6 +159,52 @@ test("all four microsites render claim visuals and accessible workflow controls"
   }
 });
 
+test("inspectable rails keep compact desktop labels above minimum contrast", async () => {
+  const styles = await source("styles/microsites.css");
+  const compactColor = styles.match(/--inspectable-muted: (#[0-9a-f]{6});/i)?.[1];
+
+  assert.equal(compactColor, "#586b79");
+  assert.ok(contrastRatio(compactColor, "#fffdf9") >= 4.5);
+  assert.ok(contrastRatio(compactColor, "#f8f5ef") >= 4.5);
+  assert.match(
+    styles,
+    /\.inspectable-rail__index \{[\s\S]*?color: var\(--inspectable-muted\);/,
+  );
+  assert.match(
+    styles,
+    /\.inspectable-rail__selector-copy small \{[\s\S]*?color: var\(--inspectable-muted\);/,
+  );
+  assert.match(
+    styles,
+    /\.inspectable-rail__map-node \{[\s\S]*?color: var\(--inspectable-muted\);/,
+  );
+  assert.match(
+    styles,
+    /\.section--ink \.inspectable-rail \{\s*--inspectable-muted: var\(--night-soft\);/,
+  );
+});
+
+test("Paimos screenshot tabs use neutral tabpanel hosts", async () => {
+  const surface = await source("components/PaimosProductSurface.astro");
+
+  assert.match(surface, /<div\s+id=\{`surface-panel-\$\{index\}`\}\s+role="tabpanel"/);
+  assert.doesNotMatch(surface, /<article\s+id=\{`surface-panel-/);
+  assert.match(surface, /\.product-surface__details \[data-surface-panel\] \{/);
+  assert.match(surface, /\.product-surface__details \[data-surface-panel\]\[hidden\] \{/);
+  assert.doesNotMatch(surface, /\.product-surface__details article/);
+});
+
+test("Pharos states release and provider maturity without overclaiming", async () => {
+  const pharos = await source("content/pharos.ts");
+
+  assert.match(pharos, /releases\/tag\/v0\.1\.41/);
+  assert.match(pharos, /latest tagged release is v0\.1\.41, while current main declares v0\.1\.43/);
+  assert.match(pharos, /status: "Read-only live"/);
+  assert.match(pharos, /read-only provider checks are live/);
+  assert.match(pharos, /Managed execution is disabled pending attended production acceptance/);
+  assert.doesNotMatch(pharos, /connector is implemented and deployed/);
+});
+
 test("workflow stages expose icons, evidence signals and source references", async () => {
   for (const { slug } of products) {
     const content = await source(`content/${slug}.ts`);
@@ -237,14 +300,21 @@ test("the identity utility uses the unmodified official ZITADEL mark", async () 
   assert.match(footer, /ZITADEL identity/);
 });
 
-test("Janus headlines use the precise IBM Plex Sans display family", async () => {
+test("Janus headlines use editorial Fraunces without changing body or mono faces", async () => {
   const layout = await source("layouts/MicrositeLayout.astro");
   const styles = await source("styles/microsites.css");
   const manifest = await readFile(new URL("../package.json", import.meta.url), "utf8");
 
-  assert.match(layout, /@fontsource-variable\/ibm-plex-sans/);
-  assert.match(styles, /--font-display: "IBM Plex Sans Variable"/);
-  assert.match(manifest, /"@fontsource-variable\/ibm-plex-sans"/);
+  assert.match(layout, /@fontsource-variable\/fraunces\/full\.css/);
+  assert.match(
+    styles,
+    /html\[data-product="janus"\] \{[\s\S]*?--font-display: "Fraunces Variable", Georgia, "Times New Roman", serif;/,
+  );
+  assert.match(styles, /--font-body: "Inria Sans"/);
+  assert.match(styles, /--font-mono: "JetBrains Mono Variable"/);
+  assert.match(manifest, /"@fontsource-variable\/fraunces"/);
+  assert.doesNotMatch(layout, /@fontsource-variable\/ibm-plex-sans/);
+  assert.doesNotMatch(manifest, /"@fontsource-variable\/ibm-plex-sans"/);
   assert.doesNotMatch(layout, /@fontsource-variable\/sora/);
   assert.doesNotMatch(manifest, /"@fontsource-variable\/sora"/);
   assert.doesNotMatch(styles, /Unbounded Variable/);

@@ -105,7 +105,7 @@ const details = [
 
       <div class="product-surface__panels">
         {details.map((detail, index) => (
-          <article
+          <div
             id={`surface-panel-${index}`}
             role="tabpanel"
             aria-labelledby={`surface-tab-${index}`}
@@ -118,7 +118,7 @@ const details = [
             <a href={detail.href} target="_blank" rel="noreferrer">
               Inspect the implementation <span aria-hidden="true">↗</span>
             </a>
-          </article>
+          </div>
         ))}
       </div>
     </div>
@@ -613,13 +613,13 @@ const details = [
     min-height: clamp(15rem, 20vw, 18rem);
   }
 
-  .product-surface__details article {
+  .product-surface__details [data-surface-panel] {
     align-self: start;
     padding: clamp(1.1rem, 2vw, 1.65rem) 0.25rem 0.25rem;
     animation: surface-detail-in 420ms var(--ease) both;
   }
 
-  .product-surface__details article[hidden] {
+  .product-surface__details [data-surface-panel][hidden] {
     display: none;
   }
 
@@ -628,11 +628,11 @@ const details = [
     font-size: clamp(1.8rem, 2.35vw, 2.65rem);
   }
 
-  .product-surface__details article > p:not(.card-meta) {
+  .product-surface__details [data-surface-panel] > p:not(.card-meta) {
     margin-top: 1rem;
   }
 
-  .product-surface__details article > a {
+  .product-surface__details [data-surface-panel] > a {
     display: inline-flex;
     gap: 0.4rem;
     margin-top: 1.25rem;
@@ -691,7 +691,7 @@ const details = [
   @media (prefers-reduced-motion: reduce) {
     .product-surface__hotspot,
     .product-surface__progress > i,
-    .product-surface__details article {
+    .product-surface__details [data-surface-panel] {
       animation: none;
       transition: none;
     }

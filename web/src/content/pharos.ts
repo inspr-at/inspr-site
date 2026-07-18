@@ -7,7 +7,7 @@ export const pharosContent = {
   category: "Fleet operations",
   canonicalUrl: siteUrls.pharos,
   repositoryUrl: "https://github.com/markus-barta/pharos",
-  releaseUrl: "https://github.com/markus-barta/pharos/releases",
+  releaseUrl: "https://github.com/markus-barta/pharos/releases/tag/v0.1.41",
   license: {
     name: "AGPL-3.0-only",
     url: "https://github.com/markus-barta/pharos/blob/main/LICENSE",
@@ -236,7 +236,7 @@ export const pharosContent = {
         {
           title: "Provider-backed jobs",
           body:
-            "New-server setup is tracked from plan through provisioning, bootstrap, first heartbeat and backup posture. Provider credentials remain outside browser and job state, and every billable create action requires explicit final confirmation.",
+            "The reviewed job model covers provisioning, bootstrap, first heartbeat and backup posture. Authenticated read-only provider checks are live; managed create and cleanup execution stays disabled pending attended production acceptance.",
         },
       ],
     },
@@ -407,9 +407,9 @@ export const pharosContent = {
       },
       {
         name: "Hetzner Cloud",
-        status: "Acceptance pending",
+        status: "Read-only live",
         description:
-          "Guarded managed connector with current catalog checks, reviewed SSH key and firewall, explicit cost confirmation and tracked cleanup. The final attended production lifecycle is still pending.",
+          "Authenticated connection, SSH key, firewall, catalog and price checks are live and read-only. Managed execution is disabled pending attended production acceptance.",
       },
       {
         name: "netcup",
@@ -438,14 +438,14 @@ export const pharosContent = {
       "A merged declaration is not shown as applied until the host reports the matching value.",
       "Removing a host does not delete its server, disks, services or application data.",
       "Persistence is JSON today, and human sessions are in memory. A server restart requires users to sign in again.",
-      "Hetzner managed provisioning remains acceptance-pending; other cloud connectors are guided or planned rather than advertised as complete.",
+      "Authenticated Hetzner provider checks are live and read-only. Managed execution is disabled pending attended production acceptance; other cloud connectors are guided or planned.",
     ],
   },
   openSource: {
     eyebrow: "SOURCE AND SELF-HOSTING",
     title: "Run it on your terms.",
     body:
-      "The control plane, beacon, Docker Compose template, NixOS module and portable installer live in the Pharos source repository under AGPL-3.0-only. Deploy the complete system yourself, inspect its operating boundaries and adapt it to your infrastructure under those terms.",
+      "The latest tagged release is v0.1.41, while current main declares v0.1.43. The control plane, beacon, Docker Compose template, NixOS module and portable installer live in the Pharos source repository under AGPL-3.0-only. Inspect the operating boundaries and adapt the system to your infrastructure under those terms.",
     links: [
       {
         label: "Source repository",
@@ -463,8 +463,8 @@ export const pharosContent = {
         external: true,
       },
       {
-        label: "Release history",
-        href: "https://github.com/markus-barta/pharos/releases",
+        label: "Latest tagged release v0.1.41",
+        href: "https://github.com/markus-barta/pharos/releases/tag/v0.1.41",
         external: true,
       },
     ],
@@ -503,7 +503,7 @@ export const pharosContent = {
     {
       question: "What is the status of managed cloud provisioning?",
       answer:
-        "The guarded Hetzner Cloud connector is implemented and deployed, but its final attended disposable-host create-to-cleanup production acceptance is still pending. netcup is a guided import path. AWS, Google Cloud and Oracle Cloud connectors are planned.",
+        "Authenticated Hetzner Cloud connection, SSH key, firewall, catalog and price checks are live and read-only. Managed create and cleanup execution is disabled pending attended production acceptance. netcup is a guided import path. AWS, Google Cloud and Oracle Cloud connectors are planned.",
     },
     {
       question: "Can I use Pharos without Augmentoring?",

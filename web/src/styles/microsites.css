@@ -51,7 +51,7 @@
     --accent-strong: #055b59;
     --accent-soft: #d6ece8;
     --secondary: #d69b31;
-    --font-display: "IBM Plex Sans Variable", "Helvetica Neue", sans-serif;
+    --font-display: "Fraunces Variable", Georgia, "Times New Roman", serif;
   }
 
   html[data-product="paimos"] {
@@ -813,6 +813,7 @@
 
   .inspectable-rail {
     position: relative;
+    --inspectable-muted: #586b79;
   }
 
   .inspectable-rail__instruction {
@@ -820,7 +821,7 @@
     gap: 0.65rem;
     align-items: center;
     margin-bottom: 1rem;
-    color: var(--ink-faint);
+    color: var(--inspectable-muted);
     font-family: var(--font-mono);
     font-size: 0.68rem;
     font-weight: 700;
@@ -913,7 +914,7 @@
     width: 2.1rem;
     height: 2.1rem;
     place-items: center;
-    color: var(--ink-faint);
+    color: var(--inspectable-muted);
     border: 1px solid var(--line);
     border-radius: 50%;
     background: var(--surface-solid);
@@ -953,7 +954,7 @@
 
   .inspectable-rail__selector-copy small {
     overflow: hidden;
-    color: var(--ink-faint);
+    color: var(--inspectable-muted);
     font-size: 0.72rem;
     line-height: 1.25;
     text-overflow: ellipsis;
@@ -1055,7 +1056,7 @@
     width: 2rem;
     height: 2rem;
     place-items: center;
-    color: var(--ink-faint);
+    color: var(--inspectable-muted);
     border: 1px solid var(--line);
     border-radius: 50%;
     background: var(--surface-solid);
@@ -1100,7 +1101,7 @@
   .inspectable-rail__readout-index,
   .boundary-lens__count {
     margin-top: 1.25rem;
-    color: var(--ink-faint) !important;
+    color: var(--inspectable-muted) !important;
     font-family: var(--font-mono);
     font-size: 0.66rem;
     letter-spacing: 0.08em;
@@ -1138,6 +1139,10 @@
     font-size: 0.62rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+  }
+
+  .section--ink .inspectable-rail {
+    --inspectable-muted: var(--night-soft);
   }
 
   .section--ink .inspectable-rail__instruction {

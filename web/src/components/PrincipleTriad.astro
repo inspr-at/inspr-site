@@ -1,0 +1,353 @@
+---
+interface Principle {
+  number: string;
+  title: string;
+  body: string;
+  avoids: string;
+  protects: string;
+}
+
+interface Props {
+  principles: Principle[];
+}
+
+const { principles } = Astro.props;
+---
+
+<div class="principle-triad" data-principle-triad>
+  <div class="principle-triad__tabs" role="tablist" aria-label="Inspect each working principle">
+    {principles.map((principle, index) => (
+      <button
+        class:list={["principle-triad__tab", { "is-active": index === 0 }]}
+        id={`principle-tab-${index + 1}`}
+        type="button"
+        role="tab"
+        aria-selected={index === 0 ? "true" : "false"}
+        aria-controls="principle-detail"
+        tabindex={index === 0 ? "0" : "-1"}
+        data-principle-tab
+        data-title={principle.title}
+        data-avoids={principle.avoids}
+        data-protects={principle.protects}
+      >
+        <span class="principle-triad__number">{principle.number}</span>
+        <span class="principle-triad__node" aria-hidden="true"></span>
+        <strong>{principle.title}</strong>
+        <small>{principle.body}</small>
+      </button>
+    ))}
+  </div>
+
+  <div
+    class="principle-triad__detail"
+    id="principle-detail"
+    role="tabpanel"
+    aria-labelledby="principle-tab-1"
+    tabindex="0"
+  >
+    <p class="principle-triad__selection">
+      Inspecting <strong data-principle-title>{principles[0]?.title}</strong>
+    </p>
+    <div class="principle-triad__outcomes">
+      <div class="principle-outcome principle-outcome--risk">
+        <span aria-hidden="true">−</span>
+        <div>
+          <small>Avoided failure</small>
+          <p data-principle-avoids>{principles[0]?.avoids}</p>
+        </div>
+      </div>
+      <div class="principle-outcome principle-outcome--protected">
+        <span aria-hidden="true">+</span>
+        <div>
+          <small>Protected outcome</small>
+          <p data-principle-protects>{principles[0]?.protects}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-principle-triad]").forEach((triad) => {
+    const tabs = Array.from(triad.querySelectorAll<HTMLButtonElement>("[data-principle-tab]"));
+    const panel = triad.querySelector<HTMLElement>("[role='tabpanel']");
+    const title = triad.querySelector<HTMLElement>("[data-principle-title]");
+    const avoids = triad.querySelector<HTMLElement>("[data-principle-avoids]");
+    const protects = triad.querySelector<HTMLElement>("[data-principle-protects]");
+
+    const select = (tab: HTMLButtonElement, moveFocus = false) => {
+      tabs.forEach((candidate) => {
+        const active = candidate === tab;
+        candidate.classList.toggle("is-active", active);
+        candidate.setAttribute("aria-selected", String(active));
+        candidate.tabIndex = active ? 0 : -1;
+      });
+
+      if (panel) panel.setAttribute("aria-labelledby", tab.id);
+      if (title) title.textContent = tab.dataset.title ?? "";
+      if (avoids) avoids.textContent = tab.dataset.avoids ?? "";
+      if (protects) protects.textContent = tab.dataset.protects ?? "";
+      if (moveFocus) tab.focus();
+    };
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener("click", () => select(tab));
+      tab.addEventListener("focus", () => select(tab));
+      tab.addEventListener("pointerenter", (event) => {
+        if (event.pointerType === "mouse") select(tab);
+      });
+      tab.addEventListener("keydown", (event) => {
+        let nextIndex = index;
+        if (event.key === "ArrowRight" || event.key === "ArrowDown") nextIndex = (index + 1) % tabs.length;
+        if (event.key === "ArrowLeft" || event.key === "ArrowUp") nextIndex = (index - 1 + tabs.length) % tabs.length;
+        if (event.key === "Home") nextIndex = 0;
+        if (event.key === "End") nextIndex = tabs.length - 1;
+        if (nextIndex === index) return;
+        event.preventDefault();
+        select(tabs[nextIndex], true);
+      });
+    });
+  });
+</script>
+
+<style>
+  .principle-triad {
+    margin-top: clamp(2.5rem, 6vw, 5rem);
+  }
+
+  .principle-triad__tabs {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(0.75rem, 2vw, 1.5rem);
+  }
+
+  .principle-triad__tabs::before {
+    position: absolute;
+    z-index: -1;
+    top: 2.9rem;
+    right: 15%;
+    left: 15%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgb(14 119 114 / 0.28) 15% 85%, transparent);
+    content: "";
+  }
+
+  .principle-triad__tab {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-content: start;
+    min-height: 19rem;
+    padding: clamp(1.35rem, 2.5vw, 2.25rem);
+    color: var(--text-soft, #526269);
+    text-align: left;
+    border: 1px solid rgb(25 65 68 / 0.11);
+    border-radius: 1.5rem;
+    background: rgb(255 255 255 / 0.43);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6);
+    cursor: pointer;
+    transition:
+      border-color 200ms ease,
+      box-shadow 200ms ease,
+      transform 200ms ease,
+      background 200ms ease;
+  }
+
+  .principle-triad__tab:hover,
+  .principle-triad__tab:focus-visible,
+  .principle-triad__tab.is-active {
+    border-color: rgb(14 119 114 / 0.34);
+    background:
+      radial-gradient(circle at 84% 12%, rgb(90 195 190 / 0.13), transparent 8rem),
+      rgb(255 255 255 / 0.7);
+    box-shadow:
+      0 1.2rem 2.8rem rgb(35 64 68 / 0.1),
+      inset 0 1px 0 rgb(255 255 255 / 0.82);
+    transform: translateY(-0.2rem);
+  }
+
+  .principle-triad__tab:focus-visible {
+    outline: 3px solid rgb(14 119 114 / 0.2);
+    outline-offset: 3px;
+  }
+
+  .principle-triad__number {
+    color: var(--accent, #0e7772);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+  }
+
+  .principle-triad__node {
+    justify-self: end;
+    width: 0.72rem;
+    height: 0.72rem;
+    border: 2px solid var(--accent, #0e7772);
+    border-radius: 50%;
+    background: #f7f5ef;
+    box-shadow: 0 0 0 0.4rem rgb(14 119 114 / 0.08);
+    transition:
+      background 180ms ease,
+      box-shadow 180ms ease;
+  }
+
+  .principle-triad__tab.is-active .principle-triad__node {
+    background: var(--accent, #0e7772);
+    box-shadow: 0 0 0 0.5rem rgb(14 119 114 / 0.12);
+  }
+
+  .principle-triad__tab strong,
+  .principle-triad__tab small {
+    grid-column: 1 / -1;
+  }
+
+  .principle-triad__tab strong {
+    align-self: end;
+    margin-top: clamp(3.5rem, 7vw, 6rem);
+    color: var(--ink, #17313c);
+    font-family: var(--font-display, "Fraunces Variable"), serif;
+    font-size: clamp(1.5rem, 2.4vw, 2.2rem);
+    font-weight: 450;
+    line-height: 1.08;
+  }
+
+  .principle-triad__tab small {
+    margin-top: 0.9rem;
+    color: var(--text-soft, #526269);
+    font-size: 0.85rem;
+    line-height: 1.65;
+  }
+
+  .principle-triad__detail {
+    display: grid;
+    grid-template-columns: minmax(10rem, 0.3fr) minmax(0, 1fr);
+    gap: clamp(1.25rem, 4vw, 4rem);
+    align-items: center;
+    margin-top: 1rem;
+    padding: clamp(1.2rem, 2.5vw, 2rem);
+    border: 1px solid rgb(25 65 68 / 0.11);
+    border-radius: 1.5rem;
+    background: #e8f0ee;
+    outline: none;
+  }
+
+  .principle-triad__detail:focus-visible {
+    outline: 3px solid rgb(14 119 114 / 0.2);
+    outline-offset: 3px;
+  }
+
+  .principle-triad__selection {
+    margin: 0;
+    color: var(--text-soft, #526269);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.65rem;
+    line-height: 1.6;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .principle-triad__selection strong {
+    display: block;
+    margin-top: 0.25rem;
+    color: var(--ink, #17313c);
+    font-family: var(--font-body, sans-serif);
+    font-size: 0.95rem;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .principle-triad__outcomes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .principle-outcome {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.85rem;
+    padding: 1rem;
+    border: 1px solid rgb(25 65 68 / 0.1);
+    border-radius: 1rem;
+    background: rgb(255 255 255 / 0.54);
+  }
+
+  .principle-outcome > span {
+    display: grid;
+    width: 1.7rem;
+    height: 1.7rem;
+    place-items: center;
+    border-radius: 50%;
+    font-family: var(--font-mono, monospace);
+    font-weight: 700;
+  }
+
+  .principle-outcome--risk > span {
+    color: #9b5e1b;
+    background: rgb(232 166 57 / 0.15);
+  }
+
+  .principle-outcome--protected > span {
+    color: #075e5b;
+    background: rgb(14 119 114 / 0.12);
+  }
+
+  .principle-outcome small {
+    color: var(--text-faint, #708087);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .principle-outcome p {
+    margin: 0.35rem 0 0;
+    color: var(--ink, #17313c);
+    font-size: 0.82rem;
+    line-height: 1.55;
+  }
+
+  @media (max-width: 48rem) {
+    .principle-triad__tabs {
+      grid-template-columns: 1fr;
+    }
+
+    .principle-triad__tabs::before {
+      top: 10%;
+      right: auto;
+      bottom: 10%;
+      left: 2.3rem;
+      width: 1px;
+      height: auto;
+      background: linear-gradient(transparent, rgb(14 119 114 / 0.25) 15% 85%, transparent);
+    }
+
+    .principle-triad__tab {
+      min-height: 0;
+    }
+
+    .principle-triad__tab strong {
+      margin-top: 2.5rem;
+    }
+
+    .principle-triad__detail {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 36rem) {
+    .principle-triad__outcomes {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .principle-triad__tab,
+    .principle-triad__node {
+      transition: none;
+    }
+  }
+</style>

@@ -5,6 +5,8 @@ import MicrositeHeader from "../components/MicrositeHeader.astro";
 import MicrositeFooter from "../components/MicrositeFooter.astro";
 import ServiceRibbon from "../components/ServiceRibbon.astro";
 import WorkflowExplorer from "../components/WorkflowExplorer.astro";
+import SituationPacket from "../components/SituationPacket.astro";
+import PrincipleTriad from "../components/PrincipleTriad.astro";
 import { siteUrls } from "../content/urls";
 
 import insprHero from "../assets/products/inspr/hero.png";
@@ -69,24 +71,53 @@ const products = [
   },
 ];
 
+const proofPoints = [
+  {
+    title: "Shared doctrine",
+    definition: "One visible set of operating rules across people, agents and tools.",
+    href: "#principles",
+  },
+  {
+    title: "Declarative where practical",
+    definition: "Record intent and recoverable state before imperative action begins.",
+    href: "#flow",
+  },
+  {
+    title: "Human and agent ready",
+    definition: "Give both actors the same context, authority and evidence packet.",
+    href: "#idea",
+  },
+  {
+    title: "Inspectable foundations",
+    definition: "Keep source, licenses and operating assumptions open to review.",
+    href: "#source",
+  },
+];
+
 const principles = [
   {
     number: "01",
     title: "Context should travel",
     body:
       "Projects, repositories, hosts and operating rules should not have to be reconstructed every time a person or agent starts work.",
+    avoids: "Repeated discovery, stale prompts and work that starts from different realities.",
+    protects: "A shared situation that remains legible as people, agents and tools change.",
   },
   {
     number: "02",
     title: "Authority should stay visible",
     body:
       "A suggestion, a code change and a production action are different capabilities. The system should keep those boundaries explicit.",
+    avoids: "Capability drift, hidden escalation and accidental production authority.",
+    protects: "Reviewable decisions with authority matched to the work being performed.",
   },
   {
     number: "03",
     title: "State should be recoverable",
     body:
       "Declare what can be declared, keep source and evidence, and make the path back to a working system understandable without folklore.",
+    avoids: "Irreversible changes, undocumented state and recovery that depends on memory.",
+    protects: "A tested path back to a known state and evidence for the next decision.",
   },
 ];
 
@@ -212,11 +243,17 @@ const continuitySteps = [
       </figure>
     </section>
 
-    <ul class="umbrella-proof page-shell" aria-label="INSPR characteristics">
-      <li>Shared doctrine</li>
-      <li>Declarative where practical</li>
-      <li>Human and agent ready</li>
-      <li>Inspectable foundations</li>
+    <ul class="umbrella-proof page-shell" aria-label="INSPR characteristics and definitions">
+      {proofPoints.map((point, index) => (
+        <li>
+          <a href={point.href}>
+            <span class="umbrella-proof__number" aria-hidden="true">0{index + 1}</span>
+            <strong>{point.title}</strong>
+            <small>{point.definition}</small>
+            <span class="umbrella-proof__arrow" aria-hidden="true">↓</span>
+          </a>
+        </li>
+      ))}
     </ul>
 
     <section class="umbrella-idea" id="idea" aria-labelledby="idea-title">
@@ -237,6 +274,7 @@ const continuitySteps = [
             ambitious work easier to start, safer to continue and possible to recover.
           </p>
         </div>
+        <SituationPacket />
       </div>
     </section>
 
@@ -332,15 +370,7 @@ const continuitySteps = [
           attention on design, decisions and the work that still needs imagination.
         </p>
       </header>
-      <div class="principle-grid">
-        {principles.map((principle) => (
-          <article>
-            <span>{principle.number}</span>
-            <h3>{principle.title}</h3>
-            <p>{principle.body}</p>
-          </article>
-        ))}
-      </div>
+      <PrincipleTriad principles={principles} />
     </section>
 
     <section class="source-panel page-shell" id="source" aria-labelledby="source-title">
@@ -366,7 +396,7 @@ const continuitySteps = [
       </nav>
     </section>
 
-    <section class="umbrella-faq page-shell" aria-labelledby="faq-title">
+    <section class="umbrella-faq faq page-shell" aria-labelledby="faq-title">
       <header class="section-intro">
         <p class="eyebrow">A few useful answers</p>
         <h2 id="faq-title">Where does INSPR fit?</h2>
@@ -489,30 +519,87 @@ const continuitySteps = [
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     margin-block: 0;
-    padding-block: 1.35rem;
+    padding: 0;
     border-block: 1px solid rgb(33 63 66 / 0.13);
     list-style: none;
   }
 
   .umbrella-proof li {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding-inline: clamp(0.5rem, 2vw, 1.5rem);
-    color: var(--text-soft, #526269);
-    font-size: 0.78rem;
-    letter-spacing: 0.11em;
+    min-width: 0;
+  }
+
+  .umbrella-proof li + li {
+    border-left: 1px solid rgb(33 63 66 / 0.11);
+  }
+
+  .umbrella-proof a {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 0.45rem 0.7rem;
+    min-height: 7.25rem;
+    padding: 1.25rem clamp(0.75rem, 1.7vw, 1.4rem);
+    color: var(--ink, #17313c);
+    text-decoration: none;
+    transition: background 180ms ease;
+  }
+
+  .umbrella-proof a:hover,
+  .umbrella-proof a:focus-visible {
+    background: rgb(255 255 255 / 0.55);
+  }
+
+  .umbrella-proof a:focus-visible {
+    z-index: 1;
+    outline: 3px solid rgb(14 119 114 / 0.2);
+    outline-offset: -3px;
+  }
+
+  .umbrella-proof__number,
+  .umbrella-proof__arrow {
+    color: var(--accent, #0e7772);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+  }
+
+  .umbrella-proof__arrow {
+    transition: transform 180ms ease;
+  }
+
+  .umbrella-proof a:hover .umbrella-proof__arrow,
+  .umbrella-proof a:focus-visible .umbrella-proof__arrow {
+    transform: translateY(0.18rem);
+  }
+
+  .umbrella-proof strong {
+    align-self: start;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    line-height: 1.4;
     text-transform: uppercase;
   }
 
-  .umbrella-proof li::before {
-    width: 0.45rem;
-    height: 0.45rem;
-    flex: 0 0 auto;
-    border-radius: 50%;
-    background: var(--accent, #0e7772);
-    box-shadow: 0 0 0 0.28rem rgb(14 119 114 / 0.1);
-    content: "";
+  .umbrella-proof small {
+    grid-column: 2 / -1;
+    max-height: 0;
+    overflow: hidden;
+    color: var(--text-soft, #526269);
+    font-size: 0.72rem;
+    line-height: 1.5;
+    opacity: 0;
+    transform: translateY(-0.25rem);
+    transition:
+      max-height 220ms ease,
+      opacity 180ms ease,
+      transform 220ms ease;
+  }
+
+  .umbrella-proof a:hover small,
+  .umbrella-proof a:focus-visible small {
+    max-height: 5rem;
+    opacity: 1;
+    transform: translateY(0);
   }
 
   .umbrella-idea {
@@ -529,6 +616,10 @@ const continuitySteps = [
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
     gap: clamp(2rem, 7vw, 8rem);
     align-items: start;
+  }
+
+  .umbrella-idea__grid > :global(.situation-packet) {
+    grid-column: 1 / -1;
   }
 
   .umbrella-idea h2 {
@@ -933,39 +1024,6 @@ const continuitySteps = [
     padding-block: clamp(6rem, 11vw, 10rem);
   }
 
-  .principle-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    margin-top: clamp(2.5rem, 6vw, 5rem);
-  }
-
-  .principle-grid article {
-    min-height: 22rem;
-    padding: clamp(1.5rem, 3vw, 2.5rem);
-    border: 1px solid rgb(25 65 68 / 0.11);
-    border-radius: 1.5rem;
-    background: rgb(255 255 255 / 0.43);
-  }
-
-  .principle-grid article > span {
-    display: inline-block;
-    margin-bottom: clamp(4rem, 9vw, 7rem);
-    color: var(--accent, #0e7772);
-    font-family: var(--font-mono, monospace);
-    font-size: 0.75rem;
-  }
-
-  .principle-grid h3 {
-    margin-bottom: 1rem;
-    font-size: clamp(1.65rem, 2.4vw, 2.35rem);
-  }
-
-  .principle-grid p {
-    color: var(--text-soft, #526269);
-    line-height: 1.7;
-  }
-
   .source-panel {
     display: grid;
     grid-template-columns: minmax(0, 0.8fr) minmax(24rem, 1.2fr);
@@ -1057,7 +1115,14 @@ const continuitySteps = [
   @media (max-width: 54rem) {
     .umbrella-proof {
       grid-template-columns: repeat(2, 1fr);
-      row-gap: 1rem;
+    }
+
+    .umbrella-proof li:nth-child(3) {
+      border-left: 0;
+    }
+
+    .umbrella-proof li:nth-child(n + 3) {
+      border-top: 1px solid rgb(33 63 66 / 0.11);
     }
 
     .umbrella-idea__grid,
@@ -1074,18 +1139,6 @@ const continuitySteps = [
 
     .product-story__copy {
       max-width: 44rem;
-    }
-
-    .principle-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .principle-grid article {
-      min-height: 0;
-    }
-
-    .principle-grid article > span {
-      margin-bottom: 3rem;
     }
 
     .source-panel {
@@ -1109,6 +1162,11 @@ const continuitySteps = [
 
     .umbrella-proof {
       grid-template-columns: 1fr;
+    }
+
+    .umbrella-proof li + li {
+      border-top: 1px solid rgb(33 63 66 / 0.11);
+      border-left: 0;
     }
 
     .umbrella-idea {
@@ -1164,8 +1222,19 @@ const continuitySteps = [
     .product-story__visual,
     .product-story__visual :global(img),
     .text-link span,
-    .source-panel__links b {
+    .source-panel__links b,
+    .umbrella-proof a,
+    .umbrella-proof__arrow,
+    .umbrella-proof small {
       transition: none;
+    }
+  }
+
+  @media (hover: none) {
+    .umbrella-proof small {
+      max-height: 5rem;
+      opacity: 1;
+      transform: none;
     }
   }
 </style>

@@ -208,13 +208,11 @@ rollback_deployment() {
       printf '\033[1;31mERROR\033[0m automatic config rollback needs operator attention\n' >&2
 
     if [ "$COMPOSE_CHANGED" = "1" ]; then
-      remote_ssh "cd '$REMOTE_DIR' && docker compose up -d --remove-orphans" || \
-        printf '\033[1;31mERROR\033[0m automatic compose rollback needs operator attention\n' >&2
+      remote_ssh "cd '$REMOTE_DIR' && docker compose up -d --no-deps --no-build inspr-auth zitadel" || \
+        printf '\033[1;31mERROR\033[0m automatic identity edge rollback needs operator attention\n' >&2
     fi
-    if [ "$CADDY_CHANGED" = "1" ]; then
-      remote_ssh "cd '$REMOTE_DIR' && docker compose up -d --no-deps --force-recreate inspr-www" || \
-        printf '\033[1;31mERROR\033[0m automatic Caddy rollback needs operator attention\n' >&2
-    fi
+    remote_ssh "cd '$REMOTE_DIR' && docker compose up -d --no-deps --force-recreate inspr-www" || \
+      printf '\033[1;31mERROR\033[0m automatic web edge rollback needs operator attention\n' >&2
   fi
 
   printf '\033[1;33mROLLBACK\033[0m failed release retained as builds/%s\n' "$RELEASE_ID" >&2
@@ -303,7 +301,8 @@ probe_page() {
   while [ "$attempt" -le "$PROBE_ATTEMPTS" ]; do
     if headers=$(probe_headers "$url"); then
       code=$(printf '%s\n' "$headers" | tr -d '\r' | awk '/^HTTP\// { value=$2 } END { print value }')
-      if [ "$code" = "200" ]; then
+      if [ "$code" = "200" ] && \
+        printf '%s\n' "$headers" | tr -d '\r' | grep -qi '^strict-transport-security:[[:space:]]*max-age='; then
         matched=1
         break
       fi
@@ -314,7 +313,12 @@ probe_page() {
     sleep 1
     attempt=$((attempt + 1))
   done
-  [ "$matched" = "1" ] || die "$label -> ${code:-unknown} (expected 200 after $PROBE_ATTEMPTS attempts)"
+  if [ "$matched" != "1" ]; then
+    if [ "$code" = "200" ]; then
+      die "$label -> Strict-Transport-Security missing after $PROBE_ATTEMPTS attempts"
+    fi
+    die "$label -> ${code:-unknown} (expected 200 after $PROBE_ATTEMPTS attempts)"
+  fi
 
   content_type=$(printf '%s\n' "$headers" | tr -d '\r' | awk '
     tolower($1) == "content-type:" { value=$2 }
@@ -375,7 +379,13 @@ probe_redirect() {
     if headers=$(probe_headers "$url"); then
       code=$(printf '%s\n' "$headers" | tr -d '\r' | awk '/^HTTP\// { value=$2 } END { print value }')
       case ",$expected_codes," in
-        *",$code,"*) matched=1; break ;;
+        *",$code,"*)
+          if [ "$require_hsts" != "1" ] || \
+            printf '%s\n' "$headers" | tr -d '\r' | grep -qi '^strict-transport-security:[[:space:]]*max-age='; then
+            matched=1
+            break
+          fi
+          ;;
       esac
     else
       code="request failed"
@@ -384,8 +394,14 @@ probe_redirect() {
     sleep 1
     attempt=$((attempt + 1))
   done
-  [ "$matched" = "1" ] || \
+  if [ "$matched" != "1" ]; then
+    if [ "$require_hsts" = "1" ]; then
+      case ",$expected_codes," in
+        *",$code,"*) die "$label -> Strict-Transport-Security missing after $PROBE_ATTEMPTS attempts" ;;
+      esac
+    fi
     die "$label -> ${code:-unknown} (expected $expected_codes after $PROBE_ATTEMPTS attempts)"
+  fi
 
   location=$(printf '%s\n' "$headers" | tr -d '\r' | awk '
     tolower($1) == "location:" { value=$2 }
@@ -605,20 +621,17 @@ if [ "$CADDY_CHANGED" = "1" ] || [ "$COMPOSE_CHANGED" = "1" ]; then
     remote_ssh "mv -Tf '$REMOTE_DIR/docker-compose.yml.next-$RELEASE_ID' '$REMOTE_DIR/docker-compose.yml'"
   fi
 
-  # Compose owns the edge labels for the site, auth gateway and ZITADEL.
-  # Reconcile the complete project whenever the compose model changes so a
-  # successful file promotion cannot leave stale routers on running services.
-  if [ "$COMPOSE_CHANGED" = "1" ]; then
-    remote_ssh "cd '$REMOTE_DIR' && docker compose up -d --remove-orphans"
-    ok "compose-owned services reconciled with validated configuration"
-  fi
+  # The web container owns the shared middleware. Publish it before the auth
+  # services start referencing the new edge configuration.
+  remote_ssh "cd '$REMOTE_DIR' && docker compose up -d --no-deps --force-recreate inspr-www"
+  ok "inspr-www recreated with validated edge configuration"
 
-  # A bind-mounted single file follows its old inode across an atomic rename.
-  # Recreate the stateless web service whenever Caddy changed, even if Compose
-  # already reconciled another service above.
-  if [ "$CADDY_CHANGED" = "1" ]; then
-    remote_ssh "cd '$REMOTE_DIR' && docker compose up -d --no-deps --force-recreate inspr-www"
-    ok "inspr-www recreated with validated Caddy configuration"
+  # Reconcile only the two services whose labels own identity routes. No
+  # dependency, image build or database restart is permitted during this edge
+  # promotion; unchanged service definitions remain running as-is.
+  if [ "$COMPOSE_CHANGED" = "1" ]; then
+    remote_ssh "cd '$REMOTE_DIR' && docker compose up -d --no-deps --no-build inspr-auth zitadel"
+    ok "identity edge services reconciled with validated configuration"
   fi
 else
   ok "routing configuration unchanged"

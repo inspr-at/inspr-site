@@ -125,6 +125,9 @@ test("apex and identity edge routes enforce HTTPS and HSTS", async () => {
   assert.match(deploy, /identity service HTTPS/);
   assert.match(deploy, /identity HTTP upgrade/);
   assert.match(deploy, /Strict-Transport-Security missing/);
+  assert.match(deploy, /docker compose up -d --remove-orphans/);
+  assert.match(deploy, /compose-owned services reconciled with validated configuration/);
+  assert.match(deploy, /automatic compose rollback needs operator attention/);
 });
 
 test("product copy contains no em dashes and no hardcoded business host", async () => {

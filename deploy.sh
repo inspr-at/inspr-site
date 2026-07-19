@@ -204,9 +204,17 @@ rollback_deployment() {
       cp -p '$ROLLBACK_DIR/docker-compose.yml' '$REMOTE_DIR/docker-compose.yml.rollback-$RELEASE_ID'
       mv -Tf '$REMOTE_DIR/Caddyfile.rollback-$RELEASE_ID' '$REMOTE_DIR/Caddyfile'
       mv -Tf '$REMOTE_DIR/docker-compose.yml.rollback-$RELEASE_ID' '$REMOTE_DIR/docker-compose.yml'
-      cd '$REMOTE_DIR'
-      docker compose up -d --no-deps --force-recreate inspr-www" || \
+      cd '$REMOTE_DIR'" || \
       printf '\033[1;31mERROR\033[0m automatic config rollback needs operator attention\n' >&2
+
+    if [ "$COMPOSE_CHANGED" = "1" ]; then
+      remote_ssh "cd '$REMOTE_DIR' && docker compose up -d --remove-orphans" || \
+        printf '\033[1;31mERROR\033[0m automatic compose rollback needs operator attention\n' >&2
+    fi
+    if [ "$CADDY_CHANGED" = "1" ]; then
+      remote_ssh "cd '$REMOTE_DIR' && docker compose up -d --no-deps --force-recreate inspr-www" || \
+        printf '\033[1;31mERROR\033[0m automatic Caddy rollback needs operator attention\n' >&2
+    fi
   fi
 
   printf '\033[1;33mROLLBACK\033[0m failed release retained as builds/%s\n' "$RELEASE_ID" >&2
@@ -597,8 +605,21 @@ if [ "$CADDY_CHANGED" = "1" ] || [ "$COMPOSE_CHANGED" = "1" ]; then
     remote_ssh "mv -Tf '$REMOTE_DIR/docker-compose.yml.next-$RELEASE_ID' '$REMOTE_DIR/docker-compose.yml'"
   fi
 
-  remote_ssh "cd '$REMOTE_DIR' && docker compose up -d --no-deps --force-recreate inspr-www"
-  ok "inspr-www recreated with validated configuration"
+  # Compose owns the edge labels for the site, auth gateway and ZITADEL.
+  # Reconcile the complete project whenever the compose model changes so a
+  # successful file promotion cannot leave stale routers on running services.
+  if [ "$COMPOSE_CHANGED" = "1" ]; then
+    remote_ssh "cd '$REMOTE_DIR' && docker compose up -d --remove-orphans"
+    ok "compose-owned services reconciled with validated configuration"
+  fi
+
+  # A bind-mounted single file follows its old inode across an atomic rename.
+  # Recreate the stateless web service whenever Caddy changed, even if Compose
+  # already reconciled another service above.
+  if [ "$CADDY_CHANGED" = "1" ]; then
+    remote_ssh "cd '$REMOTE_DIR' && docker compose up -d --no-deps --force-recreate inspr-www"
+    ok "inspr-www recreated with validated Caddy configuration"
+  fi
 else
   ok "routing configuration unchanged"
 fi

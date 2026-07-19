@@ -308,16 +308,26 @@ test("workflow stages expose icons, evidence signals and source references", asy
   }
 });
 
-test("the positive INSPR product constellation remains present", async () => {
+test("the July 18 editorial product showcase remains accessible", async () => {
   const umbrella = await source("pages/index.astro");
-  const constellation = await source("components/ProductConstellation.astro");
+  const productStart = umbrella.indexOf('<section\n      class="umbrella-products');
+  const productEnd = umbrella.indexOf('<section\n      class="identity-utility');
+  const showcase = umbrella.slice(productStart, productEnd);
 
   assert.match(umbrella, /Three focused tools\. One coherent way of working\./);
-  assert.match(umbrella, /<ProductConstellation products=\{products\} \/>/);
-  assert.match(constellation, /class="product-constellation"/);
-  assert.match(constellation, /shared context/);
-  assert.match(constellation, /Explore \{product\.name\}/);
-  assert.doesNotMatch(constellation, /--accent-dark|--ink-muted/);
+  assert.ok(productStart >= 0 && productEnd > productStart);
+  assert.match(showcase, /data-section-pattern="editorial-product-stories"/);
+  assert.match(showcase, /class="product-showcase"/);
+  assert.match(showcase, /class="product-story-link"/);
+  assert.match(showcase, /class="product-story-link"[\s\S]*?<article class:list=/);
+  assert.match(showcase, /target="_blank"/);
+  assert.match(showcase, /rel="noopener noreferrer"/);
+  assert.match(showcase, /aria-labelledby=\{`product-\$\{product\.name\.toLowerCase\(\)\}-link`\}/);
+  assert.match(showcase, /opens in a new tab/);
+  assert.equal(showcase.match(/href=\{product\.href\}/g)?.length, 1);
+  assert.match(umbrella, /\.product-story-link:focus-visible/);
+  assert.doesNotMatch(showcase, /ProductConstellation|product-constellation/);
+  assert.doesNotMatch(showcase, /<a class="product-story__visual"/);
 });
 
 test("interactive explorers use one five-second, pause-only lifecycle", async () => {

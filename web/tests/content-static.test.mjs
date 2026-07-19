@@ -1,7 +1,18 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
-import { stat } from "node:fs/promises";
+import {
+  chmod,
+  mkdir,
+  mkdtemp,
+  readFile,
+  rm,
+  stat,
+  writeFile,
+} from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 import {
   createReleaseMetadata,
@@ -392,4 +403,226 @@ test("one validated release identity is visible across the site family", async (
   assert.match(deploy, /refusing to deploy a dirty working tree/);
   assert.match(deploy, /source changed during the build; refusing remote writes/);
   assert.match(deploy, /data-release-id=/);
+});
+
+test("direct SSH deployment overrides preserve one pinned host identity", async () => {
+  const deployUrl = new URL("../../deploy.sh", import.meta.url);
+  const deployPath = fileURLToPath(deployUrl);
+  const deploy = await readFile(deployUrl, "utf8");
+
+  assert.match(deploy, /INSPR_AT_SSH_HOSTNAME/);
+  assert.match(deploy, /INSPR_AT_SSH_HOST_KEY_ALIAS/);
+  assert.match(deploy, /StrictHostKeyChecking=yes/);
+  assert.match(deploy, /SSH_ARGS\+=\([\s\S]*Hostname=\$SSH_HOSTNAME[\s\S]*HostKeyAlias=\$SSH_HOST_KEY_ALIAS/);
+  assert.match(deploy, /SCP_ARGS\+=\([\s\S]*Hostname=\$SSH_HOSTNAME[\s\S]*HostKeyAlias=\$SSH_HOST_KEY_ALIAS/);
+  assert.match(deploy, /RSYNC_SSH\+="[^"]*Hostname=\$SSH_HOSTNAME[^"]*HostKeyAlias=\$SSH_HOST_KEY_ALIAS"/);
+
+  const baseEnvironment = {
+    PATH: process.env.PATH ?? "/usr/bin:/bin",
+  };
+  const rejected = [
+    {
+      environment: { INSPR_AT_SSH_HOSTNAME: "100.64.0.4" },
+      message: /must be set together/,
+    },
+    {
+      environment: {
+        INSPR_AT_SSH_HOSTNAME: "100.64.0.4;touch-bad",
+        INSPR_AT_SSH_HOST_KEY_ALIAS: "csb1.ts.barta.cm",
+      },
+      message: /must be a DNS name or IPv4 address/,
+    },
+    {
+      environment: {
+        INSPR_AT_SSH_HOSTNAME: "100.64.0.4",
+        INSPR_AT_SSH_HOST_KEY_ALIAS: "-oUnsafeOption",
+      },
+      message: /contains unsafe characters/,
+    },
+    {
+      environment: {
+        INSPR_AT_SSH_HOSTNAME: "100.64.0.4",
+        INSPR_AT_SSH_HOST_KEY_ALIAS: "[csb1.ts.barta.cm]:0",
+      },
+      message: /port must be between 1 and 65535/,
+    },
+    {
+      environment: {
+        INSPR_AT_SSH_HOSTNAME: "100.64.0.4",
+        INSPR_AT_SSH_HOST_KEY_ALIAS: "[csb1.ts.barta.cm]:2222",
+      },
+      message: /SSH_PORT is required for a bracketed/,
+    },
+    {
+      environment: {
+        INSPR_AT_SSH_HOSTNAME: "100.64.0.4",
+        INSPR_AT_SSH_HOST_KEY_ALIAS: "[csb1.ts.barta.cm]:2222",
+        INSPR_AT_SSH_PORT: "2223",
+      },
+      message: /SSH_PORT must match the bracketed/,
+    },
+  ];
+
+  for (const fixture of rejected) {
+    const result = spawnSync("/bin/bash", [deployPath], {
+      cwd: fileURLToPath(new URL("../..", import.meta.url)),
+      encoding: "utf8",
+      env: { ...baseEnvironment, ...fixture.environment },
+    });
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, fixture.message);
+    assert.doesNotMatch(result.stdout, /building Astro|uploading immutable release/);
+  }
+
+  const fixtureRoot = await mkdtemp(join(tmpdir(), "inspr-deploy-transport-"));
+  try {
+    const fakeBin = join(fixtureRoot, "fake-bin");
+    const transportLog = join(fixtureRoot, "transport.log");
+    const gitRevision = "0123456789abcdef0123456789abcdef01234567";
+    const releaseId = "20260719T000000Z-0123456789ab";
+    const fixtureDirectories = [
+      fakeBin,
+      join(fixtureRoot, "site"),
+      join(fixtureRoot, "web", "dist", "_astro"),
+      join(fixtureRoot, "web", "dist", "paimos"),
+      join(fixtureRoot, "web", "dist", "pharos"),
+      join(fixtureRoot, "web", "dist", "janus"),
+    ];
+    await Promise.all(
+      fixtureDirectories.map((directory) => mkdir(directory, { recursive: true })),
+    );
+
+    await Promise.all([
+      writeFile(join(fixtureRoot, "deploy.sh"), deploy),
+      writeFile(join(fixtureRoot, "Caddyfile"), "fixture caddy configuration\n"),
+      writeFile(join(fixtureRoot, "docker-compose.yml"), "services: {}\n"),
+      writeFile(join(fixtureRoot, "site", "index.html"), "fixture archive\n"),
+      writeFile(join(fixtureRoot, "web", "dist", "index.html"), "fixture umbrella\n"),
+      writeFile(join(fixtureRoot, "web", "dist", "paimos", "index.html"), "fixture paimos\n"),
+      writeFile(join(fixtureRoot, "web", "dist", "pharos", "index.html"), "fixture pharos\n"),
+      writeFile(join(fixtureRoot, "web", "dist", "janus", "index.html"), "fixture janus\n"),
+      writeFile(join(fixtureRoot, "web", "dist", "_astro", "fixture.css"), "body{}\n"),
+      writeFile(
+        join(fixtureRoot, "web", "dist", "release.json"),
+        `${JSON.stringify({
+          schemaVersion: 1,
+          package: { version: "1.0.0" },
+          source: { git: gitRevision.slice(0, 12), dirty: false },
+          deployment: {
+            releaseId,
+            deployedAt: "2026-07-19T00:00:00Z",
+          },
+        })}\n`,
+      ),
+    ]);
+
+    const loggingTransport = (name) => `#!/bin/sh
+printf '%s' '${name}' >> "$TRANSPORT_LOG"
+for argument in "$@"; do
+  printf '\\t%s' "$argument" >> "$TRANSPORT_LOG"
+done
+printf '\\n' >> "$TRANSPORT_LOG"
+cat >/dev/null
+`;
+    for (const transport of ["ssh", "scp", "rsync"]) {
+      const executable = join(fakeBin, transport);
+      await writeFile(executable, loggingTransport(transport));
+      await chmod(executable, 0o755);
+    }
+
+    const fakeGit = join(fakeBin, "git");
+    await writeFile(
+      fakeGit,
+      `#!/bin/sh
+case "$*" in
+  *rev-parse*) printf '%s\\n' '${gitRevision}' ;;
+  *status*) exit 0 ;;
+  *) exit 92 ;;
+esac
+`,
+    );
+    await chmod(fakeGit, 0o755);
+
+    const fakePython = join(fakeBin, "python3");
+    await writeFile(fakePython, "#!/bin/sh\nexit 0\n");
+    await chmod(fakePython, 0o755);
+
+    const bracketedAlias = spawnSync("/bin/bash", [join(fixtureRoot, "deploy.sh")], {
+      cwd: fixtureRoot,
+      encoding: "utf8",
+      env: {
+        ...baseEnvironment,
+        PATH: `${fakeBin}:${baseEnvironment.PATH}`,
+        TRANSPORT_LOG: transportLog,
+        INSPR_AT_SSH_HOSTNAME: "100.64.0.4",
+        INSPR_AT_SSH_HOST_KEY_ALIAS: "[csb1.ts.barta.cm]:2222",
+        INSPR_AT_SSH_PORT: "2222",
+        SKIP_BUILD: "1",
+        SKIP_PROBE: "1",
+      },
+    });
+    assert.equal(
+      bracketedAlias.status,
+      0,
+      `isolated deploy failed:\n${bracketedAlias.stderr}\n${bracketedAlias.stdout}`,
+    );
+
+    const records = (await readFile(transportLog, "utf8"))
+      .trim()
+      .split("\n")
+      .map((line) => line.split("\t"));
+    const recordsFor = (name) => records
+      .filter(([transport]) => transport === name)
+      .map(([, ...arguments_]) => arguments_);
+    const sshRecords = recordsFor("ssh");
+    const scpRecords = recordsFor("scp");
+    const rsyncRecords = recordsFor("rsync");
+    assert.ok(sshRecords.length > 0, "fixture must exercise SSH");
+    assert.ok(scpRecords.length > 0, "fixture must exercise SCP");
+    assert.ok(rsyncRecords.length > 0, "fixture must exercise rsync");
+
+    const assertOption = (arguments_, option) => {
+      assert.ok(
+        arguments_.some((argument, index) => (
+          argument === "-o" && arguments_[index + 1] === option
+        )),
+        `missing SSH option ${option} in ${JSON.stringify(arguments_)}`,
+      );
+    };
+    for (const arguments_ of [...sshRecords, ...scpRecords]) {
+      assertOption(arguments_, "StrictHostKeyChecking=yes");
+      assertOption(arguments_, "Hostname=100.64.0.4");
+      assertOption(arguments_, "HostKeyAlias=[csb1.ts.barta.cm]:2222");
+    }
+    for (const arguments_ of sshRecords) {
+      assert.ok(arguments_.some((argument, index) => (
+        argument === "-p" && arguments_[index + 1] === "2222"
+      )));
+      assert.ok(arguments_.includes("csb1"));
+    }
+    for (const arguments_ of scpRecords) {
+      assert.ok(arguments_.some((argument, index) => (
+        argument === "-P" && arguments_[index + 1] === "2222"
+      )));
+      assert.ok(arguments_.some((argument) => argument.startsWith("csb1:")));
+    }
+
+    const expectedRsyncShell = [
+      "ssh",
+      "-o BatchMode=yes",
+      "-o ConnectTimeout=10",
+      "-o StrictHostKeyChecking=yes",
+      "-o Hostname=100.64.0.4",
+      "-o HostKeyAlias=[csb1.ts.barta.cm]:2222",
+      "-p 2222",
+    ].join(" ");
+    for (const arguments_ of rsyncRecords) {
+      const shellIndex = arguments_.indexOf("-e");
+      assert.notEqual(shellIndex, -1);
+      assert.equal(arguments_[shellIndex + 1], expectedRsyncShell);
+      assert.ok(arguments_.some((argument) => argument.startsWith("csb1:")));
+    }
+  } finally {
+    await rm(fixtureRoot, { recursive: true, force: true });
+  }
 });

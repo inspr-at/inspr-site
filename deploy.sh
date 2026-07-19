@@ -14,7 +14,13 @@
 #
 # Env vars:
 #   INSPR_AT_HOST       SSH alias or host (default: csb1)
-#   INSPR_AT_SSH_PORT   optional SSH port (SSH config applies when unset)
+#   INSPR_AT_SSH_PORT   optional SSH port (required when the host-key alias uses
+#                       OpenSSH's bracketed [host]:port form)
+#   INSPR_AT_SSH_HOSTNAME
+#                       optional direct DNS name or IPv4 override; must be used
+#                       together with INSPR_AT_SSH_HOST_KEY_ALIAS
+#   INSPR_AT_SSH_HOST_KEY_ALIAS
+#                       pinned known_hosts identity for a direct override
 #   INSPR_AT_DIR        remote dir (default: /home/mba/docker/inspr-at)
 #   SKIP_BUILD=1        reuse existing web/dist/
 #   SKIP_PROBE=1        skip read-only post-deploy HTTPS probes
@@ -35,6 +41,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 HOST="${INSPR_AT_HOST:-csb1}"
 SSH_PORT="${INSPR_AT_SSH_PORT:-}"
+SSH_HOSTNAME="${INSPR_AT_SSH_HOSTNAME:-}"
+SSH_HOST_KEY_ALIAS="${INSPR_AT_SSH_HOST_KEY_ALIAS:-}"
 REMOTE_DIR="${INSPR_AT_DIR:-/home/mba/docker/inspr-at}"
 PROBE_TIMEOUT="${PROBE_TIMEOUT:-20}"
 PROBE_ATTEMPTS="${PROBE_ATTEMPTS:-20}"
@@ -56,6 +64,40 @@ SSH_ARGS=(-o BatchMode=yes -o ConnectTimeout=10)
 SCP_ARGS=(-o BatchMode=yes -o ConnectTimeout=10)
 RSYNC_SSH="ssh -o BatchMode=yes -o ConnectTimeout=10"
 
+[[ "$HOST" =~ ^[[:alnum:]][[:alnum:].@:_-]*$ ]] || die "unsafe INSPR_AT_HOST value"
+
+if [ -n "$SSH_HOSTNAME" ] || [ -n "$SSH_HOST_KEY_ALIAS" ]; then
+  [ -n "$SSH_HOSTNAME" ] && [ -n "$SSH_HOST_KEY_ALIAS" ] || \
+    die "INSPR_AT_SSH_HOSTNAME and INSPR_AT_SSH_HOST_KEY_ALIAS must be set together"
+  [[ "$SSH_HOSTNAME" =~ ^[[:alnum:]]([[:alnum:]._-]*[[:alnum:]])?$ ]] || \
+    die "INSPR_AT_SSH_HOSTNAME must be a DNS name or IPv4 address"
+  [[ "$SSH_HOSTNAME" != *..* ]] || \
+    die "INSPR_AT_SSH_HOSTNAME cannot contain consecutive dots"
+  if [[ "$SSH_HOST_KEY_ALIAS" =~ ^[[:alnum:]]([[:alnum:]._-]*[[:alnum:]])?$ ]]; then
+    :
+  elif [[ "$SSH_HOST_KEY_ALIAS" =~ ^\[[[:alnum:]]([[:alnum:]._-]*[[:alnum:]])?\]:[0-9]{1,5}$ ]]; then
+    SSH_HOST_KEY_ALIAS_PORT="${SSH_HOST_KEY_ALIAS##*:}"
+    [ "$SSH_HOST_KEY_ALIAS_PORT" -ge 1 ] && [ "$SSH_HOST_KEY_ALIAS_PORT" -le 65535 ] || \
+      die "INSPR_AT_SSH_HOST_KEY_ALIAS port must be between 1 and 65535"
+  else
+    die "INSPR_AT_SSH_HOST_KEY_ALIAS contains unsafe characters"
+  fi
+  [[ "$SSH_HOST_KEY_ALIAS" != *..* ]] || \
+    die "INSPR_AT_SSH_HOST_KEY_ALIAS cannot contain consecutive dots"
+
+  SSH_ARGS+=(
+    -o StrictHostKeyChecking=yes
+    -o "Hostname=$SSH_HOSTNAME"
+    -o "HostKeyAlias=$SSH_HOST_KEY_ALIAS"
+  )
+  SCP_ARGS+=(
+    -o StrictHostKeyChecking=yes
+    -o "Hostname=$SSH_HOSTNAME"
+    -o "HostKeyAlias=$SSH_HOST_KEY_ALIAS"
+  )
+  RSYNC_SSH+=" -o StrictHostKeyChecking=yes -o Hostname=$SSH_HOSTNAME -o HostKeyAlias=$SSH_HOST_KEY_ALIAS"
+fi
+
 if [ -n "$SSH_PORT" ]; then
   [[ "$SSH_PORT" =~ ^[0-9]+$ ]] || die "INSPR_AT_SSH_PORT must be numeric"
   [ "$SSH_PORT" -ge 1 ] && [ "$SSH_PORT" -le 65535 ] || \
@@ -63,6 +105,13 @@ if [ -n "$SSH_PORT" ]; then
   SSH_ARGS+=(-p "$SSH_PORT")
   SCP_ARGS+=(-P "$SSH_PORT")
   RSYNC_SSH+=" -p $SSH_PORT"
+fi
+
+if [ -n "${SSH_HOST_KEY_ALIAS_PORT:-}" ]; then
+  [ -n "$SSH_PORT" ] || \
+    die "INSPR_AT_SSH_PORT is required for a bracketed INSPR_AT_SSH_HOST_KEY_ALIAS"
+  [ "$SSH_HOST_KEY_ALIAS_PORT" -eq "$SSH_PORT" ] || \
+    die "INSPR_AT_SSH_PORT must match the bracketed INSPR_AT_SSH_HOST_KEY_ALIAS port"
 fi
 
 remote_ssh() {
@@ -177,7 +226,6 @@ on_exit() {
 trap on_exit EXIT
 trap 'exit 130' INT TERM
 
-[[ "$HOST" =~ ^[[:alnum:]][[:alnum:].@:_-]*$ ]] || die "unsafe INSPR_AT_HOST value"
 [[ "$REMOTE_DIR" =~ ^/[[:alnum:]_.@/-]+$ ]] || die "unsafe INSPR_AT_DIR value"
 [[ "$REMOTE_DIR" != *"/../"* && "$REMOTE_DIR" != */.. ]] || die "INSPR_AT_DIR must not contain .."
 [[ "$REMOTE_DIR" == */inspr-at ]] || die "INSPR_AT_DIR must end in /inspr-at"

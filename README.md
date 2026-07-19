@@ -128,6 +128,16 @@ alias:
 ./deploy.sh
 ```
 
+If the configured hostname cannot be resolved but its route is otherwise
+available, deployment can use a direct DNS name or IPv4 address without
+weakening host-key verification. Set `INSPR_AT_SSH_HOSTNAME` together with
+`INSPR_AT_SSH_HOST_KEY_ALIAS`; the latter must name an already trusted
+`known_hosts` identity. Both a plain alias and OpenSSH's `[host]:port` identity
+form are accepted. The bracketed form requires an explicit, matching
+`INSPR_AT_SSH_PORT`; the port remains optional with a plain alias. The direct
+path enforces `StrictHostKeyChecking=yes` for SSH, SCP and rsync and fails closed
+when either identity setting is missing, mismatched or unsafe.
+
 Deployment is intentionally user-driven. `deploy.sh` does not read or print
 the production `.env`; runtime credentials stay out of this repository and
 are managed on the host.

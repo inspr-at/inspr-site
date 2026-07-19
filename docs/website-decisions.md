@@ -41,10 +41,11 @@ one. No section is operator-only.
 
 **Date:** 2026-05-03
 **Ticket:** INSPR-92
-**Status:** Committed
+**Status:** Updated; deployment details superseded by D-008
 
-- **Stack:** Astro 5 SSG. Source in `web/`. Build output goes to `web/dist/`
-  during development; promoted into `site/` only at launch.
+- **Stack:** Astro 5 SSG. Source lives in `web/`; build output goes to
+  `web/dist/` and is promoted as an immutable release under D-008. It is never
+  copied into the frozen `site/` archive.
 - **JS posture:** `script-src 'self'` (relaxed from current `'none'`). Used
   only for cross-document View Transitions and one tasteful hero island.
   Everything else works with JS off — including all motion (scroll-driven
@@ -64,12 +65,13 @@ strictly defensive.
 
 **Date:** 2026-05-03
 **Ticket:** INSPR-93
-**Status:** Committed
+**Status:** Updated; release mechanics superseded by D-008
 
 Keep the existing **Caddy + docker-compose** stack on csb1, fronted by
-Traefik. The `inspr-www` service mounts `./site:/srv:ro` (per
-`docker-compose.yml:9`); we change *the contents of `site/`*, not the
-mount, the container, or the network.
+Traefik. The `inspr-www` service mounts the immutable `./releases` tree at
+`/srv/releases:ro` and the frozen `./site` archive at `/srv/v1:ro`. A release
+changes the `releases/current` symlink transactionally; it does not mutate the
+archive, container or network.
 
 **Why:** the existing infra works, is declarative, and is documented across
 the playbook (csb1, Headscale tailnet, Traefik routing). Replacing it would
@@ -134,21 +136,23 @@ cheap when we get to it.
 
 **Date:** 2026-05-03
 **Ticket:** INSPR-89
-**Status:** Committed
+**Status:** Updated; deployment details superseded by D-008
 
 ```
 inspr-at/
-  Caddyfile          (unchanged for now)
-  docker-compose.yml (unchanged for now)
-  site/              (live placeholder, untouched until launch day)
-  web/               NEW — Astro source
+  Caddyfile          (host routing and security headers)
+  docker-compose.yml (runtime boundary)
+  deploy.sh          (transactional release entry point)
+  site/              (frozen pre-relaunch archive for v1.inspr.at)
+  web/               Astro source
   web/dist/          (build output, gitignored)
-  docs/              NEW — durable artifacts (this file)
+  docs/              durable artifacts (this file)
 ```
 
-**Why:** keeps the live `site/` serving the placeholder for the entire
-build phase. Launch is a single replacement of `site/` contents from
-`web/dist/`. Lowest-risk cutover possible.
+**Why:** application source, immutable build output and the historical archive
+have distinct responsibilities. `site/` is no longer a deployment target; it
+remains frozen for `v1.inspr.at`. Current releases are built from `web/` and
+promoted transactionally as described in D-008.
 
 ---
 
@@ -173,25 +177,37 @@ build phase. Launch is a single replacement of `site/` contents from
 **Ticket:** INSPR-177
 **Status:** Committed
 
-Deploy is **one command**: `./deploy.sh` from the repo root.
+Deploy is **one command**: `./deploy.sh` from the repository root. Production
+deployment requires a clean Git tree and gives the build one truthful release
+identity: UTC deployment time, Git revision and immutable release ID.
 
-Pipeline (idempotent, safe to re-run):
+Pipeline:
 
-1. `cd web && npm run build` — Astro static build into `web/dist/`.
-2. `python3 web/scripts/verify-csp.py` — abort if a new inline script
-   would violate `script-src` (forces a Caddyfile hash pin BEFORE
-   shipping, never after).
-3. `rsync -a --delete web/dist/ site/` — local mirror of the build.
-4. `rsync -avz --delete site/ csb1:/home/mba/docker/inspr-at/site/` —
-   bind-mounted read-only into `inspr-www`, picked up on the next
-   request (no reload needed for content changes).
-5. If `Caddyfile` differs from remote (SHA-256 compare): `scp` it over,
-   then `docker exec inspr-www caddy reload --address
-   unix//config/caddy-admin.sock` — **zero-downtime** reload via the
-   unix-socket admin API. Falls back to `docker compose restart
-   inspr-www` if the socket is unreachable (e.g. the first deploy after
-   switching from `admin off`).
-6. `curl` probe of `/`, `/v1/`, `/v2/` to confirm the cutover landed.
+1. Build the Astro site into `web/dist/`, then run the hero-loop media,
+   section-pattern and CSP checks. The build writes its allowlisted release
+   facts to `web/dist/release.json`.
+2. Verify the local frozen archive exists. Verify the remote archive exists
+   before any upload begins.
+3. Upload `web/dist/` into an unreachable `releases/.incoming-<id>` directory,
+   confirm checksum parity and move it into `releases/builds/<id>` only after
+   validation succeeds.
+4. Publish new content-addressed Astro assets into the append-only
+   `releases/assets/` pool before switching HTML. Existing asset names are never
+   overwritten, so cached pages and retained releases keep their dependencies.
+5. Stage and validate changed Caddy or Compose configuration. Snapshot the
+   currently active configuration for automatic rollback before promoting it.
+6. Atomically switch `releases/current` to the sealed build. Validate Caddy and
+   the umbrella page inside the container, then probe all public hostnames,
+   security headers, redirects, identity routes and a shared product asset.
+7. Only after all probes pass, point `releases/previous` at the former healthy
+   build. A failed promotion restores the prior content symlink and routing
+   configuration; every sealed build remains available for an explicitly
+   selected rollback.
+
+`site/` is the frozen pre-relaunch archive served only at `v1.inspr.at`. It is
+never a build target, mirror target or deployment target. In particular, never
+copy `web/dist/` over `site/` and never use `rsync --delete` against the local or
+remote archive.
 
 **Why a push-based script (and not git-pull-on-host):** the remote
 `/home/mba/docker/inspr-at/` is a flat directory, not a git checkout.
@@ -202,11 +218,8 @@ machine keeps the deploy surface tiny. `inspr.nixos.pull-on-host`
 (INSPR-176) is the right answer once the pattern shows up on a second
 host; for inspr.at alone, a script is the right grain.
 
-**Why a Unix-socket admin API:** the Caddyfile previously hardcoded
-`admin off`, so any Caddyfile change required a container restart
-(~1–2s downtime). `admin unix//config/caddy-admin.sock` keeps the API
-off TCP (no external surface, no port published) while making `caddy
-reload` work from inside the container — zero downtime for routine
-config changes (new CSP hash, route tweak, header edit). The socket
-lives in the `caddy_config` volume, which is never bind-mounted to the
-host.
+**Why immutable releases:** promotion changes one symlink instead of mutating
+the served tree. The previous healthy HTML remains present, old hashed assets
+remain addressable, and a failed release can be reversed without reconstructing
+files from deployment history. Caddy's admin API remains bound to a Unix socket
+inside its private configuration volume; no TCP admin surface is exposed.

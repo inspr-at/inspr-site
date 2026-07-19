@@ -47,6 +47,14 @@
 
 	# The frozen pre-relaunch build. This handle intentionally precedes the
 	# shared current-build asset route so v1 gets its own matching hashed files.
+	# Preserve the archive bytes while keeping its historical identity entry
+	# useful on the canonical apex host.
+	@archive_enter {
+		host v1.inspr.at
+		path /enter
+	}
+	redir @archive_enter https://inspr.at/enter 308
+
 	@archive host v1.inspr.at
 	handle @archive {
 		root * /srv/v1

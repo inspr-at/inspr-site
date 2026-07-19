@@ -91,6 +91,25 @@ test("each product route renders its canonical content through ProductPage", asy
   }
 });
 
+test("the umbrella links its actual site source and direct license", async () => {
+  const umbrella = await source("pages/index.astro");
+
+  assert.match(umbrella, /https:\/\/github\.com\/markus-barta\/inspr-at/);
+  assert.match(umbrella, /https:\/\/github\.com\/markus-barta\/inspr"/);
+  assert.match(umbrella, /const siteLicenseUrl = `\$\{repositoryUrl\}\/blob\/main\/LICENSE`/);
+  assert.match(umbrella, /licenseName="AGPL-3\.0-only"/);
+  assert.match(umbrella, /licenseUrl=\{siteLicenseUrl\}/);
+});
+
+test("the frozen archive redirects its historical identity entry before file handling", async () => {
+  const caddy = await readFile(new URL("../../Caddyfile", import.meta.url), "utf8");
+  const redirectIndex = caddy.indexOf("@archive_enter");
+  const archiveIndex = caddy.indexOf("@archive host v1.inspr.at");
+
+  assert.ok(redirectIndex >= 0 && redirectIndex < archiveIndex);
+  assert.match(caddy, /redir @archive_enter https:\/\/inspr\.at\/enter 308/);
+});
+
 test("product copy contains no em dashes and no hardcoded business host", async () => {
   for (const { slug } of products) {
     const content = await source(`content/${slug}.ts`);

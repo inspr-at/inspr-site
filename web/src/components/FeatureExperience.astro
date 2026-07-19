@@ -1,0 +1,400 @@
+---
+import ContextIcon from "./ContextIcon.astro";
+import type { CardItem } from "../content/types";
+
+type FeatureVariant =
+  | "constellation"
+  | "comparison"
+  | "evidence-stack"
+  | "ledger"
+  | "sequence";
+
+interface Props {
+  id: string;
+  items: CardItem[];
+  variant: FeatureVariant;
+  label: string;
+}
+
+const { id, items, variant, label } = Astro.props;
+const fallbackIcons = ["circle-dot", "waypoints", "layers-3", "shield-check", "workflow"];
+---
+
+<div
+  class:list={["feature-experience", `feature-experience--${variant}`]}
+  style={`--sequence-count:${items.length}`}
+>
+  {variant === "constellation" && (
+    <div class="feature-experience__hub" aria-hidden="true">
+      <span>{String(items.length).padStart(2, "0")}</span>
+      <strong>{label}</strong>
+      <small>one shared operating picture</small>
+    </div>
+  )}
+
+  <ol>
+    {items.map((item, index) => (
+      <li style={`--item-index:${index}`}>
+        <article tabindex="0" aria-labelledby={`${id}-feature-${index}`}>
+          <span class="feature-experience__number" aria-hidden="true">
+            {String(index + 1).padStart(2, "0")}
+          </span>
+          <span class="feature-experience__icon" aria-hidden="true">
+            <ContextIcon
+              name={item.icon ?? fallbackIcons[index % fallbackIcons.length]}
+              size={22}
+              strokeWidth={2}
+            />
+          </span>
+          <div class="feature-experience__copy">
+            <h3 id={`${id}-feature-${index}`}>{item.title}</h3>
+            <p>{item.body}</p>
+            {item.meta && <strong>{item.meta}</strong>}
+            {item.reference && (
+              <a
+                href={item.reference.href}
+                target={item.reference.external === false ? undefined : "_blank"}
+                rel={item.reference.external === false ? undefined : "noreferrer"}
+              >
+                {item.reference.label} <span aria-hidden="true">↗</span>
+              </a>
+            )}
+          </div>
+        </article>
+      </li>
+    ))}
+  </ol>
+</div>
+
+<style>
+  .feature-experience {
+    margin-top: clamp(2rem, 5vw, 4rem);
+  }
+
+  .feature-experience ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .feature-experience article {
+    position: relative;
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--paper) 95%, transparent);
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  .feature-experience article:hover,
+  .feature-experience article:focus-visible {
+    border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+    box-shadow: 0 1rem 2.4rem color-mix(in srgb, var(--accent) 12%, transparent);
+  }
+
+  .feature-experience article:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--accent) 76%, white);
+    outline-offset: 3px;
+  }
+
+  .feature-experience__number {
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+  }
+
+  .feature-experience__icon {
+    display: grid;
+    place-items: center;
+    width: 2.8rem;
+    aspect-ratio: 1;
+    flex: none;
+    border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+    border-radius: 0.9rem;
+    color: var(--accent);
+    background: var(--paper);
+  }
+
+  .feature-experience h3 {
+    margin: 0;
+    font-size: clamp(1.05rem, 2vw, 1.35rem);
+  }
+
+  .feature-experience p { margin: 0.5rem 0 0; }
+
+  .feature-experience__copy > strong {
+    display: block;
+    margin-top: 0.8rem;
+    color: var(--accent-dark);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.025em;
+  }
+
+  .feature-experience a {
+    display: inline-flex;
+    gap: 0.35rem;
+    margin-top: 0.8rem;
+    color: var(--accent-dark);
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  /* Constellation: parallel capabilities orbit one shared context. */
+  .feature-experience--constellation {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 42rem;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 2.2rem;
+    background:
+      radial-gradient(circle at center, color-mix(in srgb, var(--accent) 12%, transparent), transparent 35%),
+      var(--paper);
+  }
+
+  .feature-experience--constellation::before,
+  .feature-experience--constellation::after {
+    content: "";
+    position: absolute;
+    width: min(58vw, 39rem);
+    aspect-ratio: 1;
+    border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+    border-radius: 50%;
+    transform: rotate(-9deg) scaleY(0.58);
+  }
+
+  .feature-experience--constellation::after {
+    transform: rotate(28deg) scaleY(0.62);
+  }
+
+  .feature-experience__hub {
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 12.5rem;
+    aspect-ratio: 1;
+    padding: 1.2rem;
+    border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--line));
+    border-radius: 50%;
+    text-align: center;
+    background: color-mix(in srgb, var(--paper) 88%, var(--accent));
+    box-shadow: 0 0 0 1rem color-mix(in srgb, var(--accent) 5%, transparent);
+  }
+
+  .feature-experience__hub span {
+    color: var(--accent-dark);
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+  }
+
+  .feature-experience__hub strong { font-size: 1rem; }
+  .feature-experience__hub small { color: var(--ink-soft); }
+
+  .feature-experience--constellation ol {
+    position: absolute;
+    inset: 1.25rem;
+    z-index: 3;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: space-between;
+    gap: 1rem 22%;
+  }
+
+  .feature-experience--constellation article {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.8rem;
+    max-height: 13rem;
+    padding: 1rem;
+    overflow: auto;
+    border-radius: 1.2rem;
+    backdrop-filter: blur(16px);
+  }
+
+  .feature-experience--constellation .feature-experience__number { display: none; }
+  .feature-experience--constellation article:hover,
+  .feature-experience--constellation article:focus-visible { transform: translateY(-0.25rem); }
+
+  /* Comparison: each signal is read as an explicit observation and implication. */
+  .feature-experience--comparison ol {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .feature-experience--comparison article {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.85rem;
+    min-height: 100%;
+    padding: 1.3rem;
+    border-radius: 1.4rem;
+  }
+
+  .feature-experience--comparison .feature-experience__number {
+    position: absolute;
+    right: 1rem;
+    top: 0.8rem;
+    font-size: 2.5rem;
+    opacity: 0.12;
+  }
+
+  .feature-experience--comparison article:hover,
+  .feature-experience--comparison article:focus-visible { transform: translateY(-0.35rem); }
+
+  /* Evidence stack: proof gains weight as the layers accumulate. */
+  .feature-experience--evidence-stack ol {
+    display: grid;
+    gap: 0;
+    max-width: 68rem;
+    margin-inline: auto;
+    perspective: 1000px;
+  }
+
+  .feature-experience--evidence-stack li { margin-top: -0.45rem; }
+  .feature-experience--evidence-stack article {
+    display: grid;
+    grid-template-columns: 3rem 3rem minmax(0, 1fr);
+    gap: 1rem;
+    padding: 1.25rem 1.4rem;
+    border-radius: 1.1rem;
+    transform: translateX(calc(var(--item-index) * 1.1rem));
+    box-shadow: 0 0.7rem 1.5rem rgb(15 42 59 / 0.06);
+  }
+
+  .feature-experience--evidence-stack article:hover,
+  .feature-experience--evidence-stack article:focus-visible {
+    transform: translateX(calc(var(--item-index) * 1.1rem + 0.4rem));
+  }
+
+  /* Ledger: dense, inspectable rows for records and oversight. */
+  .feature-experience--ledger ol {
+    border-block: 1px solid var(--line);
+  }
+
+  .feature-experience--ledger article {
+    display: grid;
+    grid-template-columns: 3rem 3.2rem minmax(12rem, 0.48fr) minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+    padding: 1.25rem 0.8rem;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .feature-experience--ledger li:last-child article { border-bottom: 0; }
+  .feature-experience--ledger .feature-experience__copy { display: contents; }
+  .feature-experience--ledger h3 { padding-top: 0.55rem; }
+  .feature-experience--ledger p { padding-top: 0.25rem; }
+  .feature-experience--ledger .feature-experience__copy > strong {
+    grid-column: 3;
+    margin-top: 0;
+  }
+  .feature-experience--ledger .feature-experience__copy > a {
+    grid-column: 4;
+    margin-top: 0;
+  }
+  .feature-experience--ledger article:hover,
+  .feature-experience--ledger article:focus-visible {
+    transform: none;
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
+  }
+
+  /* Sequence: a visible path for lifecycle and delivery gates. */
+  .feature-experience--sequence ol {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(var(--sequence-count, 4), minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .feature-experience--sequence ol::before {
+    content: "";
+    position: absolute;
+    top: 2rem;
+    left: 3rem;
+    right: 3rem;
+    height: 1px;
+    background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 20%, var(--line)));
+  }
+
+  .feature-experience--sequence li { min-width: 0; }
+  .feature-experience--sequence article {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    gap: 0.8rem;
+    height: 100%;
+    padding: 1rem;
+    border-radius: 1.2rem;
+    background: color-mix(in srgb, var(--paper) 92%, transparent);
+  }
+
+  .feature-experience--sequence .feature-experience__number {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    color: var(--paper);
+    background: var(--accent-dark);
+  }
+
+  .feature-experience--sequence article:hover,
+  .feature-experience--sequence article:focus-visible { transform: translateY(-0.35rem); }
+
+  @media (max-width: 64rem) {
+    .feature-experience--constellation {
+      display: block;
+      min-height: auto;
+      padding: 1rem;
+    }
+    .feature-experience--constellation::before,
+    .feature-experience--constellation::after,
+    .feature-experience__hub { display: none; }
+    .feature-experience--constellation ol {
+      position: relative;
+      inset: auto;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+    .feature-experience--constellation article { max-height: none; overflow: visible; }
+    .feature-experience--sequence ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .feature-experience--sequence ol::before { display: none; }
+  }
+
+  @media (max-width: 46rem) {
+    .feature-experience--constellation ol,
+    .feature-experience--comparison ol,
+    .feature-experience--sequence ol { grid-template-columns: 1fr; }
+    .feature-experience--evidence-stack article {
+      grid-template-columns: 2.5rem minmax(0, 1fr);
+      transform: none;
+    }
+    .feature-experience--evidence-stack .feature-experience__number { display: none; }
+    .feature-experience--evidence-stack article:hover,
+    .feature-experience--evidence-stack article:focus-visible { transform: translateX(0.25rem); }
+    .feature-experience--ledger article {
+      grid-template-columns: 2.8rem minmax(0, 1fr);
+    }
+    .feature-experience--ledger .feature-experience__number { display: none; }
+    .feature-experience--ledger .feature-experience__copy { display: block; }
+    .feature-experience--ledger h3,
+    .feature-experience--ledger p { padding-top: 0; }
+    .feature-experience--ledger .feature-experience__copy > strong,
+    .feature-experience--ledger .feature-experience__copy > a {
+      grid-column: auto;
+      margin-top: 0.8rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .feature-experience article { transition: none; }
+  }
+</style>

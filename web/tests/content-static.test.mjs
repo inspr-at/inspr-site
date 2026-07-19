@@ -230,11 +230,13 @@ test("workflow stages expose icons, evidence signals and source references", asy
 
 test("the positive INSPR product constellation remains present", async () => {
   const umbrella = await source("pages/index.astro");
+  const constellation = await source("components/ProductConstellation.astro");
 
   assert.match(umbrella, /Three focused tools\. One coherent way of working\./);
-  assert.match(umbrella, /class="product-showcase"/);
-  assert.match(umbrella, /class:list=\{\["product-story"/);
-  assert.match(umbrella, /Explore \{product\.name\}/);
+  assert.match(umbrella, /<ProductConstellation products=\{products\} \/>/);
+  assert.match(constellation, /class="product-constellation"/);
+  assert.match(constellation, /shared context/);
+  assert.match(constellation, /Explore \{product\.name\}/);
 });
 
 test("interactive explorers use one five-second, pause-only lifecycle", async () => {
@@ -256,12 +258,12 @@ test("interactive explorers use one five-second, pause-only lifecycle", async ()
     );
     assert.match(component, /AbortController/, `${name} must clean up its interaction listeners`);
     assert.match(component, /animation\.cancel\(\)/, `${name} must release finished animations`);
-    assert.match(component, />Pause</, `${name} exposes one stable pause label`);
+    assert.match(component, />Pause</, `${name} exposes a pause label before interaction`);
     assert.doesNotMatch(component, /Play sequence/, `${name} must not expose a play control`);
-    assert.doesNotMatch(
+    assert.match(
       component,
       /Resume automatic progression/,
-      `${name} must keep the Pause toggle's accessible name stable`,
+      `${name} must expose the resume action while manually paused`,
     );
   }
 

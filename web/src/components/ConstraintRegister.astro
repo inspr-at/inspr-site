@@ -1,0 +1,76 @@
+---
+interface Props {
+  items: string[];
+}
+
+const { items } = Astro.props;
+---
+
+<ol class="constraint-register" aria-label="Declared product boundaries">
+  {items.map((item, index) => (
+    <li>
+      <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+      <div>
+        <small>Declared boundary</small>
+        <p>{item}</p>
+      </div>
+    </li>
+  ))}
+</ol>
+
+<style>
+  .constraint-register {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+    list-style: none;
+    counter-reset: constraint;
+  }
+
+  .constraint-register li {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr);
+    gap: 1rem;
+    min-height: 8.5rem;
+    padding: 1.2rem 1rem;
+    border-bottom: 1px solid var(--line);
+    transition: background 180ms ease, transform 180ms ease;
+  }
+
+  .constraint-register li:nth-child(odd) { border-right: 1px solid var(--line); }
+  .constraint-register li:hover {
+    background: color-mix(in srgb, var(--accent) 7%, transparent);
+    transform: translateX(0.25rem);
+  }
+
+  .constraint-register li > span {
+    color: color-mix(in srgb, var(--accent) 66%, var(--ink-muted));
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+  }
+
+  .constraint-register small {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: 0.67rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .constraint-register p { margin: 0; color: var(--ink); }
+
+  @media (max-width: 44rem) {
+    .constraint-register { grid-template-columns: 1fr; }
+    .constraint-register li:nth-child(odd) { border-right: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .constraint-register li { transition: none; }
+  }
+</style>

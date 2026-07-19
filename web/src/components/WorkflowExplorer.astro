@@ -14,6 +14,7 @@ interface Props {
   alt: string;
   closing?: string;
   tone?: "light" | "ink";
+  pattern?: string;
 }
 
 const {
@@ -26,6 +27,7 @@ const {
   alt,
   closing,
   tone = "ink",
+  pattern = "guided-workflow",
 } = Astro.props;
 ---
 
@@ -34,6 +36,7 @@ const {
   id={id}
   aria-labelledby={`${id}-title`}
   data-workflow-explorer
+  data-section-pattern={pattern}
   data-active-stage="0"
   style={`--workflow-count: ${steps.length}; --workflow-ratio: 0;`}
 >
@@ -108,7 +111,7 @@ const {
             data-workflow-toggle
           >
             <span class="workflow__toggle-state" aria-hidden="true"><i></i><i></i></span>
-            <span>Pause</span>
+            <span data-workflow-toggle-label>Pause</span>
           </button>
         </div>
 
@@ -167,6 +170,7 @@ const {
       ];
       const tabStrip = root.querySelector<HTMLElement>(".workflow__tabs");
       const toggle = root.querySelector<HTMLButtonElement>("[data-workflow-toggle]");
+      const toggleLabel = root.querySelector<HTMLElement>("[data-workflow-toggle-label]");
       const progress = root.querySelector<HTMLElement>("[data-workflow-progress]");
       const experience = root.querySelector<HTMLElement>(".workflow__experience") ?? root;
       const observedControl = root.querySelector<HTMLElement>(".workflow__control") ?? root;
@@ -188,10 +192,15 @@ const {
 
       const updateToggle = () => {
         if (!toggle) return;
+        const action = userPaused ? "Resume" : "Pause";
+        const accessibleLabel = userPaused
+          ? "Resume automatic progression"
+          : "Pause automatic progression";
         toggle.disabled = reducedMotion.matches;
         toggle.setAttribute("aria-pressed", String(userPaused));
-        toggle.setAttribute("aria-label", "Pause automatic progression");
-        toggle.title = "Pause automatic progression";
+        toggle.setAttribute("aria-label", accessibleLabel);
+        toggle.title = accessibleLabel;
+        if (toggleLabel) toggleLabel.textContent = action;
         root.dataset.userPaused = String(userPaused);
       };
 
@@ -756,6 +765,19 @@ const {
   .workflow__toggle[aria-pressed="true"] {
     border-color: color-mix(in srgb, var(--secondary) 62%, transparent);
     background: color-mix(in srgb, var(--secondary) 10%, transparent);
+  }
+
+  .workflow__toggle[aria-pressed="true"] .workflow__toggle-state i:first-child {
+    width: 0;
+    height: 0;
+    border-block: 0.34rem solid transparent;
+    border-left: 0.56rem solid var(--secondary);
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .workflow__toggle[aria-pressed="true"] .workflow__toggle-state i:last-child {
+    display: none;
   }
 
   .workflow__toggle:disabled {

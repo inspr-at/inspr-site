@@ -1,0 +1,147 @@
+---
+type Principle = {
+  number: string;
+  title: string;
+  body: string;
+  avoids: string;
+  protects: string;
+};
+
+interface Props {
+  principles: Principle[];
+}
+
+const { principles } = Astro.props;
+---
+
+<div class="principle-field-notes">
+  {principles.map((principle, index) => (
+    <article tabindex="0">
+      <svg class="principle-field-notes__glyph" viewBox="0 0 180 180" aria-hidden="true">
+        {index === 0 && (
+          <>
+            <path d="M18 44c42-34 86 39 144 2M18 88c53-36 85 40 144 4M18 132c48-30 88 32 144 4" />
+            <circle cx="46" cy="53" r="8" /><circle cx="119" cy="91" r="8" /><circle cx="74" cy="132" r="8" />
+          </>
+        )}
+        {index === 1 && (
+          <>
+            <path d="M90 14 151 39v45c0 41-25 68-61 84-36-16-61-43-61-84V39Z" />
+            <path d="m57 91 22 22 46-51" />
+          </>
+        )}
+        {index === 2 && (
+          <>
+            <path d="M143 64A62 62 0 1 0 151 112" />
+            <path d="m126 43 20 22 20-22M150 113l-28 3 12 25" />
+            <circle cx="87" cy="90" r="28" />
+          </>
+        )}
+      </svg>
+      <p>{principle.number}</p>
+      <h3>{principle.title}</h3>
+      <span>{principle.body}</span>
+      <dl>
+        <div><dt>Avoids</dt><dd>{principle.avoids}</dd></div>
+        <div><dt>Protects</dt><dd>{principle.protects}</dd></div>
+      </dl>
+    </article>
+  ))}
+</div>
+
+<style>
+  .principle-field-notes {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    margin-top: clamp(2rem, 5vw, 4rem);
+    border-block: 1px solid var(--line);
+  }
+
+  .principle-field-notes article {
+    position: relative;
+    min-height: 32rem;
+    overflow: hidden;
+    padding: clamp(1.3rem, 3vw, 2.2rem);
+    border-right: 1px solid var(--line);
+    transition: background 180ms ease;
+  }
+
+  .principle-field-notes article:last-child { border-right: 0; }
+  .principle-field-notes article:hover,
+  .principle-field-notes article:focus-visible {
+    background: color-mix(in srgb, var(--accent) 7%, transparent);
+  }
+
+  .principle-field-notes article:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--accent) 76%, white);
+    outline-offset: -3px;
+  }
+
+  .principle-field-notes__glyph {
+    position: absolute;
+    right: -1rem;
+    top: 0.5rem;
+    width: 14rem;
+    fill: none;
+    stroke: color-mix(in srgb, var(--accent) 12%, transparent);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+
+  .principle-field-notes article > p {
+    position: relative;
+    margin: 0 0 7rem;
+    color: var(--accent-dark);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+  }
+
+  .principle-field-notes h3 {
+    position: relative;
+    margin: 0 0 0.9rem;
+    font-size: clamp(1.4rem, 2.5vw, 2rem);
+  }
+
+  .principle-field-notes article > span { position: relative; color: var(--ink-soft); }
+
+  .principle-field-notes dl {
+    position: relative;
+    display: grid;
+    gap: 0.8rem;
+    margin: 2rem 0 0;
+  }
+
+  .principle-field-notes dl div {
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .principle-field-notes dt {
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .principle-field-notes dd { margin: 0.35rem 0 0; color: var(--ink); }
+
+  @media (max-width: 58rem) {
+    .principle-field-notes { grid-template-columns: 1fr; }
+    .principle-field-notes article {
+      min-height: auto;
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .principle-field-notes article:last-child { border-bottom: 0; }
+    .principle-field-notes article > p { margin-bottom: 4rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .principle-field-notes article { transition: none; }
+  }
+</style>

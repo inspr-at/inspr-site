@@ -8,8 +8,11 @@ import ContextIcon from "./ContextIcon.astro";
 import PaimosProductSurface from "./PaimosProductSurface.astro";
 import WorkflowExplorer from "./WorkflowExplorer.astro";
 import InspectableRail from "./InspectableRail.astro";
-import BoundaryLens from "./BoundaryLens.astro";
-import SourceEvidence from "./SourceEvidence.astro";
+import FractureAtlas from "./FractureAtlas.astro";
+import FeatureExperience from "./FeatureExperience.astro";
+import AudiencePaths from "./AudiencePaths.astro";
+import ConstraintRegister from "./ConstraintRegister.astro";
+import ProvenanceReceipt from "./ProvenanceReceipt.astro";
 import type { ProductContent } from "../content/types";
 
 import paimosHero from "../assets/products/paimos/hero.png";
@@ -76,6 +79,27 @@ const nav = [
   { label: "Source", href: "#open-source" },
 ];
 const integrationStatuses = [...new Set(content.integrations.items.map((item) => item.status))];
+type FeaturePresentation =
+  | "constellation"
+  | "comparison"
+  | "evidence-stack"
+  | "ledger"
+  | "sequence"
+  | "rail";
+const featurePresentations: Record<string, FeaturePresentation> = {
+  "structured-work": "ledger",
+  "agent-context": "evidence-stack",
+  "execution-control": "rail",
+  "customer-delivery": "sequence",
+  fleet: "constellation",
+  drift: "comparison",
+  backups: "evidence-stack",
+  onboarding: "sequence",
+  "guarded-actions": "rail",
+  capabilities: "rail",
+  lifecycle: "sequence",
+  oversight: "ledger",
+};
 ---
 
 <MicrositeLayout
@@ -98,7 +122,11 @@ const integrationStatuses = [...new Set(content.integrations.items.map((item) =>
   <main id="main-content">
     <ServiceRibbon text={content.serviceIntro} />
 
-    <section class="product-hero page-shell" aria-labelledby="hero-title">
+    <section
+      class="product-hero page-shell"
+      aria-labelledby="hero-title"
+      data-section-pattern="editorial-hero"
+    >
       <div class="product-hero__copy">
         <p class="eyebrow">{content.hero.eyebrow}</p>
         <h1 id="hero-title">{content.hero.title}</h1>
@@ -127,7 +155,11 @@ const integrationStatuses = [...new Set(content.integrations.items.map((item) =>
       </figure>
     </section>
 
-    <div class="proof-console page-shell" aria-label="Product characteristics">
+    <div
+      class="proof-console page-shell"
+      aria-label="Product characteristics"
+      data-section-pattern="proof-strip"
+    >
       <div class="proof-console__label" aria-hidden="true">
         <span>Operating posture</span>
         <strong>{String(content.proof.length).padStart(2, "0")}</strong>
@@ -146,18 +178,18 @@ const integrationStatuses = [...new Set(content.integrations.items.map((item) =>
       </ol>
     </div>
 
-    <section class="section page-shell" id="why" aria-labelledby="problem-title">
+    <section
+      class="section page-shell"
+      id="why"
+      aria-labelledby="problem-title"
+      data-section-pattern="fracture-atlas"
+    >
       <header class="section-intro">
         <p class="eyebrow">{content.problem.eyebrow}</p>
         <h2 id="problem-title">{content.problem.title}</h2>
         <p class="section-lead">{content.problem.lead}</p>
       </header>
-      <InspectableRail
-        id={`${content.slug}-problem`}
-        items={content.problem.items}
-        label="Inspect the fracture points"
-        signalLabel="Selected fracture"
-      />
+      <FractureAtlas id={`${content.slug}-problem`} items={content.problem.items} />
     </section>
 
     <WorkflowExplorer
@@ -170,47 +202,65 @@ const integrationStatuses = [...new Set(content.integrations.items.map((item) =>
       alt={assets.workflowAlt}
       closing={content.model.closing}
       tone="ink"
+      pattern="guided-workflow"
     />
 
     {content.slug === "paimos" && <PaimosProductSurface />}
 
     <div id="capabilities">
-      {content.featureSections.map((feature, index) => (
-        <section
-          class:list={["section", "page-shell", { "section--tint": index % 2 === 1 }]}
-          id={`feature-${feature.id}`}
-          aria-labelledby={`${feature.id}-title`}
-        >
-          <header class="section-intro">
-            <p class="eyebrow">{feature.eyebrow}</p>
-            <h2 id={`${feature.id}-title`}>{feature.title}</h2>
-            <p class="section-lead">{feature.lead}</p>
-          </header>
-          <InspectableRail
-            id={`${content.slug}-${feature.id}`}
-            items={feature.items}
-            label="Trace the capability system"
-            signalLabel="Selected capability"
-          />
-        </section>
-      ))}
+      {content.featureSections.map((feature, index) => {
+        const presentation = featurePresentations[feature.id] ?? "ledger";
+        return (
+          <section
+            class:list={["section", "page-shell", { "section--tint": index % 2 === 1 }]}
+            id={`feature-${feature.id}`}
+            aria-labelledby={`${feature.id}-title`}
+            data-section-pattern={presentation === "rail" ? "inspectable-rail" : `feature-${presentation}`}
+          >
+            <header class="section-intro">
+              <p class="eyebrow">{feature.eyebrow}</p>
+              <h2 id={`${feature.id}-title`}>{feature.title}</h2>
+              <p class="section-lead">{feature.lead}</p>
+            </header>
+            {presentation === "rail" ? (
+              <InspectableRail
+                id={`${content.slug}-${feature.id}`}
+                items={feature.items}
+                label="Trace the capability system"
+                signalLabel="Selected capability"
+              />
+            ) : (
+              <FeatureExperience
+                id={`${content.slug}-${feature.id}`}
+                items={feature.items}
+                variant={presentation}
+                label={feature.eyebrow}
+              />
+            )}
+          </section>
+        );
+      })}
     </div>
 
-    <section class="section page-shell" aria-labelledby="audience-title">
+    <section
+      class="section page-shell"
+      aria-labelledby="audience-title"
+      data-section-pattern="audience-paths"
+    >
       <header class="section-intro">
         <p class="eyebrow">{content.audiences.eyebrow}</p>
         <h2 id="audience-title">{content.audiences.title}</h2>
         <p class="section-lead">{content.audiences.lead}</p>
       </header>
-      <InspectableRail
-        id={`${content.slug}-audiences`}
-        items={content.audiences.items}
-        label="Select an operating perspective"
-        signalLabel="Role perspective"
-      />
+      <AudiencePaths id={`${content.slug}-audiences`} items={content.audiences.items} />
     </section>
 
-    <section class="section architecture" id="architecture" aria-labelledby="architecture-title">
+    <section
+      class="section architecture"
+      id="architecture"
+      aria-labelledby="architecture-title"
+      data-section-pattern={content.slug === "janus" ? "two-plane-architecture" : "architecture-flow"}
+    >
       <div class="page-shell architecture__grid">
         <div>
           <p class="eyebrow">{content.architecture.eyebrow}</p>
@@ -218,20 +268,66 @@ const integrationStatuses = [...new Set(content.integrations.items.map((item) =>
           <p class="section-lead">{content.architecture.lead}</p>
           {content.architecture.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
         </div>
-        <div class="architecture__diagram" aria-label="Architecture flow">
-          {content.architecture.flow.map((item, index) => (
-            <div class="architecture__node">
-              <span class="architecture__node-index">{String(index + 1).padStart(2, "0")}</span>
-              <span class="architecture__node-icon" aria-hidden="true">
-                <ContextIcon
-                  name={architectureIcons[index] ?? "circle-dot"}
-                  size={23}
-                  strokeWidth={2}
-                />
-              </span>
-              <strong>{item}</strong>
-            </div>
-          ))}
+        <div
+          class:list={["architecture__diagram", { "architecture__diagram--planes": content.slug === "janus" }]}
+          aria-label={content.slug === "janus" ? "Two-plane architecture with value-free evidence return" : "Architecture flow"}
+        >
+          {content.slug === "janus" ? (
+            <>
+              <div class="architecture__plane architecture__plane--policy">
+                <p>Policy and oversight plane</p>
+                {content.architecture.flow.slice(0, 5).map((item, index) => (
+                  <div class="architecture__node">
+                    <span class="architecture__node-index">{String(index + 1).padStart(2, "0")}</span>
+                    <span class="architecture__node-icon" aria-hidden="true">
+                      <ContextIcon name={architectureIcons[index] ?? "circle-dot"} size={23} strokeWidth={2} />
+                    </span>
+                    <strong>{item}</strong>
+                  </div>
+                ))}
+              </div>
+              <div class="architecture__plane architecture__plane--execution">
+                <p>Custody and execution plane</p>
+                {content.architecture.flow.slice(5, 7).map((item, index) => {
+                  const flowIndex = index + 5;
+                  return (
+                    <div class="architecture__node">
+                      <span class="architecture__node-index">{String(flowIndex + 1).padStart(2, "0")}</span>
+                      <span class="architecture__node-icon" aria-hidden="true">
+                        <ContextIcon name={architectureIcons[flowIndex] ?? "circle-dot"} size={23} strokeWidth={2} />
+                      </span>
+                      <strong>{item}</strong>
+                    </div>
+                  );
+                })}
+                <p class="architecture__plane-note">
+                  Secret material exists only inside this approved execution path.
+                </p>
+              </div>
+              <div class="architecture__node architecture__return">
+                <span class="architecture__node-index">08</span>
+                <span class="architecture__node-icon" aria-hidden="true">
+                  <ContextIcon name={architectureIcons[7] ?? "circle-dot"} size={23} strokeWidth={2} />
+                </span>
+                <strong>{content.architecture.flow[7]}</strong>
+                <small>Returns to oversight without the secret value</small>
+              </div>
+            </>
+          ) : (
+            content.architecture.flow.map((item, index) => (
+              <div class="architecture__node">
+                <span class="architecture__node-index">{String(index + 1).padStart(2, "0")}</span>
+                <span class="architecture__node-icon" aria-hidden="true">
+                  <ContextIcon
+                    name={architectureIcons[index] ?? "circle-dot"}
+                    size={23}
+                    strokeWidth={2}
+                  />
+                </span>
+                <strong>{item}</strong>
+              </div>
+            ))
+          )}
         </div>
         <ul class="architecture__facts">
           {content.architecture.facts.map((fact) => <li>{fact}</li>)}
@@ -239,7 +335,12 @@ const integrationStatuses = [...new Set(content.integrations.items.map((item) =>
       </div>
     </section>
 
-    <section class="section section--ink" id="trust" aria-labelledby="trust-title">
+    <section
+      class="section section--ink"
+      id="trust"
+      aria-labelledby="trust-title"
+      data-section-pattern="inspectable-rail"
+    >
       <div class="page-shell">
         <header class="section-intro section-intro--wide">
           <p class="eyebrow">{content.trust.eyebrow}</p>
@@ -260,6 +361,7 @@ const integrationStatuses = [...new Set(content.integrations.items.map((item) =>
       class="section page-shell"
       aria-labelledby="integrations-title"
       data-integration-matrix
+      data-section-pattern="filterable-matrix"
     >
       <header class="section-intro">
         <p class="eyebrow">{content.integrations.eyebrow}</p>
@@ -296,27 +398,40 @@ const integrationStatuses = [...new Set(content.integrations.items.map((item) =>
       </div>
     </section>
 
-    <section class="section section--tint" aria-labelledby="limits-title">
+    <section
+      class="section section--tint"
+      aria-labelledby="limits-title"
+      data-section-pattern="constraint-register"
+    >
       <div class="page-shell limits-grid">
         <header class="section-intro">
           <p class="eyebrow">{content.limits.eyebrow}</p>
           <h2 id="limits-title">{content.limits.title}</h2>
           <p class="section-lead">{content.limits.lead}</p>
         </header>
-        <BoundaryLens id={`${content.slug}-limits`} items={content.limits.items} />
+        <ConstraintRegister items={content.limits.items} />
       </div>
     </section>
 
-    <section class="section page-shell open-source" id="open-source" aria-labelledby="source-title">
+    <section
+      class="section page-shell open-source"
+      id="open-source"
+      aria-labelledby="source-title"
+      data-section-pattern="provenance-receipt"
+    >
       <div>
         <p class="eyebrow">{content.openSource.eyebrow}</p>
         <h2 id="source-title">{content.openSource.title}</h2>
         <p class="section-lead">{content.openSource.body}</p>
       </div>
-      <SourceEvidence links={content.openSource.links} />
+      <ProvenanceReceipt links={content.openSource.links} />
     </section>
 
-    <section class="section page-shell faq" aria-labelledby="faq-title">
+    <section
+      class="section page-shell faq"
+      aria-labelledby="faq-title"
+      data-section-pattern="faq-accordion"
+    >
       <header class="section-intro">
         <p class="eyebrow">Practical questions</p>
         <h2 id="faq-title">Before you adopt it.</h2>

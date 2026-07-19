@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && node scripts/write-release-manifest.mjs",
+    "build": "astro build && node scripts/write-release-manifest.mjs && python3 scripts/verify-csp.py && node scripts/audit-section-patterns.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "test:content": "node --test tests/content-static.test.mjs"

@@ -1,0 +1,223 @@
+---
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+
+type Product = {
+  name: string;
+  label: string;
+  href: string;
+  logo: ImageMetadata;
+  hero: ImageMetadata;
+  alt: string;
+  title: string;
+  body: string;
+  detail: string;
+};
+
+interface Props {
+  products: Product[];
+}
+
+const { products } = Astro.props;
+---
+
+<div class="product-constellation">
+  <div class="product-constellation__core" aria-hidden="true">
+    <span>INSPR</span>
+    <strong>shared context<br />visible boundaries<br />recoverable evidence</strong>
+  </div>
+
+  <ol>
+    {products.map((product, index) => (
+      <li style={`--product-index:${index}`}>
+        <article>
+          <a class="product-constellation__visual" href={product.href} aria-label={`Explore ${product.name}`}>
+            <Image
+              src={product.hero}
+              alt={product.alt}
+              widths={[480, 720]}
+              sizes="(min-width: 60rem) 29vw, 100vw"
+              formats={["avif", "webp", "png"]}
+              quality={80}
+              loading="lazy"
+            />
+          </a>
+          <div class="product-constellation__copy">
+            <img src={product.logo.src} alt="" width="52" height="52" loading="lazy" />
+            <div>
+              <p>{product.label}</p>
+              <h3>{product.name}</h3>
+            </div>
+            <h4>{product.title}</h4>
+            <span>{product.body}</span>
+            <small>{product.detail}</small>
+            <a href={product.href}>Explore {product.name} <span aria-hidden="true">→</span></a>
+          </div>
+        </article>
+      </li>
+    ))}
+  </ol>
+</div>
+
+<style>
+  .product-constellation {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(15rem, 0.46fr) minmax(0, 1.54fr);
+    gap: clamp(1rem, 4vw, 4rem);
+    align-items: center;
+    margin-top: clamp(2rem, 5vw, 4rem);
+    padding: clamp(1rem, 3vw, 2.4rem);
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 2.4rem;
+    background:
+      radial-gradient(circle at 19% 50%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 29%),
+      var(--paper);
+  }
+
+  .product-constellation::before {
+    content: "";
+    position: absolute;
+    left: 18%;
+    top: 10%;
+    bottom: 10%;
+    width: 42%;
+    border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+    border-right: 0;
+    border-radius: 50% 0 0 50%;
+    pointer-events: none;
+  }
+
+  .product-constellation__core {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: min(100%, 17rem);
+    aspect-ratio: 1;
+    margin-inline: auto;
+    padding: 2rem;
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+    border-radius: 50%;
+    text-align: center;
+    background: color-mix(in srgb, var(--paper) 88%, var(--accent));
+    box-shadow: 0 0 0 1.2rem color-mix(in srgb, var(--accent) 6%, transparent);
+  }
+
+  .product-constellation__core span {
+    color: var(--accent-dark);
+    font-family: var(--font-mono);
+    font-size: clamp(1.5rem, 3vw, 2.4rem);
+    letter-spacing: 0.08em;
+  }
+
+  .product-constellation__core strong {
+    color: var(--ink-soft);
+    font-size: 0.8rem;
+    line-height: 1.6;
+  }
+
+  .product-constellation ol {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .product-constellation li::before {
+    content: "";
+    position: absolute;
+    left: -3.5rem;
+    width: 3.5rem;
+    height: 1px;
+    margin-top: 5rem;
+    background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 25%, transparent));
+    transform-origin: right;
+  }
+
+  .product-constellation article {
+    display: grid;
+    grid-template-columns: minmax(10rem, 0.72fr) minmax(0, 1.28fr);
+    min-height: 13rem;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 1.4rem;
+    background: color-mix(in srgb, var(--paper) 94%, transparent);
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  .product-constellation article:has(a:hover),
+  .product-constellation article:has(a:focus-visible) {
+    transform: translateX(0.35rem);
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+    box-shadow: 0 1rem 2rem rgb(15 42 59 / 0.08);
+  }
+
+  .product-constellation__visual { display: block; min-height: 100%; overflow: hidden; }
+  .product-constellation__visual :global(picture),
+  .product-constellation__visual :global(img) { width: 100%; height: 100%; }
+  .product-constellation__visual :global(img) { object-fit: cover; transition: transform 500ms ease; }
+  .product-constellation__visual:hover :global(img),
+  .product-constellation__visual:focus-visible :global(img) { transform: scale(1.035); }
+
+  .product-constellation__copy {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.25rem 0.8rem;
+    align-content: center;
+    padding: 1rem 1.2rem;
+  }
+
+  .product-constellation__copy > img {
+    grid-row: span 2;
+    align-self: center;
+  }
+
+  .product-constellation__copy p {
+    margin: 0;
+    color: var(--accent-dark);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .product-constellation h3 { margin: 0; font-size: 1.35rem; }
+  .product-constellation h4,
+  .product-constellation__copy > span,
+  .product-constellation__copy > small,
+  .product-constellation__copy > a { grid-column: 1 / -1; }
+  .product-constellation h4 { margin: 0.7rem 0 0.25rem; font-size: 1.15rem; }
+  .product-constellation__copy > span { color: var(--ink-soft); }
+  .product-constellation__copy > small { margin-top: 0.65rem; color: var(--ink-muted); }
+  .product-constellation__copy > a {
+    margin-top: 0.75rem;
+    color: var(--accent-dark);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  @media (max-width: 64rem) {
+    .product-constellation { grid-template-columns: 1fr; }
+    .product-constellation::before { display: none; }
+    .product-constellation__core {
+      width: 12rem;
+      aspect-ratio: auto;
+      border-radius: 999px;
+    }
+    .product-constellation li::before { display: none; }
+  }
+
+  @media (max-width: 42rem) {
+    .product-constellation article { grid-template-columns: 1fr; }
+    .product-constellation__visual { min-height: 12rem; max-height: 15rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .product-constellation article,
+    .product-constellation__visual :global(img) { transition: none; }
+  }
+</style>

@@ -31,7 +31,12 @@ const details = [
 ];
 ---
 
-<section class="product-surface section page-shell" aria-labelledby="surface-title" data-product-surface>
+<section
+  class="product-surface section page-shell"
+  aria-labelledby="surface-title"
+  data-product-surface
+  data-section-pattern="annotated-product-surface"
+>
   <header class="section-intro section-intro--wide">
     <p class="eyebrow">Inside the product</p>
     <h2 id="surface-title">A real issue. Context attached.</h2>
@@ -99,7 +104,7 @@ const details = [
           data-surface-toggle
         >
           <span aria-hidden="true"><i></i><i></i></span>
-          <b>Pause</b>
+          <b data-surface-toggle-label>Pause</b>
         </button>
       </div>
 
@@ -137,6 +142,7 @@ const details = [
       const panels = [...root.querySelectorAll<HTMLElement>("[data-surface-panel]")];
       const progress = root.querySelector<HTMLElement>("[data-surface-progress]");
       const toggle = root.querySelector<HTMLButtonElement>("[data-surface-toggle]");
+      const toggleLabel = root.querySelector<HTMLElement>("[data-surface-toggle-label]");
       const interactionArea = root.querySelector<HTMLElement>(".product-surface__grid") ?? root;
       const observedDetails = root.querySelector<HTMLElement>(".product-surface__details") ?? root;
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -165,10 +171,15 @@ const details = [
 
       const updateToggle = () => {
         if (!toggle) return;
+        const action = userPaused ? "Resume" : "Pause";
+        const accessibleLabel = userPaused
+          ? "Resume automatic progression"
+          : "Pause automatic progression";
         toggle.disabled = reducedMotion.matches;
         toggle.setAttribute("aria-pressed", String(userPaused));
-        toggle.setAttribute("aria-label", "Pause automatic progression");
-        toggle.title = "Pause automatic progression";
+        toggle.setAttribute("aria-label", accessibleLabel);
+        toggle.title = accessibleLabel;
+        if (toggleLabel) toggleLabel.textContent = action;
       };
 
       const runCycle = () => {
@@ -606,6 +617,19 @@ const details = [
   .product-surface__toggle[aria-pressed="true"] {
     border-color: color-mix(in srgb, var(--secondary) 62%, transparent);
     background: color-mix(in srgb, var(--secondary) 10%, transparent);
+  }
+
+  .product-surface__toggle[aria-pressed="true"] i:first-child {
+    width: 0;
+    height: 0;
+    border-block: 0.34rem solid transparent;
+    border-left: 0.56rem solid var(--secondary);
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .product-surface__toggle[aria-pressed="true"] i:last-child {
+    display: none;
   }
 
   .product-surface__panels {

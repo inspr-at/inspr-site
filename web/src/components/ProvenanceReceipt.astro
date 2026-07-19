@@ -1,0 +1,124 @@
+---
+import ContextIcon from "./ContextIcon.astro";
+import type { LinkItem } from "../content/types";
+
+interface Props {
+  links: LinkItem[];
+}
+
+const { links } = Astro.props;
+const icons = ["git-branch", "package-check", "scale", "shield-check", "file-check-2"];
+---
+
+<div class="provenance-receipt">
+  <div class="provenance-receipt__header">
+    <span>INSPR / SOURCE RECEIPT</span>
+    <strong>{String(links.length).padStart(2, "0")} inspectable routes</strong>
+    <small>Nothing in this receipt requires a sales conversation to verify.</small>
+  </div>
+  <ol>
+    {links.map((link, index) => (
+      <li>
+        <a
+          href={link.href}
+          target={link.external === false ? undefined : "_blank"}
+          rel={link.external === false ? undefined : "noreferrer"}
+        >
+          <span class="provenance-receipt__icon" aria-hidden="true">
+            <ContextIcon name={icons[index % icons.length]} size={21} strokeWidth={2} />
+          </span>
+          <span>
+            <small>Evidence {String(index + 1).padStart(2, "0")}</small>
+            <strong>{link.label}</strong>
+          </span>
+          <i aria-hidden="true">{link.external === false ? "→" : "↗"}</i>
+        </a>
+      </li>
+    ))}
+  </ol>
+</div>
+
+<style>
+  .provenance-receipt {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 1.7rem;
+    background: var(--paper);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .provenance-receipt__header {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.45rem 1.2rem;
+    padding: 1.2rem 1.35rem;
+    color: var(--paper);
+    background: var(--night);
+  }
+
+  .provenance-receipt__header > span,
+  .provenance-receipt__header strong {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .provenance-receipt__header strong { text-align: right; }
+  .provenance-receipt__header small {
+    grid-column: 1 / -1;
+    color: var(--night-soft);
+  }
+
+  .provenance-receipt ol { margin: 0; padding: 0; list-style: none; }
+
+  .provenance-receipt li + li { border-top: 1px dashed var(--line); }
+
+  .provenance-receipt a {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    color: var(--ink);
+    text-decoration: none;
+    transition: background 180ms ease, padding-left 180ms ease;
+  }
+
+  .provenance-receipt a:hover,
+  .provenance-receipt a:focus-visible {
+    padding-left: 1.55rem;
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+  }
+
+  .provenance-receipt a:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--accent) 76%, white);
+    outline-offset: -3px;
+  }
+
+  .provenance-receipt__icon {
+    display: grid;
+    place-items: center;
+    width: 2.7rem;
+    aspect-ratio: 1;
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+    border-radius: 0.85rem;
+    color: var(--accent-dark);
+  }
+
+  .provenance-receipt a small {
+    display: block;
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .provenance-receipt a strong { display: block; margin-top: 0.2rem; }
+  .provenance-receipt a i { color: var(--accent-dark); font-style: normal; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .provenance-receipt a { transition: none; }
+  }
+</style>

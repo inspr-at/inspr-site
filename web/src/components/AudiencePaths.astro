@@ -1,0 +1,136 @@
+---
+import ContextIcon from "./ContextIcon.astro";
+import type { CardItem } from "../content/types";
+
+interface Props {
+  id: string;
+  items: CardItem[];
+}
+
+const { id, items } = Astro.props;
+const icons = ["user-round-check", "workflow", "server", "shield-check", "waypoints"];
+---
+
+<ol class="audience-paths" aria-label="Operating perspectives">
+  {items.map((item, index) => (
+    <li>
+      <article tabindex="0" aria-labelledby={`${id}-audience-${index}`}>
+        <span class="audience-paths__watermark" aria-hidden="true">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        <span class="audience-paths__icon" aria-hidden="true">
+          <ContextIcon name={item.icon ?? icons[index % icons.length]} size={25} strokeWidth={1.9} />
+        </span>
+        <div>
+          {item.meta && <p>{item.meta}</p>}
+          <h3 id={`${id}-audience-${index}`}>{item.title}</h3>
+          <span>{item.body}</span>
+          {item.reference && (
+            <a
+              href={item.reference.href}
+              target={item.reference.external === false ? undefined : "_blank"}
+              rel={item.reference.external === false ? undefined : "noreferrer"}
+            >
+              {item.reference.label} <span aria-hidden="true">↗</span>
+            </a>
+          )}
+        </div>
+      </article>
+    </li>
+  ))}
+</ol>
+
+<style>
+  .audience-paths {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    margin: clamp(2rem, 5vw, 4rem) 0 0;
+    padding: 0;
+    border-block: 1px solid var(--line);
+    list-style: none;
+  }
+
+  .audience-paths article {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    min-height: 16rem;
+    overflow: hidden;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    border: 0;
+    border-right: 1px solid var(--line);
+    background: transparent;
+    transition: transform 180ms ease, border-color 180ms ease;
+  }
+
+  .audience-paths li:nth-child(-n + 2) article { border-bottom: 1px solid var(--line); }
+  .audience-paths li:nth-child(even) article { border-right: 0; }
+
+  .audience-paths article:hover,
+  .audience-paths article:focus-visible {
+    transform: translateY(-0.35rem);
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  }
+
+  .audience-paths article:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--accent) 76%, white);
+    outline-offset: -3px;
+  }
+
+  .audience-paths__watermark {
+    position: absolute;
+    right: -0.05em;
+    bottom: -0.22em;
+    color: color-mix(in srgb, var(--accent) 9%, transparent);
+    font-family: var(--font-display);
+    font-size: clamp(7rem, 15vw, 12rem);
+    font-weight: 700;
+    line-height: 0.8;
+    pointer-events: none;
+  }
+
+  .audience-paths__icon {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 3.2rem;
+    aspect-ratio: 1;
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+    border-radius: 50%;
+    color: var(--accent-dark);
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+  }
+
+  .audience-paths article > div { position: relative; z-index: 1; }
+  .audience-paths p {
+    margin: 0 0 0.8rem;
+    color: var(--accent-dark);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .audience-paths h3 { margin: 0 0 0.7rem; }
+  .audience-paths article > div > span { color: var(--ink-soft); }
+  .audience-paths a {
+    display: block;
+    margin-top: 1rem;
+    color: var(--accent-dark);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  @media (max-width: 46rem) {
+    .audience-paths { grid-template-columns: 1fr; }
+    .audience-paths article { min-height: 13rem; }
+    .audience-paths li article { border-right: 0; border-bottom: 1px solid var(--line); }
+    .audience-paths li:last-child article { border-bottom: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .audience-paths article { transition: none; }
+  }
+</style>

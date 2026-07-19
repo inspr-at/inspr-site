@@ -6,7 +6,8 @@ import MicrositeFooter from "../components/MicrositeFooter.astro";
 import ServiceRibbon from "../components/ServiceRibbon.astro";
 import WorkflowExplorer from "../components/WorkflowExplorer.astro";
 import SituationPacket from "../components/SituationPacket.astro";
-import PrincipleTriad from "../components/PrincipleTriad.astro";
+import ProductConstellation from "../components/ProductConstellation.astro";
+import PrincipleFieldNotes from "../components/PrincipleFieldNotes.astro";
 import { siteUrls } from "../content/urls";
 
 import insprHero from "../assets/products/inspr/hero.png";
@@ -204,7 +205,11 @@ const continuitySteps = [
       text="Augmentoring is the professional path for supported INSPR deployments."
     />
 
-    <section class="umbrella-hero page-shell" aria-labelledby="hero-title">
+    <section
+      class="umbrella-hero page-shell"
+      aria-labelledby="hero-title"
+      data-section-pattern="editorial-hero"
+    >
       <div class="umbrella-hero__copy">
         <p class="eyebrow">Inspiration is the only limit</p>
         <h1 id="hero-title">Ideas should outlive the tools that help make them.</h1>
@@ -243,7 +248,11 @@ const continuitySteps = [
       </figure>
     </section>
 
-    <ul class="umbrella-proof page-shell" aria-label="INSPR characteristics and definitions">
+    <ul
+      class="umbrella-proof page-shell"
+      aria-label="INSPR characteristics and definitions"
+      data-section-pattern="proof-strip"
+    >
       {proofPoints.map((point, index) => (
         <li>
           <a href={point.href}>
@@ -256,7 +265,12 @@ const continuitySteps = [
       ))}
     </ul>
 
-    <section class="umbrella-idea" id="idea" aria-labelledby="idea-title">
+    <section
+      class="umbrella-idea"
+      id="idea"
+      aria-labelledby="idea-title"
+      data-section-pattern="situation-packet"
+    >
       <div class="page-shell umbrella-idea__grid">
         <header>
           <p class="eyebrow">The simple version</p>
@@ -278,7 +292,12 @@ const continuitySteps = [
       </div>
     </section>
 
-    <section class="umbrella-products page-shell" id="products" aria-labelledby="products-title">
+    <section
+      class="umbrella-products page-shell"
+      id="products"
+      aria-labelledby="products-title"
+      data-section-pattern="product-constellation"
+    >
       <header class="section-intro section-intro--wide">
         <p class="eyebrow">The product constellation</p>
         <h2 id="products-title">Three focused tools. One coherent way of working.</h2>
@@ -288,41 +307,14 @@ const continuitySteps = [
         </p>
       </header>
 
-      <div class="product-showcase">
-        {products.map((product, index) => (
-          <article class:list={["product-story", { "product-story--reverse": index % 2 === 1 }]}>
-            <a class="product-story__visual" href={product.href} aria-label={`Explore ${product.name}`}>
-              <Image
-                src={product.hero}
-                alt={product.alt}
-                widths={[560, 800, 1120]}
-                sizes="(min-width: 60rem) 48vw, 100vw"
-                formats={["avif", "webp", "png"]}
-                quality={82}
-                loading="lazy"
-              />
-            </a>
-            <div class="product-story__copy">
-              <div class="product-story__identity">
-                <img src={product.logo.src} alt="" width="60" height="60" loading="lazy" />
-                <div>
-                  <p class="eyebrow">{product.label}</p>
-                  <h3>{product.name}</h3>
-                </div>
-              </div>
-              <h4>{product.title}</h4>
-              <p>{product.body}</p>
-              <p class="product-story__detail">{product.detail}</p>
-              <a class="text-link" href={product.href}>
-                Explore {product.name} <span aria-hidden="true">→</span>
-              </a>
-            </div>
-          </article>
-        ))}
-      </div>
+      <ProductConstellation products={products} />
     </section>
 
-    <section class="identity-utility page-shell" aria-labelledby="identity-title">
+    <section
+      class="identity-utility page-shell"
+      aria-labelledby="identity-title"
+      data-section-pattern="identity-bridge"
+    >
       <div class="identity-utility__mark">
         <img src={zitadelLogo.src} alt="ZITADEL logo" width="72" height="72" loading="lazy" />
       </div>
@@ -359,9 +351,15 @@ const continuitySteps = [
       image={insprContinuity}
       alt="Four connected white, grey and ice-blue chambers carrying intent, context, bounded action and evidence through a shared operating layer."
       tone="light"
+      pattern="guided-workflow"
     />
 
-    <section class="umbrella-principles page-shell" id="principles" aria-labelledby="principles-title">
+    <section
+      class="umbrella-principles page-shell"
+      id="principles"
+      aria-labelledby="principles-title"
+      data-section-pattern="editorial-field-notes"
+    >
       <header class="section-intro">
         <p class="eyebrow">Working principles</p>
         <h2 id="principles-title">A substrate should remove friction, not judgment.</h2>
@@ -370,10 +368,15 @@ const continuitySteps = [
           attention on design, decisions and the work that still needs imagination.
         </p>
       </header>
-      <PrincipleTriad principles={principles} />
+      <PrincipleFieldNotes principles={principles} />
     </section>
 
-    <section class="source-panel page-shell" id="source" aria-labelledby="source-title">
+    <section
+      class="source-panel page-shell"
+      id="source"
+      aria-labelledby="source-title"
+      data-section-pattern="source-manifest"
+    >
       <div>
         <p class="eyebrow">Open foundations</p>
         <h2 id="source-title">Inspect the ideas. Inspect the implementation.</h2>
@@ -396,7 +399,11 @@ const continuitySteps = [
       </nav>
     </section>
 
-    <section class="umbrella-faq faq page-shell" aria-labelledby="faq-title">
+    <section
+      class="umbrella-faq faq page-shell"
+      aria-labelledby="faq-title"
+      data-section-pattern="faq-accordion"
+    >
       <header class="section-intro">
         <p class="eyebrow">A few useful answers</p>
         <h2 id="faq-title">Where does INSPR fit?</h2>

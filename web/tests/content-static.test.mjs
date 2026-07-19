@@ -170,6 +170,46 @@ test("all four microsites render claim visuals and accessible workflow controls"
   }
 });
 
+test("all four hero loops preserve the static poster and motion controls", async () => {
+  const productPage = await source("components/ProductPage.astro");
+  const umbrella = await source("pages/index.astro");
+  const heroLoop = await source("components/HeroLoop.astro");
+
+  const mappings = [
+    ["inspr", "insprHeroLoop", "inspr/hero-loop.mp4"],
+    ["paimos", "paimosHeroLoop", "paimos/hero-loop.mp4"],
+    ["pharos", "pharosHeroLoop", "pharos/hero-loop.mp4"],
+    ["janus", "janusHeroLoop", "janus/hero-loop.mp4"],
+  ];
+  for (const [slug, importName, relativeAsset] of mappings) {
+    const host = slug === "inspr" ? umbrella : productPage;
+    assert.match(host, new RegExp(`import ${importName} from "\\.\\.\/assets\/products\/${relativeAsset}"`));
+    const media = await stat(new URL(`assets/products/${relativeAsset}`, sourceUrl));
+    assert.ok(media.size >= 250 * 1024, `${slug} hero loop must be a real video`);
+    assert.ok(media.size <= 3 * 1024 * 1024, `${slug} hero loop exceeds 3 MiB`);
+  }
+
+  assert.match(umbrella, /<HeroLoop[\s\S]*?id="inspr"[\s\S]*?video=\{insprHeroLoop\}/);
+  assert.match(productPage, /heroLoop: paimosHeroLoop/);
+  assert.match(productPage, /heroLoop: pharosHeroLoop/);
+  assert.match(productPage, /heroLoop: janusHeroLoop/);
+  assert.match(productPage, /<HeroLoop[\s\S]*?id=\{content\.slug\}[\s\S]*?poster=\{assets\.hero\}[\s\S]*?video=\{assets\.heroLoop\}/);
+
+  for (const attribute of ["autoplay", "muted", "loop", "playsinline"]) {
+    assert.match(heroLoop, new RegExp(`\\n\\s+${attribute}\\n`));
+  }
+  assert.match(heroLoop, /preload="metadata"/);
+  assert.match(heroLoop, /poster=\{poster\.src\}/);
+  assert.match(heroLoop, /media="\(prefers-reduced-motion: no-preference\)"/);
+  assert.match(heroLoop, /<Image[\s\S]*?class="hero-loop__poster"/);
+  assert.match(heroLoop, /position: absolute;[\s\S]*?inset: 0;/);
+  assert.match(heroLoop, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.match(heroLoop, /\.hero-loop__video,[\s\S]*?\.hero-loop__control \{[\s\S]*?display: none;/);
+  assert.match(heroLoop, /Resume hero animation/);
+  assert.match(heroLoop, /IntersectionObserver/);
+  assert.doesNotMatch(heroLoop, /is:inline/);
+});
+
 test("inspectable rails keep compact desktop labels above minimum contrast", async () => {
   const styles = await source("styles/microsites.css");
   const compactColor = styles.match(/--inspectable-muted: (#[0-9a-f]{6});/i)?.[1];

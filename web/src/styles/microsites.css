@@ -566,17 +566,20 @@
   }
 
   .product-hero__visual picture,
-  .product-hero__visual img {
+  .product-hero__visual img,
+  .product-hero__visual video {
     width: 100%;
     height: 100%;
   }
 
-  .product-hero__visual img {
+  .product-hero__visual img,
+  .product-hero__visual video {
     object-fit: cover;
     transition: transform 1.3s var(--ease);
   }
 
-  .product-hero__visual:hover img {
+  .product-hero__visual:hover img,
+  .product-hero__visual:hover video {
     transform: scale(1.018);
   }
 

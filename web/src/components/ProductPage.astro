@@ -1,5 +1,4 @@
 ---
-import { Image } from "astro:assets";
 import MicrositeLayout from "../layouts/MicrositeLayout.astro";
 import MicrositeHeader from "./MicrositeHeader.astro";
 import MicrositeFooter from "./MicrositeFooter.astro";
@@ -13,15 +12,19 @@ import FeatureExperience from "./FeatureExperience.astro";
 import AudiencePaths from "./AudiencePaths.astro";
 import ConstraintRegister from "./ConstraintRegister.astro";
 import ProvenanceReceipt from "./ProvenanceReceipt.astro";
+import HeroLoop from "./HeroLoop.astro";
 import type { ProductContent } from "../content/types";
 
 import paimosHero from "../assets/products/paimos/hero.png";
+import paimosHeroLoop from "../assets/products/paimos/hero-loop.mp4";
 import paimosLogo from "../assets/products/paimos/logo.svg";
 import paimosWorkflow from "../assets/products/paimos/context-ledger.png";
 import pharosHero from "../assets/products/pharos/hero.png";
+import pharosHeroLoop from "../assets/products/pharos/hero-loop.mp4";
 import pharosLogo from "../assets/products/pharos/mark.svg";
 import pharosWorkflow from "../assets/products/pharos/fleet-gate.png";
 import janusHero from "../assets/products/janus/hero.png";
+import janusHeroLoop from "../assets/products/janus/hero-loop.mp4";
 import janusLogo from "../assets/products/janus/logo.svg";
 import janusWorkflow from "../assets/products/janus/value-boundary.png";
 
@@ -33,6 +36,7 @@ const { content } = Astro.props;
 const assets = {
   paimos: {
     hero: paimosHero,
+    heroLoop: paimosHeroLoop,
     logo: paimosLogo,
     workflow: paimosWorkflow,
     workflowAlt:
@@ -40,6 +44,7 @@ const assets = {
   },
   pharos: {
     hero: pharosHero,
+    heroLoop: pharosHeroLoop,
     logo: pharosLogo,
     workflow: pharosWorkflow,
     workflowAlt:
@@ -47,6 +52,7 @@ const assets = {
   },
   janus: {
     hero: janusHero,
+    heroLoop: janusHeroLoop,
     logo: janusLogo,
     workflow: janusWorkflow,
     workflowAlt:
@@ -142,15 +148,12 @@ const featurePresentations: Record<string, FeaturePresentation> = {
       </div>
 
       <figure class="product-hero__visual">
-        <Image
-          src={assets.hero}
+        <HeroLoop
+          id={content.slug}
+          poster={assets.hero}
+          video={assets.heroLoop}
           alt={content.hero.alt}
-          widths={[720, 960, 1280, 1600]}
           sizes="(min-width: 64rem) 55vw, 100vw"
-          formats={["avif", "webp", "png"]}
-          quality={84}
-          loading="eager"
-          fetchpriority="high"
         />
       </figure>
     </section>

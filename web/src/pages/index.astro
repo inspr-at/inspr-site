@@ -1,5 +1,4 @@
 ---
-import { Image } from "astro:assets";
 import MicrositeLayout from "../layouts/MicrositeLayout.astro";
 import MicrositeHeader from "../components/MicrositeHeader.astro";
 import MicrositeFooter from "../components/MicrositeFooter.astro";
@@ -8,9 +7,11 @@ import WorkflowExplorer from "../components/WorkflowExplorer.astro";
 import SituationPacket from "../components/SituationPacket.astro";
 import ProductConstellation from "../components/ProductConstellation.astro";
 import PrincipleFieldNotes from "../components/PrincipleFieldNotes.astro";
+import HeroLoop from "../components/HeroLoop.astro";
 import { siteUrls } from "../content/urls";
 
 import insprHero from "../assets/products/inspr/hero.png";
+import insprHeroLoop from "../assets/products/inspr/hero-loop.mp4";
 import insprLogo from "../assets/products/inspr/logo.svg";
 import insprContinuity from "../assets/products/inspr/continuity.png";
 import paimosHero from "../assets/products/paimos/hero.png";
@@ -232,15 +233,12 @@ const continuitySteps = [
       </div>
 
       <figure class="umbrella-hero__visual">
-        <Image
-          src={insprHero}
+        <HeroLoop
+          id="inspr"
+          poster={insprHero}
+          video={insprHeroLoop}
           alt="A luminous INSPR core connecting project, fleet and governance tools"
-          widths={[720, 960, 1280, 1600]}
           sizes="(min-width: 64rem) 54vw, 100vw"
-          formats={["avif", "webp", "png"]}
-          quality={84}
-          loading="eager"
-          fetchpriority="high"
         />
         <figcaption>
           One operating idea, expressed through tools with clear responsibilities.
@@ -503,7 +501,7 @@ const continuitySteps = [
     content: "";
   }
 
-  .umbrella-hero__visual :global(img) {
+  .umbrella-hero__visual :global([data-hero-loop]) {
     display: block;
     width: 100%;
     border: 1px solid rgb(255 255 255 / 0.72);
@@ -511,6 +509,11 @@ const continuitySteps = [
     box-shadow:
       0 2rem 5rem rgb(43 61 64 / 0.16),
       inset 0 1px 0 rgb(255 255 255 / 0.85);
+  }
+
+  .umbrella-hero__visual :global(img),
+  .umbrella-hero__visual :global(video) {
+    border-radius: inherit;
   }
 
   .umbrella-hero figcaption {

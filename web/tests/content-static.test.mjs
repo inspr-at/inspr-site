@@ -313,6 +313,7 @@ test("the positive INSPR product constellation remains present", async () => {
   assert.match(constellation, /class="product-constellation"/);
   assert.match(constellation, /shared context/);
   assert.match(constellation, /Explore \{product\.name\}/);
+  assert.doesNotMatch(constellation, /--accent-dark|--ink-muted/);
 });
 
 test("interactive explorers use one five-second, pause-only lifecycle", async () => {

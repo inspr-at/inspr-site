@@ -110,6 +110,23 @@ test("the frozen archive redirects its historical identity entry before file han
   assert.match(caddy, /redir @archive_enter https:\/\/inspr\.at\/enter 308/);
 });
 
+test("apex and identity edge routes enforce HTTPS and HSTS", async () => {
+  const compose = await readFile(new URL("../../docker-compose.yml", import.meta.url), "utf8");
+  const deploy = await readFile(new URL("../../deploy.sh", import.meta.url), "utf8");
+
+  assert.match(compose, /inspr-edge-hsts\.headers\.stsSeconds=31536000/);
+  assert.match(compose, /inspr-edge-hsts\.headers\.stsIncludeSubdomains=true/);
+  assert.match(compose, /inspr-edge-hsts\.headers\.stsPreload=true/);
+  assert.match(compose, /inspr-apex\.middlewares=inspr-edge-hsts@docker,/);
+  assert.match(compose, /inspr-auth\.middlewares=[^\n]*inspr-edge-hsts@docker/);
+  assert.match(compose, /zitadel\.middlewares=[^\n]*inspr-edge-hsts@docker/);
+  assert.match(compose, /zitadel-http\.rule=Host\(`auth\.inspr\.at`\)/);
+  assert.match(compose, /zitadel-http\.middlewares=inspr-sites-https@docker/);
+  assert.match(deploy, /identity service HTTPS/);
+  assert.match(deploy, /identity HTTP upgrade/);
+  assert.match(deploy, /Strict-Transport-Security missing/);
+});
+
 test("product copy contains no em dashes and no hardcoded business host", async () => {
   for (const { slug } of products) {
     const content = await source(`content/${slug}.ts`);

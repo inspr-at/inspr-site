@@ -85,13 +85,16 @@ services:
       - traefik.http.routers.inspr-sites-http.service=inspr-sites
       - traefik.http.middlewares.inspr-sites-https.redirectscheme.scheme=https
       - traefik.http.middlewares.inspr-sites-https.redirectscheme.permanent=true
+      - traefik.http.middlewares.inspr-edge-hsts.headers.stsSeconds=31536000
+      - traefik.http.middlewares.inspr-edge-hsts.headers.stsIncludeSubdomains=true
+      - traefik.http.middlewares.inspr-edge-hsts.headers.stsPreload=true
 
       # Keep identity routes on the apex, but make www.inspr.at canonical for
       # all ordinary site traffic. inspr-auth wins for its paths at priority 100.
       - traefik.http.routers.inspr-apex.rule=Host(`inspr.at`)
       - traefik.http.routers.inspr-apex.tls=true
       - traefik.http.routers.inspr-apex.tls.certresolver=default
-      - traefik.http.routers.inspr-apex.middlewares=inspr-canonical-redirect@docker,cloudflarewarp@file
+      - traefik.http.routers.inspr-apex.middlewares=inspr-edge-hsts@docker,inspr-canonical-redirect@docker,cloudflarewarp@file
       - traefik.http.routers.inspr-apex.service=inspr-sites
       - traefik.http.middlewares.inspr-canonical-redirect.redirectregex.regex=^https?://inspr\.at/(.*)
       - traefik.http.middlewares.inspr-canonical-redirect.redirectregex.replacement=https://www.inspr.at/$${1}
@@ -143,7 +146,7 @@ services:
       - traefik.http.routers.inspr-auth.priority=100
       - traefik.http.routers.inspr-auth.tls=true
       - traefik.http.routers.inspr-auth.tls.certresolver=default
-      - traefik.http.routers.inspr-auth.middlewares=cloudflarewarp@file
+      - traefik.http.routers.inspr-auth.middlewares=cloudflarewarp@file,inspr-edge-hsts@docker
       - traefik.http.services.inspr-auth.loadbalancer.server.port=8080
       # Pinned local build — Watchtower must NOT touch this (no upstream).
       - com.centurylinklabs.watchtower.enable=false
@@ -236,7 +239,11 @@ services:
       - traefik.http.routers.zitadel.rule=Host(`auth.inspr.at`)
       - traefik.http.routers.zitadel.tls=true
       - traefik.http.routers.zitadel.tls.certresolver=default
-      - traefik.http.routers.zitadel.middlewares=cloudflarewarp@file
+      - traefik.http.routers.zitadel.middlewares=cloudflarewarp@file,inspr-edge-hsts@docker
+      - traefik.http.routers.zitadel-http.rule=Host(`auth.inspr.at`)
+      - traefik.http.routers.zitadel-http.entrypoints=web
+      - traefik.http.routers.zitadel-http.middlewares=inspr-sites-https@docker
+      - traefik.http.routers.zitadel-http.service=zitadel
       - traefik.http.services.zitadel.loadbalancer.server.port=8080
       # IMPORTANT: Zitadel speaks h2c (HTTP/2 cleartext) on the backend
       # for its gRPC services. Without this, /oauth/v2/* still works (it's

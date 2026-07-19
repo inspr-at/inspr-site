@@ -319,6 +319,8 @@ probe_page() {
     die "$label -> Content-Security-Policy missing"
   printf '%s\n' "$headers" | tr -d '\r' | grep -qi '^x-content-type-options:[[:space:]]*nosniff' || \
     die "$label -> X-Content-Type-Options missing"
+  printf '%s\n' "$headers" | tr -d '\r' | grep -qi '^strict-transport-security:[[:space:]]*max-age=' || \
+    die "$label -> Strict-Transport-Security missing"
 
   if [ -n "$body_token" ] || [ -n "$expected_release_id" ]; then
     local body_curl_args=(
@@ -354,6 +356,7 @@ probe_redirect() {
   local url="$2"
   local expected_codes="$3"
   local expected_location_prefix="$4"
+  local require_hsts="${5:-0}"
   local headers
   local code
   local location
@@ -382,6 +385,11 @@ probe_redirect() {
   ')
   [[ "$location" == "$expected_location_prefix"* ]] || \
     die "$label -> unexpected redirect target"
+
+  if [ "$require_hsts" = "1" ]; then
+    printf '%s\n' "$headers" | tr -d '\r' | grep -qi '^strict-transport-security:[[:space:]]*max-age=' || \
+      die "$label -> Strict-Transport-Security missing"
+  fi
 
   ok "$label -> $code, target verified"
 }
@@ -630,16 +638,18 @@ else
   probe_page "Janus microsite" "https://janus.inspr.at/" "Use secrets. Keep values hidden." "text/html" "$RELEASE_ID"
   probe_page "v1 archive" "https://v1.inspr.at/" "Upstream of any substrate" "text/html"
   probe_page "shared product asset" "https://paimos.inspr.at$shared_asset_path" "" "text/css"
-  probe_redirect "legacy edition redirect" "https://www.inspr.at/v1/" "301,302,307,308" "https://v1.inspr.at/v1/"
-  probe_redirect "apex canonical redirect" "https://inspr.at/" "301,302,307,308" "https://www.inspr.at/"
+  probe_redirect "legacy edition redirect" "https://www.inspr.at/v1/" "301,302,307,308" "https://v1.inspr.at/v1/" "1"
+  probe_redirect "apex canonical redirect" "https://inspr.at/" "301,302,307,308" "https://www.inspr.at/" "1"
   probe_page "identity entry route" "https://inspr.at/enter" "inspr.at" "text/html"
-  probe_redirect "identity login route" "https://inspr.at/login" "302" "https://auth.inspr.at/"
+  probe_redirect "identity login route" "https://inspr.at/login" "302" "https://auth.inspr.at/" "1"
+  probe_redirect "identity service HTTPS" "https://auth.inspr.at/" "302" "/ui/login" "1"
   probe_redirect "apex HTTP upgrade" "http://inspr.at/" "301,302,307,308" "https://inspr.at/"
   probe_redirect "www HTTP upgrade" "http://www.inspr.at/" "301,302,307,308" "https://www.inspr.at/"
   probe_redirect "Paimos HTTP upgrade" "http://paimos.inspr.at/" "301,302,307,308" "https://paimos.inspr.at/"
   probe_redirect "Pharos HTTP upgrade" "http://pharos.inspr.at/" "301,302,307,308" "https://pharos.inspr.at/"
   probe_redirect "Janus HTTP upgrade" "http://janus.inspr.at/" "301,302,307,308" "https://janus.inspr.at/"
   probe_redirect "v1 HTTP upgrade" "http://v1.inspr.at/" "301,302,307,308" "https://v1.inspr.at/"
+  probe_redirect "identity HTTP upgrade" "http://auth.inspr.at/" "301,302,307,308" "https://auth.inspr.at/"
 fi
 
 # Only a fully probed release becomes the documented rollback target. All

@@ -44,6 +44,10 @@ export const janusContent = {
     title: "Agents should not hold credentials.",
     lead:
       "A service may genuinely need a deployment credential. An AI agent rarely needs to read it. Yet many integrations still hand automation a reusable token, an environment variable or a generic vault read tool.",
+    visualAlt:
+      "An AI agent presents an opaque reference to a transparent policy gate while the credential remains sealed and only an approved service receives a narrow execution path.",
+    visualCaption:
+      "The agent carries a reference. Policy controls use. The value stays sealed.",
     items: [
       {
         icon: "key-round",

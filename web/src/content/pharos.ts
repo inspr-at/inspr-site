@@ -40,6 +40,10 @@ export const pharosContent = {
     title: "The gaps are the risk.",
     lead:
       "A server can answer a ping while its configuration is drifting. A backup job can succeed without proving that anything can be restored. A deployment button can work while leaving no trustworthy record of what was reviewed. Pharos brings those facts together without pretending they are the same thing.",
+    visualAlt:
+      "A fleet observatory receiving separate host heartbeat, recovery-validation and guarded-change evidence channels.",
+    visualCaption:
+      "Heartbeat, recovery evidence and reviewed change remain separate truths.",
     items: [
       {
         title: "Last seen is not the same as live",

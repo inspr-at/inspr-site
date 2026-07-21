@@ -210,6 +210,38 @@ test("all four microsites render claim visuals and accessible workflow controls"
   }
 });
 
+test("each product problem section uses a distinct explanatory visual", async () => {
+  const productPage = await source("components/ProductPage.astro");
+  const problemVisual = await source("components/FractureAtlas.astro");
+
+  const assets = [
+    "assets/products/paimos/problem-context.png",
+    "assets/products/pharos/problem-evidence.png",
+    "assets/products/janus/problem-boundary.png",
+  ];
+  for (const asset of assets) {
+    const metadata = await stat(new URL(asset, sourceUrl));
+    assert.ok(metadata.size > 10_000, `${asset} must be a real image asset`);
+  }
+
+  assert.match(productPage, /paimos\/problem-context\.png/);
+  assert.match(productPage, /pharos\/problem-evidence\.png/);
+  assert.match(productPage, /janus\/problem-boundary\.png/);
+  assert.match(problemVisual, /<Image/);
+  assert.match(problemVisual, /alt=\{alt\}/);
+  assert.match(problemVisual, /<figcaption>\{caption\}<\/figcaption>/);
+  assert.doesNotMatch(
+    problemVisual,
+    /Disconnected signals create operational blind spots/,
+  );
+
+  for (const { slug } of products) {
+    const content = await source(`content/${slug}.ts`);
+    assert.match(content, /visualAlt:/);
+    assert.match(content, /visualCaption:/);
+  }
+});
+
 test("all four hero loops preserve the static poster and motion controls", async () => {
   const productPage = await source("components/ProductPage.astro");
   const umbrella = await source("pages/index.astro");

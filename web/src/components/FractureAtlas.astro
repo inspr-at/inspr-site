@@ -1,23 +1,33 @@
 ---
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
 import ContextIcon from "./ContextIcon.astro";
 import type { CardItem } from "../content/types";
 
 interface Props {
   id: string;
   items: CardItem[];
+  image: ImageMetadata;
+  alt: string;
+  caption: string;
 }
 
-const { id, items } = Astro.props;
+const { id, items, image, alt, caption } = Astro.props;
 const fallbackIcons = ["unplug", "eye-off", "file-warning", "database-zap"];
 ---
 
 <div class="fracture-atlas" aria-label="Problem map">
-  <div class="fracture-atlas__field" aria-hidden="true">
-    <span class="fracture-atlas__fault"></span>
-    <span class="fracture-atlas__pulse fracture-atlas__pulse--one"></span>
-    <span class="fracture-atlas__pulse fracture-atlas__pulse--two"></span>
-    <p>Disconnected signals create operational blind spots.</p>
-  </div>
+  <figure class="fracture-atlas__field">
+    <Image
+      src={image}
+      alt={alt}
+      widths={[420, 640, 840]}
+      sizes="(min-width: 54rem) 34vw, 100vw"
+      loading="lazy"
+      decoding="async"
+    />
+    <figcaption>{caption}</figcaption>
+  </figure>
 
   <ol class="fracture-atlas__points">
     {items.map((item, index) => (
@@ -65,85 +75,40 @@ const fallbackIcons = ["unplug", "eye-off", "file-warning", "database-zap"];
   .fracture-atlas__field {
     position: relative;
     min-height: 29rem;
+    margin: 0;
     overflow: hidden;
     border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
     border-radius: 2rem;
-    background:
-      radial-gradient(circle at 18% 16%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 34%),
-      linear-gradient(145deg, color-mix(in srgb, var(--paper) 92%, var(--accent)), var(--paper));
+    background: color-mix(in srgb, var(--paper) 92%, var(--accent));
     box-shadow: var(--shadow-soft);
-    isolation: isolate;
   }
 
-  .fracture-atlas__field::before,
-  .fracture-atlas__field::after {
-    content: "";
+  .fracture-atlas__field :global(img) {
+    width: 100%;
+    height: 100%;
+    min-height: 29rem;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .fracture-atlas__field figcaption {
     position: absolute;
-    inset: 10%;
-    border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
-    border-radius: 1.1rem;
-    transform: rotate(-9deg) skewY(-8deg);
-  }
-
-  .fracture-atlas__field::after {
-    inset: 22%;
-    transform: rotate(17deg) skewX(9deg);
-  }
-
-  .fracture-atlas__field p {
-    position: absolute;
-    inset: auto 1.5rem 1.5rem;
+    inset: auto 1rem 1rem;
     z-index: 2;
-    max-width: 17rem;
+    max-width: calc(100% - 2rem);
     margin: 0;
-    color: var(--ink-soft);
+    padding: 0.85rem 1rem;
+    color: #f5f7f7;
+    background: color-mix(in srgb, var(--ink) 78%, transparent);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 1rem;
+    box-shadow: 0 0.75rem 2.5rem rgba(8, 27, 42, 0.18);
+    backdrop-filter: blur(15px) saturate(120%);
     font-family: var(--font-mono);
-    font-size: 0.74rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-size: 0.67rem;
+    line-height: 1.45;
+    letter-spacing: 0.045em;
   }
-
-  .fracture-atlas__fault {
-    position: absolute;
-    inset: -12% auto -12% 48%;
-    width: 0.32rem;
-    background: linear-gradient(180deg, transparent, var(--accent), transparent);
-    transform: rotate(17deg);
-    filter: drop-shadow(0 0 1rem color-mix(in srgb, var(--accent) 45%, transparent));
-  }
-
-  .fracture-atlas__fault::before,
-  .fracture-atlas__fault::after {
-    content: "";
-    position: absolute;
-    width: 5.5rem;
-    height: 0.18rem;
-    background: inherit;
-    transform-origin: left center;
-  }
-
-  .fracture-atlas__fault::before {
-    top: 31%;
-    transform: rotate(43deg);
-  }
-
-  .fracture-atlas__fault::after {
-    top: 62%;
-    transform: rotate(139deg);
-  }
-
-  .fracture-atlas__pulse {
-    position: absolute;
-    width: 1rem;
-    aspect-ratio: 1;
-    border-radius: 0.18rem;
-    background: var(--accent);
-    box-shadow: 0 0 0 0.7rem color-mix(in srgb, var(--accent) 10%, transparent);
-    transform: rotate(45deg);
-  }
-
-  .fracture-atlas__pulse--one { top: 29%; left: 36%; }
-  .fracture-atlas__pulse--two { top: 59%; left: 60%; }
 
   .fracture-atlas__points {
     display: grid;

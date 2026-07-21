@@ -65,6 +65,8 @@ export type ProductContent = {
     eyebrow: string;
     title: string;
     lead: string;
+    visualAlt: string;
+    visualCaption: string;
     items: CardItem[];
   };
   model: {

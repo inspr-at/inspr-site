@@ -44,6 +44,10 @@ export const paimosContent = {
     title: "Fragments break AI work.",
     lead:
       "A ticket says what should change. The repository says where. A runbook says how. A chat window says what an agent tried. None of those systems alone can answer who acted, which context they received, what authority they had and what came back.",
+    visualAlt:
+      "Separate work, repository, knowledge and evidence stations converging into one shared transparent project ledger used by a person and an AI agent.",
+    visualCaption:
+      "One project record connects work, context, execution and evidence.",
     items: [
       {
         title: "Context is scattered",

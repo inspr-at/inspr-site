@@ -19,14 +19,17 @@ import paimosHero from "../assets/products/paimos/hero.png";
 import paimosHeroLoop from "../assets/products/paimos/hero-loop.mp4";
 import paimosLogo from "../assets/products/paimos/logo.svg";
 import paimosWorkflow from "../assets/products/paimos/context-ledger.png";
+import paimosProblem from "../assets/products/paimos/problem-context.png";
 import pharosHero from "../assets/products/pharos/hero.png";
 import pharosHeroLoop from "../assets/products/pharos/hero-loop.mp4";
 import pharosLogo from "../assets/products/pharos/mark.svg";
 import pharosWorkflow from "../assets/products/pharos/fleet-gate.png";
+import pharosProblem from "../assets/products/pharos/problem-evidence.png";
 import janusHero from "../assets/products/janus/hero.png";
 import janusHeroLoop from "../assets/products/janus/hero-loop.mp4";
 import janusLogo from "../assets/products/janus/logo.svg";
 import janusWorkflow from "../assets/products/janus/value-boundary.png";
+import janusProblem from "../assets/products/janus/problem-boundary.png";
 
 interface Props {
   content: ProductContent;
@@ -38,6 +41,7 @@ const assets = {
     hero: paimosHero,
     heroLoop: paimosHeroLoop,
     logo: paimosLogo,
+    problem: paimosProblem,
     workflow: paimosWorkflow,
     workflowAlt:
       "A shared translucent project ledger connecting work, context, execution and evidence.",
@@ -46,6 +50,7 @@ const assets = {
     hero: pharosHero,
     heroLoop: pharosHeroLoop,
     logo: pharosLogo,
+    problem: pharosProblem,
     workflow: pharosWorkflow,
     workflowAlt:
       "A fleet control instrument comparing observed state with declared state through a guarded change gate.",
@@ -54,6 +59,7 @@ const assets = {
     hero: janusHero,
     heroLoop: janusHeroLoop,
     logo: janusLogo,
+    problem: janusProblem,
     workflow: janusWorkflow,
     workflowAlt:
       "A secret-backed request crossing a transparent policy boundary while the secret value remains sealed.",
@@ -192,7 +198,13 @@ const featurePresentations: Record<string, FeaturePresentation> = {
         <h2 id="problem-title">{content.problem.title}</h2>
         <p class="section-lead">{content.problem.lead}</p>
       </header>
-      <FractureAtlas id={`${content.slug}-problem`} items={content.problem.items} />
+      <FractureAtlas
+        id={`${content.slug}-problem`}
+        items={content.problem.items}
+        image={assets.problem}
+        alt={content.problem.visualAlt}
+        caption={content.problem.visualCaption}
+      />
     </section>
 
     <WorkflowExplorer

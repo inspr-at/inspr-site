@@ -2,33 +2,59 @@
 const signals = [
   {
     key: "context",
-    title: "Project context",
-    detail: "Purpose, repository, owner and operating rules.",
-    risk: "work can be locally correct and still solve the wrong problem",
+    title: "Context",
+    packetTitle: "Project context",
+    headline: "Why this work exists and the rules it must follow.",
+    detail:
+      "Purpose, scope, repository, accountable owner and operating rules travel with the task.",
+    example:
+      "A release task names the target service, desired outcome, repository revision, owner and non-negotiable operating rules.",
+    decision:
+      "The system can determine which sources and rules belong to this task.",
     icon: "layers",
   },
   {
     key: "state",
     title: "Current state",
-    detail: "Observed reality, not an assumed snapshot.",
-    risk: "a sound plan can act on yesterday's reality",
+    packetTitle: "Current state",
+    headline: "What is true before the next step begins.",
+    detail:
+      "Observed service health, deployed revision and pending changes replace an assumed snapshot.",
+    example:
+      "At handoff time the packet records the live service state, deployed revision and any change already in progress.",
+    decision:
+      "A proposal can be checked against current evidence instead of yesterday's reality.",
     icon: "pulse",
   },
   {
     key: "authority",
     title: "Authority",
-    detail: "The exact capability allowed for this task.",
-    risk: "a useful suggestion can silently become an unsafe action",
+    packetTitle: "Authority",
+    headline: "Exactly what this task may do and where it must stop.",
+    detail:
+      "A named capability and explicit boundary replace broad, ambient access.",
+    example:
+      "A maintenance run may restart one named service, but cannot read secret values or alter unrelated infrastructure.",
+    decision:
+      "Execution can use a narrow, reviewable capability rather than broad access.",
     icon: "shield",
   },
   {
     key: "evidence",
     title: "Evidence",
-    detail: "What ran, what changed and what was verified.",
-    risk: "the next decision starts from folklore instead of a record",
+    packetTitle: "Return evidence",
+    headline: "What must return before the work is considered complete.",
+    detail:
+      "Action, verifier, result and follow-up decision form a record the next step can use.",
+    example:
+      "The run returns what changed, who or what verified it, the resulting revision and the next decision without logging secret material.",
+    decision:
+      "The next person or agent receives a usable record, not a success claim.",
     icon: "check",
   },
 ];
+
+const firstSignal = signals[0];
 ---
 
 <div class="situation-packet" data-situation-packet>
@@ -36,134 +62,181 @@ const signals = [
     <p class="situation-packet__label">A usable situation packet</p>
     <h3>Four signals turn intent into work that can safely continue.</h3>
     <p>
-      Toggle an input to see the operational gap it leaves behind. A packet is
-      actionable only when context, state, authority and evidence travel together.
+      Inspect each signal to see the decision it enables. Together they give people
+      and agents one current, bounded and reviewable basis for work.
     </p>
   </div>
 
-  <div class="situation-packet__stage">
-    <svg class="situation-packet__connections" viewBox="0 0 100 100" aria-hidden="true">
-      <path data-connection="context" d="M 30 25 C 39 25, 39 38, 44 43" />
-      <path data-connection="state" d="M 70 25 C 61 25, 61 38, 56 43" />
-      <path data-connection="authority" d="M 30 75 C 39 75, 39 62, 44 57" />
-      <path data-connection="evidence" d="M 70 75 C 61 75, 61 62, 56 57" />
-    </svg>
+  <div class="packet-inspector">
+    <div class="packet-tabs" role="tablist" aria-label="Situation packet signals">
+      {signals.map((signal, index) => (
+        <button
+          class:list={["packet-tab", { "is-active": index === 0 }]}
+          id={`packet-tab-${signal.key}`}
+          type="button"
+          role="tab"
+          aria-selected={index === 0 ? "true" : "false"}
+          aria-controls="situation-packet-panel"
+          tabindex={index === 0 ? "0" : "-1"}
+          data-packet-tab
+          data-key={signal.key}
+          data-title={signal.title}
+          data-headline={signal.headline}
+          data-detail={signal.detail}
+          data-example={signal.example}
+          data-decision={signal.decision}
+        >
+          <span class="packet-tab__icon" aria-hidden="true">
+            {signal.icon === "layers" && (
+              <svg viewBox="0 0 24 24"><path d="m4 8 8-4 8 4-8 4-8-4Zm0 4 8 4 8-4M4 16l8 4 8-4" /></svg>
+            )}
+            {signal.icon === "pulse" && (
+              <svg viewBox="0 0 24 24"><path d="M3 12h4l2.2-5 4 10 2.2-5H21" /></svg>
+            )}
+            {signal.icon === "shield" && (
+              <svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.6 2.6 8 7 10 4.4-2 7-5.4 7-10V6l-7-3Zm-2.5 9 1.7 1.7 3.6-4" /></svg>
+            )}
+            {signal.icon === "check" && (
+              <svg viewBox="0 0 24 24"><path d="M7 3h10v4h3v14H4V7h3V3Zm0 7v8h10v-8M9 14l2 2 4-5" /></svg>
+            )}
+          </span>
+          <span class="packet-tab__number">0{index + 1}</span>
+          <strong>{signal.title}</strong>
+        </button>
+      ))}
+    </div>
 
-    {signals.map((signal, index) => (
-      <button
-        class:list={["situation-signal", `situation-signal--${signal.key}`, "is-active"]}
-        type="button"
-        data-signal={signal.key}
-        data-title={signal.title}
-        data-risk={signal.risk}
-        aria-pressed="true"
-        aria-controls="situation-packet-result"
+    <div class="packet-workspace">
+      <div
+        class="packet-detail"
+        id="situation-packet-panel"
+        role="tabpanel"
+        aria-labelledby="packet-tab-context"
+        tabindex="0"
+        data-packet-panel
       >
-        <span class="situation-signal__icon" aria-hidden="true">
-          {signal.icon === "layers" && (
-            <svg viewBox="0 0 24 24"><path d="m4 8 8-4 8 4-8 4-8-4Zm0 4 8 4 8-4M4 16l8 4 8-4" /></svg>
-          )}
-          {signal.icon === "pulse" && (
-            <svg viewBox="0 0 24 24"><path d="M3 12h4l2.2-5 4 10 2.2-5H21" /></svg>
-          )}
-          {signal.icon === "shield" && (
-            <svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.6 2.6 8 7 10 4.4-2 7-5.4 7-10V6l-7-3Zm-2.5 9 1.7 1.7 3.6-4" /></svg>
-          )}
-          {signal.icon === "check" && (
-            <svg viewBox="0 0 24 24"><path d="M7 3h10v4h3v14H4V7h3V3Zm0 7v8h10v-8M9 14l2 2 4-5" /></svg>
-          )}
-        </span>
-        <span class="situation-signal__number">0{index + 1}</span>
-        <strong>{signal.title}</strong>
-        <small>{signal.detail}</small>
-        <span class="situation-signal__state" data-signal-state>Included</span>
-      </button>
-    ))}
+        <p class="packet-detail__eyebrow" data-packet-eyebrow>01 · {firstSignal.title}</p>
+        <h4 data-packet-headline>{firstSignal.headline}</h4>
+        <p class="packet-detail__lead" data-packet-detail>{firstSignal.detail}</p>
 
-    <div class="situation-packet__result" id="situation-packet-result" aria-live="polite">
-      <span class="situation-packet__readiness" data-packet-readiness>Ready · 4/4</span>
-      <span class="situation-packet__core" aria-hidden="true">
-        <svg viewBox="0 0 64 64">
-          <path d="M20 15h24a5 5 0 0 1 5 5v24a5 5 0 0 1-5 5H20a5 5 0 0 1-5-5V20a5 5 0 0 1 5-5Z" />
-          <path d="M24 32h16M32 24v16" />
-        </svg>
-      </span>
-      <strong data-packet-title>Actionable work</strong>
-      <p data-packet-detail>
-        Enough context to act, a bounded path, and a record the next decision can use.
-      </p>
+        <div class="packet-detail__example">
+          <span>Operational example</span>
+          <p data-packet-example>{firstSignal.example}</p>
+        </div>
+
+        <div class="packet-detail__decision" aria-live="polite">
+          <span class="packet-detail__decision-icon" aria-hidden="true">✓</span>
+          <div>
+            <strong>Decision unlocked</strong>
+            <p data-packet-decision>{firstSignal.decision}</p>
+          </div>
+        </div>
+      </div>
+
+      <aside class="packet-summary" aria-label="Assembled situation packet">
+        <div class="packet-summary__header">
+          <span>Situation packet</span>
+          <strong>Complete · 4/4</strong>
+        </div>
+
+        <ol class="packet-summary__list">
+          {signals.map((signal, index) => (
+            <li
+              class:list={["packet-summary__row", { "is-active": index === 0 }]}
+              data-packet-row={signal.key}
+            >
+              <span class="packet-summary__number">0{index + 1}</span>
+              <div>
+                <strong>{signal.packetTitle}</strong>
+                <small>Signal present</small>
+              </div>
+              <span class="packet-summary__check" aria-hidden="true">✓</span>
+            </li>
+          ))}
+        </ol>
+
+        <p class="packet-summary__note">
+          The packet travels with the work. It is a handoff contract, not another
+          dashboard.
+        </p>
+      </aside>
+    </div>
+
+    <div class="packet-readiness" role="status">
+      <span class="packet-readiness__mark" aria-hidden="true">✓</span>
+      <strong>Ready for bounded work</strong>
+      <span>4/4 signals</span>
+      <span class="packet-readiness__hint">Select a signal above to inspect its contribution.</span>
     </div>
   </div>
 </div>
 
 <script>
-  const readyDetail =
-    "Enough context to act, a bounded path, and a record the next decision can use.";
-
   document.querySelectorAll<HTMLElement>("[data-situation-packet]").forEach((packet) => {
-    const signals = Array.from(packet.querySelectorAll<HTMLButtonElement>("[data-signal]"));
-    const title = packet.querySelector<HTMLElement>("[data-packet-title]");
+    const tabs = Array.from(packet.querySelectorAll<HTMLButtonElement>("[data-packet-tab]"));
+    const panel = packet.querySelector<HTMLElement>("[data-packet-panel]");
+    const eyebrow = packet.querySelector<HTMLElement>("[data-packet-eyebrow]");
+    const headline = packet.querySelector<HTMLElement>("[data-packet-headline]");
     const detail = packet.querySelector<HTMLElement>("[data-packet-detail]");
-    const readiness = packet.querySelector<HTMLElement>("[data-packet-readiness]");
+    const example = packet.querySelector<HTMLElement>("[data-packet-example]");
+    const decision = packet.querySelector<HTMLElement>("[data-packet-decision]");
 
-    const update = () => {
-      const missing = signals.filter((signal) => signal.getAttribute("aria-pressed") === "false");
-      const activeCount = signals.length - missing.length;
+    const selectTab = (tab: HTMLButtonElement, moveFocus = false) => {
+      const index = tabs.indexOf(tab);
+      if (index < 0 || !panel || !eyebrow || !headline || !detail || !example || !decision) return;
 
-      signals.forEach((signal) => {
-        const active = signal.getAttribute("aria-pressed") === "true";
-        signal.classList.toggle("is-active", active);
-        signal.querySelector<HTMLElement>("[data-signal-state]")!.textContent = active
-          ? "Included"
-          : "Missing";
-        packet
-          .querySelector<SVGPathElement>(`[data-connection="${signal.dataset.signal}"]`)
-          ?.classList.toggle("is-active", active);
+      tabs.forEach((candidate) => {
+        const selected = candidate === tab;
+        candidate.classList.toggle("is-active", selected);
+        candidate.setAttribute("aria-selected", String(selected));
+        candidate.tabIndex = selected ? 0 : -1;
       });
 
-      if (!title || !detail || !readiness) return;
+      packet.querySelectorAll<HTMLElement>("[data-packet-row]").forEach((row) => {
+        row.classList.toggle("is-active", row.dataset.packetRow === tab.dataset.key);
+      });
 
-      if (missing.length === 0) {
-        readiness.textContent = "Ready · 4/4";
-        title.textContent = "Actionable work";
-        detail.textContent = readyDetail;
-        packet.classList.add("is-ready");
-        return;
-      }
+      panel.setAttribute("aria-labelledby", tab.id);
+      eyebrow.textContent = `0${index + 1} · ${tab.dataset.title}`;
+      headline.textContent = tab.dataset.headline ?? "";
+      detail.textContent = tab.dataset.detail ?? "";
+      example.textContent = tab.dataset.example ?? "";
+      decision.textContent = tab.dataset.decision ?? "";
 
-      const names = missing.map((signal) => signal.dataset.title).join(" + ");
-      const firstRisk = missing[0]?.dataset.risk;
-      readiness.textContent = `Incomplete · ${activeCount}/4`;
-      title.textContent = `Restore ${names}`;
-      detail.textContent = `Without it, ${firstRisk}.`;
-      packet.classList.remove("is-ready");
+      if (moveFocus) tab.focus();
     };
 
-    signals.forEach((signal) => {
-      signal.addEventListener("click", () => {
-        const active = signal.getAttribute("aria-pressed") === "true";
-        signal.setAttribute("aria-pressed", String(!active));
-        update();
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => selectTab(tab));
+      tab.addEventListener("keydown", (event) => {
+        const current = tabs.indexOf(tab);
+        let next = current;
+
+        if (event.key === "ArrowRight" || event.key === "ArrowDown") next = (current + 1) % tabs.length;
+        if (event.key === "ArrowLeft" || event.key === "ArrowUp") next = (current - 1 + tabs.length) % tabs.length;
+        if (event.key === "Home") next = 0;
+        if (event.key === "End") next = tabs.length - 1;
+        if (next === current) return;
+
+        event.preventDefault();
+        selectTab(tabs[next], true);
       });
     });
-
-    update();
   });
 </script>
 
 <style>
   .situation-packet {
     display: grid;
-    grid-template-columns: minmax(16rem, 0.42fr) minmax(34rem, 1fr);
-    gap: clamp(2rem, 6vw, 6rem);
-    align-items: center;
+    grid-template-columns: minmax(16rem, 0.38fr) minmax(38rem, 1fr);
+    gap: clamp(2rem, 5vw, 5.5rem);
+    align-items: start;
     margin-top: clamp(3rem, 7vw, 6.5rem);
     padding-top: clamp(2.5rem, 5vw, 4.5rem);
     border-top: 1px solid rgb(255 255 255 / 0.13);
   }
 
   .situation-packet__intro {
-    align-self: start;
     padding-top: 0.75rem;
   }
 
@@ -194,119 +267,78 @@ const signals = [
     line-height: 1.7;
   }
 
-  .situation-packet__stage {
-    position: relative;
-    isolation: isolate;
-    display: grid;
-    grid-template-columns: minmax(12rem, 1fr) minmax(12rem, 0.9fr) minmax(12rem, 1fr);
-    grid-template-rows: repeat(2, minmax(10.5rem, auto));
-    gap: 1rem clamp(1.5rem, 3vw, 2.75rem);
-    min-height: 27rem;
-  }
-
-  .situation-packet__connections {
-    position: absolute;
-    z-index: -1;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-  }
-
-  .situation-packet__connections path {
-    fill: none;
-    stroke: rgb(154 190 190 / 0.18);
-    stroke-dasharray: 1.2 2.4;
-    stroke-linecap: round;
-    stroke-width: 0.6;
-    vector-effect: non-scaling-stroke;
-    transition:
-      stroke 220ms ease,
-      stroke-dashoffset 500ms ease;
-  }
-
-  .situation-packet__connections path.is-active {
-    stroke: rgb(139 215 210 / 0.76);
-    stroke-dashoffset: -5;
-  }
-
-  .situation-signal {
-    position: relative;
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-content: start;
-    align-items: center;
-    gap: 0.55rem 0.75rem;
+  .packet-inspector {
     min-width: 0;
-    padding: 1.1rem;
-    color: rgb(235 242 241 / 0.64);
+    overflow: hidden;
+    border: 1px solid rgb(139 215 210 / 0.23);
+    border-radius: 1.2rem;
+    background:
+      linear-gradient(145deg, rgb(75 178 175 / 0.08), transparent 48%),
+      rgb(5 24 32 / 0.31);
+    box-shadow:
+      0 1.5rem 4rem rgb(0 0 0 / 0.12),
+      inset 0 1px 0 rgb(255 255 255 / 0.04);
+  }
+
+  .packet-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.55rem;
+    padding: 0.75rem;
+    border-bottom: 1px solid rgb(139 215 210 / 0.15);
+  }
+
+  .packet-tab {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    gap: 0.08rem 0.65rem;
+    align-items: center;
+    min-width: 0;
+    min-height: 4.65rem;
+    padding: 0.7rem;
+    color: rgb(228 237 235 / 0.62);
     text-align: left;
-    border: 1px solid rgb(255 255 255 / 0.1);
-    border-radius: 1.15rem;
-    background: rgb(5 24 32 / 0.32);
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+    border: 1px solid transparent;
+    border-radius: 0.8rem;
+    background: rgb(255 255 255 / 0.025);
     cursor: pointer;
     transition:
+      color 180ms ease,
       border-color 180ms ease,
       background 180ms ease,
-      opacity 180ms ease,
       transform 180ms ease;
   }
 
-  .situation-signal:hover,
-  .situation-signal:focus-visible {
-    border-color: rgb(139 215 210 / 0.48);
-    transform: translateY(-0.12rem);
+  .packet-tab:hover {
+    color: rgb(244 247 246 / 0.88);
+    background: rgb(139 215 210 / 0.06);
   }
 
-  .situation-signal:focus-visible {
+  .packet-tab:focus-visible {
     outline: 3px solid rgb(139 215 210 / 0.35);
-    outline-offset: 3px;
+    outline-offset: 2px;
   }
 
-  .situation-signal.is-active {
-    color: rgb(244 247 246 / 0.86);
-    border-color: rgb(139 215 210 / 0.3);
-    background:
-      linear-gradient(145deg, rgb(75 178 175 / 0.16), transparent 72%),
-      rgb(5 24 32 / 0.38);
+  .packet-tab.is-active {
+    color: #f8f5ef;
+    border-color: rgb(139 215 210 / 0.7);
+    background: rgb(139 215 210 / 0.1);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.04);
   }
 
-  .situation-signal:not(.is-active) {
-    opacity: 0.58;
-  }
-
-  .situation-signal--context {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .situation-signal--state {
-    grid-column: 3;
-    grid-row: 1;
-  }
-
-  .situation-signal--authority {
-    grid-column: 1;
-    grid-row: 2;
-  }
-
-  .situation-signal--evidence {
-    grid-column: 3;
-    grid-row: 2;
-  }
-
-  .situation-signal__icon {
+  .packet-tab__icon {
     display: grid;
-    width: 2rem;
-    height: 2rem;
+    grid-row: 1 / 3;
+    width: 2.25rem;
+    aspect-ratio: 1;
     place-items: center;
     border-radius: 0.65rem;
     background: rgb(139 215 210 / 0.1);
   }
 
-  .situation-signal__icon svg {
-    width: 1.2rem;
+  .packet-tab__icon svg {
+    width: 1.25rem;
     fill: none;
     stroke: currentColor;
     stroke-linecap: round;
@@ -314,107 +346,263 @@ const signals = [
     stroke-width: 1.6;
   }
 
-  .situation-signal__number,
-  .situation-signal__state {
+  .packet-tab__number,
+  .packet-detail__eyebrow,
+  .packet-detail__example > span,
+  .packet-summary__header,
+  .packet-summary__number,
+  .packet-readiness {
     font-family: var(--font-mono, monospace);
-    font-size: 0.6rem;
-    font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
 
-  .situation-signal__number {
+  .packet-tab__number {
     color: #8bd7d2;
-  }
-
-  .situation-signal__state {
-    color: rgb(139 215 210 / 0.72);
-  }
-
-  .situation-signal strong,
-  .situation-signal small {
-    grid-column: 1 / -1;
-  }
-
-  .situation-signal strong {
-    margin-top: 0.3rem;
-    color: inherit;
-    font-size: 1rem;
-  }
-
-  .situation-signal small {
-    color: inherit;
-    font-size: 0.75rem;
-    line-height: 1.5;
-  }
-
-  .situation-packet__result {
-    display: grid;
-    grid-column: 2;
-    grid-row: 1 / 3;
-    align-content: center;
-    justify-items: center;
-    min-width: 0;
-    padding: 1rem 0.3rem;
-    text-align: center;
-  }
-
-  .situation-packet__readiness {
-    margin-bottom: 0.7rem;
-    color: #e8aa46;
-    font-family: var(--font-mono, monospace);
-    font-size: 0.6rem;
+    font-size: 0.58rem;
     font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
   }
 
-  .is-ready .situation-packet__readiness {
-    color: #8bd7d2;
+  .packet-tab strong {
+    overflow: hidden;
+    font-size: 0.74rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .situation-packet__core {
-    position: relative;
+  .packet-workspace {
     display: grid;
-    width: clamp(5rem, 8vw, 6.5rem);
-    aspect-ratio: 1;
-    margin-bottom: 1rem;
-    place-items: center;
-    border: 1px solid rgb(139 215 210 / 0.3);
-    border-radius: 50%;
-    background:
-      radial-gradient(circle at 35% 28%, rgb(255 255 255 / 0.14), transparent 35%),
-      rgb(62 157 156 / 0.12);
-    box-shadow:
-      0 0 0 0.7rem rgb(139 215 210 / 0.04),
-      0 1.2rem 2.8rem rgb(0 0 0 / 0.2),
-      inset -0.4rem -0.5rem 1rem rgb(0 0 0 / 0.16);
+    grid-template-columns: minmax(0, 1.15fr) minmax(15rem, 0.85fr);
+    min-height: 24rem;
   }
 
-  .situation-packet__core svg {
-    width: 55%;
-    fill: none;
-    stroke: #8bd7d2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 2;
+  .packet-detail,
+  .packet-summary {
+    padding: clamp(1.4rem, 2.5vw, 2rem);
   }
 
-  .situation-packet__result strong {
+  .packet-detail {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid rgb(139 215 210 / 0.15);
+  }
+
+  .packet-detail:focus {
+    outline: none;
+  }
+
+  .packet-detail:focus-visible {
+    outline: 2px solid rgb(139 215 210 / 0.32);
+    outline-offset: -0.4rem;
+  }
+
+  .packet-detail__eyebrow {
+    min-height: 1rem;
+    margin: 0 0 0.9rem;
+    color: #8bd7d2;
+    font-size: 0.62rem;
+    font-weight: 700;
+  }
+
+  .packet-detail h4 {
+    min-height: 2.8em;
+    margin: 0;
     color: #f8f5ef;
-    font-size: clamp(1.05rem, 1.6vw, 1.35rem);
-    line-height: 1.2;
+    font-size: clamp(1.3rem, 2vw, 1.8rem);
+    line-height: 1.12;
+    letter-spacing: -0.025em;
   }
 
-  .situation-packet__result p {
-    max-width: 18rem;
-    margin: 0.65rem 0 0;
-    color: rgb(228 237 235 / 0.65);
-    font-size: 0.72rem;
+  .packet-detail__lead {
+    min-height: 3.2em;
+    margin: 0.75rem 0 0;
+    color: rgb(228 237 235 / 0.72);
+    font-size: 0.82rem;
+    line-height: 1.6;
+  }
+
+  .packet-detail__example {
+    min-height: 7.2rem;
+    margin-top: 1.2rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid rgb(139 215 210 / 0.16);
+  }
+
+  .packet-detail__example > span {
+    color: rgb(139 215 210 / 0.76);
+    font-size: 0.58rem;
+    font-weight: 700;
+  }
+
+  .packet-detail__example p,
+  .packet-detail__decision p,
+  .packet-summary__note {
+    color: rgb(228 237 235 / 0.68);
+    font-size: 0.76rem;
     line-height: 1.55;
   }
 
-  @media (max-width: 68rem) {
+  .packet-detail__example p {
+    margin: 0.6rem 0 0;
+  }
+
+  .packet-detail__decision {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.75rem;
+    align-items: start;
+    min-height: 5.8rem;
+    margin-top: auto;
+    padding: 0.9rem;
+    border: 1px solid rgb(139 215 210 / 0.2);
+    border-radius: 0.8rem;
+    background: rgb(139 215 210 / 0.055);
+  }
+
+  .packet-detail__decision-icon {
+    display: grid;
+    width: 1.6rem;
+    aspect-ratio: 1;
+    place-items: center;
+    color: #06232d;
+    border-radius: 50%;
+    background: #8bd7d2;
+    font-weight: 800;
+  }
+
+  .packet-detail__decision strong {
+    color: #8bd7d2;
+    font-size: 0.82rem;
+  }
+
+  .packet-detail__decision p {
+    margin: 0.25rem 0 0;
+  }
+
+  .packet-summary {
+    display: flex;
+    flex-direction: column;
+    background: rgb(255 255 255 / 0.015);
+  }
+
+  .packet-summary__header {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    align-items: center;
+    color: rgb(139 215 210 / 0.76);
+    font-size: 0.58rem;
+  }
+
+  .packet-summary__header strong {
+    padding: 0.35rem 0.55rem;
+    color: #8bd7d2;
+    border: 1px solid rgb(139 215 210 / 0.25);
+    border-radius: 0.4rem;
+  }
+
+  .packet-summary__list {
+    overflow: hidden;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid rgb(139 215 210 / 0.17);
+    border-radius: 0.8rem;
+  }
+
+  .packet-summary__row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 0.7rem;
+    align-items: center;
+    min-height: 3.45rem;
+    padding: 0.65rem 0.75rem;
+    color: rgb(228 237 235 / 0.62);
+    border-bottom: 1px solid rgb(139 215 210 / 0.12);
+    transition:
+      color 180ms ease,
+      background 180ms ease;
+  }
+
+  .packet-summary__row:last-child {
+    border-bottom: 0;
+  }
+
+  .packet-summary__row.is-active {
+    color: #f8f5ef;
+    background: rgb(139 215 210 / 0.08);
+  }
+
+  .packet-summary__number {
+    color: #8bd7d2;
+    font-size: 0.58rem;
+    font-weight: 700;
+  }
+
+  .packet-summary__row strong,
+  .packet-summary__row small {
+    display: block;
+  }
+
+  .packet-summary__row strong {
+    font-size: 0.76rem;
+  }
+
+  .packet-summary__row small {
+    margin-top: 0.12rem;
+    color: rgb(228 237 235 / 0.48);
+    font-size: 0.62rem;
+  }
+
+  .packet-summary__check {
+    color: #8bd7d2;
+  }
+
+  .packet-summary__note {
+    margin: auto 0 0;
+    padding-top: 1rem;
+    border-top: 1px solid rgb(139 215 210 / 0.12);
+  }
+
+  .packet-readiness {
+    display: grid;
+    grid-template-columns: auto auto auto 1fr;
+    gap: 0.65rem;
+    align-items: center;
+    min-height: 4.1rem;
+    padding: 0.8rem 1rem;
+    color: #8bd7d2;
+    border-top: 1px solid rgb(139 215 210 / 0.17);
+    background: rgb(139 215 210 / 0.045);
+    font-size: 0.62rem;
+  }
+
+  .packet-readiness__mark {
+    display: grid;
+    width: 1.55rem;
+    aspect-ratio: 1;
+    place-items: center;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+  }
+
+  .packet-readiness strong {
+    color: #b2e8e4;
+  }
+
+  .packet-readiness > span:nth-of-type(2) {
+    color: rgb(139 215 210 / 0.7);
+  }
+
+  .packet-readiness__hint {
+    justify-self: end;
+    color: rgb(228 237 235 / 0.48);
+    letter-spacing: 0;
+    text-align: right;
+    text-transform: none;
+  }
+
+  @media (max-width: 75rem) {
     .situation-packet {
       grid-template-columns: 1fr;
     }
@@ -422,58 +610,63 @@ const signals = [
     .situation-packet__intro h3 {
       max-width: 21ch;
     }
-
-    .situation-packet__stage {
-      width: 100%;
-    }
   }
 
-  @media (max-width: 45rem) {
-    .situation-packet__stage {
+  @media (max-width: 52rem) {
+    .packet-tabs {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      grid-template-rows: auto auto auto;
-      gap: 0.75rem;
-      min-height: 0;
     }
 
-    .situation-packet__connections {
+    .packet-workspace {
+      grid-template-columns: 1fr;
+    }
+
+    .packet-detail {
+      border-right: 0;
+      border-bottom: 1px solid rgb(139 215 210 / 0.15);
+    }
+
+    .packet-summary__note {
+      margin-top: 1rem;
+    }
+
+    .packet-readiness {
+      grid-template-columns: auto 1fr auto;
+    }
+
+    .packet-readiness__hint {
       display: none;
-    }
-
-    .situation-signal--context,
-    .situation-signal--state,
-    .situation-signal--authority,
-    .situation-signal--evidence {
-      grid-column: auto;
-      grid-row: auto;
-    }
-
-    .situation-packet__result {
-      grid-column: 1 / -1;
-      grid-row: 3;
-      min-height: 16rem;
-      margin-top: 0.5rem;
-      padding: 1.5rem;
-      border: 1px solid rgb(139 215 210 / 0.16);
-      border-radius: 1.25rem;
-      background: rgb(5 24 32 / 0.26);
     }
   }
 
   @media (max-width: 31rem) {
-    .situation-packet__stage {
+    .packet-tabs {
       grid-template-columns: 1fr;
     }
 
-    .situation-packet__result {
-      grid-column: 1;
-      grid-row: 5;
+    .packet-tab {
+      min-height: 4rem;
+    }
+
+    .packet-detail h4,
+    .packet-detail__lead,
+    .packet-detail__example,
+    .packet-detail__decision {
+      min-height: 0;
+    }
+
+    .packet-readiness {
+      grid-template-columns: auto 1fr;
+    }
+
+    .packet-readiness > span:nth-of-type(2) {
+      grid-column: 2;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .situation-packet__connections path,
-    .situation-signal {
+    .packet-tab,
+    .packet-summary__row {
       transition: none;
     }
   }

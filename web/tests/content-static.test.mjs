@@ -101,6 +101,22 @@ test("the umbrella links its actual site source and direct license", async () =>
   assert.match(umbrella, /licenseUrl=\{siteLicenseUrl\}/);
 });
 
+test("the situation packet teaches four stable, keyboard-inspectable signals", async () => {
+  const packet = await source("components/SituationPacket.astro");
+
+  assert.match(packet, /role="tablist"/);
+  assert.match(packet, /role="tab"/);
+  assert.match(packet, /role="tabpanel"/);
+  assert.match(packet, /aria-selected/);
+  assert.match(packet, /Decision unlocked/);
+  assert.match(packet, /Ready for bounded work/);
+  assert.match(packet, /Operational example/);
+  assert.match(packet, /event\.key === "ArrowRight"/);
+  assert.match(packet, /event\.key === "Home"/);
+  assert.doesNotMatch(packet, /aria-pressed/);
+  assert.doesNotMatch(packet, /data-signal-state/);
+});
+
 test("the frozen archive redirects its historical identity entry before file handling", async () => {
   const caddy = await readFile(new URL("../../Caddyfile", import.meta.url), "utf8");
   const redirectIndex = caddy.indexOf("@archive_enter");

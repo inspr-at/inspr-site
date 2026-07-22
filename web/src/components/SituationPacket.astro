@@ -1,55 +1,51 @@
 ---
 const signals = [
   {
-    key: "context",
-    title: "Context",
-    packetTitle: "Project context",
-    headline: "Why this work exists and the rules it must follow.",
-    detail:
-      "Purpose, scope, repository, accountable owner and operating rules travel with the task.",
+    key: "goal",
+    label: "Goal",
+    question: "What are we trying to achieve?",
+    explanation:
+      "Name the outcome, the accountable owner and the rules that must hold. Everyone works toward the same result instead of interpreting a vague request.",
     example:
-      "A release task names the target service, desired outcome, repository revision, owner and non-negotiable operating rules.",
-    decision:
-      "The system can determine which sources and rules belong to this task.",
-    icon: "layers",
+      "Release checkout-api revision 8f42 without interrupting active sessions. Operations owns the result.",
+    missing: "People and agents can optimise for different outcomes.",
+    clear: "Every next step can be checked against one shared result.",
+    icon: "target",
   },
   {
-    key: "state",
-    title: "Current state",
-    packetTitle: "Current state",
-    headline: "What is true before the next step begins.",
-    detail:
-      "Observed service health, deployed revision and pending changes replace an assumed snapshot.",
+    key: "reality",
+    label: "Reality",
+    question: "What is true right now?",
+    explanation:
+      "Bring the current revision, service health and work already in progress into the handoff. The plan starts from observed reality, not memory.",
     example:
-      "At handoff time the packet records the live service state, deployed revision and any change already in progress.",
-    decision:
-      "A proposal can be checked against current evidence instead of yesterday's reality.",
+      "Revision 7fc1 is live, health checks are green and a database migration is already running.",
+    missing: "A sensible plan can still act on yesterday's situation.",
+    clear: "The next action accounts for what is actually happening now.",
     icon: "pulse",
   },
   {
-    key: "authority",
-    title: "Authority",
-    packetTitle: "Authority",
-    headline: "Exactly what this task may do and where it must stop.",
-    detail:
-      "A named capability and explicit boundary replace broad, ambient access.",
+    key: "permission",
+    label: "Permission",
+    question: "What may this task do?",
+    explanation:
+      "Give the task the smallest useful capability and state where it must stop. Useful autonomy does not require broad, permanent access.",
     example:
-      "A maintenance run may restart one named service, but cannot read secret values or alter unrelated infrastructure.",
-    decision:
-      "Execution can use a narrow, reviewable capability rather than broad access.",
+      "The run may restart checkout-api after approval. It cannot read secret values or change another service.",
+    missing: "People must either block the work or grant more access than it needs.",
+    clear: "The task can move independently inside a visible boundary.",
     icon: "shield",
   },
   {
-    key: "evidence",
-    title: "Evidence",
-    packetTitle: "Return evidence",
-    headline: "What must return before the work is considered complete.",
-    detail:
-      "Action, verifier, result and follow-up decision form a record the next step can use.",
+    key: "proof",
+    label: "Proof",
+    question: "How do we know it worked?",
+    explanation:
+      "Define the evidence that must return before work is complete. The next person receives a usable record, not a success claim.",
     example:
-      "The run returns what changed, who or what verified it, the resulting revision and the next decision without logging secret material.",
-    decision:
-      "The next person or agent receives a usable record, not a success claim.",
+      "Return the deployed revision, health-check result, verifier and follow-up decision - without recording secret material.",
+    missing: "The next handoff begins with another round of reconstruction.",
+    clear: "The result is reviewable and ready for the next decision.",
     icon: "check",
   },
 ];
@@ -59,36 +55,37 @@ const firstSignal = signals[0];
 
 <div class="situation-packet" data-situation-packet>
   <div class="situation-packet__intro">
-    <p class="situation-packet__label">A usable situation packet</p>
-    <h3>Four signals turn intent into work that can safely continue.</h3>
+    <p class="situation-packet__label">Before work starts</p>
+    <h3>Four questions prevent avoidable guesswork.</h3>
     <p>
-      Inspect each signal to see the decision it enables. Together they give people
-      and agents one current, bounded and reviewable basis for work.
+      Choose a question to see what good handoff information looks like and why it
+      matters in practice.
     </p>
   </div>
 
-  <div class="packet-inspector">
-    <div class="packet-tabs" role="tablist" aria-label="Situation packet signals">
+  <div class="handoff-guide">
+    <div class="handoff-tabs" role="tablist" aria-label="Four questions for a reliable handoff">
       {signals.map((signal, index) => (
         <button
-          class:list={["packet-tab", { "is-active": index === 0 }]}
-          id={`packet-tab-${signal.key}`}
+          class:list={["handoff-tab", { "is-active": index === 0 }]}
+          id={`handoff-tab-${signal.key}`}
           type="button"
           role="tab"
           aria-selected={index === 0 ? "true" : "false"}
-          aria-controls="situation-packet-panel"
+          aria-controls="handoff-panel"
           tabindex={index === 0 ? "0" : "-1"}
-          data-packet-tab
-          data-key={signal.key}
-          data-title={signal.title}
-          data-headline={signal.headline}
-          data-detail={signal.detail}
+          data-handoff-tab
+          data-label={signal.label}
+          data-question={signal.question}
+          data-explanation={signal.explanation}
           data-example={signal.example}
-          data-decision={signal.decision}
+          data-missing={signal.missing}
+          data-clear={signal.clear}
         >
-          <span class="packet-tab__icon" aria-hidden="true">
-            {signal.icon === "layers" && (
-              <svg viewBox="0 0 24 24"><path d="m4 8 8-4 8 4-8 4-8-4Zm0 4 8 4 8-4M4 16l8 4 8-4" /></svg>
+          <span class="handoff-tab__number">0{index + 1}</span>
+          <span class="handoff-tab__icon" aria-hidden="true">
+            {signal.icon === "target" && (
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" /><circle cx="12" cy="12" r="2" /><path d="M12 2v3M22 12h-3M12 22v-3M2 12h3" /></svg>
             )}
             {signal.icon === "pulse" && (
               <svg viewBox="0 0 24 24"><path d="M3 12h4l2.2-5 4 10 2.2-5H21" /></svg>
@@ -97,97 +94,69 @@ const firstSignal = signals[0];
               <svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.6 2.6 8 7 10 4.4-2 7-5.4 7-10V6l-7-3Zm-2.5 9 1.7 1.7 3.6-4" /></svg>
             )}
             {signal.icon === "check" && (
-              <svg viewBox="0 0 24 24"><path d="M7 3h10v4h3v14H4V7h3V3Zm0 7v8h10v-8M9 14l2 2 4-5" /></svg>
+              <svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM8 12l2.5 2.5L16 9" /></svg>
             )}
           </span>
-          <span class="packet-tab__number">0{index + 1}</span>
-          <strong>{signal.title}</strong>
+          <span>
+            <strong>{signal.label}</strong>
+            <small>{signal.question}</small>
+          </span>
         </button>
       ))}
     </div>
 
-    <div class="packet-workspace">
-      <div
-        class="packet-detail"
-        id="situation-packet-panel"
-        role="tabpanel"
-        aria-labelledby="packet-tab-context"
-        tabindex="0"
-        data-packet-panel
-      >
-        <p class="packet-detail__eyebrow" data-packet-eyebrow>01 · {firstSignal.title}</p>
-        <h4 data-packet-headline>{firstSignal.headline}</h4>
-        <p class="packet-detail__lead" data-packet-detail>{firstSignal.detail}</p>
+    <div
+      class="handoff-panel"
+      id="handoff-panel"
+      role="tabpanel"
+      aria-labelledby="handoff-tab-goal"
+      tabindex="0"
+      data-handoff-panel
+    >
+      <div class="handoff-panel__answer">
+        <p class="handoff-panel__eyebrow" data-handoff-eyebrow>01 · {firstSignal.label}</p>
+        <h4 data-handoff-question>{firstSignal.question}</h4>
+        <p class="handoff-panel__lead" data-handoff-explanation>{firstSignal.explanation}</p>
 
-        <div class="packet-detail__example">
-          <span>Operational example</span>
-          <p data-packet-example>{firstSignal.example}</p>
-        </div>
-
-        <div class="packet-detail__decision" aria-live="polite">
-          <span class="packet-detail__decision-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <path d="m7 12.5 3.1 3.1L17.5 8" />
-            </svg>
-          </span>
-          <div>
-            <strong>Decision unlocked</strong>
-            <p data-packet-decision>{firstSignal.decision}</p>
-          </div>
+        <div class="handoff-example">
+          <span>One concrete handoff</span>
+          <p data-handoff-example>{firstSignal.example}</p>
         </div>
       </div>
 
-      <aside class="packet-summary" aria-label="Assembled situation packet">
-        <div class="packet-summary__header">
-          <span>Situation packet</span>
-          <strong>Complete · 4/4</strong>
+      <div class="handoff-impact" aria-live="polite">
+        <p class="handoff-impact__label">Why it matters</p>
+        <div class="handoff-impact__row handoff-impact__row--missing">
+          <span aria-hidden="true">Without</span>
+          <p data-handoff-missing>{firstSignal.missing}</p>
         </div>
-
-        <ol class="packet-summary__list">
-          {signals.map((signal, index) => (
-            <li
-              class:list={["packet-summary__row", { "is-active": index === 0 }]}
-              data-packet-row={signal.key}
-            >
-              <span class="packet-summary__number">0{index + 1}</span>
-              <div>
-                <strong>{signal.packetTitle}</strong>
-                <small>Signal present</small>
-              </div>
-              <span class="packet-summary__check" aria-hidden="true">✓</span>
-            </li>
-          ))}
-        </ol>
-
-        <p class="packet-summary__note">
-          The packet travels with the work. It is a handoff contract, not another
-          dashboard.
+        <div class="handoff-impact__arrow" aria-hidden="true">↓</div>
+        <div class="handoff-impact__row handoff-impact__row--clear">
+          <span aria-hidden="true">With</span>
+          <p data-handoff-clear>{firstSignal.clear}</p>
+        </div>
+        <p class="handoff-impact__takeaway">
+          Clear handoffs let people and agents continue without rebuilding the situation.
         </p>
-      </aside>
-    </div>
-
-    <div class="packet-readiness" role="status">
-      <span class="packet-readiness__mark" aria-hidden="true">✓</span>
-      <strong>Ready for bounded work</strong>
-      <span>4/4 signals</span>
-      <span class="packet-readiness__hint">Select a signal above to inspect its contribution.</span>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-  document.querySelectorAll<HTMLElement>("[data-situation-packet]").forEach((packet) => {
-    const tabs = Array.from(packet.querySelectorAll<HTMLButtonElement>("[data-packet-tab]"));
-    const panel = packet.querySelector<HTMLElement>("[data-packet-panel]");
-    const eyebrow = packet.querySelector<HTMLElement>("[data-packet-eyebrow]");
-    const headline = packet.querySelector<HTMLElement>("[data-packet-headline]");
-    const detail = packet.querySelector<HTMLElement>("[data-packet-detail]");
-    const example = packet.querySelector<HTMLElement>("[data-packet-example]");
-    const decision = packet.querySelector<HTMLElement>("[data-packet-decision]");
+  document.querySelectorAll<HTMLElement>("[data-situation-packet]").forEach((guide) => {
+    const tabs = Array.from(guide.querySelectorAll<HTMLButtonElement>("[data-handoff-tab]"));
+    const panel = guide.querySelector<HTMLElement>("[data-handoff-panel]");
+    const eyebrow = guide.querySelector<HTMLElement>("[data-handoff-eyebrow]");
+    const question = guide.querySelector<HTMLElement>("[data-handoff-question]");
+    const explanation = guide.querySelector<HTMLElement>("[data-handoff-explanation]");
+    const example = guide.querySelector<HTMLElement>("[data-handoff-example]");
+    const missing = guide.querySelector<HTMLElement>("[data-handoff-missing]");
+    const clear = guide.querySelector<HTMLElement>("[data-handoff-clear]");
 
     const selectTab = (tab: HTMLButtonElement, moveFocus = false) => {
       const index = tabs.indexOf(tab);
-      if (index < 0 || !panel || !eyebrow || !headline || !detail || !example || !decision) return;
+      if (index < 0 || !panel || !eyebrow || !question || !explanation || !example || !missing || !clear) return;
 
       tabs.forEach((candidate) => {
         const selected = candidate === tab;
@@ -196,16 +165,13 @@ const firstSignal = signals[0];
         candidate.tabIndex = selected ? 0 : -1;
       });
 
-      packet.querySelectorAll<HTMLElement>("[data-packet-row]").forEach((row) => {
-        row.classList.toggle("is-active", row.dataset.packetRow === tab.dataset.key);
-      });
-
       panel.setAttribute("aria-labelledby", tab.id);
-      eyebrow.textContent = `0${index + 1} · ${tab.dataset.title}`;
-      headline.textContent = tab.dataset.headline ?? "";
-      detail.textContent = tab.dataset.detail ?? "";
+      eyebrow.textContent = `0${index + 1} · ${tab.dataset.label}`;
+      question.textContent = tab.dataset.question ?? "";
+      explanation.textContent = tab.dataset.explanation ?? "";
       example.textContent = tab.dataset.example ?? "";
-      decision.textContent = tab.dataset.decision ?? "";
+      missing.textContent = tab.dataset.missing ?? "";
+      clear.textContent = tab.dataset.clear ?? "";
 
       if (moveFocus) tab.focus();
     };
@@ -232,7 +198,7 @@ const firstSignal = signals[0];
 <style>
   .situation-packet {
     display: grid;
-    grid-template-columns: minmax(16rem, 0.38fr) minmax(38rem, 1fr);
+    grid-template-columns: minmax(16rem, 0.34fr) minmax(40rem, 1fr);
     gap: clamp(2rem, 5vw, 5.5rem);
     align-items: start;
     margin-top: clamp(3rem, 7vw, 6.5rem);
@@ -244,14 +210,22 @@ const firstSignal = signals[0];
     padding-top: 0.75rem;
   }
 
+  .situation-packet__label,
+  .handoff-tab__number,
+  .handoff-panel__eyebrow,
+  .handoff-example > span,
+  .handoff-impact__label,
+  .handoff-impact__row > span {
+    font-family: var(--font-mono, monospace);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
   .situation-packet__label {
     margin: 0 0 0.9rem;
     color: #8bd7d2;
-    font-family: var(--font-mono, monospace);
     font-size: 0.7rem;
     font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
   }
 
   .situation-packet__intro h3 {
@@ -264,76 +238,77 @@ const firstSignal = signals[0];
   }
 
   .situation-packet__intro > p:last-child {
-    max-width: 31rem;
+    max-width: 28rem;
     margin: 1.25rem 0 0;
     color: rgb(228 237 235 / 0.7);
     font-size: 0.92rem;
     line-height: 1.7;
   }
 
-  .packet-inspector {
+  .handoff-guide {
     min-width: 0;
     overflow: hidden;
-    border: 1px solid rgb(139 215 210 / 0.23);
+    border: 1px solid rgb(139 215 210 / 0.24);
     border-radius: 1.2rem;
     background:
       linear-gradient(145deg, rgb(75 178 175 / 0.08), transparent 48%),
-      rgb(5 24 32 / 0.31);
+      rgb(5 24 32 / 0.34);
     box-shadow:
       0 1.5rem 4rem rgb(0 0 0 / 0.12),
       inset 0 1px 0 rgb(255 255 255 / 0.04);
   }
 
-  .packet-tabs {
+  .handoff-tabs {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.55rem;
-    padding: 0.75rem;
+    gap: 0.5rem;
+    padding: 0.7rem;
     border-bottom: 1px solid rgb(139 215 210 / 0.15);
   }
 
-  .packet-tab {
+  .handoff-tab {
     display: grid;
-    grid-template-columns: auto 1fr;
-    grid-template-rows: auto auto;
-    gap: 0.08rem 0.65rem;
+    grid-template-columns: auto auto 1fr;
+    gap: 0.55rem;
     align-items: center;
     min-width: 0;
-    min-height: 4.65rem;
+    min-height: 5.2rem;
     padding: 0.7rem;
-    color: rgb(228 237 235 / 0.62);
+    color: rgb(228 237 235 / 0.58);
     text-align: left;
     border: 1px solid transparent;
-    border-radius: 0.8rem;
+    border-radius: 0.85rem;
     background: rgb(255 255 255 / 0.025);
     cursor: pointer;
-    transition:
-      color 180ms ease,
-      border-color 180ms ease,
-      background 180ms ease,
-      transform 180ms ease;
+    transition: color 180ms ease, border-color 180ms ease, background 180ms ease;
   }
 
-  .packet-tab:hover {
-    color: rgb(244 247 246 / 0.88);
+  .handoff-tab:hover {
+    color: rgb(244 247 246 / 0.9);
     background: rgb(139 215 210 / 0.06);
   }
 
-  .packet-tab:focus-visible {
+  .handoff-tab:focus-visible {
     outline: 3px solid rgb(139 215 210 / 0.35);
     outline-offset: 2px;
   }
 
-  .packet-tab.is-active {
+  .handoff-tab.is-active {
     color: #f8f5ef;
     border-color: rgb(139 215 210 / 0.7);
     background: rgb(139 215 210 / 0.1);
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.04);
   }
 
-  .packet-tab__icon {
+  .handoff-tab__number {
+    align-self: start;
+    padding-top: 0.15rem;
+    color: #8bd7d2;
+    font-size: 0.56rem;
+    font-weight: 700;
+  }
+
+  .handoff-tab__icon {
     display: grid;
-    grid-row: 1 / 3;
     width: 2.25rem;
     aspect-ratio: 1;
     place-items: center;
@@ -341,8 +316,8 @@ const firstSignal = signals[0];
     background: rgb(139 215 210 / 0.1);
   }
 
-  .packet-tab__icon svg {
-    width: 1.25rem;
+  .handoff-tab__icon svg {
+    width: 1.2rem;
     fill: none;
     stroke: currentColor;
     stroke-linecap: round;
@@ -350,273 +325,155 @@ const firstSignal = signals[0];
     stroke-width: 1.6;
   }
 
-  .packet-tab__number,
-  .packet-detail__eyebrow,
-  .packet-detail__example > span,
-  .packet-summary__header,
-  .packet-summary__number,
-  .packet-readiness {
-    font-family: var(--font-mono, monospace);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+  .handoff-tab strong,
+  .handoff-tab small {
+    display: block;
   }
 
-  .packet-tab__number {
-    color: #8bd7d2;
-    font-size: 0.58rem;
-    font-weight: 700;
+  .handoff-tab strong {
+    font-size: 0.78rem;
   }
 
-  .packet-tab strong {
+  .handoff-tab small {
     overflow: hidden;
-    font-size: 0.74rem;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    margin-top: 0.2rem;
+    color: rgb(228 237 235 / 0.52);
+    font-size: 0.6rem;
+    line-height: 1.3;
   }
 
-  .packet-workspace {
+  .handoff-panel {
     display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(15rem, 0.85fr);
-    min-height: 24rem;
+    grid-template-columns: minmax(0, 1.15fr) minmax(16rem, 0.85fr);
+    min-height: 25rem;
   }
 
-  .packet-detail,
-  .packet-summary {
-    padding: clamp(1.4rem, 2.5vw, 2rem);
+  .handoff-panel:focus {
+    outline: none;
   }
 
-  .packet-detail {
+  .handoff-panel:focus-visible {
+    outline: 2px solid rgb(139 215 210 / 0.32);
+    outline-offset: -0.4rem;
+  }
+
+  .handoff-panel__answer,
+  .handoff-impact {
+    padding: clamp(1.5rem, 2.8vw, 2.3rem);
+  }
+
+  .handoff-panel__answer {
     display: flex;
     flex-direction: column;
     border-right: 1px solid rgb(139 215 210 / 0.15);
   }
 
-  .packet-detail:focus {
-    outline: none;
-  }
-
-  .packet-detail:focus-visible {
-    outline: 2px solid rgb(139 215 210 / 0.32);
-    outline-offset: -0.4rem;
-  }
-
-  .packet-detail__eyebrow {
-    min-height: 1rem;
+  .handoff-panel__eyebrow {
     margin: 0 0 0.9rem;
     color: #8bd7d2;
     font-size: 0.62rem;
     font-weight: 700;
   }
 
-  .packet-detail h4 {
-    min-height: 2.8em;
+  .handoff-panel h4 {
+    min-height: 2.25em;
     margin: 0;
     color: #f8f5ef;
-    font-size: clamp(1.3rem, 2vw, 1.8rem);
-    line-height: 1.12;
-    letter-spacing: -0.025em;
+    font-size: clamp(1.45rem, 2.2vw, 2rem);
+    line-height: 1.08;
+    letter-spacing: -0.03em;
   }
 
-  .packet-detail__lead {
-    min-height: 3.2em;
-    margin: 0.75rem 0 0;
+  .handoff-panel__lead {
+    min-height: 4.9em;
+    margin: 1rem 0 0;
+    color: rgb(228 237 235 / 0.74);
+    font-size: 0.84rem;
+    line-height: 1.65;
+  }
+
+  .handoff-example {
+    min-height: 7.5rem;
+    margin-top: auto;
+    padding: 1.15rem 1.2rem;
+    border: 1px solid rgb(139 215 210 / 0.18);
+    border-radius: 0.85rem;
+    background: rgb(255 255 255 / 0.025);
+  }
+
+  .handoff-example > span,
+  .handoff-impact__label {
+    color: rgb(139 215 210 / 0.78);
+    font-size: 0.58rem;
+    font-weight: 700;
+  }
+
+  .handoff-example p {
+    margin: 0.65rem 0 0;
     color: rgb(228 237 235 / 0.72);
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     line-height: 1.6;
   }
 
-  .packet-detail__example {
-    min-height: 7.2rem;
-    margin-top: 1.2rem;
-    padding-top: 1.1rem;
-    border-top: 1px solid rgb(139 215 210 / 0.16);
+  .handoff-impact {
+    display: flex;
+    flex-direction: column;
+    background: rgb(255 255 255 / 0.018);
   }
 
-  .packet-detail__example > span {
-    color: rgb(139 215 210 / 0.76);
-    font-size: 0.58rem;
+  .handoff-impact__label {
+    margin: 0 0 1rem;
+  }
+
+  .handoff-impact__row {
+    min-height: 7rem;
+    padding: 1rem;
+    border: 1px solid rgb(255 255 255 / 0.08);
+    border-radius: 0.8rem;
+  }
+
+  .handoff-impact__row > span {
+    color: rgb(228 237 235 / 0.5);
+    font-size: 0.56rem;
     font-weight: 700;
   }
 
-  .packet-detail__example p,
-  .packet-detail__decision p,
-  .packet-summary__note {
+  .handoff-impact__row p {
+    margin: 0.55rem 0 0;
     color: rgb(228 237 235 / 0.68);
-    font-size: 0.76rem;
+    font-size: 0.78rem;
     line-height: 1.55;
   }
 
-  .packet-detail__example p {
-    margin: 0.6rem 0 0;
+  .handoff-impact__row--missing {
+    background: rgb(228 237 235 / 0.025);
   }
 
-  .packet-detail__decision {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 0.75rem;
-    align-items: start;
-    min-height: 5.8rem;
-    margin-top: auto;
-    padding: 0.9rem;
-    border: 1px solid rgb(139 215 210 / 0.2);
-    border-radius: 0.8rem;
-    background: rgb(139 215 210 / 0.055);
+  .handoff-impact__row--clear {
+    border-color: rgb(139 215 210 / 0.28);
+    background: rgb(139 215 210 / 0.075);
   }
 
-  .packet-detail__decision-icon {
-    display: grid;
-    width: 1.8rem;
-    min-width: 1.8rem;
-    height: 1.8rem;
-    min-height: 1.8rem;
-    place-items: center;
-    color: #9ee2dd;
-    border: 1px solid rgb(139 215 210 / 0.5);
-    border-radius: 50%;
-    background: rgb(139 215 210 / 0.12);
-    line-height: 0;
+  .handoff-impact__row--clear > span,
+  .handoff-impact__row--clear p {
+    color: #a9e3df;
   }
 
-  .packet-detail__decision-icon svg {
-    width: 1rem;
-    height: 1rem;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 2;
-  }
-
-  .packet-detail__decision strong {
-    color: #8bd7d2;
-    font-size: 0.82rem;
-  }
-
-  .packet-detail__decision p {
-    margin: 0.25rem 0 0;
-  }
-
-  .packet-summary {
-    display: flex;
-    flex-direction: column;
-    background: rgb(255 255 255 / 0.015);
-  }
-
-  .packet-summary__header {
-    display: flex;
-    gap: 1rem;
-    justify-content: space-between;
-    align-items: center;
-    color: rgb(139 215 210 / 0.76);
-    font-size: 0.58rem;
-  }
-
-  .packet-summary__header strong {
-    padding: 0.35rem 0.55rem;
-    color: #8bd7d2;
-    border: 1px solid rgb(139 215 210 / 0.25);
-    border-radius: 0.4rem;
-  }
-
-  .packet-summary__list {
-    overflow: hidden;
-    margin: 1rem 0 0;
-    padding: 0;
-    list-style: none;
-    border: 1px solid rgb(139 215 210 / 0.17);
-    border-radius: 0.8rem;
-  }
-
-  .packet-summary__row {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 0.7rem;
-    align-items: center;
-    min-height: 3.45rem;
-    padding: 0.65rem 0.75rem;
-    color: rgb(228 237 235 / 0.62);
-    border-bottom: 1px solid rgb(139 215 210 / 0.12);
-    transition:
-      color 180ms ease,
-      background 180ms ease;
-  }
-
-  .packet-summary__row:last-child {
-    border-bottom: 0;
-  }
-
-  .packet-summary__row.is-active {
-    color: #f8f5ef;
-    background: rgb(139 215 210 / 0.08);
-  }
-
-  .packet-summary__number {
-    color: #8bd7d2;
-    font-size: 0.58rem;
-    font-weight: 700;
-  }
-
-  .packet-summary__row strong,
-  .packet-summary__row small {
-    display: block;
-  }
-
-  .packet-summary__row strong {
-    font-size: 0.76rem;
-  }
-
-  .packet-summary__row small {
-    margin-top: 0.12rem;
-    color: rgb(228 237 235 / 0.48);
-    font-size: 0.62rem;
-  }
-
-  .packet-summary__check {
-    color: #8bd7d2;
-  }
-
-  .packet-summary__note {
-    margin: auto 0 0;
-    padding-top: 1rem;
-    border-top: 1px solid rgb(139 215 210 / 0.12);
-  }
-
-  .packet-readiness {
-    display: grid;
-    grid-template-columns: auto auto auto 1fr;
-    gap: 0.65rem;
-    align-items: center;
-    min-height: 4.1rem;
-    padding: 0.8rem 1rem;
-    color: #8bd7d2;
-    border-top: 1px solid rgb(139 215 210 / 0.17);
-    background: rgb(139 215 210 / 0.045);
-    font-size: 0.62rem;
-  }
-
-  .packet-readiness__mark {
-    display: grid;
-    width: 1.55rem;
-    aspect-ratio: 1;
-    place-items: center;
-    border: 1px solid currentColor;
-    border-radius: 50%;
-  }
-
-  .packet-readiness strong {
-    color: #b2e8e4;
-  }
-
-  .packet-readiness > span:nth-of-type(2) {
+  .handoff-impact__arrow {
+    height: 2rem;
     color: rgb(139 215 210 / 0.7);
+    font-size: 1rem;
+    line-height: 2rem;
+    text-align: center;
   }
 
-  .packet-readiness__hint {
-    justify-self: end;
-    color: rgb(228 237 235 / 0.48);
-    letter-spacing: 0;
-    text-align: right;
-    text-transform: none;
+  .handoff-impact__takeaway {
+    margin: auto 0 0;
+    padding-top: 1.1rem;
+    color: rgb(228 237 235 / 0.58);
+    border-top: 1px solid rgb(139 215 210 / 0.14);
+    font-size: 0.72rem;
+    line-height: 1.55;
   }
 
   @media (max-width: 75rem) {
@@ -629,61 +486,48 @@ const firstSignal = signals[0];
     }
   }
 
-  @media (max-width: 52rem) {
-    .packet-tabs {
+  @media (max-width: 56rem) {
+    .handoff-tabs {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .packet-workspace {
+    .handoff-panel {
       grid-template-columns: 1fr;
     }
 
-    .packet-detail {
+    .handoff-panel__answer {
       border-right: 0;
       border-bottom: 1px solid rgb(139 215 210 / 0.15);
     }
 
-    .packet-summary__note {
-      margin-top: 1rem;
-    }
-
-    .packet-readiness {
-      grid-template-columns: auto 1fr auto;
-    }
-
-    .packet-readiness__hint {
-      display: none;
-    }
-  }
-
-  @media (max-width: 31rem) {
-    .packet-tabs {
-      grid-template-columns: 1fr;
-    }
-
-    .packet-tab {
-      min-height: 4rem;
-    }
-
-    .packet-detail h4,
-    .packet-detail__lead,
-    .packet-detail__example,
-    .packet-detail__decision {
+    .handoff-panel h4,
+    .handoff-panel__lead,
+    .handoff-example,
+    .handoff-impact__row {
       min-height: 0;
     }
 
-    .packet-readiness {
-      grid-template-columns: auto 1fr;
+    .handoff-example {
+      margin-top: 1.5rem;
     }
 
-    .packet-readiness > span:nth-of-type(2) {
-      grid-column: 2;
+    .handoff-impact__takeaway {
+      margin-top: 1.25rem;
+    }
+  }
+
+  @media (max-width: 34rem) {
+    .handoff-tabs {
+      grid-template-columns: 1fr;
+    }
+
+    .handoff-tab {
+      min-height: 4.5rem;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .packet-tab,
-    .packet-summary__row {
+    .handoff-tab {
       transition: none;
     }
   }

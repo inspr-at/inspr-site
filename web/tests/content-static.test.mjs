@@ -101,20 +101,25 @@ test("the umbrella links its actual site source and direct license", async () =>
   assert.match(umbrella, /licenseUrl=\{siteLicenseUrl\}/);
 });
 
-test("the situation packet teaches four stable, keyboard-inspectable signals", async () => {
+test("the handoff guide teaches four stable, keyboard-inspectable questions", async () => {
   const packet = await source("components/SituationPacket.astro");
 
   assert.match(packet, /role="tablist"/);
   assert.match(packet, /role="tab"/);
   assert.match(packet, /role="tabpanel"/);
   assert.match(packet, /aria-selected/);
-  assert.match(packet, /Decision unlocked/);
-  assert.match(packet, /Ready for bounded work/);
-  assert.match(packet, /Operational example/);
+  assert.match(packet, /What are we trying to achieve\?/);
+  assert.match(packet, /What is true right now\?/);
+  assert.match(packet, /What may this task do\?/);
+  assert.match(packet, /How do we know it worked\?/);
+  assert.match(packet, /One concrete handoff/);
+  assert.match(packet, /Why it matters/);
   assert.match(packet, /event\.key === "ArrowRight"/);
   assert.match(packet, /event\.key === "Home"/);
   assert.doesNotMatch(packet, /aria-pressed/);
   assert.doesNotMatch(packet, /data-signal-state/);
+  assert.doesNotMatch(packet, /Complete · 4\/4/);
+  assert.doesNotMatch(packet, /Ready for bounded work/);
 });
 
 test("the frozen archive redirects its historical identity entry before file handling", async () => {

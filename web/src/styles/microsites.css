@@ -841,17 +841,19 @@
     display: none;
   }
 
-  /* Glossary terms inside notes: click targets with deliberately NO visual
-     difference from the surrounding text. */
+  /* Glossary terms inside notes: invisible at rest; on hover they light up
+     with a highlighter-marker overlay and the collapsed glossary's summary
+     line becomes a live definition. Hover-only — no click behavior, so a
+     click anywhere on the card just flips it. */
   .specs__term {
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: inherit;
-    font: inherit;
-    letter-spacing: inherit;
-    text-align: inherit;
-    cursor: pointer;
+    border-radius: 0.3em;
+    cursor: help;
+    transition: background 140ms ease, box-shadow 140ms ease;
+  }
+
+  .specs__term:hover {
+    background: rgb(255 221 64 / 0.6);
+    box-shadow: 0 0 0 0.16em rgb(255 221 64 / 0.6);
   }
 
   .specs__controls {
@@ -957,8 +959,6 @@
     line-height: 1.44;
     color: var(--ink);
     text-wrap: pretty;
-    /* Reading zone: clicks here never flip the card (terms keep pointer). */
-    cursor: default;
   }
 
   /* Pinned: the card locks on its back face and ignores hover. The tile's
@@ -1020,13 +1020,49 @@
   }
 
   .specs__glossary summary {
+    display: flex;
+    gap: 0.55rem;
+    align-items: baseline;
+    overflow: hidden;
     padding: 0.8rem 1.1rem;
     color: var(--ink-soft);
     cursor: pointer;
+    white-space: nowrap;
     font-family: var(--font-mono);
     font-size: 0.7rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
+  }
+
+  /* Live glossary-on-hover: while a term in a card is hovered, the summary's
+     tail swaps to the hovered word (marker-highlit) plus its definition. */
+  .specs__gloss-live {
+    display: inline-flex;
+    gap: 0.55rem;
+    align-items: baseline;
+    overflow: hidden;
+    min-width: 0;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .specs__gloss-live[hidden] {
+    display: none;
+  }
+
+  .specs__gloss-live-term {
+    padding: 0.05em 0.3em;
+    color: var(--ink);
+    border-radius: 0.3em;
+    background: rgb(255 221 64 / 0.6);
+    font-weight: 700;
+  }
+
+  .specs__gloss-live-body {
+    overflow: hidden;
+    color: var(--ink);
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .specs__glossary[open] summary {
@@ -1058,11 +1094,6 @@
     color: var(--ink-soft);
     font-size: 0.8rem;
     line-height: 1.5;
-  }
-
-  .specs__gloss-entry.is-hit {
-    background: var(--accent-soft);
-    box-shadow: inset 0.2rem 0 0 var(--accent-strong);
   }
 
   .specs__reshuffle {

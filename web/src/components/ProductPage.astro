@@ -268,9 +268,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
                     <span class="specs__variant specs__variant--tech">
                       {segmentNote(item.note).map((seg) =>
                         seg.termId ? (
-                          <button type="button" class="specs__term" data-term={seg.termId}>
-                            {seg.text}
-                          </button>
+                          <span class="specs__term" data-term={seg.termId}>{seg.text}</span>
                         ) : (
                           seg.text
                         ),
@@ -279,9 +277,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
                     <span class="specs__variant specs__variant--plain">
                       {segmentNote(item.noteEli10).map((seg) =>
                         seg.termId ? (
-                          <button type="button" class="specs__term" data-term={seg.termId}>
-                            {seg.text}
-                          </button>
+                          <span class="specs__term" data-term={seg.termId}>{seg.text}</span>
                         ) : (
                           seg.text
                         ),
@@ -300,7 +296,14 @@ const featurePresentations: Record<string, FeaturePresentation> = {
         <div class="specs__foot">
           {specGlossary.length > 0 && (
             <details class="specs__glossary" data-specs-glossary>
-              <summary>Glossary — the buzzwords, in plain words</summary>
+              <summary>
+                <span class="specs__gloss-label">Glossary</span>
+                <span class="specs__gloss-rest" data-gloss-rest>— the buzzwords, in plain words</span>
+                <span class="specs__gloss-live" data-gloss-live hidden>
+                  <mark class="specs__gloss-live-term" data-gloss-live-term></mark>
+                  <span class="specs__gloss-live-body" data-gloss-live-body></span>
+                </span>
+              </summary>
               <dl>
                 {sortedGlossary.map((entry) => (
                   <div class="specs__gloss-entry" id={`gloss-${entry.id}`}>

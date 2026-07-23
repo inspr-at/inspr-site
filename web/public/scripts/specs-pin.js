@@ -1,13 +1,12 @@
-// Specs grid behaviors: pin/unpin cards, flip-all, ELI10 mode, glossary term
-// targeting, and randomized layout with a FLIP-animated reshuffle. External
-// same-origin file on purpose — script-src 'self', no CSP hash churn.
+// Specs grid behaviors: pin/unpin cards, flip-all, ELI10 mode, a live
+// glossary-on-hover, and randomized layout with a FLIP-animated reshuffle.
+// External same-origin file on purpose — script-src 'self', no CSP churn.
 (() => {
   "use strict";
 
   const root = document.getElementById("specs");
   if (!root) return;
   const grid = root.querySelector(".specs__grid");
-  const glossary = root.querySelector("[data-specs-glossary]");
   const flipAllBtn = root.querySelector("[data-specs-flip-all]");
   const prefersReduced = () =>
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -36,29 +35,47 @@
     syncFlipAll();
   };
 
-  // ── Glossary ───────────────────────────────────────────────────────────────
-  let activeTerm = null;
-  const clearHits = () =>
-    root.querySelectorAll(".specs__gloss-entry.is-hit").forEach((el) => el.classList.remove("is-hit"));
+  // ── Live glossary on hover ─────────────────────────────────────────────────
+  // Hovering a term marks the word and swaps the collapsed glossary's summary
+  // tail to that word plus its definition. Terms have no click behavior.
+  const glossRest = root.querySelector("[data-gloss-rest]");
+  const glossLive = root.querySelector("[data-gloss-live]");
+  const glossLiveTerm = root.querySelector("[data-gloss-live-term]");
+  const glossLiveBody = root.querySelector("[data-gloss-live-body]");
+  const definitions = {};
+  root.querySelectorAll(".specs__gloss-entry").forEach((entry) => {
+    const id = entry.id.replace(/^gloss-/, "");
+    definitions[id] = entry.querySelector("dd")?.textContent ?? "";
+  });
 
-  const handleTerm = (btn) => {
-    const id = btn.getAttribute("data-term");
-    const entry = document.getElementById(`gloss-${id}`);
-    if (!entry || !glossary) return;
-    if (activeTerm === id) {
-      clearHits();
-      activeTerm = null;
-      return;
-    }
-    clearHits();
-    glossary.open = true;
-    entry.classList.add("is-hit");
-    activeTerm = id;
-    entry.scrollIntoView({
-      block: "nearest",
-      behavior: prefersReduced() ? "auto" : "smooth",
-    });
+  const showLive = (term) => {
+    const body = definitions[term.getAttribute("data-term")];
+    if (!body || !glossLive) return;
+    glossLiveTerm.textContent = term.textContent.trim();
+    glossLiveBody.textContent = body;
+    if (glossRest) glossRest.hidden = true;
+    glossLive.hidden = false;
   };
+
+  const hideLive = () => {
+    if (!glossLive) return;
+    glossLive.hidden = true;
+    if (glossRest) glossRest.hidden = false;
+  };
+
+  document.addEventListener("mouseover", (event) => {
+    if (!(event.target instanceof Element)) return;
+    const term = event.target.closest(".specs__term");
+    if (term && root.contains(term)) showLive(term);
+  });
+
+  document.addEventListener("mouseout", (event) => {
+    if (!(event.target instanceof Element)) return;
+    const term = event.target.closest(".specs__term");
+    if (!term || !root.contains(term)) return;
+    const into = event.relatedTarget instanceof Element ? event.relatedTarget.closest(".specs__term") : null;
+    if (!into) hideLive();
+  });
 
   // ── Shuffle (randomize on load; FLIP-animate on demand) ───────────────────
   const shuffleOrder = () => {
@@ -95,20 +112,7 @@
 
   // ── Events ─────────────────────────────────────────────────────────────────
   document.addEventListener("click", (event) => {
-    const term = event.target.closest(".specs__term");
-    if (term) {
-      event.stopPropagation();
-      // A word click pins the card first (a hover-flipped card would spin
-      // away the moment the pointer moves toward the glossary), then opens
-      // the glossary entry. It never unpins.
-      const tile = term.closest(".specs__tile");
-      if (tile && !tile.classList.contains("is-pinned")) {
-        setPinned(tile, true);
-        syncFlipAll();
-      }
-      handleTerm(term);
-      return;
-    }
+    if (!(event.target instanceof Element)) return;
     if (event.target.closest("[data-specs-flip-all]")) {
       const target = !allPinned();
       tiles().forEach((t) => setPinned(t, target));
@@ -127,12 +131,7 @@
       return;
     }
     const flip = event.target.closest(".specs__flip");
-    if (flip && root.contains(flip)) {
-      // The note text is a reading zone: a near-miss beside a glossary term
-      // must not flip the card away. Flip/unpin only outside the note.
-      if (event.target.closest(".specs__note")) return;
-      toggleTile(flip);
-    }
+    if (flip && root.contains(flip)) toggleTile(flip);
   });
 
   document.addEventListener("keydown", (event) => {
@@ -144,7 +143,6 @@
     if (event.key !== "Enter" && event.key !== " ") return;
     const el = event.target;
     if (!(el instanceof Element)) return;
-    if (el.closest(".specs__term")) return; // real buttons handle themselves
     const flip = el.closest(".specs__flip");
     if (flip && root.contains(flip)) {
       event.preventDefault();

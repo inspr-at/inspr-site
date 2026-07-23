@@ -130,6 +130,21 @@ export const paimosContent = {
         icon: "hard-drive",
         note: "Point at Ollama or any OpenAI-compatible endpoint. Keep model inference on your own hardware.",
       },
+      {
+        label: "Customer portal",
+        icon: "panels-top-left",
+        note: "Customers see exactly what you publish, submit requests and accept deliveries. Internal work stays internal.",
+      },
+      {
+        label: "Time & budgets",
+        icon: "timer",
+        note: "Estimates, time entries, accruals and budgets live on the same tickets as the work — one model from effort to invoice.",
+      },
+      {
+        label: "Undo & redo",
+        icon: "rotate-ccw",
+        note: "Bulk edits are transactional with full mutation history. Changes are reversible, and conflicts surface instead of overwriting.",
+      },
     ],
   },
   problem: {

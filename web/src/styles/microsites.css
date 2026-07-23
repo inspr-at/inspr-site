@@ -718,15 +718,32 @@
     max-width: 70rem;
   }
 
-  /* Specs — at-a-glance capability grid; each tile flips to an honest note
-     on hover, keyboard focus or tap. Pure CSS, no JS (keeps the CSP simple). */
+  /* Specs — at-a-glance capability grid. Hover previews the honest note on
+     the back face; click pins it (tiny external JS toggles .is-pinned).
+     The hover trigger lives on the NON-transforming <li>: putting :hover on
+     the rotating button collapses its own hitbox mid-spin, the hover drops,
+     the card spins back, the pointer re-enters — an oscillating flicker.
+     Column counts are fixed per breakpoint so 20 tiles always form a full
+     rectangle (5x4, 4x5, 2x10) with no ragged last row. */
   .specs__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(9.75rem, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.75rem;
     list-style: none;
     padding: 0;
     margin: 0;
+  }
+
+  @media (min-width: 48rem) {
+    .specs__grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 75rem) {
+    .specs__grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
   }
 
   .specs__tile {
@@ -759,8 +776,8 @@
     outline: none;
   }
 
-  .specs__flip:hover,
-  .specs__flip:focus {
+  .specs__tile:hover .specs__flip,
+  .specs__tile.is-pinned .specs__flip {
     transform: rotateY(180deg);
   }
 
@@ -771,7 +788,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.85rem;
+    gap: 0.7rem;
     padding: clamp(1rem, 2vw, 1.5rem) 0.95rem;
     text-align: center;
     overflow: hidden;
@@ -786,8 +803,7 @@
       box-shadow 220ms ease;
   }
 
-  .specs__flip:hover .specs__face,
-  .specs__flip:focus .specs__face {
+  .specs__tile:hover .specs__face {
     border-color: var(--line-strong);
     box-shadow: var(--shadow-sm);
   }
@@ -811,6 +827,14 @@
     text-wrap: balance;
   }
 
+  .specs__back-label {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent-strong);
+  }
+
   .specs__note {
     font-size: 0.82rem;
     line-height: 1.44;
@@ -818,9 +842,87 @@
     text-wrap: pretty;
   }
 
-  @media (max-width: 34rem) {
-    .specs__grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+  /* Pinned: the card locks on its back face and ignores hover. A terminal-ish
+     "pinned" marker with a blinking block cursor appears, a scanline sweeps
+     the face once, and the heading does one quick glitch jitter. */
+  .specs__pin {
+    position: absolute;
+    top: 0.55rem;
+    right: 0.7rem;
+    display: none;
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-strong);
+  }
+
+  .specs__pin::after {
+    content: "\258d";
+    margin-left: 0.2em;
+    animation: specs-cursor-blink 1.1s steps(2, start) infinite;
+  }
+
+  .specs__tile.is-pinned .specs__pin {
+    display: inline;
+  }
+
+  .specs__tile.is-pinned .specs__face--back {
+    border-color: var(--accent-strong);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent),
+      var(--shadow-sm);
+  }
+
+  .specs__tile.is-pinned .specs__face--back::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      color-mix(in srgb, var(--accent) 16%, transparent) 50%,
+      transparent 100%
+    );
+    transform: translateY(-100%);
+    animation: specs-scan 480ms var(--ease) forwards;
+  }
+
+  .specs__tile.is-pinned .specs__back-label {
+    animation: specs-glitch 320ms steps(5) 1;
+  }
+
+  @keyframes specs-cursor-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes specs-scan {
+    to {
+      transform: translateY(100%);
+    }
+  }
+
+  @keyframes specs-glitch {
+    0% {
+      transform: translateX(0);
+    }
+    20% {
+      transform: translateX(-0.14em);
+    }
+    40% {
+      transform: translateX(0.14em);
+    }
+    60% {
+      transform: translateX(-0.07em);
+    }
+    80% {
+      transform: translateX(0.07em);
+    }
+    100% {
+      transform: translateX(0);
     }
   }
 
@@ -828,8 +930,8 @@
     .specs__flip {
       transition: none;
     }
-    .specs__flip:hover,
-    .specs__flip:focus {
+    .specs__tile:hover .specs__flip,
+    .specs__tile.is-pinned .specs__flip {
       transform: none;
     }
     .specs__face {
@@ -841,9 +943,14 @@
       opacity: 0;
       transition: opacity 200ms ease;
     }
-    .specs__flip:hover .specs__face--back,
-    .specs__flip:focus .specs__face--back {
+    .specs__tile:hover .specs__face--back,
+    .specs__tile.is-pinned .specs__face--back {
       opacity: 1;
+    }
+    .specs__tile.is-pinned .specs__face--back::before,
+    .specs__tile.is-pinned .specs__back-label,
+    .specs__pin::after {
+      animation: none;
     }
   }
 

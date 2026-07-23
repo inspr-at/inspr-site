@@ -243,12 +243,14 @@ const featurePresentations: Record<string, FeaturePresentation> = {
         </header>
 
         <div class="specs__controls">
-          <button type="button" class="specs__mode" data-specs-eli10 aria-pressed="false">
-            <span class="specs__mode-track" aria-hidden="true"><i></i></span>
-            <span>ELI10 mode</span>
+          <button type="button" class="specs__control" data-specs-eli10 aria-pressed="false">
+            ELI10 mode
           </button>
-          <button type="button" class="specs__flip-all" data-specs-flip-all aria-pressed="false">
+          <button type="button" class="specs__control" data-specs-flip-all aria-pressed="false">
             Flip all
+          </button>
+          <button type="button" class="specs__control" data-specs-shuffle>
+            Shuffle
           </button>
         </div>
 
@@ -314,9 +316,6 @@ const featurePresentations: Record<string, FeaturePresentation> = {
               </dl>
             </details>
           )}
-          <button type="button" class="specs__reshuffle" data-specs-shuffle aria-label="Shuffle the specs grid">
-            ⤨
-          </button>
         </div>
         <script is:inline src={`/scripts/specs-pin.js?v=${scriptVersion}`} defer></script>
       </section>

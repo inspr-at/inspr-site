@@ -856,61 +856,33 @@
     box-shadow: 0 0 0 0.16em rgb(255 221 64 / 0.6);
   }
 
+  /* Controls mirror the main menu: simple words, no frames, no decoration.
+     Pressed state reads through color and weight only. */
   .specs__controls {
     display: flex;
-    gap: 0.6rem;
+    gap: clamp(0.85rem, 2vw, 1.8rem);
     justify-content: flex-end;
     margin-bottom: 0.9rem;
   }
 
-  .specs__mode,
-  .specs__flip-all {
-    display: inline-flex;
-    gap: 0.45rem;
-    align-items: center;
-    min-height: 2.1rem;
-    padding: 0.3rem 0.75rem;
+  .specs__control {
+    padding: 0.2rem 0;
     color: var(--ink-soft);
-    border: 1px solid var(--line);
-    border-radius: 999px;
+    border: 0;
     background: transparent;
     cursor: pointer;
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    transition: color 180ms ease, border-color 180ms ease, background 180ms ease;
+    font-family: inherit;
+    font-size: 0.82rem;
+    transition: color 160ms ease;
   }
 
-  .specs__mode[aria-pressed="true"],
-  .specs__flip-all[aria-pressed="true"] {
+  .specs__control:hover {
     color: var(--accent-strong);
-    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
-    background: var(--accent-soft);
   }
 
-  .specs__mode-track {
-    position: relative;
-    display: inline-block;
-    width: 1.55rem;
-    height: 0.85rem;
-    border: 1px solid var(--line-strong);
-    border-radius: 999px;
-  }
-
-  .specs__mode-track i {
-    position: absolute;
-    top: 50%;
-    left: 0.1rem;
-    width: 0.55rem;
-    height: 0.55rem;
-    border-radius: 50%;
-    background: var(--ink-faint);
-    transform: translateY(-50%);
-    transition: left 180ms var(--ease), background 180ms ease;
-  }
-
-  .specs__mode[aria-pressed="true"] .specs__mode-track i {
-    left: calc(100% - 0.65rem);
-    background: var(--accent-strong);
+  .specs__control[aria-pressed="true"] {
+    color: var(--accent-strong);
+    font-weight: 700;
   }
 
   /* Group identity lives in the ICON color — an intense, darkish shade per
@@ -1004,12 +976,8 @@
     animation: specs-glitch 320ms steps(5) 1;
   }
 
-  /* Section foot: expandable plain-words glossary + the quiet reshuffle. */
+  /* Section foot: the expandable plain-words glossary, full width. */
   .specs__foot {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0.75rem;
-    align-items: start;
     margin-top: 1rem;
   }
 
@@ -1094,24 +1062,6 @@
     color: var(--ink-soft);
     font-size: 0.8rem;
     line-height: 1.5;
-  }
-
-  .specs__reshuffle {
-    padding: 0.15rem 0.4rem;
-    color: var(--ink-faint);
-    border: 0;
-    background: transparent;
-    cursor: pointer;
-    font-size: 0.72rem;
-    line-height: 1;
-    opacity: 0.35;
-    transition: opacity 180ms ease, color 180ms ease;
-  }
-
-  .specs__reshuffle:hover,
-  .specs__reshuffle:focus-visible {
-    color: var(--accent-strong);
-    opacity: 1;
   }
 
   @media (max-width: 48rem) {

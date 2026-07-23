@@ -911,54 +911,37 @@
     background: var(--accent-strong);
   }
 
-  /* Faint group tints: security, ops/resilience, AI, license/legal, daily
-     work, place. Deliberately whisper-quiet so the grid stays calm. */
-  .specs__tile--security .specs__face {
-    background: color-mix(in srgb, #2f6fbf 5%, var(--surface-solid));
+  /* Group identity lives in the ICON color — an intense, darkish shade per
+     group (security, ops/resilience, AI, license/legal, daily work, place).
+     Card faces stay neutral; tinted faces read as noise. The pin marker
+     inherits the same group color via --specs-group. */
+  .specs__tile--security {
+    --specs-group: #1e5a9e;
   }
 
-  .specs__tile--ops .specs__face {
-    background: color-mix(in srgb, #2f9e63 5%, var(--surface-solid));
+  .specs__tile--ops {
+    --specs-group: #176b41;
   }
 
-  .specs__tile--ai .specs__face {
-    background: color-mix(in srgb, #7c5cd6 5%, var(--surface-solid));
+  .specs__tile--ai {
+    --specs-group: #5b3fb8;
   }
 
-  .specs__tile--legal .specs__face {
-    background: color-mix(in srgb, #d69b31 7%, var(--surface-solid));
+  .specs__tile--legal {
+    --specs-group: #9a6207;
   }
 
-  .specs__tile--work .specs__face {
-    background: color-mix(in srgb, #52708a 5%, var(--surface-solid));
+  .specs__tile--work {
+    --specs-group: #3d566e;
   }
 
-  .specs__tile--place .specs__face {
-    background: color-mix(in srgb, #c4453f 5%, var(--surface-solid));
+  .specs__tile--place {
+    --specs-group: #a33636;
   }
 
-  .specs__tile--security .specs__face--back {
-    background: color-mix(in srgb, #2f6fbf 10%, var(--accent-soft));
-  }
-
-  .specs__tile--ops .specs__face--back {
-    background: color-mix(in srgb, #2f9e63 10%, var(--accent-soft));
-  }
-
-  .specs__tile--ai .specs__face--back {
-    background: color-mix(in srgb, #7c5cd6 10%, var(--accent-soft));
-  }
-
-  .specs__tile--legal .specs__face--back {
-    background: color-mix(in srgb, #d69b31 12%, var(--accent-soft));
-  }
-
-  .specs__tile--work .specs__face--back {
-    background: color-mix(in srgb, #52708a 10%, var(--accent-soft));
-  }
-
-  .specs__tile--place .specs__face--back {
-    background: color-mix(in srgb, #c4453f 10%, var(--accent-soft));
+  .specs__tile .specs__icon,
+  .specs__tile .specs__pin {
+    color: var(--specs-group, var(--accent-strong));
   }
 
   .specs__back-label {

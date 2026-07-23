@@ -37,11 +37,20 @@ interface Props {
 
 const { content } = Astro.props;
 
+// Cache-buster for the public/ scripts: unlike _astro assets they are not
+// content-hashed, and their 5-minute edge cache once served a stale script
+// against fresh HTML (dead controls). The release id changes per deploy.
+const scriptVersion = process.env.INSPR_RELEASE_ID ?? "dev";
+
 // Split a spec note into text/term segments so glossary terms become click
 // targets. Longest match strings win at any position; matching is exact and
 // case-sensitive (match strings carry the casing used in the notes).
 type NoteSegment = { text: string; termId?: string };
 const specGlossary = content.specs?.glossary ?? [];
+// Rendered alphabetically — a glossary is a lookup surface, not a narrative.
+const sortedGlossary = [...specGlossary].sort((a, b) =>
+  a.term.localeCompare(b.term, "en", { sensitivity: "base" }),
+);
 const termMatches = specGlossary
   .flatMap((entry) => entry.matches.map((m) => ({ s: m, id: entry.id })))
   .sort((a, b) => b.s.length - a.s.length);
@@ -293,7 +302,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
             <details class="specs__glossary" data-specs-glossary>
               <summary>Glossary — the buzzwords, in plain words</summary>
               <dl>
-                {specGlossary.map((entry) => (
+                {sortedGlossary.map((entry) => (
                   <div class="specs__gloss-entry" id={`gloss-${entry.id}`}>
                     <dt>{entry.term}</dt>
                     <dd>{entry.body}</dd>
@@ -306,7 +315,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
             ⤨
           </button>
         </div>
-        <script is:inline src="/scripts/specs-pin.js" defer></script>
+        <script is:inline src={`/scripts/specs-pin.js?v=${scriptVersion}`} defer></script>
       </section>
     )}
 

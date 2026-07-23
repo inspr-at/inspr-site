@@ -7,6 +7,9 @@ import uiBoard from "../assets/products/paimos/ui-board.png";
 import uiDashboard from "../assets/products/paimos/ui-dashboard.png";
 import uiSearch from "../assets/products/paimos/ui-search.png";
 
+// Cache-buster for the non-fingerprinted public/ script (see ProductPage).
+const scriptVersion = process.env.INSPR_RELEASE_ID ?? "dev";
+
 // More views of the same demo workspace; each opens in a lightbox dialog.
 // Ordered deliberately: the AI-era surfaces lead, the classic ceremony
 // closes the row for the teams that still want it.
@@ -214,7 +217,7 @@ const details = [
   </div>
 </section>
 
-<script is:inline src="/scripts/media-lightbox.js" defer></script>
+<script is:inline src={`/scripts/media-lightbox.js?v=${scriptVersion}`} defer></script>
 
 <script>
   const SURFACE_STAGE_DURATION = 5000;

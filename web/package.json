@@ -20,7 +20,8 @@
     "@fontsource/barlow-condensed": "^5.2.8",
     "@fontsource/inria-sans": "^5.2.8",
     "@lucide/astro": "^1.25.0",
-    "astro": "^7.1.1"
+    "astro": "^7.1.1",
+    "photoswipe": "^5.4.4"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",

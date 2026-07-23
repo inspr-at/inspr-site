@@ -1,5 +1,5 @@
 ---
-import { Image } from "astro:assets";
+import { Image, getImage } from "astro:assets";
 import ContextIcon from "./ContextIcon.astro";
 import productSurface from "../assets/products/paimos/product-surface.png";
 import uiIssues from "../assets/products/paimos/ui-issues.png";
@@ -7,8 +7,6 @@ import uiBoard from "../assets/products/paimos/ui-board.png";
 import uiDashboard from "../assets/products/paimos/ui-dashboard.png";
 import uiSearch from "../assets/products/paimos/ui-search.png";
 
-// Cache-buster for the non-fingerprinted public/ script (see ProductPage).
-const scriptVersion = process.env.INSPR_RELEASE_ID ?? "dev";
 
 // More views of the same demo workspace; each opens in a lightbox dialog.
 // Ordered deliberately: the AI-era surfaces lead, the classic ceremony
@@ -43,6 +41,26 @@ const views = [
     alt: "Paimos sprint board showing a demo sprint with done, in-progress and backlog tickets",
   },
 ];
+
+// Full-size renditions for the PhotoSwipe lightbox (width/height feed its
+// layout engine; the anchor href is the progressive-enhancement fallback).
+const LIGHTBOX_WIDTH = 1600;
+const fullViews = await Promise.all(
+  views.map(async (view) => {
+    const full = await getImage({
+      src: view.image,
+      width: LIGHTBOX_WIDTH,
+      format: "webp",
+      quality: 86,
+    });
+    return {
+      ...view,
+      fullSrc: full.src,
+      fullWidth: LIGHTBOX_WIDTH,
+      fullHeight: Math.round((view.image.height / view.image.width) * LIGHTBOX_WIDTH),
+    };
+  }),
+);
 
 const details = [
   {
@@ -171,76 +189,73 @@ const details = [
   </div>
 
   <div class="product-surface__views" aria-label="More product views">
-    {views.map((view, index) => {
-      const prev = views[(index - 1 + views.length) % views.length];
-      const next = views[(index + 1) % views.length];
-      return (
-        <div class="product-surface__view">
-          <button
-            class="product-surface__view-open"
-            type="button"
-            data-lightbox-target={`surface-view-${view.id}`}
-            aria-haspopup="dialog"
-          >
-            <span class="product-surface__view-thumb">
-              <Image
-                src={view.image}
-                alt={view.alt}
-                widths={[480, 720, 960]}
-                sizes="(min-width: 64rem) 30vw, 100vw"
-                formats={["avif", "webp", "png"]}
-                quality={82}
-                loading="lazy"
-              />
-            </span>
-            <span class="product-surface__view-meta">
-              <strong>{view.title}</strong>
-              <span>{view.caption}</span>
-            </span>
-          </button>
-          <dialog class="product-surface__dialog" id={`surface-view-${view.id}`} aria-label={`${view.title} — full size`}>
-            <Image
-              src={view.image}
-              alt={view.alt}
-              widths={[1080, 1600]}
-              sizes="90vw"
-              formats={["avif", "webp", "png"]}
-              quality={86}
-              loading="lazy"
-            />
-            <div class="product-surface__dialog-bar">
-              <p class="product-surface__dialog-caption">
-                {view.title} — {view.caption} Demo workspace, Paimos v5.0.0.
-              </p>
-              <span class="product-surface__dialog-counter">{index + 1} / {views.length}</span>
-            </div>
-            <button class="product-surface__dialog-chip product-surface__dialog-close" type="button" data-lightbox-close aria-label="Close">
-              ×
-            </button>
-            <button
-              class="product-surface__dialog-chip product-surface__dialog-nav product-surface__dialog-nav--prev"
-              type="button"
-              data-lightbox-jump={`surface-view-${prev.id}`}
-              aria-label={`Previous view: ${prev.title}`}
-            >
-              ‹
-            </button>
-            <button
-              class="product-surface__dialog-chip product-surface__dialog-nav product-surface__dialog-nav--next"
-              type="button"
-              data-lightbox-jump={`surface-view-${next.id}`}
-              aria-label={`Next view: ${next.title}`}
-            >
-              ›
-            </button>
-          </dialog>
-        </div>
-      );
-    })}
+    {fullViews.map((view) => (
+      <a
+        class="product-surface__view-open"
+        href={view.fullSrc}
+        target="_blank"
+        rel="noopener"
+        data-pswp-width={view.fullWidth}
+        data-pswp-height={view.fullHeight}
+        data-caption={`${view.title} — ${view.caption} Demo workspace, Paimos v5.0.0.`}
+      >
+        <span class="product-surface__view-thumb">
+          <Image
+            src={view.image}
+            alt={view.alt}
+            widths={[480, 720, 960]}
+            sizes="(min-width: 64rem) 30vw, 100vw"
+            formats={["avif", "webp", "png"]}
+            quality={82}
+            loading="lazy"
+          />
+        </span>
+        <span class="product-surface__view-meta">
+          <strong>{view.title}</strong>
+          <span>{view.caption}</span>
+        </span>
+      </a>
+    ))}
   </div>
 </section>
 
-<script is:inline src={`/scripts/media-lightbox.js?v=${scriptVersion}`} defer></script>
+<script>
+  // PhotoSwipe: the standard, polished image lightbox — zoom-from-thumbnail,
+  // swipe/pinch, arrows, counter, keyboard, pull-down close. Bundled by
+  // Astro into a hashed module, so script-src 'self' covers it.
+  import PhotoSwipeLightbox from "photoswipe/lightbox";
+  import "photoswipe/style.css";
+
+  const lightbox = new PhotoSwipeLightbox({
+    gallery: ".product-surface__views",
+    children: "a.product-surface__view-open",
+    pswpModule: () => import("photoswipe"),
+    bgOpacity: 0.86,
+    padding: { top: 34, bottom: 64, left: 40, right: 40 },
+  });
+
+  // Caption element (official ui-register pattern) fed from data-caption.
+  lightbox.on("uiRegister", () => {
+    lightbox.pswp?.ui?.registerElement({
+      name: "custom-caption",
+      order: 9,
+      isButton: false,
+      appendTo: "root",
+      onInit: (el, pswp) => {
+        pswp.on("change", () => {
+          const anchor = pswp.currSlide?.data?.element;
+          el.textContent = anchor?.getAttribute("data-caption") ?? "";
+        });
+      },
+    });
+  });
+
+  // Blur the page behind the lightbox (PhotoSwipe root is a body child).
+  lightbox.on("beforeOpen", () => document.body.classList.add("lightbox-open"));
+  lightbox.on("destroy", () => document.body.classList.remove("lightbox-open"));
+
+  lightbox.init();
+</script>
 
 <script>
   const SURFACE_STAGE_DURATION = 5000;
@@ -808,8 +823,10 @@ const details = [
     padding: 0;
     border: 0;
     background: transparent;
+    color: inherit;
     cursor: zoom-in;
     text-align: left;
+    text-decoration: none;
   }
 
   .product-surface__view-thumb {
@@ -853,129 +870,26 @@ const details = [
     line-height: 1.45;
   }
 
-  .product-surface__dialog {
-    /* The global reset zeroes all margins, which strips the UA's auto
-       margins that center a modal dialog — restore them explicitly. */
-    margin: auto;
-    max-width: min(94vw, 80rem);
-    padding: clamp(0.6rem, 1.2vw, 1rem);
-    border: 1px solid rgb(255 255 255 / 0.16);
-    border-radius: var(--radius-lg);
-    background: var(--night-deep);
-    box-shadow: var(--shadow-deep);
-  }
-
-  .product-surface__dialog[open] {
-    animation: surface-dialog-in 240ms var(--ease);
-  }
-
-  @keyframes surface-dialog-in {
-    from {
-      opacity: 0;
-      transform: scale(0.96) translateY(0.5rem);
-    }
-  }
-
-  .product-surface__dialog::backdrop {
-    background: rgb(4 22 35 / 0.72);
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
-  }
-
-  .product-surface__dialog :global(img) {
-    width: 100%;
-    height: auto;
-    max-height: 78vh;
-    object-fit: contain;
-    border-radius: var(--radius-sm);
-  }
-
-  /* Shared chip style for the modern controls: translucent dark circles
-     with blur, floating over the image. */
-  .product-surface__dialog-chip {
+  /* PhotoSwipe carries its own polished chrome; we add only the caption
+     element and the page blur behind its root. */
+  :global(.pswp__custom-caption) {
     position: absolute;
-    z-index: 2;
-    display: grid;
-    width: 2.75rem;
-    height: 2.75rem;
-    place-items: center;
-    color: rgb(255 255 255 / 0.92);
-    border: 1px solid rgb(255 255 255 / 0.22);
-    border-radius: 50%;
-    background: rgb(6 29 47 / 0.55);
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-    cursor: pointer;
-    font-size: 1.45rem;
-    line-height: 1;
-    transition: background 160ms ease, transform 160ms var(--ease), border-color 160ms ease;
-  }
-
-  .product-surface__dialog-chip:hover {
-    border-color: rgb(255 255 255 / 0.45);
-    background: rgb(6 29 47 / 0.8);
-    transform: scale(1.07);
-  }
-
-  .product-surface__dialog-nav--prev:hover {
-    transform: scale(1.07) translateX(-1px);
-  }
-
-  .product-surface__dialog-nav--next:hover {
-    transform: scale(1.07) translateX(1px);
-  }
-
-  .product-surface__dialog-close {
-    top: 1.1rem;
-    right: 1.1rem;
-  }
-
-  .product-surface__dialog-nav {
-    top: 50%;
-    translate: 0 -50%;
-    font-size: 1.8rem;
-    padding-bottom: 0.2rem;
-  }
-
-  .product-surface__dialog-nav--prev {
-    left: 1.1rem;
-  }
-
-  .product-surface__dialog-nav--next {
-    right: 1.1rem;
-  }
-
-  .product-surface__dialog-bar {
-    display: flex;
-    gap: 1rem;
-    align-items: baseline;
-    justify-content: space-between;
-    padding: 0.65rem 0.35rem 0.1rem;
-  }
-
-  .product-surface__dialog-caption {
-    margin: 0;
-    color: var(--night-soft);
+    right: 0;
+    bottom: 14px;
+    left: 0;
+    padding: 0 3rem;
+    color: rgb(255 255 255 / 0.78);
+    text-align: center;
     font-family: var(--font-mono);
-    font-size: 0.66rem;
+    font-size: 0.68rem;
     line-height: 1.5;
-  }
-
-  .product-surface__dialog-counter {
-    flex-shrink: 0;
-    color: var(--night-soft);
-    font-family: var(--font-mono);
-    font-size: 0.66rem;
   }
 
   :global(body.lightbox-open) {
     overflow: hidden;
   }
 
-  /* Reliable page dim+blur: dialogs are moved to <body> by the lightbox
-     script, so everything except them can blur (::backdrop blur alone is
-     inconsistent across engines). */
-  :global(body.lightbox-open > :not(dialog)) {
+  :global(body.lightbox-open > :not(.pswp)) {
     filter: blur(5px);
   }
 

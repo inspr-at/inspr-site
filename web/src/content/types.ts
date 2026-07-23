@@ -65,7 +65,7 @@ export type ProductContent = {
     eyebrow: string;
     title: string;
     lead?: string;
-    items: Array<{ label: string; icon: string }>;
+    items: Array<{ label: string; icon: string; note: string }>;
   };
   problem: {
     eyebrow: string;

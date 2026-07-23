@@ -718,10 +718,11 @@
     max-width: 70rem;
   }
 
-  /* Specs — restored at-a-glance capability grid (paimos microsite). */
+  /* Specs — at-a-glance capability grid; each tile flips to an honest note
+     on hover, keyboard focus or tap. Pure CSS, no JS (keeps the CSP simple). */
   .specs__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(9.75rem, 1fr));
     gap: 0.75rem;
     list-style: none;
     padding: 0;
@@ -729,26 +730,72 @@
   }
 
   .specs__tile {
+    min-height: 10.5rem;
+    perspective: 1000px;
+  }
+
+  .specs__tile:focus-within {
+    border-radius: var(--radius-md);
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 3px;
+  }
+
+  .specs__flip {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: inherit;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transition: transform 560ms var(--ease);
+  }
+
+  .specs__flip:focus {
+    outline: none;
+  }
+
+  .specs__flip:hover,
+  .specs__flip:focus {
+    transform: rotateY(180deg);
+  }
+
+  .specs__face {
+    position: absolute;
+    inset: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.9rem;
-    padding: clamp(1.4rem, 2.4vw, 2rem) 1rem;
+    justify-content: center;
+    gap: 0.85rem;
+    padding: clamp(1rem, 2vw, 1.5rem) 0.95rem;
     text-align: center;
+    overflow: hidden;
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
     background: var(--surface);
     box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
     transition:
-      transform 220ms var(--ease),
       border-color 220ms ease,
       box-shadow 220ms ease;
   }
 
-  .specs__tile:hover {
-    transform: translateY(-2px);
+  .specs__flip:hover .specs__face,
+  .specs__flip:focus .specs__face {
     border-color: var(--line-strong);
     box-shadow: var(--shadow-sm);
+  }
+
+  .specs__face--back {
+    transform: rotateY(180deg);
+    background: var(--accent-soft);
+    border-color: color-mix(in srgb, var(--accent) 32%, var(--line));
   }
 
   .specs__icon {
@@ -759,14 +806,44 @@
 
   .specs__label {
     font-size: 0.94rem;
-    line-height: 1.32;
+    line-height: 1.3;
     color: var(--ink-soft);
     text-wrap: balance;
+  }
+
+  .specs__note {
+    font-size: 0.82rem;
+    line-height: 1.44;
+    color: var(--ink);
+    text-wrap: pretty;
   }
 
   @media (max-width: 34rem) {
     .specs__grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .specs__flip {
+      transition: none;
+    }
+    .specs__flip:hover,
+    .specs__flip:focus {
+      transform: none;
+    }
+    .specs__face {
+      backface-visibility: visible;
+      -webkit-backface-visibility: visible;
+    }
+    .specs__face--back {
+      transform: none;
+      opacity: 0;
+      transition: opacity 200ms ease;
+    }
+    .specs__flip:hover .specs__face--back,
+    .specs__flip:focus .specs__face--back {
+      opacity: 1;
     }
   }
 

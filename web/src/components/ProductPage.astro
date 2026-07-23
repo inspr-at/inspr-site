@@ -202,10 +202,17 @@ const featurePresentations: Record<string, FeaturePresentation> = {
         <ul class="specs__grid">
           {content.specs.items.map((item) => (
             <li class="specs__tile">
-              <span class="specs__icon" aria-hidden="true">
-                <ContextIcon name={item.icon} size={26} strokeWidth={1.75} />
-              </span>
-              <span class="specs__label">{item.label}</span>
+              <button class="specs__flip" type="button">
+                <span class="specs__face specs__face--front">
+                  <span class="specs__icon" aria-hidden="true">
+                    <ContextIcon name={item.icon} size={26} strokeWidth={1.75} />
+                  </span>
+                  <span class="specs__label">{item.label}</span>
+                </span>
+                <span class="specs__face specs__face--back">
+                  <span class="specs__note">{item.note}</span>
+                </span>
+              </button>
             </li>
           ))}
         </ul>

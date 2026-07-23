@@ -45,22 +45,91 @@ export const paimosContent = {
     lead:
       "The capability grid at a glance: security posture, operational guarantees and open surfaces, before the prose spells each one out.",
     items: [
-      { label: "Enterprise-capable", icon: "layers-3" },
-      { label: "Self-hostable", icon: "server" },
-      { label: "Air-gap friendly", icon: "unplug" },
-      { label: "Zero telemetry", icon: "eye-off" },
-      { label: "NIS2-aligned", icon: "shield-check" },
-      { label: "GDPR-conscious", icon: "lock-keyhole" },
-      { label: "Audit trails", icon: "scroll-text" },
-      { label: "Single sign-on", icon: "key-round" },
-      { label: "SBOM + signed releases", icon: "file-check-2" },
-      { label: "Fully inspectable", icon: "scan-search" },
-      { label: "AGPL-3.0", icon: "git-branch" },
-      { label: "Restore-tested", icon: "database-backup" },
-      { label: "Scriptable API", icon: "braces" },
-      { label: "Built-in AI assist", icon: "sparkles" },
-      { label: "Code-aware agents", icon: "workflow" },
-      { label: "Local draft providers", icon: "hard-drive" },
+      {
+        label: "Enterprise-capable",
+        icon: "layers-3",
+        note: "SSO, audit, retention and project permissions ship in the core — no enterprise add-ons to license.",
+      },
+      {
+        label: "Self-hostable",
+        icon: "server",
+        note: "One container on your own server. Your data and its whole path stay under your control.",
+      },
+      {
+        label: "Air-gap friendly",
+        icon: "unplug",
+        note: "The core runs with zero outbound calls. Only optional hosted AI ever needs the internet.",
+      },
+      {
+        label: "Zero telemetry",
+        icon: "eye-off",
+        note: "No analytics, tracking or phone-home. Nothing about your usage leaves your instance.",
+      },
+      {
+        label: "NIS2-aligned",
+        icon: "shield-check",
+        note: "Access control, audit, incident metadata and retention map to NIS2 practices — real controls, not a certificate.",
+      },
+      {
+        label: "GDPR-conscious",
+        icon: "lock-keyhole",
+        note: "Per-person export and erase endpoints, operator-set retention. Built to respect the people in your data.",
+      },
+      {
+        label: "Made in Austria",
+        icon: "mountain",
+        note: "Designed and built in Austria, in the EU — real people and EU norms behind your project OS.",
+      },
+      {
+        label: "Audit trails",
+        icon: "scroll-text",
+        note: "Access changes, AI calls and agent runs keep reviewable metadata. You can always answer who did what.",
+      },
+      {
+        label: "Single sign-on",
+        icon: "key-round",
+        note: "Generic OIDC with PKCE, ZITADEL-validated. Your identity provider stays the source of truth.",
+      },
+      {
+        label: "SBOM + signed releases",
+        icon: "file-check-2",
+        note: "Every tagged image is cosign-signed with a CycloneDX SBOM. Trace any release back to its source.",
+      },
+      {
+        label: "Fully inspectable",
+        icon: "scan-search",
+        note: "AGPL source, an open API and a self-describing schema. Nothing about how it works is hidden.",
+      },
+      {
+        label: "AGPL-3.0",
+        icon: "git-branch",
+        note: "Inspect, self-host, fork and modify freely. Run a modified service and its users keep the source.",
+      },
+      {
+        label: "Restore-tested",
+        icon: "database-backup",
+        note: "Backup and restore are documented and exercised, not assumed. Recovery is a drill, not a hope.",
+      },
+      {
+        label: "Scriptable API",
+        icon: "braces",
+        note: "Typed CLI, MCP and a JSON REST API with dry-runs. Drive the whole project model from anywhere.",
+      },
+      {
+        label: "Built-in AI assist",
+        icon: "sparkles",
+        note: "Thirteen focused actions — refine, translate, estimate, summarise. On when you want it, off by default.",
+      },
+      {
+        label: "Code-aware agents",
+        icon: "workflow",
+        note: "Agents receive linked repos, knowledge and issue-to-file anchors. They act with project context, not blind.",
+      },
+      {
+        label: "Local draft providers",
+        icon: "hard-drive",
+        note: "Point at Ollama or any OpenAI-compatible endpoint. Keep model inference on your own hardware.",
+      },
     ],
   },
   problem: {

@@ -821,10 +821,144 @@
   }
 
   .specs__label {
-    font-size: 0.94rem;
-    line-height: 1.3;
+    font-size: 1.22rem;
+    line-height: 1.28;
     color: var(--ink-soft);
     text-wrap: balance;
+  }
+
+  /* ELI10 mode: the section root's data-eli10 attribute decides which text
+     variant (tech vs plain) renders, for the lead and every card note. */
+  .specs__variant--plain {
+    display: none;
+  }
+
+  .specs[data-eli10="true"] .specs__variant--plain {
+    display: inline;
+  }
+
+  .specs[data-eli10="true"] .specs__variant--tech {
+    display: none;
+  }
+
+  /* Glossary terms inside notes: click targets with deliberately NO visual
+     difference from the surrounding text. */
+  .specs__term {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-align: inherit;
+    cursor: pointer;
+  }
+
+  .specs__controls {
+    display: flex;
+    gap: 0.6rem;
+    justify-content: flex-end;
+    margin-bottom: 0.9rem;
+  }
+
+  .specs__mode,
+  .specs__flip-all {
+    display: inline-flex;
+    gap: 0.45rem;
+    align-items: center;
+    min-height: 2.1rem;
+    padding: 0.3rem 0.75rem;
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: transparent;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    transition: color 180ms ease, border-color 180ms ease, background 180ms ease;
+  }
+
+  .specs__mode[aria-pressed="true"],
+  .specs__flip-all[aria-pressed="true"] {
+    color: var(--accent-strong);
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+    background: var(--accent-soft);
+  }
+
+  .specs__mode-track {
+    position: relative;
+    display: inline-block;
+    width: 1.55rem;
+    height: 0.85rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+  }
+
+  .specs__mode-track i {
+    position: absolute;
+    top: 50%;
+    left: 0.1rem;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: var(--ink-faint);
+    transform: translateY(-50%);
+    transition: left 180ms var(--ease), background 180ms ease;
+  }
+
+  .specs__mode[aria-pressed="true"] .specs__mode-track i {
+    left: calc(100% - 0.65rem);
+    background: var(--accent-strong);
+  }
+
+  /* Faint group tints: security, ops/resilience, AI, license/legal, daily
+     work, place. Deliberately whisper-quiet so the grid stays calm. */
+  .specs__tile--security .specs__face {
+    background: color-mix(in srgb, #2f6fbf 5%, var(--surface-solid));
+  }
+
+  .specs__tile--ops .specs__face {
+    background: color-mix(in srgb, #2f9e63 5%, var(--surface-solid));
+  }
+
+  .specs__tile--ai .specs__face {
+    background: color-mix(in srgb, #7c5cd6 5%, var(--surface-solid));
+  }
+
+  .specs__tile--legal .specs__face {
+    background: color-mix(in srgb, #d69b31 7%, var(--surface-solid));
+  }
+
+  .specs__tile--work .specs__face {
+    background: color-mix(in srgb, #52708a 5%, var(--surface-solid));
+  }
+
+  .specs__tile--place .specs__face {
+    background: color-mix(in srgb, #c4453f 5%, var(--surface-solid));
+  }
+
+  .specs__tile--security .specs__face--back {
+    background: color-mix(in srgb, #2f6fbf 10%, var(--accent-soft));
+  }
+
+  .specs__tile--ops .specs__face--back {
+    background: color-mix(in srgb, #2f9e63 10%, var(--accent-soft));
+  }
+
+  .specs__tile--ai .specs__face--back {
+    background: color-mix(in srgb, #7c5cd6 10%, var(--accent-soft));
+  }
+
+  .specs__tile--legal .specs__face--back {
+    background: color-mix(in srgb, #d69b31 12%, var(--accent-soft));
+  }
+
+  .specs__tile--work .specs__face--back {
+    background: color-mix(in srgb, #52708a 10%, var(--accent-soft));
+  }
+
+  .specs__tile--place .specs__face--back {
+    background: color-mix(in srgb, #c4453f 10%, var(--accent-soft));
   }
 
   .specs__back-label {
@@ -842,29 +976,21 @@
     text-wrap: pretty;
   }
 
-  /* Pinned: the card locks on its back face and ignores hover. A terminal-ish
-     "pinned" marker with a blinking block cursor appears, a scanline sweeps
-     the face once, and the heading does one quick glitch jitter. */
+  /* Pinned: the card locks on its back face and ignores hover. The tile's
+     own icon reappears small and still in the corner as the pin marker; a
+     scanline sweeps the face once and the heading does one glitch jitter. */
   .specs__pin {
     position: absolute;
-    top: 0.55rem;
+    top: 0.6rem;
     right: 0.7rem;
     display: none;
-    font-family: var(--font-mono);
-    font-size: 0.56rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
     color: var(--accent-strong);
-  }
-
-  .specs__pin::after {
-    content: "\258d";
-    margin-left: 0.2em;
-    animation: specs-cursor-blink 1.1s steps(2, start) infinite;
+    opacity: 0.85;
   }
 
   .specs__tile.is-pinned .specs__pin {
-    display: inline;
+    display: grid;
+    place-items: center;
   }
 
   .specs__tile.is-pinned .specs__face--back {
@@ -893,9 +1019,88 @@
     animation: specs-glitch 320ms steps(5) 1;
   }
 
-  @keyframes specs-cursor-blink {
-    50% {
-      opacity: 0;
+  /* Section foot: expandable plain-words glossary + the quiet reshuffle. */
+  .specs__foot {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    align-items: start;
+    margin-top: 1rem;
+  }
+
+  .specs__glossary {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+  }
+
+  .specs__glossary summary {
+    padding: 0.8rem 1.1rem;
+    color: var(--ink-soft);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .specs__glossary[open] summary {
+    border-bottom: 1px solid var(--line-soft, var(--line));
+  }
+
+  .specs__glossary dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.25rem 1.25rem;
+    margin: 0;
+    padding: 0.9rem 1.1rem 1.1rem;
+  }
+
+  .specs__gloss-entry {
+    padding: 0.45rem 0.6rem;
+    border-radius: 0.55rem;
+    transition: background 220ms ease, box-shadow 220ms ease;
+  }
+
+  .specs__gloss-entry dt {
+    color: var(--ink);
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  .specs__gloss-entry dd {
+    margin: 0.15rem 0 0;
+    color: var(--ink-soft);
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .specs__gloss-entry.is-hit {
+    background: var(--accent-soft);
+    box-shadow: inset 0.2rem 0 0 var(--accent-strong);
+  }
+
+  .specs__reshuffle {
+    padding: 0.15rem 0.4rem;
+    color: var(--ink-faint);
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.72rem;
+    line-height: 1;
+    opacity: 0.35;
+    transition: opacity 180ms ease, color 180ms ease;
+  }
+
+  .specs__reshuffle:hover,
+  .specs__reshuffle:focus-visible {
+    color: var(--accent-strong);
+    opacity: 1;
+  }
+
+  @media (max-width: 48rem) {
+    .specs__glossary dl {
+      grid-template-columns: 1fr;
     }
   }
 
@@ -948,8 +1153,7 @@
       opacity: 1;
     }
     .specs__tile.is-pinned .specs__face--back::before,
-    .specs__tile.is-pinned .specs__back-label,
-    .specs__pin::after {
+    .specs__tile.is-pinned .specs__back-label {
       animation: none;
     }
   }

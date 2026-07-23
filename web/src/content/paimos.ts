@@ -44,106 +44,296 @@ export const paimosContent = {
     title: "What you actually get.",
     lead:
       "The capability grid at a glance: security posture, operational guarantees and open surfaces, before the prose spells each one out.",
+    leadEli10:
+      "The same grid, in plain words: what each promise means for your company, your budget and your legal team — no IT dictionary required. Flip any card.",
     items: [
       {
         label: "Enterprise-capable",
         icon: "layers-3",
+        group: "ops",
         note: "SSO, audit, retention and project permissions ship in the core — no enterprise add-ons to license.",
+        noteEli10:
+          "The big-company features — company login, change records, access rules — are already inside. There is no extra 'enterprise edition' to buy later.",
       },
       {
         label: "Self-hostable",
         icon: "server",
+        group: "ops",
         note: "One container on your own server. Your data and its whole path stay under your control.",
+        noteEli10:
+          "It runs on your own server, like a coffee machine in your own kitchen. Your data never has to live at somebody else's company.",
       },
       {
         label: "Air-gap friendly",
         icon: "unplug",
+        group: "ops",
         note: "The core runs with zero outbound calls. Only optional hosted AI ever needs the internet.",
+        noteEli10:
+          "It keeps working with the internet unplugged. Nothing in the core secretly needs 'the cloud' — useful for strict or isolated networks.",
       },
       {
         label: "Zero telemetry",
         icon: "eye-off",
+        group: "security",
         note: "No analytics, tracking or phone-home. Nothing about your usage leaves your instance.",
+        noteEli10:
+          "The tool does not report home. Nobody — including the makers — sees how your team uses it. Less to explain to privacy officers.",
       },
       {
         label: "NIS2-aligned",
         icon: "shield-check",
+        group: "security",
         note: "Access control, audit, incident metadata and retention map to NIS2 practices — real controls, not a certificate.",
+        noteEli10:
+          "Built to match the EU's new cyber-security rules for important companies. Your security and legal reviews start from 'mostly yes' instead of 'oh no'.",
       },
       {
         label: "GDPR-conscious",
         icon: "lock-keyhole",
+        group: "security",
         note: "Per-person export and erase endpoints, operator-set retention. Built to respect the people in your data.",
+        noteEli10:
+          "Personal data can be exported or deleted per person, the way EU privacy law expects. Privacy is built in, not bolted on.",
       },
       {
         label: "Made in Austria",
         icon: "mountain",
+        group: "place",
         note: "Designed and built in Austria, in the EU — real people and EU norms behind your project OS.",
+        noteEli10:
+          "Built in Austria, under EU law — your time zone, your norms, your regulators. Support that answers in your morning, not yours at 3 a.m.",
       },
       {
         label: "Audit trails",
         icon: "scroll-text",
+        group: "security",
         note: "Access changes, AI calls and agent runs keep reviewable metadata. You can always answer who did what.",
+        noteEli10:
+          "The tool keeps a diary: who changed what, and when — including what the AI did. When someone asks 'who did this?', you have the answer.",
       },
       {
         label: "Single sign-on",
         icon: "key-round",
+        group: "security",
         note: "Generic OIDC with PKCE, ZITADEL-validated. Your identity provider stays the source of truth.",
+        noteEli10:
+          "People sign in with the company account they already have. No new passwords to invent, forget or leak.",
       },
       {
         label: "SBOM + signed releases",
         icon: "file-check-2",
+        group: "legal",
         note: "Every tagged image is cosign-signed with a CycloneDX SBOM. Trace any release back to its source.",
+        noteEli10:
+          "Every release ships with a sealed ingredients list and a tamper-proof signature — like medicine packaging, but for software. Auditors love this.",
       },
       {
         label: "Fully inspectable",
         icon: "scan-search",
+        group: "legal",
         note: "AGPL source, an open API and a self-describing schema. Nothing about how it works is hidden.",
+        noteEli10:
+          "Nothing is a black box. Your own experts — or anyone you hire — can read exactly what the software does before you trust it.",
       },
       {
         label: "AGPL-3.0",
         icon: "git-branch",
+        group: "legal",
         note: "Inspect, self-host, fork and modify freely. Run a modified service and its users keep the source.",
+        noteEli10:
+          "A standard open-source licence your legal team can actually read: use it, change it, keep it — and nobody can ever lock you in.",
       },
       {
         label: "Restore-tested",
         icon: "database-backup",
+        group: "ops",
         note: "Backup and restore are documented and exercised, not assumed. Recovery is a drill, not a hope.",
+        noteEli10:
+          "We do not just make backups — we practise restoring them. Fire drill, not fire hope. Your data survives bad days.",
       },
       {
         label: "Scriptable API",
         icon: "braces",
+        group: "work",
         note: "Typed CLI, MCP and a JSON REST API with dry-runs. Drive the whole project model from anywhere.",
+        noteEli10:
+          "Other software can talk to it automatically. Your IT team can wire it into the tools you already pay for, instead of retyping things.",
       },
       {
         label: "Built-in AI assist",
         icon: "sparkles",
+        group: "ai",
         note: "Thirteen focused actions — refine, translate, estimate, summarise. On when you want it, off by default.",
+        noteEli10:
+          "Helpful AI buttons — summarise, translate, estimate — that are switched OFF until you decide otherwise. You stay in charge of when AI touches your data.",
       },
       {
         label: "Code-aware agents",
         icon: "workflow",
+        group: "ai",
         note: "Agents receive linked repos, knowledge and issue-to-file anchors. They act with project context, not blind.",
+        noteEli10:
+          "The AI helpers are handed the project's real context — which code, which rules, which history — so they work like briefed colleagues, not guessing interns.",
       },
       {
         label: "Local draft providers",
         icon: "hard-drive",
+        group: "ai",
         note: "Point at Ollama or any OpenAI-compatible endpoint. Keep model inference on your own hardware.",
+        noteEli10:
+          "The AI can also run on your own machines, so ideas and drafts never have to leave the building. Data-sovereignty people approve.",
       },
       {
         label: "Customer portal",
         icon: "panels-top-left",
+        group: "work",
         note: "Customers see exactly what you publish, submit requests and accept deliveries. Internal work stays internal.",
+        noteEli10:
+          "A tidy window for your customers: they see only what you choose to publish, and can approve finished work right there. Internal chatter stays internal.",
       },
       {
         label: "Time & budgets",
         icon: "timer",
+        group: "work",
         note: "Estimates, time entries, accruals and budgets live on the same tickets as the work — one model from effort to invoice.",
+        noteEli10:
+          "Hours, estimates and budgets live on the same tickets as the work itself. One truth from first estimate to final invoice — no side spreadsheet.",
       },
       {
         label: "Undo & redo",
         icon: "rotate-ccw",
+        group: "work",
         note: "Bulk edits are transactional with full mutation history. Changes are reversible, and conflicts surface instead of overwriting.",
+        noteEli10:
+          "Big changes can be taken back. A wrong bulk edit is an 'oops', not a disaster — and two people editing the same thing get a warning, not silent data loss.",
+      },
+    ],
+    glossary: [
+      {
+        id: "sso",
+        term: "SSO / Single sign-on",
+        matches: ["SSO", "sign in with the company account", "company login"],
+        body: "One company login for many tools. People stop inventing (and losing) a new password for every app.",
+      },
+      {
+        id: "oidc",
+        term: "OIDC",
+        matches: ["OIDC"],
+        body: "The open standard that makes single sign-on work between your identity system and apps like this one.",
+      },
+      {
+        id: "pkce",
+        term: "PKCE",
+        matches: ["PKCE"],
+        body: "An extra safety step in the login handshake that stops stolen login codes from being reused.",
+      },
+      {
+        id: "zitadel",
+        term: "ZITADEL",
+        matches: ["ZITADEL"],
+        body: "An open-source identity provider — the 'who are you?' service. It is the reference system Paimos is tested against.",
+      },
+      {
+        id: "identity-provider",
+        term: "Identity provider",
+        matches: ["identity provider"],
+        body: "The system that owns your user accounts (like Entra ID or ZITADEL). Apps trust it instead of keeping their own passwords.",
+      },
+      {
+        id: "sbom",
+        term: "SBOM",
+        matches: ["SBOM", "ingredients list"],
+        body: "Software Bill of Materials — the full ingredients list of a piece of software, so you know exactly what is inside.",
+      },
+      {
+        id: "cosign",
+        term: "cosign",
+        matches: ["cosign-signed", "tamper-proof signature"],
+        body: "A tool that puts a cryptographic seal on software releases. If anyone tampers with the release, the seal breaks.",
+      },
+      {
+        id: "cyclonedx",
+        term: "CycloneDX",
+        matches: ["CycloneDX"],
+        body: "The standard file format for those software ingredients lists, so audit tools can read them automatically.",
+      },
+      {
+        id: "agpl",
+        term: "AGPL-3.0",
+        matches: ["AGPL"],
+        body: "A strong open-source licence: anyone may use, read and improve the software — and improvements to a public service must stay open too.",
+      },
+      {
+        id: "nis2",
+        term: "NIS2",
+        matches: ["NIS2"],
+        body: "The EU's cyber-security directive for important organisations. It asks for provable security practices, not promises.",
+      },
+      {
+        id: "gdpr",
+        term: "GDPR",
+        matches: ["GDPR", "EU privacy law"],
+        body: "The EU's privacy law. Among other things, people may ask for a copy of their data — or its deletion.",
+      },
+      {
+        id: "telemetry",
+        term: "Telemetry",
+        matches: ["telemetry", "phone-home", "report home"],
+        body: "Usage data an app sends back to its maker. Paimos sends none.",
+      },
+      {
+        id: "air-gap",
+        term: "Air-gap",
+        matches: ["Air-gap", "internet unplugged"],
+        body: "Running a system with no connection to the outside internet — common in high-security environments.",
+      },
+      {
+        id: "container",
+        term: "Container",
+        matches: ["container"],
+        body: "A standard shipping box for software. If your IT runs containers (most do), they can run this.",
+      },
+      {
+        id: "api",
+        term: "API",
+        matches: ["API", "REST"],
+        body: "The plug socket other software uses to talk to this software automatically — no humans retyping data.",
+      },
+      {
+        id: "cli",
+        term: "CLI",
+        matches: ["CLI"],
+        body: "The command-line interface — how developers and scripts drive the tool with typed commands.",
+      },
+      {
+        id: "mcp",
+        term: "MCP",
+        matches: ["MCP"],
+        body: "Model Context Protocol — the standard plug that lets AI assistants use tools like this one safely.",
+      },
+      {
+        id: "ollama",
+        term: "Ollama",
+        matches: ["Ollama", "OpenAI-compatible endpoint"],
+        body: "Software for running AI models on your own computers instead of renting them in someone else's cloud.",
+      },
+      {
+        id: "inference",
+        term: "Inference",
+        matches: ["model inference"],
+        body: "The moment an AI model actually 'thinks' — where that happens decides where your data travels.",
+      },
+      {
+        id: "retention",
+        term: "Retention",
+        matches: ["retention"],
+        body: "How long data is kept before it is deleted. Here the operator — you — sets those windows.",
+      },
+      {
+        id: "mutation-history",
+        term: "Mutation history",
+        matches: ["mutation history"],
+        body: "A record of every change made, which is what makes safe undo and redo possible.",
       },
     ],
   },

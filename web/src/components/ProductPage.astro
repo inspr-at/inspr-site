@@ -36,6 +36,31 @@ interface Props {
 }
 
 const { content } = Astro.props;
+
+// Split a spec note into text/term segments so glossary terms become click
+// targets. Longest match strings win at any position; matching is exact and
+// case-sensitive (match strings carry the casing used in the notes).
+type NoteSegment = { text: string; termId?: string };
+const specGlossary = content.specs?.glossary ?? [];
+const termMatches = specGlossary
+  .flatMap((entry) => entry.matches.map((m) => ({ s: m, id: entry.id })))
+  .sort((a, b) => b.s.length - a.s.length);
+const termSplitter = termMatches.length
+  ? new RegExp(
+      `(${termMatches.map((m) => m.s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`,
+      "g",
+    )
+  : null;
+const segmentNote = (text: string): NoteSegment[] => {
+  if (!termSplitter) return [{ text }];
+  return text
+    .split(termSplitter)
+    .filter(Boolean)
+    .map((part) => {
+      const hit = termMatches.find((m) => m.s === part);
+      return hit ? { text: part, termId: hit.id } : { text: part };
+    });
+};
 const assets = {
   paimos: {
     hero: paimosHero,
@@ -193,31 +218,94 @@ const featurePresentations: Record<string, FeaturePresentation> = {
         id="specs"
         aria-labelledby="specs-title"
         data-section-pattern="specs-grid"
+        data-eli10="false"
       >
         <header class="section-intro">
           <p class="eyebrow">{content.specs.eyebrow}</p>
           <h2 id="specs-title">{content.specs.title}</h2>
-          {content.specs.lead && <p class="section-lead">{content.specs.lead}</p>}
+          {content.specs.lead && (
+            <p class="section-lead">
+              <span class="specs__variant specs__variant--tech">{content.specs.lead}</span>
+              {content.specs.leadEli10 && (
+                <span class="specs__variant specs__variant--plain">{content.specs.leadEli10}</span>
+              )}
+            </p>
+          )}
         </header>
+
+        <div class="specs__controls">
+          <button type="button" class="specs__mode" data-specs-eli10 aria-pressed="false">
+            <span class="specs__mode-track" aria-hidden="true"><i></i></span>
+            <span>ELI10 mode</span>
+          </button>
+          <button type="button" class="specs__flip-all" data-specs-flip-all aria-pressed="false">
+            Flip all
+          </button>
+        </div>
+
         <ul class="specs__grid">
           {content.specs.items.map((item) => (
-            <li class="specs__tile">
-              <button class="specs__flip" type="button" aria-pressed="false">
+            <li class:list={["specs__tile", `specs__tile--${item.group}`]}>
+              <div class="specs__flip" role="button" tabindex="0" aria-pressed="false">
                 <span class="specs__face specs__face--front">
                   <span class="specs__icon" aria-hidden="true">
-                    <ContextIcon name={item.icon} size={26} strokeWidth={1.75} />
+                    <ContextIcon name={item.icon} size={34} strokeWidth={1.75} />
                   </span>
                   <span class="specs__label">{item.label}</span>
                 </span>
                 <span class="specs__face specs__face--back">
                   <span class="specs__back-label">{item.label}</span>
-                  <span class="specs__note">{item.note}</span>
-                  <span class="specs__pin" aria-hidden="true">pinned</span>
+                  <span class="specs__note">
+                    <span class="specs__variant specs__variant--tech">
+                      {segmentNote(item.note).map((seg) =>
+                        seg.termId ? (
+                          <button type="button" class="specs__term" data-term={seg.termId}>
+                            {seg.text}
+                          </button>
+                        ) : (
+                          seg.text
+                        ),
+                      )}
+                    </span>
+                    <span class="specs__variant specs__variant--plain">
+                      {segmentNote(item.noteEli10).map((seg) =>
+                        seg.termId ? (
+                          <button type="button" class="specs__term" data-term={seg.termId}>
+                            {seg.text}
+                          </button>
+                        ) : (
+                          seg.text
+                        ),
+                      )}
+                    </span>
+                  </span>
+                  <span class="specs__pin" aria-hidden="true">
+                    <ContextIcon name={item.icon} size={13} strokeWidth={2} />
+                  </span>
                 </span>
-              </button>
+              </div>
             </li>
           ))}
         </ul>
+
+        <div class="specs__foot">
+          {specGlossary.length > 0 && (
+            <details class="specs__glossary" data-specs-glossary>
+              <summary>Glossary — the buzzwords, in plain words</summary>
+              <dl>
+                {specGlossary.map((entry) => (
+                  <div class="specs__gloss-entry" id={`gloss-${entry.id}`}>
+                    <dt>{entry.term}</dt>
+                    <dd>{entry.body}</dd>
+                  </div>
+                ))}
+              </dl>
+            </details>
+          )}
+          <button type="button" class="specs__reshuffle" data-specs-shuffle aria-label="Shuffle the specs grid">
+            ⤨
+          </button>
+        </div>
         <script is:inline src="/scripts/specs-pin.js" defer></script>
       </section>
     )}

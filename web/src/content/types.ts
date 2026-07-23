@@ -65,7 +65,20 @@ export type ProductContent = {
     eyebrow: string;
     title: string;
     lead?: string;
-    items: Array<{ label: string; icon: string; note: string }>;
+    leadEli10?: string;
+    items: Array<{
+      label: string;
+      icon: string;
+      note: string;
+      noteEli10: string;
+      group: "security" | "ops" | "ai" | "legal" | "work" | "place";
+    }>;
+    glossary?: Array<{
+      id: string;
+      term: string;
+      matches: string[];
+      body: string;
+    }>;
   };
   problem: {
     eyebrow: string;

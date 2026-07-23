@@ -5,29 +5,39 @@ import productSurface from "../assets/products/paimos/product-surface.png";
 import uiIssues from "../assets/products/paimos/ui-issues.png";
 import uiBoard from "../assets/products/paimos/ui-board.png";
 import uiDashboard from "../assets/products/paimos/ui-dashboard.png";
+import uiSearch from "../assets/products/paimos/ui-search.png";
 
 // More views of the same demo workspace; each opens in a lightbox dialog.
+// Ordered deliberately: the AI-era surfaces lead, the classic ceremony
+// closes the row for the teams that still want it.
 const views = [
+  {
+    id: "search",
+    image: uiSearch,
+    title: "Search everything",
+    caption: "Live results across every project as you type — keyboard-first, jump straight to the work.",
+    alt: "Paimos global search overlay showing live cross-project results with keyboard shortcuts",
+  },
+  {
+    id: "dashboard",
+    image: uiDashboard,
+    title: "Dashboard",
+    caption: "Sign in to a working picture: active projects and recent movement at a glance.",
+    alt: "Paimos dashboard showing active demo projects and a recent issues feed",
+  },
   {
     id: "issues",
     image: uiIssues,
     title: "Issues",
-    caption: "The full backlog with saved views, filters, full-text search and undo.",
+    caption: "The classic backlog — saved views, filters, undo — for teams that live in lists.",
     alt: "Paimos issues list showing the demo backlog with type, status and action columns",
   },
   {
     id: "board",
     image: uiBoard,
     title: "Sprint board",
-    caption: "Sprint planning with per-ticket state, estimates and a reporting tab.",
+    caption: "Sprints, fully supported — for the teams that still run them. No judgement.",
     alt: "Paimos sprint board showing a demo sprint with done, in-progress and backlog tickets",
-  },
-  {
-    id: "dashboard",
-    image: uiDashboard,
-    title: "Dashboard",
-    caption: "Active projects and recent issues at a glance, straight after login.",
-    alt: "Paimos dashboard showing active demo projects and a recent issues feed",
   },
 ];
 
@@ -755,9 +765,15 @@ const details = [
   /* More views — thumbnails that open a lightbox dialog. */
   .product-surface__views {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: clamp(0.9rem, 2vw, 1.5rem);
     margin-top: clamp(1.25rem, 2.5vw, 2rem);
+  }
+
+  @media (min-width: 75rem) {
+    .product-surface__views {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
   }
 
   .product-surface__view-open {

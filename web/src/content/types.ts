@@ -61,6 +61,12 @@ export type ProductContent = {
   };
   serviceIntro: string;
   proof: string[];
+  specs?: {
+    eyebrow: string;
+    title: string;
+    lead?: string;
+    items: Array<{ label: string; icon: string }>;
+  };
   problem: {
     eyebrow: string;
     title: string;

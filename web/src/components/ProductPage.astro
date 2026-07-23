@@ -187,6 +187,31 @@ const featurePresentations: Record<string, FeaturePresentation> = {
       </ol>
     </div>
 
+    {content.specs && (
+      <section
+        class="section page-shell specs"
+        id="specs"
+        aria-labelledby="specs-title"
+        data-section-pattern="specs-grid"
+      >
+        <header class="section-intro">
+          <p class="eyebrow">{content.specs.eyebrow}</p>
+          <h2 id="specs-title">{content.specs.title}</h2>
+          {content.specs.lead && <p class="section-lead">{content.specs.lead}</p>}
+        </header>
+        <ul class="specs__grid">
+          {content.specs.items.map((item) => (
+            <li class="specs__tile">
+              <span class="specs__icon" aria-hidden="true">
+                <ContextIcon name={item.icon} size={26} strokeWidth={1.75} />
+              </span>
+              <span class="specs__label">{item.label}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
     <section
       class="section page-shell"
       id="why"

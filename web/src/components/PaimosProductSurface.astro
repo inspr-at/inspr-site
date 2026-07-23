@@ -2,6 +2,34 @@
 import { Image } from "astro:assets";
 import ContextIcon from "./ContextIcon.astro";
 import productSurface from "../assets/products/paimos/product-surface.png";
+import uiIssues from "../assets/products/paimos/ui-issues.png";
+import uiBoard from "../assets/products/paimos/ui-board.png";
+import uiDashboard from "../assets/products/paimos/ui-dashboard.png";
+
+// More views of the same demo workspace; each opens in a lightbox dialog.
+const views = [
+  {
+    id: "issues",
+    image: uiIssues,
+    title: "Issues",
+    caption: "The full backlog with saved views, filters, full-text search and undo.",
+    alt: "Paimos issues list showing the demo backlog with type, status and action columns",
+  },
+  {
+    id: "board",
+    image: uiBoard,
+    title: "Sprint board",
+    caption: "Sprint planning with per-ticket state, estimates and a reporting tab.",
+    alt: "Paimos sprint board showing a demo sprint with done, in-progress and backlog tickets",
+  },
+  {
+    id: "dashboard",
+    image: uiDashboard,
+    title: "Dashboard",
+    caption: "Active projects and recent issues at a glance, straight after login.",
+    alt: "Paimos dashboard showing active demo projects and a recent issues feed",
+  },
+];
 
 const details = [
   {
@@ -41,9 +69,9 @@ const details = [
     <p class="eyebrow">Inside the product</p>
     <h2 id="surface-title">A real issue. Context attached.</h2>
     <p class="section-lead">
-      This Paimos issue workbench is captured from the visual test suite with synthetic
-      data. Select a marker to inspect how intent, authority and retrieved knowledge meet
-      in one work surface.
+      This Paimos issue workbench is captured from the current build's demo workspace
+      with synthetic data. Select a marker to inspect how intent, authority and
+      retrieved knowledge meet in one work surface — or open the other views below.
     </p>
   </header>
 
@@ -70,7 +98,7 @@ const details = [
           <span>{index + 1}</span>
         </button>
       ))}
-      <figcaption>Interface fixture captured from the Paimos visual test suite.</figcaption>
+      <figcaption>Demo workspace, Paimos v5.0.0 — captured from the current build with synthetic data.</figcaption>
     </figure>
 
     <div class="product-surface__details">
@@ -128,7 +156,55 @@ const details = [
       </div>
     </div>
   </div>
+
+  <div class="product-surface__views" aria-label="More product views">
+    {views.map((view) => (
+      <div class="product-surface__view">
+        <button
+          class="product-surface__view-open"
+          type="button"
+          data-lightbox-target={`surface-view-${view.id}`}
+          aria-haspopup="dialog"
+        >
+          <span class="product-surface__view-thumb">
+            <Image
+              src={view.image}
+              alt={view.alt}
+              widths={[480, 720, 960]}
+              sizes="(min-width: 64rem) 30vw, 100vw"
+              formats={["avif", "webp", "png"]}
+              quality={82}
+              loading="lazy"
+            />
+          </span>
+          <span class="product-surface__view-meta">
+            <strong>{view.title}</strong>
+            <span>{view.caption}</span>
+          </span>
+        </button>
+        <dialog class="product-surface__dialog" id={`surface-view-${view.id}`} aria-label={`${view.title} — full size`}>
+          <button class="product-surface__dialog-close" type="button" data-lightbox-close aria-label="Close">
+            ×
+          </button>
+          <Image
+            src={view.image}
+            alt={view.alt}
+            widths={[1080, 1600]}
+            sizes="90vw"
+            formats={["avif", "webp", "png"]}
+            quality={86}
+            loading="lazy"
+          />
+          <p class="product-surface__dialog-caption">
+            {view.title} — {view.caption} Demo workspace, Paimos v5.0.0.
+          </p>
+        </dialog>
+      </div>
+    ))}
+  </div>
 </section>
+
+<script is:inline src="/scripts/media-lightbox.js" defer></script>
 
 <script>
   const SURFACE_STAGE_DURATION = 5000;
@@ -465,18 +541,21 @@ const details = [
     font-weight: 700;
   }
 
+  /* Positions are tuned to the v5.0.0 capture: 1 = issue chips beside the
+     AI Workbench header, 2 = deploy mode + Implement controls, 3 = the
+     applicable-memories return. Re-measure when the screenshot changes. */
   .product-surface__hotspot--1 {
-    top: 38%;
-    left: 84%;
+    top: 28%;
+    left: 85%;
   }
 
   .product-surface__hotspot--2 {
-    top: 47%;
-    left: 88%;
+    top: 36%;
+    left: 90%;
   }
 
   .product-surface__hotspot--3 {
-    top: 82%;
+    top: 84%;
     left: 73%;
   }
 
@@ -673,6 +752,129 @@ const details = [
     }
   }
 
+  /* More views — thumbnails that open a lightbox dialog. */
+  .product-surface__views {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(0.9rem, 2vw, 1.5rem);
+    margin-top: clamp(1.25rem, 2.5vw, 2rem);
+  }
+
+  .product-surface__view-open {
+    display: grid;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: zoom-in;
+    text-align: left;
+  }
+
+  .product-surface__view-thumb {
+    display: block;
+    overflow: hidden;
+    aspect-ratio: 8 / 5;
+    border: 1px solid rgb(255 255 255 / 0.84);
+    border-radius: var(--radius-md);
+    background: #e9eff4;
+    box-shadow: var(--shadow-sm);
+    transition: transform 260ms var(--ease), box-shadow 260ms ease;
+  }
+
+  .product-surface__view-thumb :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+  }
+
+  .product-surface__view-open:hover .product-surface__view-thumb,
+  .product-surface__view-open:focus-visible .product-surface__view-thumb {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .product-surface__view-meta {
+    display: grid;
+    gap: 0.15rem;
+    margin-top: 0.7rem;
+  }
+
+  .product-surface__view-meta strong {
+    color: var(--ink);
+    font-size: 0.9rem;
+  }
+
+  .product-surface__view-meta span {
+    color: var(--ink-soft);
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+
+  .product-surface__dialog {
+    max-width: min(92vw, 78rem);
+    padding: clamp(0.75rem, 1.5vw, 1.25rem);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface-solid);
+    box-shadow: var(--shadow-deep);
+  }
+
+  .product-surface__dialog::backdrop {
+    background: rgb(5 29 44 / 0.66);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+
+  .product-surface__dialog :global(img) {
+    width: 100%;
+    height: auto;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+  }
+
+  .product-surface__dialog-close {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    z-index: 2;
+    display: grid;
+    width: 2.35rem;
+    height: 2.35rem;
+    place-items: center;
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: var(--surface-solid);
+    cursor: pointer;
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+
+  .product-surface__dialog-close:hover {
+    color: var(--accent-strong);
+    border-color: var(--line-strong);
+  }
+
+  .product-surface__dialog-caption {
+    margin-top: 0.7rem;
+    color: var(--ink-soft);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    line-height: 1.5;
+  }
+
+  :global(body.lightbox-open) {
+    overflow: hidden;
+  }
+
+  @media (max-width: 42rem) {
+    .product-surface__views {
+      grid-template-columns: 1fr;
+    }
+  }
+
   @media (max-width: 66rem) {
     .product-surface__grid {
       grid-template-columns: 1fr;
@@ -689,13 +891,13 @@ const details = [
 
   @media (max-width: 42rem) {
     .product-surface__hotspot--1 {
-      top: 30%;
-      left: 78%;
+      top: 22%;
+      left: 80%;
     }
 
     .product-surface__hotspot--2 {
-      top: 55%;
-      left: 89%;
+      top: 42%;
+      left: 88%;
     }
 
     .product-surface__hotspot {

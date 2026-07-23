@@ -140,7 +140,7 @@ const {
                   class="workflow__reference"
                   href={step.reference.href}
                   target={step.reference.external === false ? undefined : "_blank"}
-                  rel={step.reference.external === false ? undefined : "noreferrer"}
+                  rel={step.reference.external === false ? undefined : "noopener noreferrer"}
                 >
                   {step.reference.label} <span aria-hidden="true">↗</span>
                 </a>

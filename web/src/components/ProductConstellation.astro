@@ -46,7 +46,7 @@ const { products } = Astro.props;
     {products.map((product, index) => (
       <li style={`--product-index:${index}`}>
         <article>
-          <a class="product-constellation__visual" href={product.href} aria-label={`Explore ${product.name}`}>
+          <a class="product-constellation__visual" href={product.href} target="_blank" rel="noopener noreferrer" aria-label={`Explore ${product.name}, opens in a new tab`}>
             <Image
               src={product.hero}
               alt={product.alt}
@@ -66,7 +66,7 @@ const { products } = Astro.props;
             <h4>{product.title}</h4>
             <span>{product.body}</span>
             <small>{product.detail}</small>
-            <a href={product.href}>Explore {product.name} <span aria-hidden="true">→</span></a>
+            <a href={product.href} target="_blank" rel="noopener noreferrer">Explore {product.name} <span aria-hidden="true">↗</span></a>
           </div>
         </article>
       </li>

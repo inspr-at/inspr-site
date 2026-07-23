@@ -22,7 +22,7 @@ const icons = ["git-branch", "package-check", "scale", "shield-check", "file-che
         <a
           href={link.href}
           target={link.external === false ? undefined : "_blank"}
-          rel={link.external === false ? undefined : "noreferrer"}
+          rel={link.external === false ? undefined : "noopener noreferrer"}
         >
           <span class="provenance-receipt__icon" aria-hidden="true">
             <ContextIcon name={icons[index % icons.length]} size={21} strokeWidth={2} />

@@ -54,7 +54,7 @@ const fallbackIcons = ["circle-dot", "waypoints", "layers-3", "shield-check", "w
               <a
                 href={item.reference.href}
                 target={item.reference.external === false ? undefined : "_blank"}
-                rel={item.reference.external === false ? undefined : "noreferrer"}
+                rel={item.reference.external === false ? undefined : "noopener noreferrer"}
               >
                 {item.reference.label} <span aria-hidden="true">↗</span>
               </a>

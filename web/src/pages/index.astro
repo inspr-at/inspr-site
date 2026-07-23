@@ -8,7 +8,7 @@ import WorkflowExplorer from "../components/WorkflowExplorer.astro";
 import SituationPacket from "../components/SituationPacket.astro";
 import PrincipleFieldNotes from "../components/PrincipleFieldNotes.astro";
 import HeroLoop from "../components/HeroLoop.astro";
-import { siteUrls } from "../content/urls";
+import { productTaxonomy, siteUrls } from "../content/urls";
 
 import insprHero from "../assets/products/inspr/hero.png";
 import insprHeroLoop from "../assets/products/inspr/hero-loop.mp4";
@@ -39,7 +39,7 @@ const nav = [
 const products = [
   {
     name: "Paimos",
-    label: "Shared project context",
+    label: productTaxonomy.paimos,
     href: siteUrls.paimos,
     logo: paimosLogo,
     hero: paimosHero,
@@ -51,7 +51,7 @@ const products = [
   },
   {
     name: "Pharos",
-    label: "Fleet operations",
+    label: productTaxonomy.pharos,
     href: siteUrls.pharos,
     logo: pharosLogo,
     hero: pharosHero,
@@ -63,7 +63,7 @@ const products = [
   },
   {
     name: "Janus",
-    label: "Secret governance",
+    label: productTaxonomy.janus,
     href: siteUrls.janus,
     logo: janusLogo,
     hero: janusHero,
@@ -186,8 +186,8 @@ const continuitySteps = [
 ---
 
 <MicrositeLayout
-  title="INSPR | A shared operating layer for people and AI agents"
-  description="INSPR is an open operating layer that keeps project context, fleet state, secret use and operating doctrine coherent for people and AI agents."
+  title="INSPR | A technology umbrella for people and AI agents"
+  description="INSPR is a technology umbrella that keeps project context, fleet state, secret governance and operating doctrine coherent for people and AI agents."
   canonical={canonicalUrl}
   ogImage={ogImage}
   ogImageAlt="The INSPR product constellation around a shared operating core"
@@ -196,7 +196,7 @@ const continuitySteps = [
 >
   <MicrositeHeader
     name="INSPR"
-    category="Open operating layer"
+    category={productTaxonomy.inspr}
     logo={insprLogo.src}
     active="inspr"
     nav={nav}
@@ -225,7 +225,7 @@ const continuitySteps = [
           <a class="button" href="#products">
             Meet the products <span aria-hidden="true">↓</span>
           </a>
-          <a class="button button--ghost" href={repositoryUrl}>
+          <a class="button button--ghost" href={repositoryUrl} target="_blank" rel="noopener noreferrer">
             Explore the source <span aria-hidden="true">↗</span>
           </a>
         </div>
@@ -374,8 +374,8 @@ const continuitySteps = [
       </div>
       <div class="identity-utility__links">
         <p>Shared access</p>
-        <a class="button" href={siteUrls.signIn}>Sign in</a>
-        <a class="identity-utility__service" href={siteUrls.identity}>
+        <a class="button" href={siteUrls.signIn} target="_blank" rel="noopener noreferrer">Sign in</a>
+        <a class="identity-utility__service" href={siteUrls.identity} target="_blank" rel="noopener noreferrer">
           Open identity service <span aria-hidden="true">↗</span>
         </a>
         <small>auth.inspr.at · powered by ZITADEL</small>
@@ -421,23 +421,23 @@ const continuitySteps = [
         <p class="eyebrow">Open foundations</p>
         <h2 id="source-title">Inspect the ideas. Inspect the implementation.</h2>
         <p class="section-lead">
-          INSPR is source-driven. This site, Paimos, Pharos and Janus are licensed
-          under AGPL-3.0-only. Their product pages state actual scope, maturity and
+          INSPR is source-driven. This site, Paimos, Pharos and Janus use
+          AGPL-3.0-only. Their product pages state actual scope, maturity and
           limits, so open source does not become a substitute for clarity.
         </p>
       </div>
       <nav class="source-panel__links" aria-label="INSPR source links">
-        <a href={repositoryUrl}>
+        <a href={repositoryUrl} target="_blank" rel="noopener noreferrer">
           <span>INSPR site</span><small>Umbrella and microsite source</small><b aria-hidden="true">↗</b>
         </a>
-        <a href={umbrellaRepositoryUrl}>
+        <a href={umbrellaRepositoryUrl} target="_blank" rel="noopener noreferrer">
           <span>INSPR umbrella</span><small>Vision and product constellation</small><b aria-hidden="true">↗</b>
         </a>
-        <a href={modulesUrl}>
+        <a href={modulesUrl} target="_blank" rel="noopener noreferrer">
           <span>INSPR modules</span><small>Doctrine and shared operating modules</small><b aria-hidden="true">↗</b>
         </a>
-        <a href={siteLicenseUrl}>
-          <span>AGPL-3.0-only</span><small>Read this site's license</small><b aria-hidden="true">↗</b>
+        <a href={siteLicenseUrl} target="_blank" rel="noopener noreferrer">
+          <span>License terms</span><small>Read this site's license</small><b aria-hidden="true">↗</b>
         </a>
       </nav>
     </section>

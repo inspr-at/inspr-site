@@ -1,14 +1,13 @@
-import { siteUrls } from "./urls";
+import { productTaxonomy, siteUrls } from "./urls";
 import type { ProductContent } from "./types";
 
 const repositoryUrl = "https://github.com/markus-barta/janus";
-const releaseUrl =
-  "https://github.com/markus-barta/janus/releases/tag/rust-engine-v0.1.6";
+const releaseUrl = "https://github.com/markus-barta/janus/releases";
 
 export const janusContent = {
   slug: "janus",
   name: "Janus",
-  category: "Secret governance for human and agent systems",
+  category: productTaxonomy.janus,
   canonicalUrl: siteUrls.janus,
   repositoryUrl,
   releaseUrl,
@@ -34,10 +33,10 @@ export const janusContent = {
   serviceIntro:
     "Augmentoring provides supported Janus architecture, rollout and operations.",
   proof: [
-    "AGPL-3.0-only",
     "Released Rust engine",
     "Reference-only MCP",
     "Signed releases with SBOM and provenance",
+    "Value-free oversight",
   ],
   problem: {
     eyebrow: "THE PROBLEM",
@@ -206,7 +205,7 @@ export const janusContent = {
         {
           title: "Retirement and reconciliation",
           body:
-            "Value-free tombstones preserve retirement evidence. Finalization and read-only reconciliation distinguish complete state, pending work and drift. Release v0.1.6 applies this contract to Pharos beacon credentials.",
+            "Value-free tombstones preserve retirement evidence. Finalization and read-only reconciliation distinguish complete state, pending work and drift. The current Rust-engine release line applies this contract to Pharos beacon credentials.",
           meta: "Provider deletion remains an explicit separate operation",
         },
       ],
@@ -280,7 +279,7 @@ export const janusContent = {
         title: "Retire a machine credential",
         body:
           "A host-specific credential moves through disablement and destruction evidence while generated outputs are removed and reconciliation reports incomplete or drifting state.",
-        meta: "Implemented for Pharos beacons in v0.1.6",
+        meta: "Implemented for Pharos beacon credentials",
       },
     ],
   },
@@ -392,7 +391,7 @@ export const janusContent = {
       },
       {
         name: "Pharos",
-        status: "Released in v0.1.6",
+        status: "Released in the current engine line",
         description:
           "A concrete credential-retirement contract handles one Pharos beacon credential with durable lifecycle state, value-free evidence and reconciliation.",
       },
@@ -430,7 +429,7 @@ export const janusContent = {
     eyebrow: "OPEN SOURCE",
     title: "Inspect every layer.",
     body:
-      "Janus is public under AGPL-3.0-only. The source, tests, release workflows, image signatures, SPDX SBOMs and build-provenance attestations are available for review. The current public engine release is v0.1.6.",
+      "Janus is public under AGPL-3.0-only. Source, tests, release workflows, image signatures, SPDX SBOMs and build-provenance attestations are available for both the active Rust 0.1.x engine line and the Go oversight envelope.",
     links: [
       {
         label: "GitHub repository",
@@ -438,7 +437,7 @@ export const janusContent = {
         external: true,
       },
       {
-        label: "Rust engine v0.1.6",
+        label: "Janus releases",
         href: releaseUrl,
         external: true,
       },

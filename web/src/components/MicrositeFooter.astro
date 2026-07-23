@@ -37,7 +37,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
       <h2 id="footer-cta-title">{ctaTitle}</h2>
       <p>{ctaBody}</p>
     </div>
-    <a class="button button--light" href={siteUrls.business}>
+    <a class="button button--light" href={siteUrls.business} target="_blank" rel="noopener noreferrer">
       Explore Augmentoring services <span aria-hidden="true">↗</span>
     </a>
   </section>
@@ -45,35 +45,36 @@ const deployedAtLabel = releaseMetadata.deployedAt
   <div class="site-footer__grid page-shell">
     <div class="site-footer__brand">
       <strong>{name}</strong>
-      <p>Part of INSPR, an open operating layer for people and AI agents.</p>
+      <p>Part of INSPR, the technology umbrella for people and AI agents.</p>
     </div>
 
     <nav aria-label="INSPR products">
       <p class="footer-label">Product family</p>
-      {productLinks.map((item) => <a href={item.href}>{item.label}</a>)}
+      {productLinks.map((item) => <a href={item.href} target="_blank" rel="noopener noreferrer" aria-label={`${item.label}, opens in a new tab`}>{item.label}</a>)}
     </nav>
 
     <nav aria-label="Source and license">
       <p class="footer-label">Source</p>
-      <a href={repositoryUrl}>GitHub <span aria-hidden="true">↗</span></a>
-      {licenseName && licenseUrl && <a href={licenseUrl}>{licenseName} <span aria-hidden="true">↗</span></a>}
-      <a href={siteUrls.agpl}>
-        Official GNU AGPL-3.0 text
+      <a href={repositoryUrl} target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+      <a href={siteUrls.agpl} target="_blank" rel="noopener noreferrer">
+        All software projects: AGPL-3.0-only
         <span aria-hidden="true">↗</span>
       </a>
     </nav>
 
     <nav aria-label="Services and identity">
       <p class="footer-label">Operate</p>
-      <a href={siteUrls.business}>Professional services <span aria-hidden="true">↗</span></a>
-      <a href={siteUrls.identity}>ZITADEL identity <span aria-hidden="true">↗</span></a>
+      <a href={siteUrls.business} target="_blank" rel="noopener noreferrer">Professional services <span aria-hidden="true">↗</span></a>
+      <a href={siteUrls.identity} target="_blank" rel="noopener noreferrer">ZITADEL identity <span aria-hidden="true">↗</span></a>
       <a href="mailto:hello@inspr.at">hello@inspr.at</a>
+      <a href={siteUrls.imprint} target="_blank" rel="noopener noreferrer">Legal notice <span aria-hidden="true">↗</span></a>
+      <a href={siteUrls.privacy} target="_blank" rel="noopener noreferrer">Privacy <span aria-hidden="true">↗</span></a>
     </nav>
   </div>
 
   <div class="site-footer__legal page-shell">
     <p class="site-footer__legal-copy">
-      <span>© {year} Markus Barta · INSPR</span>
+      <span>© {year} Augmentoring GmbH · INSPR</span>
       <span>Built to stay inspectable.</span>
     </p>
 

@@ -1,13 +1,13 @@
-import { siteUrls } from "./urls";
+import { productTaxonomy, siteUrls } from "./urls";
 import type { ProductContent } from "./types";
 
 export const pharosContent = {
   slug: "pharos",
   name: "Pharos",
-  category: "Fleet operations",
+  category: productTaxonomy.pharos,
   canonicalUrl: siteUrls.pharos,
   repositoryUrl: "https://github.com/markus-barta/pharos",
-  releaseUrl: "https://github.com/markus-barta/pharos/releases/tag/v0.1.41",
+  releaseUrl: "https://github.com/markus-barta/pharos/releases",
   license: {
     name: "AGPL-3.0-only",
     url: "https://github.com/markus-barta/pharos/blob/main/LICENSE",
@@ -33,7 +33,7 @@ export const pharosContent = {
     "Self-hosted control plane",
     "Outbound host beacon",
     "ZITADEL OIDC",
-    "AGPL-3.0-only",
+    "Inspectable fleet evidence",
   ],
   problem: {
     eyebrow: "THE OPERATING GAP",
@@ -437,7 +437,7 @@ export const pharosContent = {
     items: [
       "Pharos is not a generic metrics platform, log warehouse, tracing backend or remote shell.",
       "There is no arbitrary command channel. Target agents claim only fixed, schema-validated workflow phases.",
-      "Pharos does not replace container-level or AI-agent observability from the retired FleetCom system.",
+      "Pharos does not replace specialist container-level or AI-agent observability systems.",
       "A successful backup run is not presented as restore proof without separate validation evidence.",
       "A merged declaration is not shown as applied until the host reports the matching value.",
       "Removing a host does not delete its server, disks, services or application data.",
@@ -449,7 +449,7 @@ export const pharosContent = {
     eyebrow: "SOURCE AND SELF-HOSTING",
     title: "Run it on your terms.",
     body:
-      "The latest tagged release is v0.1.41, while current main declares v0.1.43. The control plane, beacon, Docker Compose template, NixOS module and portable installer live in the Pharos source repository under AGPL-3.0-only. Inspect the operating boundaries and adapt the system to your infrastructure under those terms.",
+      "The active 0.1.x release line includes the control plane, beacon, Docker Compose template, NixOS module and portable installer. The complete source and release evidence are available in the Pharos repository under AGPL-3.0-only.",
     links: [
       {
         label: "Source repository",
@@ -467,8 +467,8 @@ export const pharosContent = {
         external: true,
       },
       {
-        label: "Latest tagged release v0.1.41",
-        href: "https://github.com/markus-barta/pharos/releases/tag/v0.1.41",
+        label: "Pharos releases",
+        href: "https://github.com/markus-barta/pharos/releases",
         external: true,
       },
     ],

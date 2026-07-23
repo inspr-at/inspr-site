@@ -91,6 +91,25 @@ test("each product route renders its canonical content through ProductPage", asy
   }
 });
 
+test("microsites keep an accessible mobile section menu", async () => {
+  const header = await source("components/MicrositeHeader.astro");
+  const styles = await source("styles/microsites.css");
+
+  assert.match(header, /<details class="mobile-navigation" data-mobile-navigation>/);
+  assert.match(header, /aria-label="Mobile navigation"/);
+  assert.match(header, /event\.key !== "Escape"/);
+  assert.match(styles, /@media \(max-width: 72rem\)[\s\S]*?\.mobile-navigation \{\s*display: block;/);
+});
+
+test("the shared Pharos mark is the canonical low-complexity SVG", async () => {
+  const mark = await source("assets/products/pharos/mark.svg");
+
+  assert.match(mark, /viewBox="0 0 88 88"/);
+  assert.match(mark, /stroke="#d69b31"/);
+  assert.doesNotMatch(mark, /<image/);
+  assert.ok((mark.match(/<(?:path|rect)\b/g) ?? []).length <= 12);
+});
+
 test("the umbrella links its actual site source and direct license", async () => {
   const umbrella = await source("pages/index.astro");
 
@@ -164,7 +183,7 @@ test("product copy contains no em dashes and no hardcoded business host", async 
     );
     assert.match(
       content,
-      /import \{ siteUrls \} from "\.\/urls";/,
+      /import \{ productTaxonomy, siteUrls \} from "\.\/urls";/,
       `${slug} must consume centralized site URLs`,
     );
     assert.match(
@@ -341,8 +360,8 @@ test("Paimos screenshot tabs use neutral tabpanel hosts", async () => {
 test("Pharos states release and provider maturity without overclaiming", async () => {
   const pharos = await source("content/pharos.ts");
 
-  assert.match(pharos, /releases\/tag\/v0\.1\.41/);
-  assert.match(pharos, /latest tagged release is v0\.1\.41, while current main declares v0\.1\.43/);
+  assert.match(pharos, /github\.com\/markus-barta\/pharos\/releases/);
+  assert.doesNotMatch(pharos, /v0\.1\.4[13]/);
   assert.match(pharos, /status: "Read-only live"/);
   assert.match(pharos, /read-only provider checks are live/);
   assert.match(pharos, /Managed execution is disabled pending attended production acceptance/);

@@ -4,7 +4,7 @@
 //
 // Sources of truth:
 //   architecture.md §1.6, §1.7  → Bosun verb set, fleet decision agent
-//   playbook.md "Automation horizon" → FleetCom + Bosun
+// Historical archive: product names and statuses below describe the v1 snapshot.
 //   inspr-modules public flake → modular composition validated
 //
 // Status vocabulary:
@@ -20,20 +20,20 @@ const artifacts = [
     tagline: "Project management upstream of agents",
     status: "live",
     body: "A typed CLI and service for issues, anchors, plans, and manifests. The first product to live inside INSPR. JSON-everywhere by default; the tool an agent and an operator can both reach for without reading different docs.",
-    link: { href: "https://paimos.com", label: "paimos.com" },
+    link: { href: "https://paimos.inspr.at", label: "paimos.inspr.at" },
   },
   {
-    name: "FleetCom",
-    tagline: "Declarative fleet management plane",
-    status: "in flight",
-    body: "The control plane that keeps an INSPR fleet in sync. Host-class profiles, declarative apply, and a registry of typed verbs. Public source; runs in the personal context today, opens to company and family contexts as their adapter shape stabilises.",
+    name: "FleetCom (archived)",
+    tagline: "Historical fleet management experiment",
+    status: "archived",
+    body: "This retired project is preserved only as historical context. Pharos is the current INSPR product for fleet state and backup evidence.",
     link: { href: "https://github.com/markus-barta/fleetcom", label: "github.com/…/fleetcom" },
   },
   {
-    name: "Bosun",
-    tagline: "Per-host agent under FleetCom",
-    status: "forthcoming",
-    body: "One process per fleet member. The outward-facing API is a typed, versioned verb set with --json everywhere — the contract any harness adapter targets. Verbs evolve under SemVer; adapters declare which version they expect.",
+    name: "Bosun (archived concept)",
+    tagline: "Historical per-host agent concept",
+    status: "archived",
+    body: "This concept belongs to the retired FleetCom design and is not presented as a current INSPR product.",
     link: null,
   },
   {

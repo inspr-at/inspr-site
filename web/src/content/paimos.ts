@@ -1,4 +1,4 @@
-import { siteUrls } from "./urls";
+import { productTaxonomy, siteUrls } from "./urls";
 import type { ProductContent } from "./types";
 
 const repositoryUrl = "https://github.com/markus-barta/paimos";
@@ -8,7 +8,7 @@ const docsUrl = (document: string) =>
 export const paimosContent = {
   slug: "paimos",
   name: "Paimos",
-  category: "Project context for people and AI agents",
+  category: productTaxonomy.paimos,
   canonicalUrl: siteUrls.paimos,
   repositoryUrl,
   releaseUrl: `${repositoryUrl}/releases`,
@@ -37,7 +37,7 @@ export const paimosContent = {
     "Self-hosted",
     "CLI, MCP and REST",
     "Human and agent work in one history",
-    "AGPL-3.0-only",
+    "Inspectable source and release evidence",
   ],
   problem: {
     eyebrow: "Why Paimos",

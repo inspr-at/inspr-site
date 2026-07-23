@@ -354,6 +354,12 @@
     position: relative;
   }
 
+  .mobile-navigation {
+    position: relative;
+    display: none;
+  }
+
+  .mobile-navigation summary,
   .product-switcher summary {
     display: flex;
     align-items: center;
@@ -369,10 +375,12 @@
     transition: background 160ms ease, transform 160ms ease;
   }
 
+  .mobile-navigation summary::-webkit-details-marker,
   .product-switcher summary::-webkit-details-marker {
     display: none;
   }
 
+  .mobile-navigation summary::after,
   .product-switcher summary::after {
     width: 0.48rem;
     height: 0.48rem;
@@ -383,15 +391,18 @@
     transition: transform 180ms ease;
   }
 
+  .mobile-navigation[open] summary::after,
   .product-switcher[open] summary::after {
     transform: rotate(225deg) translate(-0.12rem, -0.06rem);
   }
 
+  .mobile-navigation summary:hover,
   .product-switcher summary:hover {
     background: var(--accent-strong);
     transform: translateY(-1px);
   }
 
+  .mobile-navigation__panel,
   .product-switcher__panel {
     position: absolute;
     top: calc(100% + 0.7rem);
@@ -405,12 +416,15 @@
     box-shadow: var(--shadow-md);
   }
 
+  .mobile-navigation__panel a,
   .product-switcher__panel a {
     padding: 0.65rem 0.8rem;
     border-radius: 0.6rem;
     text-decoration: none;
   }
 
+  .mobile-navigation__panel a:hover,
+  .mobile-navigation__panel a:focus-visible,
   .product-switcher__panel a:hover,
   .product-switcher__panel a[aria-current="page"] {
     color: var(--accent-strong);
@@ -2263,6 +2277,10 @@
     display: none;
   }
 
+  .mobile-navigation {
+    display: block;
+  }
+
   .product-hero {
     grid-template-columns: 1fr;
     min-height: auto;
@@ -2457,6 +2475,7 @@
     font-size: 1.25rem;
   }
 
+  .mobile-navigation summary,
   .product-switcher summary {
     min-height: 2.5rem;
     padding-inline: 0.8rem;

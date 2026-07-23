@@ -700,6 +700,20 @@
     padding-block: var(--section-space);
   }
 
+  /* Section anchors (#why, #model, #capabilities, …) sit on the outer block,
+     so a hash jump aligns the top of its --section-space padding to html's
+     scroll-padding-top (7rem) and strands the heading a full section-space
+     lower — the empty band above "HOW IT WORKS". The header isn't sticky, so
+     that 7rem is the only intended breathing room; cancel the block's own top
+     padding so the intro lands at the 7rem offset instead of below it. For the
+     bare #capabilities wrapper the same offset pulls up its first child
+     section, whose padding supplies the matching space. */
+  .section[id],
+  .workflow[id],
+  #capabilities {
+    scroll-margin-top: calc(var(--section-space) * -1);
+  }
+
   .section-intro {
     display: grid;
     max-width: 62rem;

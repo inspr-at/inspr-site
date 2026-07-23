@@ -223,3 +223,99 @@ the served tree. The previous healthy HTML remains present, old hashed assets
 remain addressable, and a failed release can be reversed without reconstructing
 files from deployment history. Caddy's admin API remains bound to a Unix socket
 inside its private configuration volume; no TCP admin surface is exposed.
+
+---
+
+## D-009 — Paimos Specs section interaction model
+
+**Date:** 2026-07-23
+**Ticket:** paimos PAI-691 (site sync)
+**Status:** Committed
+
+The Specs grid is 20 flip-cards in fixed 5/4/2 columns (always a full
+rectangle), randomized per load. Group identity is carried by **icon color
+only** (security / ops / AI / legal / work / place) — face tints were tried
+and rejected as noise. Click anywhere on a card flips and pins it; hover
+previews; Esc releases; controls (ELI10 mode, Flip all, hidden ⤨ shuffle)
+are styled like the site nav — words, no chrome.
+
+Two reading layers: the technical note and an **ELI10 variant** aimed at
+non-IT buying centers, toggled per section. Buzzwords in notes are
+hover-only terms: a yellow marker lights the word and a bare, frameless
+live-help line under the grid shows the definition. The expandable glossary
+panel was built and then deliberately removed — hover-help everywhere beat
+a lookup box nobody opens. Terms carry their definitions as `data-def`;
+there is no hidden glossary DOM.
+
+**Why:** the grid must work for two audiences at once without doubling the
+page, and every interaction should have exactly one meaning (click = flip).
+
+---
+
+## D-010 — PhotoSwipe for the product-view lightbox
+
+**Date:** 2026-07-23
+**Ticket:** paimos PAI-694
+**Status:** Committed
+
+The hand-rolled `<dialog>` lightbox (chip buttons, custom nav) read dated
+and its controls never sat right. Replaced with **PhotoSwipe 5** — MIT,
+self-hosted via npm, bundled by Astro into hashed modules so `script-src
+'self'` covers it with zero CSP changes and zero external requests.
+Fancybox/lightGallery were rejected on license (GPL/commercial). Captions
+come from `data-caption` via the documented uiRegister element; thumbnails
+are progressive-enhancement `<a>`s to the full rendition. Page blur behind
+the lightbox stays ours (`body.lightbox-open > :not(.pswp)`).
+
+**Why:** image lightboxes are a solved problem; the default high-quality
+tool beats bespoke chrome. Future video cards should use PhotoSwipe's
+custom-content path, not a second lightbox.
+
+---
+
+## D-011 — public/ scripts always carry a release-id cache-buster
+
+**Date:** 2026-07-23
+**Ticket:** — (incident-driven)
+**Status:** Committed (rule)
+
+Incident: a deploy shipped fresh HTML while the 5-minute edge cache served
+the previous `/scripts/specs-pin.js` — every new control was dead on the
+live site, while local builds passed QA. Unlike `_astro/*`, `public/`
+scripts are not content-fingerprinted.
+
+Rule: every `<script src="/scripts/...">` reference must append
+`?v=${INSPR_RELEASE_ID}` so script and HTML bust caches atomically with
+the release. Corollary: behavioral QA runs against the **live site** after
+deploy, not only against the local dist.
+
+---
+
+## D-012 — Root reserves the scrollbar gutter
+
+**Date:** 2026-07-23
+**Ticket:** —
+**Status:** Committed
+
+`html { scrollbar-gutter: stable }`. Modal scroll-locks (`overflow:
+hidden`) no longer change viewport width, so lightbox open/close cannot
+shift the page. Accepted trade: classic-scrollbar users always see the
+gutter. This replaces the legacy JS padding-compensation hack for every
+current and future modal.
+
+---
+
+## D-013 — Product imagery provenance
+
+**Date:** 2026-07-23
+**Ticket:** paimos PAI-695, PAI-696
+**Status:** Committed (rule)
+
+All Paimos interface imagery is captured from the **current build's seeded
+demo workspace** (dev stack, dev banners hidden), never from a production
+instance — production screenshots would put real customer data on a public
+page. Every capture states its provenance in the caption ("Demo workspace,
+Paimos vX.Y.Z"). The annotated workbench capture has a framing contract
+(TASKS heading at top, 1600x1000@2x) that the three hotspot positions are
+tuned to; re-measure when the capture changes. Refresh pipeline:
+paimos PAI-695.

@@ -957,6 +957,8 @@
     line-height: 1.44;
     color: var(--ink);
     text-wrap: pretty;
+    /* Reading zone: clicks here never flip the card (terms keep pointer). */
+    cursor: default;
   }
 
   /* Pinned: the card locks on its back face and ignores hover. The tile's

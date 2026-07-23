@@ -98,6 +98,14 @@
     const term = event.target.closest(".specs__term");
     if (term) {
       event.stopPropagation();
+      // A word click pins the card first (a hover-flipped card would spin
+      // away the moment the pointer moves toward the glossary), then opens
+      // the glossary entry. It never unpins.
+      const tile = term.closest(".specs__tile");
+      if (tile && !tile.classList.contains("is-pinned")) {
+        setPinned(tile, true);
+        syncFlipAll();
+      }
       handleTerm(term);
       return;
     }
@@ -119,7 +127,12 @@
       return;
     }
     const flip = event.target.closest(".specs__flip");
-    if (flip && root.contains(flip)) toggleTile(flip);
+    if (flip && root.contains(flip)) {
+      // The note text is a reading zone: a near-miss beside a glossary term
+      // must not flip the card away. Flip/unpin only outside the note.
+      if (event.target.closest(".specs__note")) return;
+      toggleTile(flip);
+    }
   });
 
   document.addEventListener("keydown", (event) => {

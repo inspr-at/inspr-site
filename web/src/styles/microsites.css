@@ -988,49 +988,30 @@
     animation: specs-glitch 320ms steps(5) 1;
   }
 
-  /* Section foot: the expandable plain-words glossary, full width. */
+  /* Section foot: a bare live-help line — no frame, no panel. Empty and
+     invisible until a term is hovered; fixed height so nothing jumps. */
   .specs__foot {
     margin-top: 1rem;
   }
 
-  .specs__glossary {
-    border: 1px solid var(--line);
-    border-radius: var(--radius-md);
-    background: var(--surface);
-  }
-
-  .specs__glossary summary {
+  .specs__live {
     display: flex;
     gap: 0.55rem;
     align-items: baseline;
     overflow: hidden;
-    padding: 0.8rem 1.1rem;
-    color: var(--ink-soft);
-    cursor: pointer;
+    min-height: 1.5rem;
+    margin: 0;
+    visibility: hidden;
     white-space: nowrap;
     font-family: var(--font-mono);
-    font-size: 0.7rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    font-size: 0.72rem;
   }
 
-  /* Live glossary-on-hover: while a term in a card is hovered, the summary's
-     tail swaps to the hovered word (marker-highlit) plus its definition. */
-  .specs__gloss-live {
-    display: inline-flex;
-    gap: 0.55rem;
-    align-items: baseline;
-    overflow: hidden;
-    min-width: 0;
-    letter-spacing: 0;
-    text-transform: none;
+  .specs__live.is-on {
+    visibility: visible;
   }
 
-  .specs__gloss-live[hidden] {
-    display: none;
-  }
-
-  .specs__gloss-live-term {
+  .specs__live-term {
     padding: 0.05em 0.3em;
     color: var(--ink);
     border-radius: 0.3em;
@@ -1038,48 +1019,10 @@
     font-weight: 700;
   }
 
-  .specs__gloss-live-body {
+  .specs__live-body {
     overflow: hidden;
     color: var(--ink);
     text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .specs__glossary[open] summary {
-    border-bottom: 1px solid var(--line-soft, var(--line));
-  }
-
-  .specs__glossary dl {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.25rem 1.25rem;
-    margin: 0;
-    padding: 0.9rem 1.1rem 1.1rem;
-  }
-
-  .specs__gloss-entry {
-    padding: 0.45rem 0.6rem;
-    border-radius: 0.55rem;
-    transition: background 220ms ease, box-shadow 220ms ease;
-  }
-
-  .specs__gloss-entry dt {
-    color: var(--ink);
-    font-size: 0.82rem;
-    font-weight: 700;
-  }
-
-  .specs__gloss-entry dd {
-    margin: 0.15rem 0 0;
-    color: var(--ink-soft);
-    font-size: 0.8rem;
-    line-height: 1.5;
-  }
-
-  @media (max-width: 48rem) {
-    .specs__glossary dl {
-      grid-template-columns: 1fr;
-    }
   }
 
   @keyframes specs-scan {

@@ -171,49 +171,72 @@ const details = [
   </div>
 
   <div class="product-surface__views" aria-label="More product views">
-    {views.map((view) => (
-      <div class="product-surface__view">
-        <button
-          class="product-surface__view-open"
-          type="button"
-          data-lightbox-target={`surface-view-${view.id}`}
-          aria-haspopup="dialog"
-        >
-          <span class="product-surface__view-thumb">
+    {views.map((view, index) => {
+      const prev = views[(index - 1 + views.length) % views.length];
+      const next = views[(index + 1) % views.length];
+      return (
+        <div class="product-surface__view">
+          <button
+            class="product-surface__view-open"
+            type="button"
+            data-lightbox-target={`surface-view-${view.id}`}
+            aria-haspopup="dialog"
+          >
+            <span class="product-surface__view-thumb">
+              <Image
+                src={view.image}
+                alt={view.alt}
+                widths={[480, 720, 960]}
+                sizes="(min-width: 64rem) 30vw, 100vw"
+                formats={["avif", "webp", "png"]}
+                quality={82}
+                loading="lazy"
+              />
+            </span>
+            <span class="product-surface__view-meta">
+              <strong>{view.title}</strong>
+              <span>{view.caption}</span>
+            </span>
+          </button>
+          <dialog class="product-surface__dialog" id={`surface-view-${view.id}`} aria-label={`${view.title} — full size`}>
             <Image
               src={view.image}
               alt={view.alt}
-              widths={[480, 720, 960]}
-              sizes="(min-width: 64rem) 30vw, 100vw"
+              widths={[1080, 1600]}
+              sizes="90vw"
               formats={["avif", "webp", "png"]}
-              quality={82}
+              quality={86}
               loading="lazy"
             />
-          </span>
-          <span class="product-surface__view-meta">
-            <strong>{view.title}</strong>
-            <span>{view.caption}</span>
-          </span>
-        </button>
-        <dialog class="product-surface__dialog" id={`surface-view-${view.id}`} aria-label={`${view.title} — full size`}>
-          <button class="product-surface__dialog-close" type="button" data-lightbox-close aria-label="Close">
-            ×
-          </button>
-          <Image
-            src={view.image}
-            alt={view.alt}
-            widths={[1080, 1600]}
-            sizes="90vw"
-            formats={["avif", "webp", "png"]}
-            quality={86}
-            loading="lazy"
-          />
-          <p class="product-surface__dialog-caption">
-            {view.title} — {view.caption} Demo workspace, Paimos v5.0.0.
-          </p>
-        </dialog>
-      </div>
-    ))}
+            <div class="product-surface__dialog-bar">
+              <p class="product-surface__dialog-caption">
+                {view.title} — {view.caption} Demo workspace, Paimos v5.0.0.
+              </p>
+              <span class="product-surface__dialog-counter">{index + 1} / {views.length}</span>
+            </div>
+            <button class="product-surface__dialog-chip product-surface__dialog-close" type="button" data-lightbox-close aria-label="Close">
+              ×
+            </button>
+            <button
+              class="product-surface__dialog-chip product-surface__dialog-nav product-surface__dialog-nav--prev"
+              type="button"
+              data-lightbox-jump={`surface-view-${prev.id}`}
+              aria-label={`Previous view: ${prev.title}`}
+            >
+              ‹
+            </button>
+            <button
+              class="product-surface__dialog-chip product-surface__dialog-nav product-surface__dialog-nav--next"
+              type="button"
+              data-lightbox-jump={`surface-view-${next.id}`}
+              aria-label={`Next view: ${next.title}`}
+            >
+              ›
+            </button>
+          </dialog>
+        </div>
+      );
+    })}
   </div>
 </section>
 
@@ -831,16 +854,30 @@ const details = [
   }
 
   .product-surface__dialog {
-    max-width: min(92vw, 78rem);
-    padding: clamp(0.75rem, 1.5vw, 1.25rem);
-    border: 1px solid var(--line);
+    /* The global reset zeroes all margins, which strips the UA's auto
+       margins that center a modal dialog — restore them explicitly. */
+    margin: auto;
+    max-width: min(94vw, 80rem);
+    padding: clamp(0.6rem, 1.2vw, 1rem);
+    border: 1px solid rgb(255 255 255 / 0.16);
     border-radius: var(--radius-lg);
-    background: var(--surface-solid);
+    background: var(--night-deep);
     box-shadow: var(--shadow-deep);
   }
 
+  .product-surface__dialog[open] {
+    animation: surface-dialog-in 240ms var(--ease);
+  }
+
+  @keyframes surface-dialog-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96) translateY(0.5rem);
+    }
+  }
+
   .product-surface__dialog::backdrop {
-    background: rgb(5 29 44 / 0.66);
+    background: rgb(4 22 35 / 0.72);
     -webkit-backdrop-filter: blur(6px);
     backdrop-filter: blur(6px);
   }
@@ -848,44 +885,98 @@ const details = [
   .product-surface__dialog :global(img) {
     width: 100%;
     height: auto;
-    max-height: 80vh;
+    max-height: 78vh;
     object-fit: contain;
     border-radius: var(--radius-sm);
   }
 
-  .product-surface__dialog-close {
+  /* Shared chip style for the modern controls: translucent dark circles
+     with blur, floating over the image. */
+  .product-surface__dialog-chip {
     position: absolute;
-    top: 0.6rem;
-    right: 0.6rem;
     z-index: 2;
     display: grid;
-    width: 2.35rem;
-    height: 2.35rem;
+    width: 2.75rem;
+    height: 2.75rem;
     place-items: center;
-    color: var(--ink-soft);
-    border: 1px solid var(--line);
+    color: rgb(255 255 255 / 0.92);
+    border: 1px solid rgb(255 255 255 / 0.22);
     border-radius: 50%;
-    background: var(--surface-solid);
+    background: rgb(6 29 47 / 0.55);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
     cursor: pointer;
-    font-size: 1.25rem;
+    font-size: 1.45rem;
     line-height: 1;
+    transition: background 160ms ease, transform 160ms var(--ease), border-color 160ms ease;
   }
 
-  .product-surface__dialog-close:hover {
-    color: var(--accent-strong);
-    border-color: var(--line-strong);
+  .product-surface__dialog-chip:hover {
+    border-color: rgb(255 255 255 / 0.45);
+    background: rgb(6 29 47 / 0.8);
+    transform: scale(1.07);
+  }
+
+  .product-surface__dialog-nav--prev:hover {
+    transform: scale(1.07) translateX(-1px);
+  }
+
+  .product-surface__dialog-nav--next:hover {
+    transform: scale(1.07) translateX(1px);
+  }
+
+  .product-surface__dialog-close {
+    top: 1.1rem;
+    right: 1.1rem;
+  }
+
+  .product-surface__dialog-nav {
+    top: 50%;
+    translate: 0 -50%;
+    font-size: 1.8rem;
+    padding-bottom: 0.2rem;
+  }
+
+  .product-surface__dialog-nav--prev {
+    left: 1.1rem;
+  }
+
+  .product-surface__dialog-nav--next {
+    right: 1.1rem;
+  }
+
+  .product-surface__dialog-bar {
+    display: flex;
+    gap: 1rem;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 0.65rem 0.35rem 0.1rem;
   }
 
   .product-surface__dialog-caption {
-    margin-top: 0.7rem;
-    color: var(--ink-soft);
+    margin: 0;
+    color: var(--night-soft);
     font-family: var(--font-mono);
     font-size: 0.66rem;
     line-height: 1.5;
   }
 
+  .product-surface__dialog-counter {
+    flex-shrink: 0;
+    color: var(--night-soft);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+  }
+
   :global(body.lightbox-open) {
     overflow: hidden;
+  }
+
+  /* Reliable page dim+blur: dialogs are moved to <body> by the lightbox
+     script, so everything except them can blur (::backdrop blur alone is
+     inconsistent across engines). */
+  :global(body.lightbox-open > :not(dialog)) {
+    filter: blur(5px);
   }
 
   @media (max-width: 42rem) {

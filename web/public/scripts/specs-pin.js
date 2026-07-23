@@ -35,32 +35,24 @@
     syncFlipAll();
   };
 
-  // ── Live glossary on hover ─────────────────────────────────────────────────
-  // Hovering a term marks the word and swaps the collapsed glossary's summary
-  // tail to that word plus its definition. Terms have no click behavior.
-  const glossRest = root.querySelector("[data-gloss-rest]");
-  const glossLive = root.querySelector("[data-gloss-live]");
-  const glossLiveTerm = root.querySelector("[data-gloss-live-term]");
-  const glossLiveBody = root.querySelector("[data-gloss-live-body]");
-  const definitions = {};
-  root.querySelectorAll(".specs__gloss-entry").forEach((entry) => {
-    const id = entry.id.replace(/^gloss-/, "");
-    definitions[id] = entry.querySelector("dd")?.textContent ?? "";
-  });
+  // ── Live help on hover ─────────────────────────────────────────────────────
+  // Hovering a term marks the word and fills the bare live-help line under
+  // the grid with the word plus its definition (carried on data-def).
+  // Terms have no click behavior.
+  const liveLine = root.querySelector("[data-specs-live]");
+  const liveTerm = root.querySelector("[data-gloss-live-term]");
+  const liveBody = root.querySelector("[data-gloss-live-body]");
 
   const showLive = (term) => {
-    const body = definitions[term.getAttribute("data-term")];
-    if (!body || !glossLive) return;
-    glossLiveTerm.textContent = term.textContent.trim();
-    glossLiveBody.textContent = body;
-    if (glossRest) glossRest.hidden = true;
-    glossLive.hidden = false;
+    const body = term.getAttribute("data-def");
+    if (!body || !liveLine) return;
+    liveTerm.textContent = term.textContent.trim();
+    liveBody.textContent = body;
+    liveLine.classList.add("is-on");
   };
 
   const hideLive = () => {
-    if (!glossLive) return;
-    glossLive.hidden = true;
-    if (glossRest) glossRest.hidden = false;
+    liveLine?.classList.remove("is-on");
   };
 
   document.addEventListener("mouseover", (event) => {

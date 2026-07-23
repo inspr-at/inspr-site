@@ -80,6 +80,10 @@
   html {
     scroll-behavior: smooth;
     scroll-padding-top: 7rem;
+    /* Keep the scrollbar gutter reserved even while a modal locks body
+       scroll (overflow: hidden) — otherwise the viewport widens by the
+       scrollbar width and the whole page jumps on open/close. */
+    scrollbar-gutter: stable;
     -webkit-text-size-adjust: 100%;
   }
 

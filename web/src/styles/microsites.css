@@ -885,6 +885,18 @@
     font-weight: 700;
   }
 
+  /* The shuffle stays an easter egg: the ⤨ icon is invisible until the
+     pointer (or keyboard focus) finds it. */
+  .specs__control--shuffle {
+    opacity: 0;
+    transition: opacity 180ms ease, color 160ms ease;
+  }
+
+  .specs__control--shuffle:hover,
+  .specs__control--shuffle:focus-visible {
+    opacity: 1;
+  }
+
   /* Group identity lives in the ICON color — an intense, darkish shade per
      group (security, ops/resilience, AI, license/legal, daily work, place).
      Card faces stay neutral; tinted faces read as noise. The pin marker

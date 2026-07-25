@@ -1,8 +1,8 @@
 import { productTaxonomy, siteUrls } from "./urls";
 import type { ProductContent } from "./types";
 
-const repositoryUrl = "https://github.com/markus-barta/janus";
-const releaseUrl = "https://github.com/markus-barta/janus/releases";
+const repositoryUrl = "https://github.com/inspr-at/janus";
+const releaseUrl = "https://github.com/inspr-at/janus/releases";
 
 export const janusContent = {
   slug: "janus",

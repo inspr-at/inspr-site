@@ -1,7 +1,7 @@
 import { productTaxonomy, siteUrls } from "./urls";
 import type { ProductContent } from "./types";
 
-const repositoryUrl = "https://github.com/markus-barta/paimos";
+const repositoryUrl = "https://github.com/inspr-at/paimos";
 const docsUrl = (document: string) =>
   `${repositoryUrl}/blob/main/docs/${document}`;
 

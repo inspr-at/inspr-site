@@ -113,8 +113,8 @@ test("the shared Pharos mark is the canonical low-complexity SVG", async () => {
 test("the umbrella links its actual site source and direct license", async () => {
   const umbrella = await source("pages/index.astro");
 
-  assert.match(umbrella, /https:\/\/github\.com\/markus-barta\/inspr-at/);
-  assert.match(umbrella, /https:\/\/github\.com\/markus-barta\/inspr"/);
+  assert.match(umbrella, /https:\/\/github\.com\/inspr-at\/inspr-site/);
+  assert.match(umbrella, /https:\/\/github\.com\/inspr-at\/inspr"/);
   assert.match(umbrella, /const siteLicenseUrl = `\$\{repositoryUrl\}\/blob\/main\/LICENSE`/);
   assert.match(umbrella, /licenseName="AGPL-3\.0-only"/);
   assert.match(umbrella, /licenseUrl=\{siteLicenseUrl\}/);
@@ -360,7 +360,7 @@ test("Paimos screenshot tabs use neutral tabpanel hosts", async () => {
 test("Pharos states release and provider maturity without overclaiming", async () => {
   const pharos = await source("content/pharos.ts");
 
-  assert.match(pharos, /github\.com\/markus-barta\/pharos\/releases/);
+  assert.match(pharos, /github\.com\/inspr-at\/pharos\/releases/);
   assert.doesNotMatch(pharos, /v0\.1\.4[13]/);
   assert.match(pharos, /status: "Read-only live"/);
   assert.match(pharos, /read-only provider checks are live/);
@@ -376,7 +376,7 @@ test("workflow stages expose icons, evidence signals and source references", asy
     assert.match(model, /icon:/, `${slug} workflow needs contextual SVG icons`);
     assert.match(model, /signal:/, `${slug} workflow needs a concrete result signal`);
     assert.match(model, /reference:/, `${slug} workflow needs inspectable evidence`);
-    assert.match(content, /github\.com\/markus-barta\//, `${slug} evidence must link to source`);
+    assert.match(content, /github\.com\/inspr-at\//, `${slug} evidence must link to source`);
   }
 });
 

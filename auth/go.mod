@@ -1,4 +1,4 @@
-module github.com/markus-barta/inspr-at/auth
+module github.com/inspr-at/inspr-site/auth
 
 go 1.23
 

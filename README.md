@@ -154,10 +154,10 @@ bootstrap token. The checked `.env.example` contains placeholders only.
 
 ## Product sources
 
-- [Paimos](https://github.com/markus-barta/paimos)
-- [Pharos](https://github.com/markus-barta/pharos)
-- [Janus](https://github.com/markus-barta/janus)
-- [INSPR operating modules](https://github.com/markus-barta/inspr-modules)
+- [Paimos](https://github.com/inspr-at/paimos)
+- [Pharos](https://github.com/inspr-at/pharos)
+- [Janus](https://github.com/inspr-at/janus)
+- [INSPR operating modules](https://github.com/inspr-at/inspr-modules)
 
 All three product repositories use `AGPL-3.0-only`. Each product page links
 to its source, project license, official AGPL text, and professional services.

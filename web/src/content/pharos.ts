@@ -6,11 +6,11 @@ export const pharosContent = {
   name: "Pharos",
   category: productTaxonomy.pharos,
   canonicalUrl: siteUrls.pharos,
-  repositoryUrl: "https://github.com/markus-barta/pharos",
-  releaseUrl: "https://github.com/markus-barta/pharos/releases",
+  repositoryUrl: "https://github.com/inspr-at/pharos",
+  releaseUrl: "https://github.com/inspr-at/pharos/releases",
   license: {
     name: "AGPL-3.0-only",
-    url: "https://github.com/markus-barta/pharos/blob/main/LICENSE",
+    url: "https://github.com/inspr-at/pharos/blob/main/LICENSE",
     note: "The Pharos repository declares SPDX license AGPL-3.0-only.",
   },
   seo: {
@@ -84,7 +84,7 @@ export const pharosContent = {
         signal: "Fresh host evidence, stamped on receipt.",
         reference: {
           label: "Inspect the host report contract",
-          href: "https://github.com/markus-barta/pharos/blob/main/crates/pharos-core/src/lib.rs#L206-L250",
+          href: "https://github.com/inspr-at/pharos/blob/main/crates/pharos-core/src/lib.rs#L206-L250",
           external: true,
         },
       },
@@ -98,7 +98,7 @@ export const pharosContent = {
         signal: "Observed and declared remain separate.",
         reference: {
           label: "See the five-state truth model",
-          href: "https://github.com/markus-barta/pharos/blob/main/README.md#L37-L47",
+          href: "https://github.com/inspr-at/pharos/blob/main/README.md#L37-L47",
           external: true,
         },
       },
@@ -112,7 +112,7 @@ export const pharosContent = {
         signal: "No review, no lease, no action.",
         reference: {
           label: "Review the guarded workflow",
-          href: "https://github.com/markus-barta/pharos/blob/main/README.md#L323-L340",
+          href: "https://github.com/inspr-at/pharos/blob/main/README.md#L323-L340",
           external: true,
         },
       },
@@ -126,7 +126,7 @@ export const pharosContent = {
         signal: "A fresh report closes the loop.",
         reference: {
           label: "Trace verification and recovery",
-          href: "https://github.com/markus-barta/pharos/blob/main/README.md#L329-L340",
+          href: "https://github.com/inspr-at/pharos/blob/main/README.md#L329-L340",
           external: true,
         },
       },
@@ -149,7 +149,7 @@ export const pharosContent = {
           icon: "radio-tower",
           reference: {
             label: "Read the heartbeat contract",
-            href: "https://github.com/markus-barta/pharos/blob/main/crates/pharos-core/src/lib.rs#L219-L246",
+            href: "https://github.com/inspr-at/pharos/blob/main/crates/pharos-core/src/lib.rs#L219-L246",
             external: true,
           },
         },
@@ -258,7 +258,7 @@ export const pharosContent = {
           icon: "shield-check",
           reference: {
             label: "Inspect the persisted action stages",
-            href: "https://github.com/markus-barta/pharos/blob/main/README.md#L323-L340",
+            href: "https://github.com/inspr-at/pharos/blob/main/README.md#L323-L340",
             external: true,
           },
         },
@@ -341,7 +341,7 @@ export const pharosContent = {
           "ZITADEL provides OIDC identity. Pharos applies its own operator and per-host access policy, with an empty view by default for authenticated users who have no grants.",
         reference: {
           label: "Inspect fail-closed access grants",
-          href: "https://github.com/markus-barta/pharos/blob/main/crates/pharosd/src/auth.rs#L293-L329",
+          href: "https://github.com/inspr-at/pharos/blob/main/crates/pharosd/src/auth.rs#L293-L329",
           external: true,
         },
       },
@@ -361,7 +361,7 @@ export const pharosContent = {
           "The native beacon runs as an unprivileged system user with no-new-privileges, strict filesystem protection, restricted namespaces and a narrow set of network address families.",
         reference: {
           label: "Inspect beacon hardening",
-          href: "https://github.com/markus-barta/pharos/blob/main/nix/modules/pharos-beacon.nix#L172-L197",
+          href: "https://github.com/inspr-at/pharos/blob/main/nix/modules/pharos-beacon.nix#L172-L197",
           external: true,
         },
       },
@@ -453,12 +453,12 @@ export const pharosContent = {
     links: [
       {
         label: "Source repository",
-        href: "https://github.com/markus-barta/pharos",
+        href: "https://github.com/inspr-at/pharos",
         external: true,
       },
       {
         label: "Project license (AGPL-3.0-only)",
-        href: "https://github.com/markus-barta/pharos/blob/main/LICENSE",
+        href: "https://github.com/inspr-at/pharos/blob/main/LICENSE",
         external: true,
       },
       {
@@ -468,7 +468,7 @@ export const pharosContent = {
       },
       {
         label: "Pharos releases",
-        href: "https://github.com/markus-barta/pharos/releases",
+        href: "https://github.com/inspr-at/pharos/releases",
         external: true,
       },
     ],

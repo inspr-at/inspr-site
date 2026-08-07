@@ -6,12 +6,21 @@ import uiIssues from "../assets/products/paimos/ui-issues.png";
 import uiBoard from "../assets/products/paimos/ui-board.png";
 import uiDashboard from "../assets/products/paimos/ui-dashboard.png";
 import uiSearch from "../assets/products/paimos/ui-search.png";
+import uiVoiceIntake from "../assets/products/paimos/ui-voice-intake.png";
 
 
 // More views of the same demo workspace; each opens in a lightbox dialog.
 // Ordered deliberately: the AI-era surfaces lead, the classic ceremony
 // closes the row for the teams that still want it.
 const views = [
+  {
+    id: "voice-intake",
+    image: uiVoiceIntake,
+    title: "Voice intake",
+    caption:
+      "Talk through an idea; the spec, the impact on existing work, and the ticket assemble as you speak.",
+    alt: "Paimos voice intake workbench: a live specification beside impact analysis, an understanding check and a ticket preview",
+  },
   {
     id: "search",
     image: uiSearch,
@@ -129,7 +138,7 @@ const details = [
           <span>{index + 1}</span>
         </button>
       ))}
-      <figcaption>Demo workspace, Paimos v5.0.0 — captured from the current build with synthetic data.</figcaption>
+      <figcaption>Demo workspace, Paimos v5.7.1 — captured from the current build with synthetic data.</figcaption>
     </figure>
 
     <div class="product-surface__details">
@@ -197,7 +206,7 @@ const details = [
         rel="noopener"
         data-pswp-width={view.fullWidth}
         data-pswp-height={view.fullHeight}
-        data-caption={`${view.title} — ${view.caption} Demo workspace, Paimos v5.0.0.`}
+        data-caption={`${view.title} — ${view.caption} Demo workspace, Paimos v5.7.1.`}
       >
         <span class="product-surface__view-thumb">
           <Image

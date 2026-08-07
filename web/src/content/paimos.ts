@@ -50,8 +50,8 @@ export const paimosContent = {
       {
         label: "Voice intake",
         icon: "mic",
-        group: "surface",
-        note: "Talk through a change; the specification, its impact on existing work and the draft ticket assemble as you speak — then you edit and file it.",
+        group: "ai",
+        note: "Talk through a change; the specification, its impact on existing work and the draft ticket assemble as you speak, then you edit and file it.",
         noteEli10:
           "You can just say what you want out loud. It writes the description for you, shows what else it touches, and turns it into a proper task you can correct before saving.",
       },

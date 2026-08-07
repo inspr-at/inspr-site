@@ -48,6 +48,14 @@ export const paimosContent = {
       "The same grid, in plain words: what each promise means for your company, your budget and your legal team — no IT dictionary required. Flip any card.",
     items: [
       {
+        label: "Voice intake",
+        icon: "mic",
+        group: "surface",
+        note: "Talk through a change; the specification, its impact on existing work and the draft ticket assemble as you speak — then you edit and file it.",
+        noteEli10:
+          "You can just say what you want out loud. It writes the description for you, shows what else it touches, and turns it into a proper task you can correct before saving.",
+      },
+      {
         label: "Enterprise-capable",
         icon: "layers-3",
         group: "ops",
@@ -382,8 +390,8 @@ export const paimosContent = {
         visual: { x: 24, y: 18 },
         icon: "folder-kanban",
         body:
-          "Structure work as epics, tickets and tasks. Add typed dependencies, sprints, releases, estimates, time and customer-facing delivery state.",
-        meta: "One hierarchy for human and agent work",
+          "Start by talking, or start by typing. Voice intake turns a spoken idea into a live specification with its impact on existing work beside it, and files the ticket when you are happy. From there: epics, tickets and tasks with typed dependencies, sprints, releases, estimates, time and customer-facing delivery state.",
+        meta: "From spoken intent to a filed ticket",
         signal: "Hierarchy, dependencies and delivery state",
         reference: {
           label: "Planning hierarchy",

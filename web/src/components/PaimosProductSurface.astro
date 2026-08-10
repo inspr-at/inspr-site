@@ -8,6 +8,9 @@ import uiDashboard from "../assets/products/paimos/ui-dashboard.png";
 import uiSearch from "../assets/products/paimos/ui-search.png";
 import uiVoiceIntake from "../assets/products/paimos/ui-voice-intake.png";
 
+// This version describes the captured pixels, not the currently deployed
+// application. Keep it unchanged until the images themselves are regenerated.
+const captureRelease = "v5.7.1";
 
 // More views of the same demo workspace; each opens in a lightbox dialog.
 // Ordered deliberately: the AI-era surfaces lead, the classic ceremony
@@ -109,8 +112,8 @@ const details = [
     <p class="eyebrow">Inside the product</p>
     <h2 id="surface-title">A real issue. Context attached.</h2>
     <p class="section-lead">
-      This Paimos issue workbench is captured from the current build's demo workspace
-      with synthetic data. Select a marker to inspect how intent, authority and
+      This Paimos issue workbench is captured from a seeded demo build with
+      synthetic data. Select a marker to inspect how intent, authority and
       retrieved knowledge meet in one work surface — or open the other views below.
     </p>
   </header>
@@ -138,7 +141,7 @@ const details = [
           <span>{index + 1}</span>
         </button>
       ))}
-      <figcaption>Demo workspace, Paimos v5.7.1 — captured from the current build with synthetic data.</figcaption>
+      <figcaption>Demo workspace, Paimos {captureRelease} — seeded synthetic data.</figcaption>
     </figure>
 
     <div class="product-surface__details">
@@ -206,7 +209,7 @@ const details = [
         rel="noopener"
         data-pswp-width={view.fullWidth}
         data-pswp-height={view.fullHeight}
-        data-caption={`${view.title} — ${view.caption} Demo workspace, Paimos v5.7.1.`}
+        data-caption={`${view.title} — ${view.caption} Demo workspace, Paimos ${captureRelease}.`}
       >
         <span class="product-surface__view-thumb">
           <Image

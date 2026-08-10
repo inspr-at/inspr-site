@@ -45,7 +45,7 @@ export const paimosContent = {
     lead:
       "The capability grid at a glance: security posture, operational guarantees and open surfaces, before the prose spells each one out.",
     leadEli10:
-      "The same grid, in plain words: what each promise means for your company, your budget and your legal team — no IT dictionary required. Flip any card.",
+      "The same grid, in plain words: what each promise means for your company, your budget and your legal team. No IT dictionary required. Flip any card.",
     items: [
       {
         label: "Voice intake",
@@ -59,9 +59,9 @@ export const paimosContent = {
         label: "Enterprise-capable",
         icon: "layers-3",
         group: "ops",
-        note: "SSO, audit, retention and project permissions ship in the core — no enterprise add-ons to license.",
+        note: "SSO, audit, retention and project permissions ship in the core, with no enterprise add-ons to license.",
         noteEli10:
-          "The big-company features — company login, change records, access rules — are already inside. There is no extra 'enterprise edition' to buy later.",
+          "The big-company features (company login, change records and access rules) are already inside. There is no extra 'enterprise edition' to buy later.",
       },
       {
         label: "Self-hostable",
@@ -77,7 +77,7 @@ export const paimosContent = {
         group: "ops",
         note: "The core runs with zero outbound calls. Only optional hosted AI ever needs the internet.",
         noteEli10:
-          "It keeps working with the internet unplugged. Nothing in the core secretly needs 'the cloud' — useful for strict or isolated networks.",
+          "It keeps working with the internet unplugged. Nothing in the core secretly needs 'the cloud', which is useful for strict or isolated networks.",
       },
       {
         label: "Zero telemetry",
@@ -85,13 +85,13 @@ export const paimosContent = {
         group: "security",
         note: "No analytics, tracking or phone-home. Nothing about your usage leaves your instance.",
         noteEli10:
-          "The tool does not report home. Nobody — including the makers — sees how your team uses it. Less to explain to privacy officers.",
+          "The tool does not report home. Nobody, including the makers, sees how your team uses it. Less to explain to privacy officers.",
       },
       {
         label: "NIS2-aligned",
         icon: "shield-check",
         group: "security",
-        note: "Access control, audit, incident metadata and retention map to NIS2 practices — real controls, not a certificate.",
+        note: "Access control, audit, incident metadata and retention map to NIS2 practices: real controls, not a certificate.",
         noteEli10:
           "Built to match the EU's new cyber-security rules for important companies. Your security and legal reviews start from 'mostly yes' instead of 'oh no'.",
       },
@@ -107,9 +107,9 @@ export const paimosContent = {
         label: "Made in Austria",
         icon: "mountain",
         group: "place",
-        note: "Designed and built in Austria, in the EU — real people and EU norms behind your project OS.",
+        note: "Designed and built in Austria, in the EU, with real people and EU norms behind your project OS.",
         noteEli10:
-          "Built in Austria, under EU law — your time zone, your norms, your regulators. Support that answers in your morning, not yours at 3 a.m.",
+          "Built in Austria, under EU law: your time zone, your norms, your regulators. Support that answers in your morning, not yours at 3 a.m.",
       },
       {
         label: "Audit trails",
@@ -117,7 +117,7 @@ export const paimosContent = {
         group: "security",
         note: "Access changes, AI calls and agent runs keep reviewable metadata. You can always answer who did what.",
         noteEli10:
-          "The tool keeps a diary: who changed what, and when — including what the AI did. When someone asks 'who did this?', you have the answer.",
+          "The tool keeps a diary: who changed what and when, including what the AI did. When someone asks 'who did this?', you have the answer.",
       },
       {
         label: "Single sign-on",
@@ -133,7 +133,7 @@ export const paimosContent = {
         group: "legal",
         note: "Every tagged image is cosign-signed with a CycloneDX SBOM. Trace any release back to its source.",
         noteEli10:
-          "Every release ships with a sealed ingredients list and a tamper-proof signature — like medicine packaging, but for software. Auditors love this.",
+          "Every release ships with a sealed ingredients list and a tamper-proof signature, like medicine packaging but for software. Auditors love this.",
       },
       {
         label: "Fully inspectable",
@@ -141,7 +141,7 @@ export const paimosContent = {
         group: "legal",
         note: "AGPL source, an open API and a self-describing schema. Nothing about how it works is hidden.",
         noteEli10:
-          "Nothing is a black box. Your own experts — or anyone you hire — can read exactly what the software does before you trust it.",
+          "Nothing is a black box. Your own experts, or anyone you hire, can read exactly what the software does before you trust it.",
       },
       {
         label: "AGPL-3.0",
@@ -149,7 +149,7 @@ export const paimosContent = {
         group: "legal",
         note: "Inspect, self-host, fork and modify freely. Run a modified service and its users keep the source.",
         noteEli10:
-          "A standard open-source licence your legal team can actually read: use it, change it, keep it — and nobody can ever lock you in.",
+          "A standard open-source licence your legal team can actually read: use it, change it, keep it, and nobody can ever lock you in.",
       },
       {
         label: "Restore-tested",
@@ -157,7 +157,7 @@ export const paimosContent = {
         group: "ops",
         note: "Backup and restore are documented and exercised, not assumed. Recovery is a drill, not a hope.",
         noteEli10:
-          "We do not just make backups — we practise restoring them. Fire drill, not fire hope. Your data survives bad days.",
+          "We do not just make backups; we practise restoring them. Fire drill, not fire hope. Your data survives bad days.",
       },
       {
         label: "Scriptable API",
@@ -171,9 +171,9 @@ export const paimosContent = {
         label: "Built-in AI assist",
         icon: "sparkles",
         group: "ai",
-        note: "Thirteen focused actions — refine, translate, estimate, summarise. On when you want it, off by default.",
+        note: "Thirteen focused actions: refine, translate, estimate and summarise. On when you want it, off by default.",
         noteEli10:
-          "Helpful AI buttons — summarise, translate, estimate — that are switched OFF until you decide otherwise. You stay in charge of when AI touches your data.",
+          "Helpful AI buttons for summarising, translating and estimating are switched OFF until you decide otherwise. You stay in charge of when AI touches your data.",
       },
       {
         label: "Code-aware agents",
@@ -181,7 +181,7 @@ export const paimosContent = {
         group: "ai",
         note: "Agents receive linked repos, knowledge and issue-to-file anchors. They act with project context, not blind.",
         noteEli10:
-          "The AI helpers are handed the project's real context — which code, which rules, which history — so they work like briefed colleagues, not guessing interns.",
+          "The AI helpers are handed the project's real context (which code, which rules and which history) so they work like briefed colleagues, not guessing interns.",
       },
       {
         label: "Local draft providers",
@@ -203,9 +203,9 @@ export const paimosContent = {
         label: "Time & budgets",
         icon: "timer",
         group: "work",
-        note: "Estimates, time entries, accruals and budgets live on the same tickets as the work — one model from effort to invoice.",
+        note: "Estimates, time entries, accruals and budgets live on the same tickets as the work, creating one model from effort to invoice.",
         noteEli10:
-          "Hours, estimates and budgets live on the same tickets as the work itself. One truth from first estimate to final invoice — no side spreadsheet.",
+          "Hours, estimates and budgets live on the same tickets as the work itself. One truth runs from first estimate to final invoice, with no side spreadsheet.",
       },
       {
         label: "Undo & redo",
@@ -213,7 +213,7 @@ export const paimosContent = {
         group: "work",
         note: "Bulk edits are transactional with full mutation history. Changes are reversible, and conflicts surface instead of overwriting.",
         noteEli10:
-          "Big changes can be taken back. A wrong bulk edit is an 'oops', not a disaster — and two people editing the same thing get a warning, not silent data loss.",
+          "Big changes can be taken back. A wrong bulk edit is an 'oops', not a disaster, and two people editing the same thing get a warning instead of silent data loss.",
       },
     ],
     glossary: [
@@ -239,7 +239,7 @@ export const paimosContent = {
         id: "zitadel",
         term: "ZITADEL",
         matches: ["ZITADEL"],
-        body: "An open-source identity provider — the 'who are you?' service. It is the reference system Paimos is tested against.",
+        body: "An open-source identity provider: the 'who are you?' service. It is the reference system Paimos is tested against.",
       },
       {
         id: "identity-provider",
@@ -251,7 +251,7 @@ export const paimosContent = {
         id: "sbom",
         term: "SBOM",
         matches: ["SBOM", "ingredients list"],
-        body: "Software Bill of Materials — the full ingredients list of a piece of software, so you know exactly what is inside.",
+        body: "Software Bill of Materials: the full ingredients list of a piece of software, so you know exactly what is inside.",
       },
       {
         id: "cosign",
@@ -269,7 +269,7 @@ export const paimosContent = {
         id: "agpl",
         term: "AGPL-3.0",
         matches: ["AGPL"],
-        body: "A strong open-source licence: anyone may use, read and improve the software — and improvements to a public service must stay open too.",
+        body: "A strong open-source licence: anyone may use, read and improve the software, and improvements to a public service must stay open too.",
       },
       {
         id: "nis2",
@@ -281,7 +281,7 @@ export const paimosContent = {
         id: "gdpr",
         term: "GDPR",
         matches: ["GDPR", "EU privacy law"],
-        body: "The EU's privacy law. Among other things, people may ask for a copy of their data — or its deletion.",
+        body: "The EU's privacy law. Among other things, people may ask for a copy of their data or its deletion.",
       },
       {
         id: "telemetry",
@@ -293,7 +293,7 @@ export const paimosContent = {
         id: "air-gap",
         term: "Air-gap",
         matches: ["Air-gap", "internet unplugged"],
-        body: "Running a system with no connection to the outside internet — common in high-security environments.",
+        body: "Running a system with no connection to the outside internet, common in high-security environments.",
       },
       {
         id: "container",
@@ -305,19 +305,19 @@ export const paimosContent = {
         id: "api",
         term: "API",
         matches: ["API", "REST"],
-        body: "The plug socket other software uses to talk to this software automatically — no humans retyping data.",
+        body: "The plug socket other software uses to talk to this software automatically. No humans retyping data.",
       },
       {
         id: "cli",
         term: "CLI",
         matches: ["CLI"],
-        body: "The command-line interface — how developers and scripts drive the tool with typed commands.",
+        body: "The command-line interface: how developers and scripts drive the tool with typed commands.",
       },
       {
         id: "mcp",
         term: "MCP",
         matches: ["MCP"],
-        body: "Model Context Protocol — the standard plug that lets AI assistants use tools like this one safely.",
+        body: "Model Context Protocol: the standard plug that lets AI assistants use tools like this one safely.",
       },
       {
         id: "ollama",
@@ -329,13 +329,13 @@ export const paimosContent = {
         id: "inference",
         term: "Inference",
         matches: ["model inference"],
-        body: "The moment an AI model actually 'thinks' — where that happens decides where your data travels.",
+        body: "The moment an AI model actually 'thinks'; where that happens decides where your data travels.",
       },
       {
         id: "retention",
         term: "Retention",
         matches: ["retention"],
-        body: "How long data is kept before it is deleted. Here the operator — you — sets those windows.",
+        body: "How long data is kept before it is deleted. Here you, the operator, set those windows.",
       },
       {
         id: "mutation-history",
@@ -575,11 +575,11 @@ export const paimosContent = {
         {
           title: "Trusted local runners",
           body:
-            "Claude Code and Codex runners operate in an explicitly selected local checkout. They may edit and test when their advertised capability allows it. Each workstation opts in and processes one job at a time.",
-          meta: "Local repository authority remains local",
+            "Claude Code and Codex runners operate in an explicitly selected local checkout. They may edit and test when their advertised capability allows it. Completed runs can report the repository, branch and runner-declared before/after commit range beside the outcome.",
+          meta: "Code evidence returns; repository authority remains local",
           reference: {
-            label: "Provider boundaries",
-            href: docsUrl("IMPLEMENT_THIS_PROVIDERS.md"),
+            label: "Agent run evidence",
+            href: docsUrl("AGENT_INTEGRATION.md"),
             external: true,
           },
         },

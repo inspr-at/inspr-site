@@ -7,10 +7,11 @@ import uiBoard from "../assets/products/paimos/ui-board.png";
 import uiDashboard from "../assets/products/paimos/ui-dashboard.png";
 import uiSearch from "../assets/products/paimos/ui-search.png";
 import uiVoiceIntake from "../assets/products/paimos/ui-voice-intake.png";
+import captureManifest from "../assets/products/paimos/capture-manifest.json";
 
 // This version describes the captured pixels, not the currently deployed
 // application. Keep it unchanged until the images themselves are regenerated.
-const captureRelease = "v5.7.1";
+const captureRelease = `v${captureManifest.release}`;
 
 // More views of the same demo workspace; each opens in a lightbox dialog.
 // Ordered deliberately: the AI-era surfaces lead, the classic ceremony
@@ -604,9 +605,10 @@ const details = [
     font-weight: 700;
   }
 
-  /* Positions are tuned to the v5.0.0 capture: 1 = issue chips beside the
-     AI Workbench header, 2 = deploy mode + Implement controls, 3 = the
-     applicable-memories return. Re-measure when the screenshot changes. */
+  /* Hotspot framing contract: the capture command keeps TASKS at the top,
+     records these three DOM landmarks in capture-manifest.json, and refuses
+     publication if a marker no longer lands on its target. 1 = issue chips,
+     2 = deploy mode + Implement controls, 3 = applicable memories. */
   .product-surface__hotspot--1 {
     top: 28%;
     left: 85%;

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "release": "5.8.2",
+  "sourceCommit": "e12ef3139e89bd2fb70424ec6e88f772e23c5d83",
+  "assets": [
+    {
+      "name": "product-surface.png",
+      "width": 3200,
+      "height": 2000,
+      "sha256": "789551643623efd30ccabe17792736520025416def1395b9d8805214a799eee3"
+    },
+    {
+      "name": "ui-dashboard.png",
+      "width": 3200,
+      "height": 2000,
+      "sha256": "5602eebddc867bcad5e642b105a07fadf85bbd8fdedaa6c0d73d06e823acf699"
+    },
+    {
+      "name": "ui-issues.png",
+      "width": 3200,
+      "height": 2000,
+      "sha256": "eb6c9c9eabaa9104ce2a1a22caa9b6ac00b6abc105deb543cafb3c09eb31c3a1"
+    },
+    {
+      "name": "ui-board.png",
+      "width": 3200,
+      "height": 2000,
+      "sha256": "b52a05a2e5927c57147b723d61f6652d2c180376148a98c540a62579db2424f5"
+    },
+    {
+      "name": "ui-search.png",
+      "width": 3200,
+      "height": 2000,
+      "sha256": "b33d9f6c009221fc35c00f35a95210276d28b40de2f82cba23474afbdb39389b"
+    },
+    {
+      "name": "ui-voice-intake.png",
+      "width": 3200,
+      "height": 2000,
+      "sha256": "cef6b91ab562bdbbe2e3707252d83aadea37ce411aaefd66ebb0197e630c9a90"
+    }
+  ],
+  "layout": {
+    "schemaVersion": 1,
+    "viewport": {
+      "width": 1600,
+      "height": 1000,
+      "deviceScaleFactor": 2
+    },
+    "framing": {
+      "anchor": "TASKS",
+      "tasksTop": 0.0583
+    },
+    "landmarks": {
+      "issueContext": {
+        "x": 0.7259,
+        "y": 0.2761,
+        "width": 0.2632,
+        "height": 0.024
+      },
+      "executionControl": {
+        "x": 0.9033,
+        "y": 0.3431,
+        "width": 0.0764,
+        "height": 0.0316
+      },
+      "applicableMemories": {
+        "x": 0.1547,
+        "y": 0.655,
+        "width": 0.8344,
+        "height": 0.14
+      }
+    }
+  }
+}

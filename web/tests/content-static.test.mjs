@@ -362,7 +362,8 @@ test("Paimos public evidence keeps release and capture provenance honest", async
   const productPage = await source("components/ProductPage.astro");
   const surface = await source("components/PaimosProductSurface.astro");
 
-  assert.match(surface, /const captureRelease = "v\d+\.\d+\.\d+";/);
+  assert.match(surface, /import captureManifest from .*capture-manifest\.json/);
+  assert.match(surface, /const captureRelease = `v\$\{captureManifest\.release\}`;/);
   assert.match(surface, /<figcaption>Demo workspace, Paimos \{captureRelease\}/);
   assert.match(surface, /Demo workspace, Paimos \$\{captureRelease\}/);
   assert.doesNotMatch(surface, /current build/);
@@ -372,6 +373,12 @@ test("Paimos public evidence keeps release and capture provenance honest", async
   assert.match(content, /label: "Agent run evidence"[\s\S]*?docsUrl\("AGENT_INTEGRATION\.md"\)/);
   assert.match(productPage, /id="trust"/);
   assert.match(productPage, /id="limits"/);
+
+  const captureCheck = spawnSync(process.execPath, ["scripts/sync-paimos-captures.mjs", "--check"], {
+    cwd: fileURLToPath(new URL("..", import.meta.url)),
+    encoding: "utf8",
+  });
+  assert.equal(captureCheck.status, 0, captureCheck.stderr || captureCheck.stdout);
 });
 
 test("Pharos states release and provider maturity without overclaiming", async () => {

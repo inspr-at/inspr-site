@@ -357,6 +357,23 @@ test("Paimos screenshot tabs use neutral tabpanel hosts", async () => {
   assert.doesNotMatch(surface, /\.product-surface__details article/);
 });
 
+test("Paimos public evidence keeps release and capture provenance honest", async () => {
+  const content = await source("content/paimos.ts");
+  const productPage = await source("components/ProductPage.astro");
+  const surface = await source("components/PaimosProductSurface.astro");
+
+  assert.match(surface, /const captureRelease = "v\d+\.\d+\.\d+";/);
+  assert.match(surface, /<figcaption>Demo workspace, Paimos \{captureRelease\}/);
+  assert.match(surface, /Demo workspace, Paimos \$\{captureRelease\}/);
+  assert.doesNotMatch(surface, /current build/);
+  assert.match(surface, /seeded synthetic data/);
+  assert.match(content, /runner-declared before\/after commit range beside the outcome/);
+  assert.match(content, /repository authority remains local/);
+  assert.match(content, /label: "Agent run evidence"[\s\S]*?docsUrl\("AGENT_INTEGRATION\.md"\)/);
+  assert.match(productPage, /id="trust"/);
+  assert.match(productPage, /id="limits"/);
+});
+
 test("Pharos states release and provider maturity without overclaiming", async () => {
   const pharos = await source("content/pharos.ts");
 

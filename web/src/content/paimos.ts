@@ -484,6 +484,17 @@ export const paimosContent = {
           },
         },
         {
+          title: "A project lifecycle with teeth",
+          body:
+            "Active projects stay in the everyday work surface. Frozen projects preserve existing work without accepting new issues; archived projects remain reachable as retired history instead of crowding current planning.",
+          meta: "Active by default; frozen and archived by explicit choice",
+          reference: {
+            label: "Agent interface",
+            href: docsUrl("AGENT_INTERFACE.md"),
+            external: true,
+          },
+        },
+        {
           title: "Relations with meaning",
           icon: "git-compare-arrows",
           body:

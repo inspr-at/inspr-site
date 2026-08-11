@@ -1,43 +1,43 @@
 {
   "schemaVersion": 1,
-  "release": "5.8.2",
-  "sourceCommit": "e12ef3139e89bd2fb70424ec6e88f772e23c5d83",
+  "release": "5.8.17",
+  "sourceCommit": "402ddf000b33a6f872846ba0fc79260bfc76477e",
   "assets": [
     {
       "name": "product-surface.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "789551643623efd30ccabe17792736520025416def1395b9d8805214a799eee3"
+      "sha256": "b51afc26be634abd1dbbbafdcb93c947cc0f0d0b3b9648cba0ca9a81f3ac9984"
     },
     {
       "name": "ui-dashboard.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "5602eebddc867bcad5e642b105a07fadf85bbd8fdedaa6c0d73d06e823acf699"
+      "sha256": "dfd117fe151bed82b41fdbcc3c9c8c7b8a73ba194bfa7346764046e2f114b44f"
     },
     {
       "name": "ui-issues.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "eb6c9c9eabaa9104ce2a1a22caa9b6ac00b6abc105deb543cafb3c09eb31c3a1"
+      "sha256": "76494b97dce43e01dcf3ddc6d52dfbb97760c1176bd48e7e13628add4dea5cd6"
     },
     {
       "name": "ui-board.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "b52a05a2e5927c57147b723d61f6652d2c180376148a98c540a62579db2424f5"
+      "sha256": "69eab3913e239b054ccf6c928f2d0c215fa348730a251e7238b5d9d8294f1957"
     },
     {
       "name": "ui-search.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "b33d9f6c009221fc35c00f35a95210276d28b40de2f82cba23474afbdb39389b"
+      "sha256": "79fd0878b9065bf6b613b6d7f878dc43b2bebdff0ad0393a8b517b377f2d9492"
     },
     {
       "name": "ui-voice-intake.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "cef6b91ab562bdbbe2e3707252d83aadea37ce411aaefd66ebb0197e630c9a90"
+      "sha256": "b36923033fcf33a410b962964ebc601dae84264cc181e7bcc8b62e674ce5cd17"
     }
   ],
   "layout": {
@@ -66,9 +66,9 @@
       },
       "applicableMemories": {
         "x": 0.1547,
-        "y": 0.655,
+        "y": 0.8782,
         "width": 0.8344,
-        "height": 0.14
+        "height": 0.2207
       }
     }
   }

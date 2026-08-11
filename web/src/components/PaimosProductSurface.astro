@@ -7,6 +7,8 @@ import uiBoard from "../assets/products/paimos/ui-board.png";
 import uiDashboard from "../assets/products/paimos/ui-dashboard.png";
 import uiSearch from "../assets/products/paimos/ui-search.png";
 import uiVoiceIntake from "../assets/products/paimos/ui-voice-intake.png";
+import loopIssueWorkbench from "../assets/products/paimos/loop-issue-workbench.mp4";
+import loopSearchNavigate from "../assets/products/paimos/loop-search-navigate.mp4";
 import captureManifest from "../assets/products/paimos/capture-manifest.json";
 
 // This version describes the captured pixels, not the currently deployed
@@ -16,7 +18,7 @@ const captureRelease = `v${captureManifest.release}`;
 // More views of the same demo workspace; each opens in a lightbox dialog.
 // Ordered deliberately: the AI-era surfaces lead, the classic ceremony
 // closes the row for the teams that still want it.
-const views = [
+const imageViews = [
   {
     id: "voice-intake",
     image: uiVoiceIntake,
@@ -59,7 +61,7 @@ const views = [
 // layout engine; the anchor href is the progressive-enhancement fallback).
 const LIGHTBOX_WIDTH = 1600;
 const fullViews = await Promise.all(
-  views.map(async (view) => {
+  imageViews.map(async (view) => {
     const full = await getImage({
       src: view.image,
       width: LIGHTBOX_WIDTH,
@@ -68,12 +70,51 @@ const fullViews = await Promise.all(
     });
     return {
       ...view,
+      kind: "image" as const,
       fullSrc: full.src,
       fullWidth: LIGHTBOX_WIDTH,
       fullHeight: Math.round((view.image.height / view.image.width) * LIGHTBOX_WIDTH),
     };
   }),
 );
+
+const videoViews = await Promise.all(
+  [
+    {
+      id: "issue-workbench-flow",
+      video: loopIssueWorkbench,
+      image: productSurface,
+      title: "Issue to execution",
+      caption: "Open a real ticket and bring its execution boundary into view.",
+      alt: "Play a short seeded Paimos flow from issue context to the implementation controls",
+    },
+    {
+      id: "search-navigate-flow",
+      video: loopSearchNavigate,
+      image: uiSearch,
+      title: "Search to context",
+      caption: "Search across projects, choose the result, and land on the work itself.",
+      alt: "Play a short seeded Paimos flow that searches across projects and opens the selected issue",
+    },
+  ].map(async (view) => {
+    const poster = await getImage({
+      src: view.image,
+      width: 1280,
+      format: "webp",
+      quality: 86,
+    });
+    return {
+      ...view,
+      kind: "video" as const,
+      fullSrc: view.video,
+      fullWidth: 1280,
+      fullHeight: 800,
+      posterSrc: poster.src,
+    };
+  }),
+);
+
+const galleryViews = [...videoViews, ...fullViews];
 
 const details = [
   {
@@ -202,14 +243,21 @@ const details = [
   </div>
 
   <div class="product-surface__views" aria-label="More product views">
-    {fullViews.map((view) => (
+    {galleryViews.map((view) => (
       <a
-        class="product-surface__view-open"
+        class:list={[
+          "product-surface__view-open",
+          { "product-surface__view-open--video": view.kind === "video" },
+        ]}
         href={view.fullSrc}
         target="_blank"
         rel="noopener"
         data-pswp-width={view.fullWidth}
         data-pswp-height={view.fullHeight}
+        data-pswp-type={view.kind === "video" ? "video" : undefined}
+        data-video-src={view.kind === "video" ? view.fullSrc : undefined}
+        data-video-poster={view.kind === "video" ? view.posterSrc : undefined}
+        data-video-label={view.kind === "video" ? view.alt : undefined}
         data-caption={`${view.title} — ${view.caption} Demo workspace, Paimos ${captureRelease}.`}
       >
         <span class="product-surface__view-thumb">
@@ -222,6 +270,11 @@ const details = [
             quality={82}
             loading="lazy"
           />
+          {view.kind === "video" && (
+            <span class="product-surface__view-play" aria-hidden="true">
+              <span>▶</span>
+            </span>
+          )}
         </span>
         <span class="product-surface__view-meta">
           <strong>{view.title}</strong>
@@ -245,6 +298,67 @@ const details = [
     pswpModule: () => import("photoswipe"),
     bgOpacity: 0.86,
     padding: { top: 34, bottom: 64, left: 40, right: 40 },
+  });
+
+  // PhotoSwipe custom content for video. The gallery contains only a lazy
+  // poster and data attributes; the MP4 source is assigned when its slide is
+  // actually active, so browsing the page never downloads the video payload.
+  lightbox.addFilter("domItemData", (itemData, element) => {
+    const anchor = element.matches("a") ? element : element.querySelector("a");
+    if (!(anchor instanceof HTMLAnchorElement) || anchor.dataset.pswpType !== "video") {
+      return itemData;
+    }
+    itemData.type = "video";
+    itemData.videoSrc = anchor.dataset.videoSrc;
+    itemData.videoPoster = anchor.dataset.videoPoster;
+    itemData.videoLabel = anchor.dataset.videoLabel;
+    return itemData;
+  });
+
+  lightbox.on("contentLoad", (event) => {
+    const { content } = event;
+    if (content.data.type !== "video") return;
+    event.preventDefault();
+    const shell = document.createElement("div");
+    shell.className = "pswp__content pswp__video-shell";
+    const video = document.createElement("video");
+    video.className = "pswp__video";
+    video.controls = true;
+    video.loop = true;
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+    video.preload = "none";
+    video.poster = content.data.videoPoster ?? "";
+    video.setAttribute("aria-label", content.data.videoLabel ?? "Paimos product demo");
+    shell.append(video);
+    content.element = shell;
+  });
+
+  lightbox.on("contentActivate", ({ content }) => {
+    if (content.data.type !== "video") return;
+    const video = content.element?.querySelector("video");
+    if (!(video instanceof HTMLVideoElement)) return;
+    if (!video.getAttribute("src")) {
+      video.src = content.data.videoSrc ?? "";
+      video.load();
+    }
+    void video.play().catch(() => undefined);
+  });
+
+  lightbox.on("contentDeactivate", ({ content }) => {
+    if (content.data.type !== "video") return;
+    const video = content.element?.querySelector("video");
+    if (video instanceof HTMLVideoElement) video.pause();
+  });
+
+  lightbox.on("contentDestroy", ({ content }) => {
+    if (content.data.type !== "video") return;
+    const video = content.element?.querySelector("video");
+    if (!(video instanceof HTMLVideoElement)) return;
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
   });
 
   // Caption element (official ui-register pattern) fed from data-caption.
@@ -844,6 +958,7 @@ const details = [
   }
 
   .product-surface__view-thumb {
+    position: relative;
     display: block;
     overflow: hidden;
     aspect-ratio: 8 / 5;
@@ -865,6 +980,32 @@ const details = [
   .product-surface__view-open:focus-visible .product-surface__view-thumb {
     transform: translateY(-3px);
     box-shadow: var(--shadow-md);
+  }
+
+  .product-surface__view-open--video {
+    cursor: pointer;
+  }
+
+  .product-surface__view-play {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(180deg, transparent 42%, rgb(10 17 23 / 0.38));
+  }
+
+  .product-surface__view-play span {
+    display: grid;
+    width: 2.8rem;
+    height: 2.8rem;
+    place-items: center;
+    padding-left: 0.15rem;
+    border: 1px solid rgb(255 255 255 / 0.72);
+    border-radius: 50%;
+    background: rgb(14 23 30 / 0.76);
+    color: white;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.24);
+    font-size: 0.9rem;
   }
 
   .product-surface__view-meta {
@@ -897,6 +1038,23 @@ const details = [
     font-family: var(--font-mono);
     font-size: 0.68rem;
     line-height: 1.5;
+  }
+
+  :global(.pswp__video-shell) {
+    display: grid;
+    overflow: hidden;
+    place-items: center;
+    border-radius: var(--radius-md);
+    background: #0b1116;
+    box-shadow: 0 24px 80px rgb(0 0 0 / 0.42);
+  }
+
+  :global(.pswp__video) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: #0b1116;
+    object-fit: contain;
   }
 
   :global(body.lightbox-open) {

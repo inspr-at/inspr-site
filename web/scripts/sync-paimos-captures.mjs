@@ -5,6 +5,7 @@
 // hotspot-to-DOM landmark contract used by PaimosProductSurface.astro.
 
 import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
 import { copyFileSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,6 +23,7 @@ const assetNames = [
   "ui-search.png",
   "ui-voice-intake.png",
 ];
+const videoNames = ["loop-issue-workbench.mp4", "loop-search-navigate.mp4"];
 const landmarkOrder = ["issueContext", "executionControl", "applicableMemories"];
 
 function fail(message) {
@@ -105,9 +107,71 @@ function verifyAsset(path, expected) {
   return { name: expected.name, ...dimensions, sha256: digest };
 }
 
+function verifyVideo(path, expected) {
+  const bytes = readFileSync(path);
+  const ftyp = bytes.indexOf(Buffer.from("ftyp"));
+  const moov = bytes.indexOf(Buffer.from("moov"));
+  const mdat = bytes.indexOf(Buffer.from("mdat"));
+  if (ftyp < 0 || moov < 0 || mdat < 0 || moov > mdat) {
+    fail(`${expected.name} must be a fast-start MP4`);
+  }
+
+  const probe = spawnSync(
+    "ffprobe",
+    [
+      "-v", "error",
+      "-show_entries", "stream=codec_type,codec_name,profile,pix_fmt,width,height,r_frame_rate:format=duration",
+      "-of", "json",
+      path,
+    ],
+    { encoding: "utf8" },
+  );
+  if (probe.error || probe.status !== 0) {
+    fail(`${expected.name} ffprobe failed: ${probe.error?.message ?? probe.stderr.trim()}`);
+  }
+  const media = JSON.parse(probe.stdout);
+  const videoStreams = media.streams.filter((stream) => stream.codec_type === "video");
+  const audioStreams = media.streams.filter((stream) => stream.codec_type === "audio");
+  const video = videoStreams[0];
+  const durationSeconds = Number.parseFloat(media.format.duration);
+  if (
+    videoStreams.length !== 1 ||
+    audioStreams.length !== 0 ||
+    video?.codec_name !== "h264" ||
+    video?.profile !== "Main" ||
+    video?.pix_fmt !== "yuv420p" ||
+    video?.width !== 1280 ||
+    video?.height !== 800 ||
+    video?.r_frame_rate !== "24/1" ||
+    !Number.isFinite(durationSeconds) ||
+    durationSeconds < 5 ||
+    durationSeconds > 15
+  ) {
+    fail(
+      `${expected.name} violates the 1280×800 H.264, 24 fps, 5–15 second, no-audio contract: ` +
+      JSON.stringify({ videoStreams, audioStreams, durationSeconds }),
+    );
+  }
+  if (bytes.length < 64 * 1024 || bytes.length > 2 * 1024 * 1024) {
+    fail(`${expected.name} must stay between 64 KiB and 2 MiB`);
+  }
+
+  const digest = sha256(path);
+  if (expected.sha256 && digest !== expected.sha256) fail(`${expected.name} hash does not match manifest`);
+  if (expected.bytes && bytes.length !== expected.bytes) fail(`${expected.name} byte size does not match manifest`);
+  return {
+    name: expected.name,
+    width: video.width,
+    height: video.height,
+    durationSeconds: Number(durationSeconds.toFixed(3)),
+    bytes: bytes.length,
+    sha256: digest,
+  };
+}
+
 function verifyCommitted() {
   const manifest = readJson(manifestPath);
-  if (manifest.schemaVersion !== 1) fail("unsupported capture manifest schema");
+  if (manifest.schemaVersion !== 2) fail("unsupported capture manifest schema");
   if (!/^\d+\.\d+\.\d+$/.test(manifest.release)) fail("manifest release is not semver");
   if (!/^[0-9a-f]{40}$/.test(manifest.sourceCommit)) fail("manifest source commit is invalid");
   if (manifest.assets?.length !== assetNames.length) fail("manifest must contain all six captures");
@@ -116,8 +180,16 @@ function verifyCommitted() {
     if (!expected) fail(`manifest is missing ${name}`);
     verifyAsset(join(assetDir, name), expected);
   }
+  if (manifest.videos?.length !== videoNames.length) fail("manifest must contain both product loops");
+  const videos = videoNames.map((name) => {
+    const expected = manifest.videos.find((video) => video.name === name);
+    if (!expected) fail(`manifest is missing ${name}`);
+    return verifyVideo(join(assetDir, name), expected);
+  });
+  const videoBytes = videos.reduce((total, video) => total + video.bytes, 0);
+  if (videoBytes > 3 * 1024 * 1024) fail("combined product loops exceed the 3 MiB page-weight budget");
   verifyFraming(manifest.layout);
-  console.log(`✓ verified ${assetNames.length} Paimos captures for v${manifest.release}`);
+  console.log(`✓ verified ${assetNames.length} stills + ${videoNames.length} product loops for v${manifest.release}`);
 }
 
 function valueAfter(flag) {
@@ -139,10 +211,12 @@ if (process.argv.includes("--check")) {
   const layout = readJson(join(captureDir, "capture-surface.json"));
   verifyFraming(layout);
   const assets = assetNames.map((name) => verifyAsset(join(captureDir, name), { name }));
+  const videos = videoNames.map((name) => verifyVideo(join(captureDir, name), { name }));
   for (const name of assetNames) copyFileSync(join(captureDir, name), join(assetDir, name));
+  for (const name of videoNames) copyFileSync(join(captureDir, name), join(assetDir, name));
   writeFileSync(
     manifestPath,
-    `${JSON.stringify({ schemaVersion: 1, release, sourceCommit, assets, layout }, null, 2)}\n`,
+    `${JSON.stringify({ schemaVersion: 2, release, sourceCommit, assets, videos, layout }, null, 2)}\n`,
   );
   verifyCommitted();
 }

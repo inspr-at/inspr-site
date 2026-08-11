@@ -381,6 +381,41 @@ test("Paimos public evidence keeps release and capture provenance honest", async
   assert.equal(captureCheck.status, 0, captureCheck.stderr || captureCheck.stdout);
 });
 
+test("Paimos product loops stay lazy, bounded and inside the PhotoSwipe gallery", async () => {
+  const surface = await source("components/PaimosProductSurface.astro");
+  const manifest = JSON.parse(
+    await source("assets/products/paimos/capture-manifest.json"),
+  );
+
+  assert.match(surface, /import loopIssueWorkbench from .*loop-issue-workbench\.mp4/);
+  assert.match(surface, /import loopSearchNavigate from .*loop-search-navigate\.mp4/);
+  assert.equal(surface.match(/kind: "video" as const/g)?.length, 1);
+  assert.equal(surface.match(/id: "(?:issue-workbench|search-navigate)-flow"/g)?.length, 2);
+  assert.match(surface, /data-pswp-type=\{view\.kind === "video" \? "video" : undefined\}/);
+  assert.match(surface, /loading="lazy"/);
+  assert.doesNotMatch(surface, /<video[\s>]/);
+
+  assert.match(surface, /lightbox\.on\("contentLoad"/);
+  assert.match(surface, /video\.preload = "none"/);
+  assert.match(surface, /lightbox\.on\("contentActivate"/);
+  assert.match(surface, /video\.src = content\.data\.videoSrc/);
+  assert.match(surface, /lightbox\.on\("contentDeactivate"/);
+  assert.match(surface, /lightbox\.on\("contentDestroy"/);
+  assert.match(surface, /video\.removeAttribute\("src"\)/);
+
+  assert.equal(manifest.schemaVersion, 2);
+  assert.match(manifest.release, /^\d+\.\d+\.\d+$/);
+  assert.match(manifest.sourceCommit, /^[0-9a-f]{40}$/);
+  assert.deepEqual(
+    manifest.videos.map(({ name }) => name),
+    ["loop-issue-workbench.mp4", "loop-search-navigate.mp4"],
+  );
+  assert.ok(manifest.videos.every(({ durationSeconds }) =>
+    durationSeconds >= 5 && durationSeconds <= 15
+  ));
+  assert.ok(manifest.videos.reduce((total, { bytes }) => total + bytes, 0) <= 3 * 1024 * 1024);
+});
+
 test("Pharos states release and provider maturity without overclaiming", async () => {
   const pharos = await source("content/pharos.ts");
 

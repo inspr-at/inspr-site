@@ -1,43 +1,43 @@
 {
   "schemaVersion": 2,
-  "release": "5.8.17",
-  "sourceCommit": "402ddf000b33a6f872846ba0fc79260bfc76477e",
+  "release": "5.10.1",
+  "sourceCommit": "72f1a15443630e12261c0956e3bddcc70db006a4",
   "assets": [
     {
       "name": "product-surface.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "836c128d125bfd460343f6b4d006f9ac9e18657693b235b0cd94f85aecc8766f"
+      "sha256": "ee798f21e9ff7873ade25605e6d8e380e842c0f57e08053f8a6f59893e2a1008"
     },
     {
       "name": "ui-dashboard.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "f92d1188b4375820496601f495e85e97914aa30f2b88c4c2b0355a7d679e4bec"
+      "sha256": "b57beb4f42deaad1268fb0090d29aa7abb080fbe76a2fa886a05b0c2757a19e9"
     },
     {
       "name": "ui-issues.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "8a3522ae6662c942dca033f5d75fdfc52dbf799d4b0b666048a70ca9c8287a05"
+      "sha256": "34628fb92ee4595e1558a4fcb3f6c06d44fe6e5f1bf67e3a82cbd280662a0916"
     },
     {
       "name": "ui-board.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "fc03e6f09888d39ea041777b62de02c4a97641b4bbacac1a448c2209ae4733fc"
+      "sha256": "63fe70a6ab83fcbe282ac7fa0fc1d12359c176bf1bbab95920ee5c481ecaa6ff"
     },
     {
       "name": "ui-search.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "937d77c79eaf8bf080a75c086440c71701e0f315b08f9d645f42df74b6045df9"
+      "sha256": "99c596bda393f39a62c9cb04ee3890940a4995f8f0913a3816c444da876f07f4"
     },
     {
       "name": "ui-voice-intake.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "3651fd8bd6df8a0eac401822f53925a0fcf57abe57679960f6f19568ae794bb5"
+      "sha256": "622e760081ab2129b48fb6174604e5abaceff3f43adf0c5541a066efbc668152"
     }
   ],
   "videos": [
@@ -46,16 +46,16 @@
       "width": 1280,
       "height": 800,
       "durationSeconds": 5.25,
-      "bytes": 441108,
-      "sha256": "4668d7d73a9490bbb6aa92366a956717f05368e11cdce2b2389e8415827957ba"
+      "bytes": 423935,
+      "sha256": "c5a453c3c069d18f45161b62171990bdb266892ef4921a4ec94e778ecf45c1e4"
     },
     {
       "name": "loop-search-navigate.mp4",
       "width": 1280,
       "height": 800,
-      "durationSeconds": 6.208,
-      "bytes": 310250,
-      "sha256": "ac1143457c6c8bae3b30f58a1809bea34c95447baef6403eab192d78390560ff"
+      "durationSeconds": 6.25,
+      "bytes": 307034,
+      "sha256": "b7317783a8fccbb1fa4465d79db331a9423c2912c37afdd3b60753435694698b"
     }
   ],
   "layout": {
@@ -67,24 +67,24 @@
     },
     "framing": {
       "anchor": "TASKS",
-      "tasksTop": 0.0583
+      "tasksTop": 0.0577
     },
     "landmarks": {
       "issueContext": {
         "x": 0.7259,
-        "y": 0.2761,
+        "y": 0.2754,
         "width": 0.2632,
         "height": 0.024
       },
       "executionControl": {
         "x": 0.9033,
-        "y": 0.3431,
+        "y": 0.3424,
         "width": 0.0764,
         "height": 0.0316
       },
       "applicableMemories": {
         "x": 0.1547,
-        "y": 0.8782,
+        "y": 0.8775,
         "width": 0.8344,
         "height": 0.2207
       }

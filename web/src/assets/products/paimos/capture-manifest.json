@@ -1,43 +1,43 @@
 {
   "schemaVersion": 2,
-  "release": "5.10.1",
-  "sourceCommit": "72f1a15443630e12261c0956e3bddcc70db006a4",
+  "release": "5.14.0",
+  "sourceCommit": "b624a2479ea7d3d1c1aac67bcbac96c249f0a85f",
   "assets": [
     {
       "name": "product-surface.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "ee798f21e9ff7873ade25605e6d8e380e842c0f57e08053f8a6f59893e2a1008"
+      "sha256": "5ff48d40006bc52e4a6382d395898662c1b7777750cf6fbc6c0dd73ddf154dca"
     },
     {
-      "name": "ui-dashboard.png",
+      "name": "ui-agent-mode.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "b57beb4f42deaad1268fb0090d29aa7abb080fbe76a2fa886a05b0c2757a19e9"
+      "sha256": "e7bcacc2a46bebb0169be6b88273ac25416054633964e1eb0ef4c6ab693733dd"
     },
     {
       "name": "ui-issues.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "34628fb92ee4595e1558a4fcb3f6c06d44fe6e5f1bf67e3a82cbd280662a0916"
+      "sha256": "19f339a3a85dea3fe10d39257d1132b8abb580d98d29dd7f49d8b893ef8de998"
     },
     {
       "name": "ui-board.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "63fe70a6ab83fcbe282ac7fa0fc1d12359c176bf1bbab95920ee5c481ecaa6ff"
+      "sha256": "4d37b03d16e5b86678bc678d67938ad51f1244c2fd12a12c7fc5435f4aee59e2"
     },
     {
       "name": "ui-search.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "99c596bda393f39a62c9cb04ee3890940a4995f8f0913a3816c444da876f07f4"
+      "sha256": "bf79f162a90188dfc85ad498a15ea9bb15674eeb43290b4d7ba6b91bf007f6ca"
     },
     {
       "name": "ui-voice-intake.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "622e760081ab2129b48fb6174604e5abaceff3f43adf0c5541a066efbc668152"
+      "sha256": "b56dea2f359d5b8944986886299887183626d2729df61ade06e0bd399b44170f"
     }
   ],
   "videos": [
@@ -45,17 +45,17 @@
       "name": "loop-issue-workbench.mp4",
       "width": 1280,
       "height": 800,
-      "durationSeconds": 5.25,
-      "bytes": 423935,
-      "sha256": "c5a453c3c069d18f45161b62171990bdb266892ef4921a4ec94e778ecf45c1e4"
+      "durationSeconds": 7.208,
+      "bytes": 435039,
+      "sha256": "a5c37fa3c718931d33a87b28a93d0355187cffc8412cbc55292c3bcd942bd1e2"
     },
     {
       "name": "loop-search-navigate.mp4",
       "width": 1280,
       "height": 800,
-      "durationSeconds": 6.25,
-      "bytes": 307034,
-      "sha256": "b7317783a8fccbb1fa4465d79db331a9423c2912c37afdd3b60753435694698b"
+      "durationSeconds": 6.667,
+      "bytes": 214310,
+      "sha256": "f35cf19d241a8272fc15191a43759910e5d109bcb4051a4240bc681db9a4362c"
     }
   ],
   "layout": {
@@ -84,9 +84,9 @@
       },
       "applicableMemories": {
         "x": 0.1547,
-        "y": 0.8775,
+        "y": 0.6543,
         "width": 0.8344,
-        "height": 0.2207
+        "height": 0.14
       }
     }
   }

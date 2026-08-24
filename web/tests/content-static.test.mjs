@@ -243,6 +243,7 @@ test("all four microsites render claim visuals and accessible workflow controls"
     "assets/products/pharos/fleet-gate.png",
     "assets/products/janus/value-boundary.png",
     "assets/products/paimos/product-surface.png",
+    "assets/products/paimos/ui-agent-mode.png",
   ];
   for (const asset of assets) {
     const metadata = await stat(new URL(asset, sourceUrl));
@@ -363,6 +364,8 @@ test("Paimos public evidence keeps release and capture provenance honest", async
   const surface = await source("components/PaimosProductSurface.astro");
 
   assert.match(surface, /import captureManifest from .*capture-manifest\.json/);
+  assert.match(surface, /import uiAgentMode from .*ui-agent-mode\.png/);
+  assert.match(surface, /title: "Agent Mode"/);
   assert.match(surface, /const captureRelease = `v\$\{captureManifest\.release\}`;/);
   assert.match(surface, /<figcaption>Demo workspace, Paimos \{captureRelease\}/);
   assert.match(surface, /Demo workspace, Paimos \$\{captureRelease\}/);

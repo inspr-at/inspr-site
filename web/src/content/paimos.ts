@@ -420,9 +420,9 @@ export const paimosContent = {
         visual: { x: 50, y: 40 },
         icon: "play",
         body:
-          "Choose the provider, execution profile, effort, prompt preset, context pack and agent before work begins. Capability stays visible before authority is granted.",
-        meta: "Draft, edit, test and deploy remain distinct actions",
-        signal: "Explicit provider, profile and capability",
+          "Choose the provider, execution profile, effort, prompt preset, context pack and agent before work begins. Then switch to Agent Mode to supervise active deliveries by voice or text while project scope, contextual commands and capability stay visible.",
+        meta: "Explicit authority before work; calm supervision while it runs",
+        signal: "Provider, profile, capability and live delivery state",
         reference: {
           label: "Execution providers",
           href: docsUrl("IMPLEMENT_THIS_PROVIDERS.md"),

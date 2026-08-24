@@ -17,7 +17,7 @@ const componentPath = join(webRoot, "src/components/PaimosProductSurface.astro")
 const manifestPath = join(assetDir, "capture-manifest.json");
 const assetNames = [
   "product-surface.png",
-  "ui-dashboard.png",
+  "ui-agent-mode.png",
   "ui-issues.png",
   "ui-board.png",
   "ui-search.png",

@@ -193,10 +193,14 @@ the Go binary fails pull requests and publishes alike. Keep `go.mod` and the
 base image moving; do not silence the scan.
 
 Cut a release with `git tag -a auth-vX.Y.Z -m "..." && git push origin
-auth-vX.Y.Z`. The csb1 container still runs the `legacy-20260511` rescue tag
-from the old `ghcr.io/inspr-at/inspr-auth` package; moving the digest pin to
-a published version is a reviewed nixcfg change (INSPR-253, step 3) and needs
-the new package to be public or the host to authenticate to GHCR.
+auth-vX.Y.Z`. The package is private by decision; csb1's compose units
+authenticate with a scoped read token (nixcfg NIX-384). Moving the csb1
+digest pin to a published version is a reviewed nixcfg change (INSPR-253,
+step 3). `auth-legacy-rehome.yml` (dispatch only) copies the hand-built
+2026-05-11 rescue manifest into this package as `legacy-20260511`, digest
+preserved and cosign-signed as chain of custody; it is the rollback target
+for the pin swap, after which the old public `ghcr.io/inspr-at/inspr-auth`
+package is deleted.
 
 Never commit a populated `.env`, machine key, OIDC secret, cookie key, or
 bootstrap token. The checked `.env.example` contains placeholders only.

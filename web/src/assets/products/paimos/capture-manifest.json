@@ -1,13 +1,13 @@
 {
   "schemaVersion": 2,
-  "release": "5.14.0",
-  "sourceCommit": "b624a2479ea7d3d1c1aac67bcbac96c249f0a85f",
+  "release": "5.17.0",
+  "sourceCommit": "5ba4394199737a2c33c277b1438283b3c980d5b2",
   "assets": [
     {
       "name": "product-surface.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "5ff48d40006bc52e4a6382d395898662c1b7777750cf6fbc6c0dd73ddf154dca"
+      "sha256": "edb7293e1ea80fa28a86b85856c4d1ba3a49f21c92c42eed9084d2987658cea9"
     },
     {
       "name": "ui-agent-mode.png",
@@ -19,25 +19,25 @@
       "name": "ui-issues.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "19f339a3a85dea3fe10d39257d1132b8abb580d98d29dd7f49d8b893ef8de998"
+      "sha256": "7a85a4dea6ef830118ad5f915037e90a702082c962bcfa33517094d16d0edfb7"
     },
     {
       "name": "ui-board.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "4d37b03d16e5b86678bc678d67938ad51f1244c2fd12a12c7fc5435f4aee59e2"
+      "sha256": "bb12ce77d19a946b95795485ebe38e24a15b8c900af9c10f531ab01660793278"
     },
     {
       "name": "ui-search.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "bf79f162a90188dfc85ad498a15ea9bb15674eeb43290b4d7ba6b91bf007f6ca"
+      "sha256": "afeb2481d69c709dc70564ce5d62018c2d274ffeeb360a11e98c57dd0ec2bf3c"
     },
     {
       "name": "ui-voice-intake.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "b56dea2f359d5b8944986886299887183626d2729df61ade06e0bd399b44170f"
+      "sha256": "30cac9053d98fa72f37c786b16ea6e0a33d3656a92e6294aff9550f525ceec72"
     }
   ],
   "videos": [
@@ -45,17 +45,17 @@
       "name": "loop-issue-workbench.mp4",
       "width": 1280,
       "height": 800,
-      "durationSeconds": 7.208,
-      "bytes": 435039,
-      "sha256": "a5c37fa3c718931d33a87b28a93d0355187cffc8412cbc55292c3bcd942bd1e2"
+      "durationSeconds": 5.208,
+      "bytes": 429336,
+      "sha256": "c584361667003d69f226aef75593a9f7a03c4709ba9d07eb7e0ac9369d381a3b"
     },
     {
       "name": "loop-search-navigate.mp4",
       "width": 1280,
       "height": 800,
-      "durationSeconds": 6.667,
-      "bytes": 214310,
-      "sha256": "f35cf19d241a8272fc15191a43759910e5d109bcb4051a4240bc681db9a4362c"
+      "durationSeconds": 6.042,
+      "bytes": 252025,
+      "sha256": "f0f47c9d6f17f6ad04f1fcf6851f08eb8e97b63eb96b51fdc7974808f8ce3aec"
     }
   ],
   "layout": {
@@ -84,9 +84,9 @@
       },
       "applicableMemories": {
         "x": 0.1547,
-        "y": 0.6543,
+        "y": 0.8775,
         "width": 0.8344,
-        "height": 0.14
+        "height": 0.2207
       }
     }
   }

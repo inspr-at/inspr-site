@@ -549,6 +549,17 @@ export const paimosContent = {
           meta: "Project metadata upstream of the current runtime",
         },
         {
+          title: "Durable agent handoffs",
+          body:
+            "Claude Code, Codex and opt-in Grok Build sessions can exchange project-scoped messages through a durable ledger while vendor-native endpoints remain the delivery path. Sender allowlists, typed action holds and an untrusted-data frame keep every delivered body inside an explicit security boundary.",
+          meta: "Attributable threads without turning Paimos into an inference proxy",
+          reference: {
+            label: "Agent message security",
+            href: docsUrl("AGENT_MESSAGE_SECURITY.md"),
+            external: true,
+          },
+        },
+        {
           title: "Issue-to-file anchors",
           body:
             "Repository scanners can attach issues to concrete files and symbols. Staleness checks and provenance help agents distinguish declared context from derived context.",

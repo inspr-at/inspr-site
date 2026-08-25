@@ -24,7 +24,7 @@ web/                  Astro source for all four current sites
 site/                 frozen pre-relaunch archive served at v1.inspr.at
 auth/                 small Go OIDC session and signup bridge
 Caddyfile             host routing, cache policy and security headers
-docker-compose.yml    Caddy, auth bridge, ZITADEL and Postgres
+docker-compose.yml    pre-adoption reference; the runtime is declared in nixcfg
 deploy.sh             immutable release upload, promotion, rollback and probes
 ```
 
@@ -99,6 +99,15 @@ Traefik terminates public TLS. A Caddy container serves:
 - append-only content-addressed assets in `releases/assets`; and
 - the read-only archive in `site/`.
 
+The containers themselves (`inspr-www`, `inspr-auth`, `zitadel`,
+`zitadel-postgres`) have been declared in nixcfg
+(`hosts/csb1/docker/compose-spec.nix`, compose project `csb1`) since OPS-136
+on 2026-08-04. `docker-compose.yml` in this repository is the pre-adoption
+definition, kept byte-identical to the host's reference copy: `deploy.sh`
+never applies it and refuses to run when the two drift. Images, routing
+labels and volumes change in nixcfg; release content and the bind-mounted
+`Caddyfile` change here.
+
 The deployment script:
 
 1. assigns one UTC deployment timestamp, Git revision and immutable release ID;
@@ -106,7 +115,7 @@ The deployment script:
 3. uploads into an unreachable incoming directory;
 4. verifies the remote content byte-for-byte;
 5. seals the release under its unique build ID;
-6. validates routing changes before promotion;
+6. validates a changed `Caddyfile` before promotion and restarts `inspr-www` to pick it up;
 7. switches one symlink atomically;
 8. verifies the release stamp and result through every public hostname; and
 9. preserves the previous release for rollback.
@@ -148,6 +157,11 @@ are managed on the host.
 `/logout`, and the guarded signup entry path on the apex domain. ZITADEL is a
 third-party identity service and remains operationally separate from the four
 public product sites.
+
+The image running on csb1 (`ghcr.io/inspr-at/inspr-auth:legacy-20260511`) was
+built from this `auth/` source; the host's working copy differs only by the
+later AGPL image label and the module path from the organisation move.
+CI-built, versioned images are tracked in INSPR-253.
 
 Never commit a populated `.env`, machine key, OIDC secret, cookie key, or
 bootstrap token. The checked `.env.example` contains placeholders only.

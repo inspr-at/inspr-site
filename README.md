@@ -26,6 +26,7 @@ auth/                 small Go OIDC session and signup bridge
 Caddyfile             host routing, cache policy and security headers
 docker-compose.yml    pre-adoption reference; the runtime is declared in nixcfg
 deploy.sh             immutable release upload, promotion, rollback and probes
+.github/workflows/    ci.yml: the pull-request gate (tests, type-check, build, audit)
 ```
 
 One Astro build produces the umbrella page plus `/paimos`, `/pharos`, and
@@ -71,10 +72,17 @@ Run the content contract and production build:
 ```bash
 cd web
 npm run test:content
+npm run check
 npm run build
 npm audit --audit-level=high
-python3 scripts/verify-csp.py
 ```
+
+`npm run check` is `astro check`, the TypeScript pass over every `.astro` and
+`.ts` file; `npm run build` chains the capture check, the release manifest,
+the hero-loop audit, `scripts/verify-csp.py` and the section-pattern audit.
+The same four commands run in GitHub Actions (`.github/workflows/ci.yml`) on
+every pull request and on `main`; a red `ci` check means the change is not
+deployable.
 
 The content tests protect:
 
@@ -85,8 +93,11 @@ The content tests protect:
 - exact `AGPL-3.0-only` product license claims; and
 - per-host robots and sitemap output;
 - workflow icons, evidence signals and source references;
-- the four claim-supporting image assets; and
-- the preserved INSPR product constellation.
+- the four claim-supporting image assets;
+- the preserved INSPR product constellation; and
+- every `icon` and `group` in `src/content/*.ts` resolving in `ContextIcon`
+  and the tile type, so an unknown name fails the suite instead of degrading
+  silently in the rendered page.
 
 `verify-csp.py` compares every inline script in the generated and archived
 HTML against the hashes allowed by `Caddyfile`.

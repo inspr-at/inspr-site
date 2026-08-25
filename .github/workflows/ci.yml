@@ -1,0 +1,55 @@
+name: ci
+
+# INSPR-291 — the pull-request gate for the inspr.at site family. Runs the same
+# checks an operator runs before ./deploy.sh: content contract tests, the Astro
+# type-check, the production build (which chains captures:check, the release
+# manifest, the hero-loop audit, the CSP hash verifier and the section-pattern
+# audit) and the high-severity dependency audit. No deploy happens here.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  site:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      # audit-hero-loops.mjs and sync-paimos-captures.mjs --check probe the
+      # product loops with ffprobe.
+      - name: ensure ffprobe
+        run: command -v ffprobe >/dev/null || sudo apt-get install -y --no-install-recommends ffmpeg
+
+      - run: npm ci
+
+      - name: content contract tests
+        run: npm run test:content
+
+      - name: type-check
+        run: npm run check
+
+      - name: production build, CSP and asset audits
+        run: npm run build
+
+      - name: dependency audit
+        run: npm audit --audit-level=high

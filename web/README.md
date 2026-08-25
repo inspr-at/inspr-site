@@ -21,10 +21,14 @@ server exposes the same pages by path.
 npm install
 npm run dev -- --host 127.0.0.1 --port 4321
 npm run test:content
+npm run check
 npm run build
 npm audit --audit-level=high
-python3 scripts/verify-csp.py
 ```
+
+`npm run check` runs `astro check` (TypeScript over `.astro` and `.ts`);
+`npm run build` already includes `scripts/verify-csp.py`. The repository's
+`ci` workflow runs the same gate on every pull request.
 
 The build is static and writes to `dist/`.
 

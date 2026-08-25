@@ -186,6 +186,12 @@ cosign verify ghcr.io/inspr-at/inspr-site/inspr-auth@<digest> \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```
 
+Since 0.2.0 (INSPR-307) the bridge builds on the current Go release line
+(`golang:1.26-alpine`) with current modules, and the Trivy scan in the same
+workflow is a gate: any fixable CRITICAL or HIGH finding in the OS layer or
+the Go binary fails pull requests and publishes alike. Keep `go.mod` and the
+base image moving; do not silence the scan.
+
 Cut a release with `git tag -a auth-vX.Y.Z -m "..." && git push origin
 auth-vX.Y.Z`. The csb1 container still runs the `legacy-20260511` rescue tag
 from the old `ghcr.io/inspr-at/inspr-auth` package; moving the digest pin to

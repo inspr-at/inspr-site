@@ -3,7 +3,7 @@ name: auth-image
 # INSPR-253 — build the inspr-auth OIDC bridge from auth/ and publish it to
 # GHCR so the image running on csb1 has a reproducible, versioned source.
 #
-#   pull_request touching auth/   build only, no push (proves the Dockerfile)
+#   pull_request touching auth/   build + vulnerability gate, no push
 #   push to main touching auth/   publish :main and :sha-<commit>
 #   tag auth-vX.Y.Z               publish the immutable :X.Y.Z and :latest;
 #                                 an already-published version fails the run
@@ -61,6 +61,7 @@ jobs:
           images: ${{ env.IMAGE }}
           tags: |
             type=ref,event=branch
+            type=ref,event=pr
             type=sha
             type=match,pattern=auth-v(.*),group=1
             type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/auth-v') }}
@@ -89,7 +90,10 @@ jobs:
         with:
           context: auth
           platforms: linux/amd64
+          # pull requests load the single pr-<n> tag into the local daemon so
+          # the scan gate runs before merge; every other event pushes
           push: ${{ github.event_name != 'pull_request' }}
+          load: ${{ github.event_name == 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           # attestations need a registry export; PR builds only prove the build
@@ -98,17 +102,17 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Report only. The first published versions must match the source that
-      # produced the running rescue image; dependency bumps are their own
-      # reviewed change with this scan turned into a gate.
-      - name: scan published image (report)
-        if: github.event_name != 'pull_request'
+      # Gate (INSPR-307): any fixable CRITICAL or HIGH finding in the OS layer
+      # or the Go binary fails the run, on pull requests (local image) as well
+      # as on published images. 0.1.0 shipped report-only to mirror the
+      # running rescue build; from 0.2.0 the toolchain and modules stay current.
+      - name: scan image for fixable CRITICAL/HIGH vulnerabilities
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
-          image-ref: ${{ env.IMAGE }}@${{ steps.build.outputs.digest }}
+          image-ref: ${{ github.event_name == 'pull_request' && format('{0}:pr-{1}', env.IMAGE, github.event.pull_request.number) || format('{0}@{1}', env.IMAGE, steps.build.outputs.digest) }}
           version: v0.72.0
           format: table
-          exit-code: "0"
+          exit-code: "1"
           ignore-unfixed: true
           vuln-type: os,library
           severity: CRITICAL,HIGH

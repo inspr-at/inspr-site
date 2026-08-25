@@ -172,7 +172,25 @@ public product sites.
 The image running on csb1 (`ghcr.io/inspr-at/inspr-auth:legacy-20260511`) was
 built from this `auth/` source; the host's working copy differs only by the
 later AGPL image label and the module path from the organisation move.
-CI-built, versioned images are tracked in INSPR-253.
+
+`.github/workflows/auth-image.yml` (INSPR-253) builds and publishes the bridge
+to `ghcr.io/inspr-at/inspr-site/inspr-auth`: pull requests that touch `auth/`
+build without pushing; pushes to `main` publish `:main` and `:sha-<commit>`;
+an annotated `auth-vX.Y.Z` tag publishes the immutable `:X.Y.Z` (plus
+`:latest`). Every published image carries BuildKit SLSA provenance and an
+SPDX SBOM and is signed keyless with cosign through the workflow identity:
+
+```bash
+cosign verify ghcr.io/inspr-at/inspr-site/inspr-auth@<digest> \
+  --certificate-identity-regexp 'https://github.com/inspr-at/inspr-site/.github/workflows/auth-image.yml@refs/tags/auth-v.*' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+```
+
+Cut a release with `git tag -a auth-vX.Y.Z -m "..." && git push origin
+auth-vX.Y.Z`. The csb1 container still runs the `legacy-20260511` rescue tag
+from the old `ghcr.io/inspr-at/inspr-auth` package; moving the digest pin to
+a published version is a reviewed nixcfg change (INSPR-253, step 3) and needs
+the new package to be public or the host to authenticate to GHCR.
 
 Never commit a populated `.env`, machine key, OIDC secret, cookie key, or
 bootstrap token. The checked `.env.example` contains placeholders only.

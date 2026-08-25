@@ -1,0 +1,168 @@
+name: auth-image
+
+# INSPR-253 — build the inspr-auth OIDC bridge from auth/ and publish it to
+# GHCR so the image running on csb1 has a reproducible, versioned source.
+#
+#   pull_request touching auth/   build only, no push (proves the Dockerfile)
+#   push to main touching auth/   publish :main and :sha-<commit>
+#   tag auth-vX.Y.Z               publish the immutable :X.Y.Z and :latest;
+#                                 an already-published version fails the run
+#
+# Every published image carries BuildKit SLSA provenance and an SPDX SBOM and
+# is signed keyless with cosign through this workflow's GitHub OIDC identity.
+# As in pharos (OPS-88) the signing job stays on GitHub-hosted infrastructure,
+# not on Blacksmith. The csb1 digest pin in nixcfg is not touched from here;
+# moving it off the legacy rescue tag is a reviewed nixcfg change.
+
+on:
+  push:
+    branches: [main]
+    tags: ["auth-v*"]
+    paths:
+      - "auth/**"
+      - ".github/workflows/auth-image.yml"
+  pull_request:
+    paths:
+      - "auth/**"
+      - ".github/workflows/auth-image.yml"
+  workflow_dispatch:
+
+env:
+  IMAGE: ghcr.io/inspr-at/inspr-site/inspr-auth
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+concurrency:
+  group: auth-image-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  image:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        if: github.event_name != 'pull_request'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
+        id: meta
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=sha
+            type=match,pattern=auth-v(.*),group=1
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/auth-v') }}
+          labels: |
+            org.opencontainers.image.title=inspr-auth
+            org.opencontainers.image.description=OIDC session and signup bridge for inspr.at (/enter, /login, /welcome, /logout)
+            org.opencontainers.image.licenses=AGPL-3.0-only
+
+      - name: refuse version tag overwrite
+        if: github.ref_type == 'tag'
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          if output=$(docker buildx imagetools inspect "${IMAGE}:${VERSION}" 2>&1); then
+            echo "error: ${IMAGE}:${VERSION} already exists and is immutable" >&2
+            exit 1
+          fi
+          if ! grep -Eqi 'manifest unknown|not found|no such manifest|name unknown' <<<"$output"; then
+            echo "error: could not prove that ${IMAGE}:${VERSION} is unused" >&2
+            printf '%s\n' "$output" >&2
+            exit 1
+          fi
+
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        id: build
+        with:
+          context: auth
+          platforms: linux/amd64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # attestations need a registry export; PR builds only prove the build
+          provenance: ${{ github.event_name != 'pull_request' && 'mode=max' || 'false' }}
+          sbom: ${{ github.event_name != 'pull_request' }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Report only. The first published versions must match the source that
+      # produced the running rescue image; dependency bumps are their own
+      # reviewed change with this scan turned into a gate.
+      - name: scan published image (report)
+        if: github.event_name != 'pull_request'
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE }}@${{ steps.build.outputs.digest }}
+          version: v0.72.0
+          format: table
+          exit-code: "0"
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+          scanners: vuln
+
+      - name: verify embedded provenance and SBOM
+        if: github.event_name != 'pull_request'
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          provenance=$(docker buildx imagetools inspect "${IMAGE}@${DIGEST}" --format '{{ json .Provenance.SLSA }}')
+          sbom=$(docker buildx imagetools inspect "${IMAGE}@${DIGEST}" --format '{{ json .SBOM.SPDX }}')
+          jq -e '
+            .buildDefinition.buildType == "https://github.com/moby/buildkit/blob/master/docs/attestations/slsa-definitions.md"
+            and (.buildDefinition.resolvedDependencies | type == "array" and length > 0)
+            and (.runDetails.builder.id | type == "string" and length > 0)
+          ' <<<"${provenance}" >/dev/null
+          jq -e '
+            .spdxVersion == "SPDX-2.3"
+            and (.documentNamespace | type == "string" and length > 0)
+            and (.packages | type == "array" and length > 0)
+          ' <<<"${sbom}" >/dev/null
+
+      - uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
+        if: github.event_name != 'pull_request'
+        with:
+          cosign-release: v2.5.2
+
+      - name: sign image digest with GitHub OIDC
+        if: github.event_name != 'pull_request'
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: cosign sign --yes "${IMAGE}@${DIGEST}"
+
+      - name: verify image signature
+        if: github.event_name != 'pull_request'
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          cosign verify "${IMAGE}@${DIGEST}" \
+            --certificate-identity "https://github.com/${GITHUB_REPOSITORY}/.github/workflows/auth-image.yml@${GITHUB_REF}" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" >/dev/null
+
+      - name: publish summary
+        if: github.event_name != 'pull_request'
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          {
+            echo "### inspr-auth published"
+            echo
+            echo '```'
+            echo "${IMAGE}@${DIGEST}"
+            echo "${TAGS}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

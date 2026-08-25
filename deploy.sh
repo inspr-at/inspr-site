@@ -8,6 +8,13 @@
 #   releases/current -> builds/<id>       (atomic promotion and rollback)
 #   site/                                 (v1 archive, never written)
 #
+# Runtime ownership: the inspr-www container (with inspr-auth, zitadel and
+# zitadel-postgres) is declared in nixcfg hosts/csb1/docker/compose-spec.nix
+# since OPS-136. deploy.sh writes release content and the bind-mounted
+# Caddyfile only; it never applies docker-compose.yml to the host. A changed
+# Caddyfile restarts the stateless inspr-www container so the fresh bind
+# mount is picked up.
+#
 # The current Astro build contains the umbrella page plus /paimos, /pharos
 # and /janus. Caddy maps each product hostname to its folder and serves
 # content-addressed /_astro files from the append-only shared asset pool.
@@ -52,9 +59,12 @@ REMOTE_RELEASE_ROOT="$REMOTE_DIR/releases"
 PROMOTION_STARTED=0
 SYMLINK_SWITCHED=0
 CONFIG_PROMOTION_ATTEMPTED=0
+INCOMING_CREATED=0
+RELEASE_SEALED=0
 CURRENT_RELEASE=""
 RELEASE_ID=""
 ROLLBACK_DIR=""
+REMOTE_INCOMING=""
 
 say() { printf '\033[1;36m->\033[0m %s\n' "$*"; }
 ok()  { printf '\033[1;32mOK\033[0m %s\n' "$*"; }
@@ -201,17 +211,11 @@ rollback_deployment() {
   if [ "$CONFIG_PROMOTION_ATTEMPTED" = "1" ] && [ -n "$ROLLBACK_DIR" ]; then
     remote_ssh "set -eu
       cp -p '$ROLLBACK_DIR/Caddyfile' '$REMOTE_DIR/Caddyfile.rollback-$RELEASE_ID'
-      cp -p '$ROLLBACK_DIR/docker-compose.yml' '$REMOTE_DIR/docker-compose.yml.rollback-$RELEASE_ID'
-      mv -Tf '$REMOTE_DIR/Caddyfile.rollback-$RELEASE_ID' '$REMOTE_DIR/Caddyfile'
-      mv -Tf '$REMOTE_DIR/docker-compose.yml.rollback-$RELEASE_ID' '$REMOTE_DIR/docker-compose.yml'
-      cd '$REMOTE_DIR'" || \
-      printf '\033[1;31mERROR\033[0m automatic config rollback needs operator attention\n' >&2
+      mv -Tf '$REMOTE_DIR/Caddyfile.rollback-$RELEASE_ID' '$REMOTE_DIR/Caddyfile'" || \
+      printf '\033[1;31mERROR\033[0m automatic Caddyfile rollback needs operator attention\n' >&2
 
-    if [ "$COMPOSE_CHANGED" = "1" ]; then
-      remote_ssh "cd '$REMOTE_DIR' && docker compose up -d --no-deps --no-build inspr-auth zitadel" || \
-        printf '\033[1;31mERROR\033[0m automatic identity edge rollback needs operator attention\n' >&2
-    fi
-    remote_ssh "cd '$REMOTE_DIR' && docker compose up -d --no-deps --force-recreate inspr-www" || \
+    # nixcfg owns the container; a restart re-binds the restored file.
+    remote_ssh "docker restart inspr-www >/dev/null" || \
       printf '\033[1;31mERROR\033[0m automatic web edge rollback needs operator attention\n' >&2
   fi
 
@@ -224,6 +228,18 @@ on_exit() {
 
   if [ "$status" -ne 0 ] && [ "$PROMOTION_STARTED" = "1" ]; then
     rollback_deployment
+  fi
+
+  # A failed run must not leave its unreachable, checksum-unverified upload
+  # behind. Only the directory this run created is touched, and only when it
+  # was never sealed into builds/.
+  if [ "$status" -ne 0 ] && [ "$INCOMING_CREATED" = "1" ] && [ "$RELEASE_SEALED" != "1" ] \
+    && [ -n "$RELEASE_ID" ] && [ "$REMOTE_INCOMING" = "$REMOTE_RELEASE_ROOT/.incoming-$RELEASE_ID" ]; then
+    if remote_ssh "if [ -d '$REMOTE_INCOMING' ]; then rm -rf -- '$REMOTE_INCOMING'; fi" 2>/dev/null; then
+      printf '\033[1;33mCLEANUP\033[0m removed unsealed upload %s\n' "$REMOTE_INCOMING" >&2
+    else
+      printf '\033[1;33mCLEANUP\033[0m unsealed upload left at %s\n' "$REMOTE_INCOMING" >&2
+    fi
   fi
 
   exit "$status"
@@ -514,6 +530,17 @@ if ! remote_ssh "test -f '$REMOTE_DIR/site/index.html'"; then
 fi
 ok "remote v1 archive present"
 
+# The container definitions are owned by nixcfg (hosts/csb1/docker/
+# compose-spec.nix, OPS-136). A docker-compose.yml change in this repository
+# is documentation and must never reach the host through deploy.sh; refuse
+# before anything is written so no orphaned build is left behind.
+LOCAL_COMPOSE_HASH=$(shasum -a 256 "$ROOT/docker-compose.yml" | awk '{print $1}')
+REMOTE_COMPOSE_HASH=$(remote_hash "docker-compose.yml")
+if [ "$LOCAL_COMPOSE_HASH" != "$REMOTE_COMPOSE_HASH" ]; then
+  die "docker-compose.yml differs from the host copy; container definitions live in nixcfg (OPS-136) and are not deployed by this script"
+fi
+ok "docker-compose.yml matches the host reference copy (not deployed from here)"
+
 # A non-symlink `current` is an unknown layout and must never be overwritten.
 remote_ssh "set -eu
   mkdir -p '$REMOTE_RELEASE_ROOT/builds' '$REMOTE_RELEASE_ROOT/assets/_astro' '$REMOTE_RELEASE_ROOT/rollbacks'
@@ -523,6 +550,7 @@ remote_ssh "set -eu
   test ! -e '$REMOTE_INCOMING'
   test ! -e '$REMOTE_RELEASE'
   mkdir '$REMOTE_INCOMING'" || die "remote release layout is unsafe or release id already exists"
+INCOMING_CREATED=1
 
 # Upload into a path Caddy cannot reach. The second checksum-mode rsync must
 # report no change before the directory is renamed into immutable builds/.
@@ -553,16 +581,16 @@ remote_ssh "set -eu
   test -f '$REMOTE_INCOMING/janus/index.html'
   test -n \"\$(find '$REMOTE_INCOMING/_astro' -maxdepth 1 -type f -name '*.css' -print -quit)\"
   mv '$REMOTE_INCOMING' '$REMOTE_RELEASE'"
+RELEASE_SEALED=1
 ok "release uploaded, checksum-verified and sealed"
 
-# 6. Stage and validate routing configuration before promotion.
+# 6. Stage and validate the routing configuration before promotion. Only the
+# bind-mounted Caddyfile is deployable from here (see the ownership note in
+# the header).
 LOCAL_CADDY_HASH=$(shasum -a 256 "$ROOT/Caddyfile" | awk '{print $1}')
 REMOTE_CADDY_HASH=$(remote_hash "Caddyfile")
-LOCAL_COMPOSE_HASH=$(shasum -a 256 "$ROOT/docker-compose.yml" | awk '{print $1}')
-REMOTE_COMPOSE_HASH=$(remote_hash "docker-compose.yml")
 
 CADDY_CHANGED=0
-COMPOSE_CHANGED=0
 
 if [ "$LOCAL_CADDY_HASH" != "$REMOTE_CADDY_HASH" ]; then
   CADDY_CHANGED=1
@@ -570,13 +598,6 @@ if [ "$LOCAL_CADDY_HASH" != "$REMOTE_CADDY_HASH" ]; then
   remote_scp -q "$ROOT/Caddyfile" "$HOST:$REMOTE_DIR/Caddyfile.next-$RELEASE_ID"
   remote_ssh \
     "docker run --rm --network none -v '$REMOTE_DIR/Caddyfile.next-$RELEASE_ID:/etc/caddy/Caddyfile:ro' caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null"
-fi
-
-if [ "$LOCAL_COMPOSE_HASH" != "$REMOTE_COMPOSE_HASH" ]; then
-  COMPOSE_CHANGED=1
-  say "staging and validating docker-compose.yml"
-  remote_scp -q "$ROOT/docker-compose.yml" "$HOST:$REMOTE_DIR/docker-compose.yml.next-$RELEASE_ID"
-  remote_ssh "cd '$REMOTE_DIR' && docker compose -f 'docker-compose.yml.next-$RELEASE_ID' config --quiet"
 fi
 
 # Record the currently healthy release. It remains live during repeat-deploy
@@ -590,14 +611,14 @@ if [ -n "$CURRENT_RELEASE" ] && [[ ! "$CURRENT_RELEASE" =~ ^builds/[[:alnum:]_.-
   die "remote current link has an unexpected target"
 fi
 
-# Preserve both live config files before either is promoted. A single-file
-# bind mount follows its inode, so Caddy changes deliberately recreate the
-# stateless site container instead of relying on a reload after atomic rename.
-if [ "$CADDY_CHANGED" = "1" ] || [ "$COMPOSE_CHANGED" = "1" ]; then
+# Preserve the live Caddyfile before it is promoted. A single-file bind mount
+# follows its inode, so a Caddyfile change restarts the stateless site
+# container (bind mounts are re-resolved on start) instead of relying on a
+# reload after the atomic rename.
+if [ "$CADDY_CHANGED" = "1" ]; then
   remote_ssh "set -eu
     mkdir -p '$ROLLBACK_DIR'
-    cp -p '$REMOTE_DIR/Caddyfile' '$ROLLBACK_DIR/Caddyfile'
-    cp -p '$REMOTE_DIR/docker-compose.yml' '$ROLLBACK_DIR/docker-compose.yml'"
+    cp -p '$REMOTE_DIR/Caddyfile' '$ROLLBACK_DIR/Caddyfile'"
 fi
 
 # On the first cutover the old container still serves site/. Seed `current`
@@ -609,30 +630,17 @@ if [ -z "$CURRENT_RELEASE" ]; then
   SYMLINK_SWITCHED=1
 fi
 
-if [ "$CADDY_CHANGED" = "1" ] || [ "$COMPOSE_CHANGED" = "1" ]; then
+if [ "$CADDY_CHANGED" = "1" ]; then
   PROMOTION_STARTED=1
   CONFIG_PROMOTION_ATTEMPTED=1
-  say "promoting validated routing configuration"
+  say "promoting validated Caddyfile"
+  remote_ssh "mv -Tf '$REMOTE_DIR/Caddyfile.next-$RELEASE_ID' '$REMOTE_DIR/Caddyfile'"
 
-  if [ "$CADDY_CHANGED" = "1" ]; then
-    remote_ssh "mv -Tf '$REMOTE_DIR/Caddyfile.next-$RELEASE_ID' '$REMOTE_DIR/Caddyfile'"
-  fi
-  if [ "$COMPOSE_CHANGED" = "1" ]; then
-    remote_ssh "mv -Tf '$REMOTE_DIR/docker-compose.yml.next-$RELEASE_ID' '$REMOTE_DIR/docker-compose.yml'"
-  fi
-
-  # The web container owns the shared middleware. Publish it before the auth
-  # services start referencing the new edge configuration.
-  remote_ssh "cd '$REMOTE_DIR' && docker compose up -d --no-deps --force-recreate inspr-www"
-  ok "inspr-www recreated with validated edge configuration"
-
-  # Reconcile only the two services whose labels own identity routes. No
-  # dependency, image build or database restart is permitted during this edge
-  # promotion; unchanged service definitions remain running as-is.
-  if [ "$COMPOSE_CHANGED" = "1" ]; then
-    remote_ssh "cd '$REMOTE_DIR' && docker compose up -d --no-deps --no-build inspr-auth zitadel"
-    ok "identity edge services reconciled with validated configuration"
-  fi
+  # nixcfg owns the container definition, so the edge is never recreated from
+  # here. A restart is enough: bind mounts are re-resolved on start, which
+  # picks up the renamed file's new inode.
+  remote_ssh "docker restart inspr-www >/dev/null"
+  ok "inspr-www restarted with validated edge configuration"
 else
   ok "routing configuration unchanged"
 fi

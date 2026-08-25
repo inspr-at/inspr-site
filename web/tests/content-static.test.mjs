@@ -165,10 +165,13 @@ test("apex and identity edge routes enforce HTTPS and HSTS", async () => {
   assert.match(deploy, /identity service HTTPS/);
   assert.match(deploy, /identity HTTP upgrade/);
   assert.match(deploy, /Strict-Transport-Security missing/);
-  assert.match(deploy, /docker compose up -d --no-deps --no-build inspr-auth zitadel/);
-  assert.match(deploy, /identity edge services reconciled with validated configuration/);
-  assert.match(deploy, /automatic identity edge rollback needs operator attention/);
-  assert.doesNotMatch(deploy, /docker compose up -d --remove-orphans/);
+  // The containers are declared in nixcfg (OPS-136): deploy.sh must never
+  // reconcile them through the legacy compose project. It may only promote
+  // the bind-mounted Caddyfile and restart the stateless edge to re-bind it.
+  assert.doesNotMatch(deploy, /docker compose/);
+  assert.match(deploy, /docker-compose\.yml differs from the host copy/);
+  assert.match(deploy, /docker restart inspr-www/);
+  assert.match(deploy, /automatic web edge rollback needs operator attention/);
 });
 
 test("product copy contains no em dashes and no hardcoded business host", async () => {
@@ -743,17 +746,28 @@ test("direct SSH deployment overrides preserve one pinned host identity", async 
       ),
     ]);
 
-    const loggingTransport = (name) => `#!/bin/sh
+    // The fake host holds the same docker-compose.yml reference copy as the
+    // fixture (deploy.sh refuses to run otherwise) and no Caddyfile hash, so
+    // the Caddyfile promotion path (scp + validate + restart) is exercised.
+    const composeHash = createHash("sha256").update("services: {}\n").digest("hex");
+    const loggingTransport = (name, respond = "cat >/dev/null") => `#!/bin/sh
 printf '%s' '${name}' >> "$TRANSPORT_LOG"
 for argument in "$@"; do
   printf '\\t%s' "$argument" >> "$TRANSPORT_LOG"
 done
 printf '\\n' >> "$TRANSPORT_LOG"
-cat >/dev/null
+${respond}
 `;
+    const sshResponder = `command=$(cat)
+case "$command" in
+  *sha256sum*docker-compose.yml*) printf '%s\\n' '${composeHash}' ;;
+esac`;
     for (const transport of ["ssh", "scp", "rsync"]) {
       const executable = join(fakeBin, transport);
-      await writeFile(executable, loggingTransport(transport));
+      await writeFile(
+        executable,
+        loggingTransport(transport, transport === "ssh" ? sshResponder : undefined),
+      );
       await chmod(executable, 0o755);
     }
 
@@ -851,5 +865,34 @@ esac
     }
   } finally {
     await rm(fixtureRoot, { recursive: true, force: true });
+  }
+});
+
+test("every content icon and group resolves in ContextIcon and the tile type", async () => {
+  const iconComponent = await source("components/ContextIcon.astro");
+  const mapStart = iconComponent.indexOf("const iconMap = {");
+  assert.ok(mapStart >= 0, "ContextIcon declares iconMap");
+  const mapBlock = iconComponent.slice(mapStart, iconComponent.indexOf("};", mapStart));
+  const iconNames = new Set(
+    [...mapBlock.matchAll(/^\s*(?:"([^"]+)"|([a-z0-9-]+)):/gm)].map((match) => match[1] ?? match[2]),
+  );
+  assert.ok(iconNames.size >= 40, `ContextIcon map parsed only ${iconNames.size} names`);
+
+  const types = await source("content/types.ts");
+  const groupUnion = types.match(/group:\s*((?:"[a-z]+"\s*\|?\s*)+);/);
+  assert.ok(groupUnion, "types.ts declares the specs group union");
+  const groups = new Set([...groupUnion[1].matchAll(/"([a-z]+)"/g)].map((match) => match[1]));
+  assert.ok(groups.size >= 3, `group union parsed only ${groups.size} members`);
+
+  for (const { slug } of products) {
+    const content = await source(`content/${slug}.ts`);
+    const icons = [...content.matchAll(/^\s*icon:\s*"([^"]*)"/gm)].map((match) => match[1]);
+    assert.ok(icons.length > 0, `${slug} declares contextual icons`);
+    for (const icon of icons) {
+      assert.ok(iconNames.has(icon), `${slug}: icon "${icon}" is not registered in ContextIcon`);
+    }
+    for (const [, group] of content.matchAll(/^\s*group:\s*"([^"]*)"/gm)) {
+      assert.ok(groups.has(group), `${slug}: group "${group}" is not in the specs group union`);
+    }
   }
 });

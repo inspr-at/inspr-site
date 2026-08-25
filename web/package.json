@@ -12,6 +12,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "test:content": "node --test tests/content-static.test.mjs",
+    "check": "astro check",
     "captures:check": "node scripts/sync-paimos-captures.mjs --check"
   },
   "dependencies": {
@@ -25,7 +26,10 @@
     "photoswipe": "^5.4.4"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.10",
     "@resvg/resvg-js": "^2.6.2",
-    "satori": "^0.26.0"
+    "@types/node": "^22.20.1",
+    "satori": "^0.26.0",
+    "typescript": "^6.0.3"
   }
 }

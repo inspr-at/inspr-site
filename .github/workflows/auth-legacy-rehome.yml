@@ -1,0 +1,114 @@
+name: auth-legacy-rehome
+
+# INSPR-253 — one-off, dispatch-only. Copies the hand-built 2026-05-11 rescue
+# image of inspr-auth from the PUBLIC package ghcr.io/inspr-at/inspr-auth into
+# the PRIVATE package this repository publishes, byte-for-byte (same manifest
+# digest), so the running build has a durable private rollback target before
+# the public package is deleted. crane copies the manifest as-is; buildx
+# imagetools would wrap it in a new index and change the digest.
+#
+# The copy is cosign-signed as chain-of-custody ("this digest is the rescue
+# build we adopted"), explicitly NOT as build provenance: nothing here can say
+# how the legacy binary was built. Idempotent: re-running with the tag already
+# present at the same digest is a no-op; a different digest fails.
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_digest:
+        description: "Manifest digest of the rescue image in ghcr.io/inspr-at/inspr-auth"
+        required: true
+        default: "sha256:090c82cff2dd3c5efddfb73c445f22c34898d8e9653abd9cbb746ca26125d59f"
+      tag:
+        description: "Tag to create in ghcr.io/inspr-at/inspr-site/inspr-auth"
+        required: true
+        default: "legacy-20260511"
+
+env:
+  SOURCE: ghcr.io/inspr-at/inspr-auth
+  DEST: ghcr.io/inspr-at/inspr-site/inspr-auth
+  SRC_DIGEST: ${{ inputs.source_digest }}
+  TAG: ${{ inputs.tag }}
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+concurrency:
+  group: auth-legacy-rehome
+  cancel-in-progress: false
+
+jobs:
+  rehome:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: validate inputs
+        run: |
+          [[ "${SRC_DIGEST}" =~ ^sha256:[0-9a-f]{64}$ ]] || { echo "source_digest must be sha256:<64 hex>" >&2; exit 1; }
+          [[ "${TAG}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$ ]] || { echo "tag has an invalid form" >&2; exit 1; }
+
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: imjasonh/setup-crane@feee3b6bb0d4c68370f256a4502498c9227e5c6b # v0.7
+        with:
+          version: v0.21.9
+
+      - name: source manifest must exist
+        run: crane manifest "${SOURCE}@${SRC_DIGEST}" >/dev/null
+
+      - name: idempotency guard
+        run: |
+          if existing=$(crane digest "${DEST}:${TAG}" 2>/dev/null); then
+            if [ "${existing}" = "${SRC_DIGEST}" ]; then
+              echo "already re-homed: ${DEST}:${TAG} = ${existing}"
+              echo "REHOMED=1" >> "$GITHUB_ENV"
+            else
+              echo "error: ${DEST}:${TAG} already exists at ${existing}, not ${SRC_DIGEST}; refusing to move a tag" >&2
+              exit 1
+            fi
+          fi
+
+      - name: copy the manifest byte-for-byte
+        if: env.REHOMED != '1'
+        run: crane copy "${SOURCE}@${SRC_DIGEST}" "${DEST}:${TAG}"
+
+      - name: verify the digest is preserved
+        run: |
+          got=$(crane digest "${DEST}:${TAG}")
+          [ "${got}" = "${SRC_DIGEST}" ] || { echo "digest changed on copy: ${got}" >&2; exit 1; }
+          echo "${DEST}:${TAG} = ${got}"
+
+      - uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
+        with:
+          cosign-release: v2.5.2
+
+      - name: sign as chain-of-custody (not build provenance)
+        run: |
+          cosign sign --yes \
+            -a custody=ops136-rescue-build-2026-05-11 \
+            -a provenance=none \
+            -a rehomed-by=auth-legacy-rehome \
+            "${DEST}@${SRC_DIGEST}"
+
+      - name: verify the custody signature
+        run: |
+          cosign verify "${DEST}@${SRC_DIGEST}" \
+            --certificate-identity "https://github.com/${GITHUB_REPOSITORY}/.github/workflows/auth-legacy-rehome.yml@${GITHUB_REF}" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" >/dev/null
+
+      - name: summary
+        run: |
+          {
+            echo "### legacy inspr-auth re-homed"
+            echo
+            echo '```'
+            echo "${DEST}:${TAG}@${SRC_DIGEST}"
+            echo "source: ${SOURCE}@${SRC_DIGEST}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

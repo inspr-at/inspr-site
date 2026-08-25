@@ -1,7 +1,7 @@
 # inspr-auth — multi-stage build, distroless static runtime.
 # Builds to ~12MB image, no shell, no package manager, no glibc.
 
-FROM golang:1.23-alpine AS build
+FROM golang:1.26-alpine AS build
 WORKDIR /src
 
 # Cache mod downloads as a separate layer.

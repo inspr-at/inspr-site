@@ -551,7 +551,7 @@ export const paimosContent = {
         {
           title: "Durable agent handoffs",
           body:
-            "Claude Code, Codex and opt-in Grok Build sessions can exchange project-scoped messages through a durable ledger while vendor-native endpoints remain the delivery path. Sender allowlists, typed action holds and an untrusted-data frame keep every delivered body inside an explicit security boundary.",
+            "Codex, Claude Code and Grok Bot receivers exchange project-scoped messages through a durable ledger while vendor-native endpoints remain the delivery path. Messages carry simple or steer intent, receiver targets are encrypted and versioned, and delivery uses exact vendor primitives: Codex queue or mid-turn steer, Claude Code channel pushes and Grok Bot routine wake-ups over HTTPS, with a deterministic simple fallback. Sender allowlists, typed action holds and an untrusted-data frame keep every delivered body inside an explicit security boundary.",
           meta: "Attributable threads without turning Paimos into an inference proxy",
           reference: {
             label: "Agent message security",

@@ -378,6 +378,8 @@ test("Paimos public evidence keeps release and capture provenance honest", async
   assert.match(content, /repository authority remains local/);
   assert.match(content, /label: "Agent run evidence"[\s\S]*?docsUrl\("AGENT_INTEGRATION\.md"\)/);
   assert.match(content, /title: "Durable agent handoffs"/);
+  assert.match(content, /Messages carry simple or steer intent, receiver targets are encrypted and versioned/);
+  assert.match(content, /Codex queue or mid-turn steer, Claude Code channel pushes and Grok Bot routine wake-ups over HTTPS/);
   assert.match(content, /Sender allowlists, typed action holds and an untrusted-data frame/);
   assert.match(content, /label: "Agent message security"[\s\S]*?docsUrl\("AGENT_MESSAGE_SECURITY\.md"\)/);
   assert.match(productPage, /id="trust"/);

@@ -497,6 +497,21 @@ test("Aithema joins the product family at its public visitor home", async () => 
   assert.doesNotMatch(footer, /All software projects: AGPL-3\.0-only/);
 });
 
+test("the self-hosting answer separates open repositories from the hosted Aithema service", async () => {
+  const umbrella = await source("pages/index.astro");
+  const answer = umbrella.match(
+    /<summary>Can we run the products ourselves\?<\/summary>([\s\S]*?)<\/details>/,
+  )?.[1] ?? "";
+
+  assert.match(answer, /Paimos, Pharos and Janus/);
+  assert.match(answer, /open-source repositories and licenses/);
+  assert.match(answer, /run them yourself/);
+  assert.match(answer, /Aithema is Augmentoring's hosted\s+public service/);
+  assert.match(answer, /not an open-source repository or a\s+self-hosting offer/);
+  assert.doesNotMatch(answer, /(?:all|every) product/i);
+  assert.doesNotMatch(answer, /^\s*<p>\s*Yes\./);
+});
+
 test("Aithema metadata names requirements alongside the three established domains", async () => {
   const umbrella = await source("pages/index.astro");
 

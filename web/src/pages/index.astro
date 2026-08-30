@@ -187,10 +187,10 @@ const continuitySteps = [
 
 <MicrositeLayout
   title="INSPR | A technology umbrella for people and AI agents"
-  description="INSPR is a technology umbrella that keeps project context, fleet state, secret governance and operating doctrine coherent for people and AI agents."
+  description="INSPR is a technology umbrella that keeps requirements, project context, fleet state, secret governance and operating doctrine coherent for people and AI agents."
   canonical={canonicalUrl}
   ogImage={ogImage}
-  ogImageAlt="The INSPR product constellation around a shared operating core"
+  ogImageAlt="The INSPR requirements, project, fleet and governance constellation around a shared operating core"
   favicon={insprLogo.src}
   theme="inspr"
 >
@@ -239,7 +239,7 @@ const continuitySteps = [
           id="inspr"
           poster={insprHero}
           video={insprHeroLoop}
-          alt="A luminous INSPR core connecting project, fleet and governance tools"
+          alt="A luminous INSPR core connecting requirements, project, fleet and governance tools"
           sizes="(min-width: 64rem) 54vw, 100vw"
         />
         <figcaption>
@@ -355,22 +355,22 @@ const continuitySteps = [
           aria-labelledby="product-aithema-link"
         >
           <span class="aithema-story__identity" aria-hidden="true">
-            <small>Requirements</small>
             <strong>Aithema</strong>
             <span>AI-Thema</span>
           </span>
           <span class="aithema-story__copy">
             <span class="eyebrow">Requirements</span>
-            <span class="aithema-story__title">
+            <h3 id="product-aithema-link">Aithema</h3>
+            <h4>
               Turn an open conversation into requirements people can act on.
-            </span>
-            <span>
+            </h4>
+            <p>
               Aithema (pronounced AI-Thema) guides a conversation from intent through
-              constraints to a concrete understanding, while keeping the public visitor
-              experience at start.augmentoring.com.
-            </span>
+              constraints to a concrete understanding. Its public visitor experience is
+              at start.augmentoring.com.
+            </p>
             <span class="product-story__detail">Conversation · understanding · requirements</span>
-            <span class="text-link" id="product-aithema-link">
+            <span class="text-link">
               Explore Aithema <span aria-hidden="true">→</span>
               <span class="visually-hidden"> (opens in a new tab)</span>
             </span>
@@ -879,6 +879,7 @@ const continuitySteps = [
   }
 
   .aithema-story__identity {
+    container-type: inline-size;
     display: grid;
     min-height: 19rem;
     place-content: center;
@@ -901,26 +902,21 @@ const continuitySteps = [
     box-shadow: 0 2rem 4.5rem rgb(35 64 68 / 0.19);
   }
 
-  .aithema-story__identity small,
   .aithema-story__identity span {
     font-family: var(--font-mono, monospace);
     text-transform: uppercase;
   }
 
-  .aithema-story__identity small {
-    color: var(--accent, #0e7772);
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-  }
-
   .aithema-story__identity strong {
+    max-inline-size: 100%;
     margin-block: 0.35rem;
     font-family: var(--font-display, "Fraunces Variable"), serif;
-    font-size: clamp(3rem, 7vw, 6rem);
-    font-weight: 450;
+    font-size: clamp(1.875rem, 12cqi, 4.75rem);
+    font-variation-settings: "opsz" 90, "wght" 420, "SOFT" 12, "WONK" 0;
+    font-weight: 420;
     letter-spacing: -0.045em;
     line-height: 1;
+    overflow-wrap: anywhere;
   }
 
   .aithema-story__identity span {
@@ -934,18 +930,27 @@ const continuitySteps = [
     max-width: 40rem;
   }
 
-  .aithema-story__title {
+  .aithema-story__copy h3 {
+    margin: 0;
+    font-variation-settings: "opsz" 90, "wght" 420, "SOFT" 12, "WONK" 0;
+    font-size: clamp(2rem, 3vw, 2.8rem);
+    font-weight: 420;
+  }
+
+  .aithema-story__copy h4 {
     max-width: 18ch;
     margin-block: 0.45rem 1.25rem;
     font-family: var(--font-display, "Fraunces Variable"), serif;
+    font-variation-settings: "opsz" 90, "wght" 420, "SOFT" 12, "WONK" 0;
     font-size: clamp(2rem, 3.25vw, 3.5rem);
-    font-weight: 450;
+    font-weight: 420;
     letter-spacing: -0.035em;
     line-height: 1.05;
     text-wrap: balance;
   }
 
-  .aithema-story__copy > span:not(.eyebrow, .aithema-story__title, .product-story__detail, .text-link) {
+  .aithema-story__copy > p {
+    margin: 0;
     color: var(--text-soft, #526269);
     font-size: 1.08rem;
     line-height: 1.7;
@@ -1296,6 +1301,12 @@ const continuitySteps = [
 
     .identity-utility__links {
       grid-column: 2;
+    }
+  }
+
+  @media (max-width: 60rem) {
+    .aithema-story {
+      grid-template-columns: 1fr;
     }
   }
 

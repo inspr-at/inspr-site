@@ -11,9 +11,9 @@ This repository powers the English-language INSPR site family:
 - [v1.inspr.at](https://v1.inspr.at) - the frozen pre-relaunch archive.
 
 The fourth product is **Aithema** (pronounced **AI-Thema**), the requirements
-product. Its established public visitor home remains
-[start.augmentoring.com](https://start.augmentoring.com); it is linked from the
-shared product navigation but is not built or hosted by this repository.
+product at [start.augmentoring.com](https://start.augmentoring.com). This
+repository links to that visitor experience from the shared product navigation;
+it does not build or host it.
 
 The product sites are intentionally lightweight. They explain what the current
 software does, where its boundaries are, how to inspect the source, and where

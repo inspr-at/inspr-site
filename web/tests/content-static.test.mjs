@@ -470,12 +470,13 @@ test("the July 18 editorial product showcase remains accessible", async () => {
   assert.doesNotMatch(showcase, /<a class="product-story__visual"/);
   assert.match(showcase, /class="aithema-story"/);
   assert.match(showcase, /href=\{siteUrls\.aithema\}/);
-  assert.match(showcase, />Aithema</);
+  assert.match(showcase, /<h3 id="product-aithema-link">Aithema<\/h3>/);
   assert.match(showcase, /AI-Thema/);
   assert.match(showcase, /start\.augmentoring\.com/);
+  assert.equal(showcase.match(/>Requirements</g)?.length, 1);
 });
 
-test("Aithema joins the product family without renaming its public visitor URL", async () => {
+test("Aithema joins the product family at its public visitor home", async () => {
   const urls = await source("content/urls.ts");
   const footer = await source("components/MicrositeFooter.astro");
 
@@ -485,6 +486,64 @@ test("Aithema joins the product family without renaming its public visitor URL",
   assert.doesNotMatch(urls, /aithema\.inspr\.at/);
   assert.match(footer, /Open-source repositories: AGPL-3\.0-only/);
   assert.doesNotMatch(footer, /All software projects: AGPL-3\.0-only/);
+});
+
+test("Aithema metadata names requirements alongside the three established domains", async () => {
+  const umbrella = await source("pages/index.astro");
+
+  assert.match(
+    umbrella,
+    /description="INSPR is a technology umbrella that keeps requirements, project context, fleet state, secret governance and operating doctrine coherent for people and AI agents\."/,
+  );
+  assert.match(
+    umbrella,
+    /ogImageAlt="The INSPR requirements, project, fleet and governance constellation around a shared operating core"/,
+  );
+});
+
+test("the Aithema wordmark stays inside its card at responsive review widths", async () => {
+  const umbrella = await source("pages/index.astro");
+  const identityRule = umbrella.match(/\.aithema-story__identity \{([\s\S]*?)\n  \}/)?.[1] ?? "";
+  const wordmarkRule = umbrella.match(/\.aithema-story__identity strong \{([\s\S]*?)\n  \}/)?.[1] ?? "";
+  const fontClamp = wordmarkRule.match(
+    /font-size: clamp\(([\d.]+)rem, ([\d.]+)cqi, ([\d.]+)rem\)/,
+  );
+
+  assert.match(identityRule, /container-type: inline-size/);
+  assert.match(wordmarkRule, /max-inline-size: 100%/);
+  assert.match(wordmarkRule, /overflow-wrap: anywhere/);
+  assert.match(
+    wordmarkRule,
+    /font-variation-settings: "opsz" 90, "wght" 420, "SOFT" 12, "WONK" 0/,
+  );
+  assert.match(
+    umbrella,
+    /@media \(max-width: 60rem\) \{\s+\.aithema-story \{\s+grid-template-columns: 1fr;/,
+  );
+  assert.ok(fontClamp, "Aithema wordmark needs a rem/cqi/rem clamp");
+
+  const [, minimumRem, fluidCqi, maximumRem] = fontClamp.map(Number);
+  const clamp = (minimum, value, maximum) => Math.min(maximum, Math.max(minimum, value));
+  const fallbackAdvanceEm = 1;
+
+  for (const viewport of [900, 1200, 1440]) {
+    const gutter = clamp(1.1 * 16, viewport * 0.04, 3.5 * 16);
+    const shell = Math.min(viewport - 2 * gutter, 88 * 16);
+    const gap = clamp(2 * 16, viewport * 0.06, 6.5 * 16);
+    const visual = viewport <= 60 * 16
+      ? shell
+      : (shell - gap) * (0.72 / (0.72 + 1.28));
+    const padding = clamp(2 * 16, viewport * 0.05, 4 * 16);
+    const content = visual - 2 * padding;
+    const fontSize = clamp(minimumRem * 16, content * (fluidCqi / 100), maximumRem * 16);
+    const fallbackWordmark = "Aithema".length * fallbackAdvanceEm * fontSize;
+
+    assert.ok(content > 0, `${viewport}px must leave a positive wordmark content box`);
+    assert.ok(
+      fallbackWordmark <= content,
+      `${viewport}px must contain Aithema even at a conservative 1em fallback advance`,
+    );
+  }
 });
 
 test("interactive explorers use one five-second, pause-only lifecycle", async () => {

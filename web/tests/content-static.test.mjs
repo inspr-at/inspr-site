@@ -470,7 +470,11 @@ test("the July 18 editorial product showcase remains accessible", async () => {
   assert.doesNotMatch(showcase, /<a class="product-story__visual"/);
   assert.match(showcase, /class="aithema-story"/);
   assert.match(showcase, /href=\{siteUrls\.aithema\}/);
-  assert.match(showcase, /<h3 id="product-aithema-link">Aithema<\/h3>/);
+  assert.match(showcase, /<h3>Aithema<\/h3>/);
+  assert.match(
+    showcase,
+    /<span class="text-link" id="product-aithema-link">\s+Explore Aithema <span aria-hidden="true">→<\/span>\s+<span class="visually-hidden"> \(opens in a new tab\)<\/span>\s+<\/span>/,
+  );
   assert.match(showcase, /AI-Thema/);
   assert.match(showcase, /start\.augmentoring\.com/);
   assert.equal(showcase.match(/>Requirements</g)?.length, 1);

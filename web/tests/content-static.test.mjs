@@ -454,7 +454,7 @@ test("the July 18 editorial product showcase remains accessible", async () => {
   const productEnd = umbrella.indexOf('<section\n      class="identity-utility');
   const showcase = umbrella.slice(productStart, productEnd);
 
-  assert.match(umbrella, /Three focused tools\. One coherent way of working\./);
+  assert.match(umbrella, /Four focused products\. One coherent way of working\./);
   assert.ok(productStart >= 0 && productEnd > productStart);
   assert.match(showcase, /data-section-pattern="editorial-product-stories"/);
   assert.match(showcase, /class="product-showcase"/);
@@ -468,6 +468,23 @@ test("the July 18 editorial product showcase remains accessible", async () => {
   assert.match(umbrella, /\.product-story-link:focus-visible/);
   assert.doesNotMatch(showcase, /ProductConstellation|product-constellation/);
   assert.doesNotMatch(showcase, /<a class="product-story__visual"/);
+  assert.match(showcase, /class="aithema-story"/);
+  assert.match(showcase, /href=\{siteUrls\.aithema\}/);
+  assert.match(showcase, />Aithema</);
+  assert.match(showcase, /AI-Thema/);
+  assert.match(showcase, /start\.augmentoring\.com/);
+});
+
+test("Aithema joins the product family without renaming its public visitor URL", async () => {
+  const urls = await source("content/urls.ts");
+  const footer = await source("components/MicrositeFooter.astro");
+
+  assert.match(urls, /aithema: "https:\/\/start\.augmentoring\.com"/);
+  assert.match(urls, /aithema: "Requirements"/);
+  assert.match(urls, /\{ label: "Aithema", role: productTaxonomy\.aithema, href: siteUrls\.aithema \}/);
+  assert.doesNotMatch(urls, /aithema\.inspr\.at/);
+  assert.match(footer, /Open-source repositories: AGPL-3\.0-only/);
+  assert.doesNotMatch(footer, /All software projects: AGPL-3\.0-only/);
 });
 
 test("interactive explorers use one five-second, pause-only lifecycle", async () => {

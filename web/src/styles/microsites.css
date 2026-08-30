@@ -32,7 +32,7 @@
     --radius-md: 1.25rem;
     --radius-lg: clamp(1.4rem, 2.3vw, 2.25rem);
     --shell: 88rem;
-    --gutter: clamp(1.1rem, 4vw, 3.5rem);
+    --gutter: clamp(1.25rem, 4cqi, 3rem);
     --section-space: clamp(5rem, 10vw, 9rem);
     --ease: cubic-bezier(0.22, 1, 0.36, 1);
     color-scheme: light;

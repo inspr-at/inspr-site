@@ -358,23 +358,26 @@ const continuitySteps = [
             <strong>Aithema</strong>
             <span>AI-Thema</span>
           </span>
-          <span class="aithema-story__copy">
+          <div class="aithema-story__copy">
             <span class="eyebrow">Requirements</span>
             <h3>Aithema</h3>
             <h4>
-              Turn an open conversation into requirements people can act on.
+              Turn an open conversation into a concrete service proposal.
             </h4>
             <p>
-              Aithema (pronounced AI-Thema) guides a conversation from intent through
-              constraints to a concrete understanding. Its public visitor experience is
-              at start.augmentoring.com.
+              Aithema (pronounced AI-Thema) is Augmentoring's conversational intake and
+              qualification service, not an open-source product repository. You enter with
+              your role and email, verify through a magic link without being blocked by it,
+              then speak, type or share files. You receive an AI-assisted analysis, a guided
+              discussion and finally a concrete service proposal, with human handoff where
+              automation is not proven. The public service is at start.augmentoring.com.
             </p>
-            <span class="product-story__detail">Conversation · understanding · requirements</span>
+            <p class="product-story__detail">Conversation · qualification · service proposal</p>
             <span class="text-link" id="product-aithema-link">
               Explore Aithema <span aria-hidden="true">→</span>
               <span class="visually-hidden"> (opens in a new tab)</span>
             </span>
-          </span>
+          </div>
         </a>
       </div>
     </section>
@@ -911,7 +914,7 @@ const continuitySteps = [
     max-inline-size: 100%;
     margin-block: 0.35rem;
     font-family: var(--font-display, "Fraunces Variable"), serif;
-    font-size: clamp(1.875rem, 12cqi, 4.75rem);
+    font-size: clamp(1.75rem, 12cqi, 4.75rem);
     font-variation-settings: "opsz" 90, "wght" 420, "SOFT" 12, "WONK" 0;
     font-weight: 420;
     letter-spacing: -0.045em;
@@ -949,7 +952,7 @@ const continuitySteps = [
     text-wrap: balance;
   }
 
-  .aithema-story__copy > p {
+  .aithema-story__copy > p:not(.product-story__detail) {
     margin: 0;
     color: var(--text-soft, #526269);
     font-size: 1.08rem;

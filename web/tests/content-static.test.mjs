@@ -471,6 +471,11 @@ test("the July 18 editorial product showcase remains accessible", async () => {
   assert.match(showcase, /class="aithema-story"/);
   assert.match(showcase, /href=\{siteUrls\.aithema\}/);
   assert.match(showcase, /<h3>Aithema<\/h3>/);
+  assert.match(showcase, /<div class="aithema-story__copy">/);
+  assert.match(showcase, /<p class="product-story__detail">/);
+  assert.match(showcase, /conversational intake and\s+qualification service/);
+  assert.match(showcase, /not an open-source product repository/);
+  assert.match(showcase, /finally a concrete service proposal/);
   assert.match(
     showcase,
     /<span class="text-link" id="product-aithema-link">\s+Explore Aithema <span aria-hidden="true">→<\/span>\s+<span class="visually-hidden"> \(opens in a new tab\)<\/span>\s+<\/span>/,
@@ -507,10 +512,15 @@ test("Aithema metadata names requirements alongside the three established domain
 
 test("the Aithema wordmark stays inside its card at responsive review widths", async () => {
   const umbrella = await source("pages/index.astro");
+  const tokens = await source("styles/tokens.css");
+  const microsites = await source("styles/microsites.css");
   const identityRule = umbrella.match(/\.aithema-story__identity \{([\s\S]*?)\n  \}/)?.[1] ?? "";
   const wordmarkRule = umbrella.match(/\.aithema-story__identity strong \{([\s\S]*?)\n  \}/)?.[1] ?? "";
   const fontClamp = wordmarkRule.match(
     /font-size: clamp\(([\d.]+)rem, ([\d.]+)cqi, ([\d.]+)rem\)/,
+  );
+  const gutterClamp = tokens.match(
+    /--gutter:\s*clamp\(([\d.]+)rem,\s*([\d.]+)cqi,\s*([\d.]+)rem\)/,
   );
 
   assert.match(identityRule, /container-type: inline-size/);
@@ -520,18 +530,26 @@ test("the Aithema wordmark stays inside its card at responsive review widths", a
     wordmarkRule,
     /font-variation-settings: "opsz" 90, "wght" 420, "SOFT" 12, "WONK" 0/,
   );
+  assert.match(microsites, /--gutter:\s*clamp\(1\.25rem, 4cqi, 3rem\)/);
   assert.match(
     umbrella,
     /@media \(max-width: 60rem\) \{\s+\.aithema-story \{\s+grid-template-columns: 1fr;/,
   );
   assert.ok(fontClamp, "Aithema wordmark needs a rem/cqi/rem clamp");
+  assert.ok(gutterClamp, "the shipped gutter must remain a rem/cqi/rem clamp");
+  assert.deepEqual(gutterClamp.slice(1), ["1.25", "4", "3"]);
 
   const [, minimumRem, fluidCqi, maximumRem] = fontClamp.map(Number);
+  const [, gutterMinimumRem, gutterFluidCqi, gutterMaximumRem] = gutterClamp.map(Number);
   const clamp = (minimum, value, maximum) => Math.min(maximum, Math.max(minimum, value));
   const fallbackAdvanceEm = 1;
 
-  for (const viewport of [900, 1200, 1440]) {
-    const gutter = clamp(1.1 * 16, viewport * 0.04, 3.5 * 16);
+  for (const viewport of [900, 961, 1200, 1440]) {
+    const gutter = clamp(
+      gutterMinimumRem * 16,
+      viewport * (gutterFluidCqi / 100),
+      gutterMaximumRem * 16,
+    );
     const shell = Math.min(viewport - 2 * gutter, 88 * 16);
     const gap = clamp(2 * 16, viewport * 0.06, 6.5 * 16);
     const visual = viewport <= 60 * 16

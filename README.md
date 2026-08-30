@@ -1,6 +1,6 @@
 # INSPR Sites
 
-**One umbrella, three focused products, one coherent public surface.**
+**One umbrella, four focused products, one coherent public surface.**
 
 This repository powers the English-language INSPR site family:
 
@@ -9,6 +9,11 @@ This repository powers the English-language INSPR site family:
 - [pharos.inspr.at](https://pharos.inspr.at) - clear fleet operations;
 - [janus.inspr.at](https://janus.inspr.at) - policy-bound secret use;
 - [v1.inspr.at](https://v1.inspr.at) - the frozen pre-relaunch archive.
+
+The fourth product is **Aithema** (pronounced **AI-Thema**), the requirements
+product at [start.augmentoring.com](https://start.augmentoring.com). This
+repository links to that visitor experience from the shared product navigation;
+it does not build or host it.
 
 The product sites are intentionally lightweight. They explain what the current
 software does, where its boundaries are, how to inspect the source, and where
@@ -212,8 +217,9 @@ bootstrap token. The checked `.env.example` contains placeholders only.
 - [Janus](https://github.com/inspr-at/janus)
 - [INSPR operating modules](https://github.com/inspr-at/inspr-modules)
 
-All three product repositories use `AGPL-3.0-only`. Each product page links
-to its source, project license, official AGPL text, and professional services.
+The three open-source product repositories use `AGPL-3.0-only`. Each hosted
+product page links to its source, project license, official AGPL text, and
+professional services.
 
 ## License
 

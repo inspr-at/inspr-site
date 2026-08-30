@@ -454,7 +454,7 @@ test("the July 18 editorial product showcase remains accessible", async () => {
   const productEnd = umbrella.indexOf('<section\n      class="identity-utility');
   const showcase = umbrella.slice(productStart, productEnd);
 
-  assert.match(umbrella, /Three focused tools\. One coherent way of working\./);
+  assert.match(umbrella, /Four focused products\. One coherent way of working\./);
   assert.ok(productStart >= 0 && productEnd > productStart);
   assert.match(showcase, /data-section-pattern="editorial-product-stories"/);
   assert.match(showcase, /class="product-showcase"/);
@@ -468,6 +468,119 @@ test("the July 18 editorial product showcase remains accessible", async () => {
   assert.match(umbrella, /\.product-story-link:focus-visible/);
   assert.doesNotMatch(showcase, /ProductConstellation|product-constellation/);
   assert.doesNotMatch(showcase, /<a class="product-story__visual"/);
+  assert.match(showcase, /class="aithema-story"/);
+  assert.match(showcase, /href=\{siteUrls\.aithema\}/);
+  assert.match(showcase, /<h3>Aithema<\/h3>/);
+  assert.match(showcase, /<div class="aithema-story__copy">/);
+  assert.match(showcase, /<p class="product-story__detail">/);
+  assert.match(showcase, /conversational intake and\s+qualification service/);
+  assert.match(showcase, /not an open-source product repository/);
+  assert.match(showcase, /finally a concrete service proposal/);
+  assert.match(
+    showcase,
+    /<span class="text-link" id="product-aithema-link">\s+Explore Aithema <span aria-hidden="true">→<\/span>\s+<span class="visually-hidden"> \(opens in a new tab\)<\/span>\s+<\/span>/,
+  );
+  assert.match(showcase, /AI-Thema/);
+  assert.match(showcase, /start\.augmentoring\.com/);
+  assert.equal(showcase.match(/>Requirements</g)?.length, 1);
+});
+
+test("Aithema joins the product family at its public visitor home", async () => {
+  const urls = await source("content/urls.ts");
+  const footer = await source("components/MicrositeFooter.astro");
+
+  assert.match(urls, /aithema: "https:\/\/start\.augmentoring\.com"/);
+  assert.match(urls, /aithema: "Requirements"/);
+  assert.match(urls, /\{ label: "Aithema", role: productTaxonomy\.aithema, href: siteUrls\.aithema \}/);
+  assert.doesNotMatch(urls, /aithema\.inspr\.at/);
+  assert.match(footer, /Open-source repositories: AGPL-3\.0-only/);
+  assert.doesNotMatch(footer, /All software projects: AGPL-3\.0-only/);
+});
+
+test("the self-hosting answer separates open repositories from the hosted Aithema service", async () => {
+  const umbrella = await source("pages/index.astro");
+  const answer = umbrella.match(
+    /<summary>Can we run the products ourselves\?<\/summary>([\s\S]*?)<\/details>/,
+  )?.[1] ?? "";
+
+  assert.match(answer, /Paimos, Pharos and Janus/);
+  assert.match(answer, /open-source repositories and licenses/);
+  assert.match(answer, /run them yourself/);
+  assert.match(answer, /Aithema is Augmentoring's hosted\s+public service/);
+  assert.match(answer, /not an open-source repository or a\s+self-hosting offer/);
+  assert.doesNotMatch(answer, /(?:all|every) product/i);
+  assert.doesNotMatch(answer, /^\s*<p>\s*Yes\./);
+});
+
+test("Aithema metadata names requirements alongside the three established domains", async () => {
+  const umbrella = await source("pages/index.astro");
+
+  assert.match(
+    umbrella,
+    /description="INSPR is a technology umbrella that keeps requirements, project context, fleet state, secret governance and operating doctrine coherent for people and AI agents\."/,
+  );
+  assert.match(
+    umbrella,
+    /ogImageAlt="The INSPR requirements, project, fleet and governance constellation around a shared operating core"/,
+  );
+});
+
+test("the Aithema wordmark stays inside its card at responsive review widths", async () => {
+  const umbrella = await source("pages/index.astro");
+  const tokens = await source("styles/tokens.css");
+  const microsites = await source("styles/microsites.css");
+  const identityRule = umbrella.match(/\.aithema-story__identity \{([\s\S]*?)\n  \}/)?.[1] ?? "";
+  const wordmarkRule = umbrella.match(/\.aithema-story__identity strong \{([\s\S]*?)\n  \}/)?.[1] ?? "";
+  const fontClamp = wordmarkRule.match(
+    /font-size: clamp\(([\d.]+)rem, ([\d.]+)cqi, ([\d.]+)rem\)/,
+  );
+  const gutterClamp = tokens.match(
+    /--gutter:\s*clamp\(([\d.]+)rem,\s*([\d.]+)cqi,\s*([\d.]+)rem\)/,
+  );
+
+  assert.match(identityRule, /container-type: inline-size/);
+  assert.match(wordmarkRule, /max-inline-size: 100%/);
+  assert.match(wordmarkRule, /overflow-wrap: anywhere/);
+  assert.match(
+    wordmarkRule,
+    /font-variation-settings: "opsz" 90, "wght" 420, "SOFT" 12, "WONK" 0/,
+  );
+  assert.match(microsites, /--gutter:\s*clamp\(1\.25rem, 4cqi, 3rem\)/);
+  assert.match(
+    umbrella,
+    /@media \(max-width: 60rem\) \{\s+\.aithema-story \{\s+grid-template-columns: 1fr;/,
+  );
+  assert.ok(fontClamp, "Aithema wordmark needs a rem/cqi/rem clamp");
+  assert.ok(gutterClamp, "the shipped gutter must remain a rem/cqi/rem clamp");
+  assert.deepEqual(gutterClamp.slice(1), ["1.25", "4", "3"]);
+
+  const [, minimumRem, fluidCqi, maximumRem] = fontClamp.map(Number);
+  const [, gutterMinimumRem, gutterFluidCqi, gutterMaximumRem] = gutterClamp.map(Number);
+  const clamp = (minimum, value, maximum) => Math.min(maximum, Math.max(minimum, value));
+  const fallbackAdvanceEm = 1;
+
+  for (const viewport of [900, 961, 1200, 1440]) {
+    const gutter = clamp(
+      gutterMinimumRem * 16,
+      viewport * (gutterFluidCqi / 100),
+      gutterMaximumRem * 16,
+    );
+    const shell = Math.min(viewport - 2 * gutter, 88 * 16);
+    const gap = clamp(2 * 16, viewport * 0.06, 6.5 * 16);
+    const visual = viewport <= 60 * 16
+      ? shell
+      : (shell - gap) * (0.72 / (0.72 + 1.28));
+    const padding = clamp(2 * 16, viewport * 0.05, 4 * 16);
+    const content = visual - 2 * padding;
+    const fontSize = clamp(minimumRem * 16, content * (fluidCqi / 100), maximumRem * 16);
+    const fallbackWordmark = "Aithema".length * fallbackAdvanceEm * fontSize;
+
+    assert.ok(content > 0, `${viewport}px must leave a positive wordmark content box`);
+    assert.ok(
+      fallbackWordmark <= content,
+      `${viewport}px must contain Aithema even at a conservative 1em fallback advance`,
+    );
+  }
 });
 
 test("interactive explorers use one five-second, pause-only lifecycle", async () => {

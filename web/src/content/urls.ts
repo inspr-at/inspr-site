@@ -6,6 +6,7 @@ export const siteUrls = {
   paimos: "https://paimos.inspr.at",
   pharos: "https://pharos.inspr.at",
   janus: "https://janus.inspr.at",
+  aithema: "https://start.augmentoring.com",
   identity: "https://auth.inspr.at",
   signIn: "https://inspr.at/login",
   agpl: "https://www.gnu.org/licenses/agpl-3.0.html",
@@ -18,6 +19,7 @@ export const productTaxonomy = {
   paimos: "Project context",
   pharos: "Fleet state and backup evidence",
   janus: "Secret governance",
+  aithema: "Requirements",
 } as const;
 
 export const productLinks = [
@@ -25,4 +27,5 @@ export const productLinks = [
   { label: "Paimos", role: productTaxonomy.paimos, href: siteUrls.paimos },
   { label: "Pharos", role: productTaxonomy.pharos, href: siteUrls.pharos },
   { label: "Janus", role: productTaxonomy.janus, href: siteUrls.janus },
+  { label: "Aithema", role: productTaxonomy.aithema, href: siteUrls.aithema },
 ] as const;

@@ -4,8 +4,8 @@ name: auth-image
 # GHCR so the image running on csb1 has a reproducible, versioned source.
 #
 #   pull_request touching auth/   build + vulnerability gate, no push
-#   push to main touching auth/   publish :main and :sha-<commit>
-#   tag auth-vX.Y.Z               publish the immutable :X.Y.Z and :latest;
+#   push to main touching auth/   scan, sign, then publish :main and :sha-<commit>
+#   tag auth-vX.Y.Z               scan and sign, then publish immutable :X.Y.Z and :latest;
 #                                 an already-published version fails the run
 #
 # Every published image carries BuildKit SLSA provenance and an SPDX SBOM and
@@ -21,14 +21,17 @@ on:
     paths:
       - "auth/**"
       - ".github/workflows/auth-image.yml"
+      - ".github/tests/test_auth_image_workflow.py"
   pull_request:
     paths:
       - "auth/**"
       - ".github/workflows/auth-image.yml"
+      - ".github/tests/test_auth_image_workflow.py"
   workflow_dispatch:
 
 env:
   IMAGE: ghcr.io/inspr-at/inspr-site/inspr-auth
+  SCAN_IMAGE: ghcr.io/inspr-at/inspr-site/inspr-auth:scan-${{ github.run_id }}-${{ github.run_attempt }}
 
 permissions:
   contents: read
@@ -45,6 +48,9 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: test fail-closed publication contract
+        run: .github/tests/test_auth_image_workflow.py
 
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
@@ -85,20 +91,19 @@ jobs:
             exit 1
           fi
 
-      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
-        id: build
+      - name: build image for local scan
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: auth
           platforms: linux/amd64
-          # pull requests load the single pr-<n> tag into the local daemon so
-          # the scan gate runs before merge; every other event pushes
-          push: ${{ github.event_name != 'pull_request' }}
-          load: ${{ github.event_name == 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
+          # The only pre-scan output is a runner-local staging name. Release
+          # tags cannot reach GHCR through this build.
+          push: false
+          load: true
+          tags: ${{ env.SCAN_IMAGE }}
           labels: ${{ steps.meta.outputs.labels }}
-          # attestations need a registry export; PR builds only prove the build
-          provenance: ${{ github.event_name != 'pull_request' && 'mode=max' || 'false' }}
-          sbom: ${{ github.event_name != 'pull_request' }}
+          provenance: false
+          sbom: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -109,7 +114,7 @@ jobs:
       - name: scan image for fixable CRITICAL/HIGH vulnerabilities
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
-          image-ref: ${{ github.event_name == 'pull_request' && format('{0}:pr-{1}', env.IMAGE, github.event.pull_request.number) || format('{0}@{1}', env.IMAGE, steps.build.outputs.digest) }}
+          image-ref: ${{ env.SCAN_IMAGE }}
           version: v0.72.0
           format: table
           exit-code: "1"
@@ -118,10 +123,46 @@ jobs:
           severity: CRITICAL,HIGH
           scanners: vuln
 
+      # A non-PR build is exported without a tag after the scan passes. Buildx
+      # addresses it canonically by digest, preserving provenance and SBOM,
+      # while the warmed cache makes this a no-op rebuild of the scanned input.
+      - name: publish release image by digest
+        if: github.event_name != 'pull_request'
+        id: release
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: auth
+          platforms: linux/amd64
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
+          provenance: mode=max
+          sbom: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: verify pushed image is the scanned image
+        if: github.event_name != 'pull_request'
+        env:
+          DIGEST: ${{ steps.release.outputs.digest }}
+        run: |
+          SCANNED_CONFIG=$(docker image inspect --format '{{.Id}}' "${SCAN_IMAGE}")
+          PLATFORM_DIGEST=$(
+            docker buildx imagetools inspect "${IMAGE}@${DIGEST}" --format '{{json .Manifest}}' |
+              jq -er '[.manifests[] | select(.platform.os == "linux" and .platform.architecture == "amd64")] | if length == 1 then .[0].digest else error("expected exactly one linux/amd64 manifest") end'
+          )
+          PUSHED_CONFIG=$(
+            docker buildx imagetools inspect --raw "${IMAGE}@${PLATFORM_DIGEST}" |
+              jq -er '.config.digest'
+          )
+          if [ "${SCANNED_CONFIG}" != "${PUSHED_CONFIG}" ]; then
+            echo "error: pushed image config does not match the image that passed Trivy" >&2
+            exit 1
+          fi
+
       - name: verify embedded provenance and SBOM
         if: github.event_name != 'pull_request'
         env:
-          DIGEST: ${{ steps.build.outputs.digest }}
+          DIGEST: ${{ steps.release.outputs.digest }}
         run: |
           provenance=$(docker buildx imagetools inspect "${IMAGE}@${DIGEST}" --format '{{ json .Provenance.SLSA }}')
           sbom=$(docker buildx imagetools inspect "${IMAGE}@${DIGEST}" --format '{{ json .SBOM.SPDX }}')
@@ -144,22 +185,57 @@ jobs:
       - name: sign image digest with GitHub OIDC
         if: github.event_name != 'pull_request'
         env:
-          DIGEST: ${{ steps.build.outputs.digest }}
+          DIGEST: ${{ steps.release.outputs.digest }}
         run: cosign sign --yes "${IMAGE}@${DIGEST}"
 
       - name: verify image signature
         if: github.event_name != 'pull_request'
         env:
-          DIGEST: ${{ steps.build.outputs.digest }}
+          DIGEST: ${{ steps.release.outputs.digest }}
         run: |
           cosign verify "${IMAGE}@${DIGEST}" \
             --certificate-identity "https://github.com/${GITHUB_REPOSITORY}/.github/workflows/auth-image.yml@${GITHUB_REF}" \
             --certificate-oidc-issuer "https://token.actions.githubusercontent.com" >/dev/null
 
+      # Only a digest that passed the scan, identity/attestation checks, signing,
+      # and signature verification receives the user-facing metadata tags.
+      - name: publish signed tags
+        if: github.event_name != 'pull_request'
+        env:
+          DIGEST: ${{ steps.release.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          [[ "${DIGEST}" =~ ^sha256:[0-9a-f]{64}$ ]] || { echo "error: invalid release digest" >&2; exit 1; }
+          mapfile -t tags < <(printf '%s\n' "${TAGS}" | sed '/^[[:space:]]*$/d')
+          ((${#tags[@]} > 0)) || { echo "error: metadata produced no release tags" >&2; exit 1; }
+          args=()
+          for tag in "${tags[@]}"; do
+            [[ "${tag}" == "${IMAGE}:"* ]] || { echo "error: tag is outside ${IMAGE}" >&2; exit 1; }
+            tag_name=${tag#"${IMAGE}:"}
+            [[ "${tag_name}" =~ ^[A-Za-z0-9_][A-Za-z0-9._-]{0,127}$ ]] || { echo "error: invalid release tag" >&2; exit 1; }
+            args+=(--tag "${tag}")
+          done
+          docker buildx imagetools create "${args[@]}" "${IMAGE}@${DIGEST}"
+
+      - name: verify published tags
+        if: github.event_name != 'pull_request'
+        env:
+          DIGEST: ${{ steps.release.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          count=0
+          while IFS= read -r tag; do
+            [ -n "${tag}" ] || continue
+            got=$(docker buildx imagetools inspect "${tag}" --format '{{json .Manifest}}' | jq -er '.digest')
+            [ "${got}" = "${DIGEST}" ] || { echo "error: ${tag} resolved to ${got}, expected ${DIGEST}" >&2; exit 1; }
+            count=$((count + 1))
+          done <<<"${TAGS}"
+          ((count > 0)) || { echo "error: no published tags were verified" >&2; exit 1; }
+
       - name: publish summary
         if: github.event_name != 'pull_request'
         env:
-          DIGEST: ${{ steps.build.outputs.digest }}
+          DIGEST: ${{ steps.release.outputs.digest }}
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
           {

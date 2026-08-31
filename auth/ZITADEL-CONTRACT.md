@@ -13,6 +13,11 @@ The ownership flow follows these contracts from that revision:
   custom URL template. `VerifyEmail` is
   `POST /v2beta/users/{user_id}/email/verify`, and `GetUserByID` is
   `GET /v2beta/users/{user_id}`.
+- `proto/zitadel/management.proto`: `ListUsers` is
+  `POST /management/v1/users/_search` and requires `user.read`.
+  `internal/api/grpc/management/user.go` appends the authenticated service
+  account's organization to the exact-email query before returning provider
+  IDs. The pinned `ORG_USER_MANAGER` role includes `user.read`.
 - `internal/api/grpc/user/v2/user.go` validates the custom URL template before
   the create command. `internal/command/user_human.go` appends
   `HumanEmailCodeAddedEventV2` when v2 creates an unverified email; it does not
@@ -33,10 +38,19 @@ logged or returned.
 
 Successful ownership-link delivery is recorded in a bounded in-memory tracker
 through the signed link's expiry, so replay does not emit another passwordless
-mail. Distinct links are independently limited per user and authoritative
-client key. A verified deterministic-account conflict uses the already bounded
-signup IP/email buckets and a per-user delivery cooldown to request recovery
-without returning a distinguishable account state.
+mail. Concurrent followers join the in-flight operation and cannot render
+success until its provider result is known; a failed result reaches every
+follower and releases the reservation for a real retry. Distinct links are
+independently limited per user and authoritative client key.
+
+Signup first performs the organization/permission-filtered v2 exact-email
+lookup, then either creates or sends recovery. Both normal outcomes have the
+same two-call shape and public status/body. Recovery uses the provider-returned
+ID, so historical random IDs and IDs derived before a `COOKIE_KEY` rotation do
+not strand the account. An exact lookup is also repeated after a create
+conflict to close concurrent-create races. Verified recovery uses the bounded
+signup IP/email buckets and per-user delivery cooldown without exposing a
+distinct account state.
 
 ## Required edge dependency
 

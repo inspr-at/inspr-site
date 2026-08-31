@@ -35,6 +35,7 @@ type zitadelStub struct {
 	mu                    sync.Mutex
 	requests              []capturedRequest
 	users                 map[string]*stubUser
+	searchCalls           int
 	createCalls           int
 	resendCalls           int
 	verifyCalls           int
@@ -44,6 +45,9 @@ type zitadelStub struct {
 	passkeyFailures       int
 	errorBody             string
 	lastURLTemplate       string
+	requestDelay          time.Duration
+	passkeyStarted        chan struct{}
+	passkeyRelease        <-chan struct{}
 }
 
 func (s *zitadelStub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -58,8 +62,37 @@ func (s *zitadelStub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	s.requests = append(s.requests, capturedRequest{method: r.Method, path: r.URL.Path, body: body})
 	w.Header().Set("Content-Type", "application/json")
+	if s.requestDelay > 0 {
+		time.Sleep(s.requestDelay)
+	}
 
 	switch {
+	case r.Method == http.MethodPost && r.URL.Path == "/management/v1/users/_search":
+		s.searchCalls++
+		queries, _ := body["queries"].([]any)
+		var email string
+		if len(queries) == 1 {
+			query, _ := queries[0].(map[string]any)
+			emailQuery, _ := query["emailQuery"].(map[string]any)
+			email, _ = emailQuery["emailAddress"].(string)
+		}
+		results := make([]map[string]any, 0, 1)
+		for userID, user := range s.users {
+			if strings.EqualFold(user.email, email) {
+				results = append(results, map[string]any{
+					"id": userID,
+					"human": map[string]any{
+						"email": map[string]any{"email": user.email, "isEmailVerified": user.verified},
+					},
+				})
+			}
+		}
+		response := map[string]any{"details": map[string]any{"totalResult": len(results)}}
+		if len(results) > 0 {
+			response["result"] = results
+		}
+		_ = json.NewEncoder(w).Encode(response)
+
 	case r.Method == http.MethodPost && r.URL.Path == "/v2beta/users/human":
 		s.createCalls++
 		userID, _ := body["userId"].(string)
@@ -119,6 +152,15 @@ func (s *zitadelStub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	case r.Method == http.MethodPost && strings.HasSuffix(r.URL.Path, "/passwordless/_send_link"):
 		s.passkeyCalls++
+		if s.passkeyStarted != nil {
+			select {
+			case s.passkeyStarted <- struct{}{}:
+			default:
+			}
+		}
+		if s.passkeyRelease != nil {
+			<-s.passkeyRelease
+		}
 		userID := strings.TrimSuffix(strings.TrimPrefix(r.URL.Path, "/management/v1/users/"), "/passwordless/_send_link")
 		userID, _ = url.PathUnescape(userID)
 		user := s.users[userID]
@@ -398,10 +440,18 @@ func TestHandleEnterUsesUnverifiedV2OwnershipContract(t *testing.T) {
 	}
 	stub.mu.Lock()
 	defer stub.mu.Unlock()
-	if len(stub.requests) != 1 || stub.requests[0].method != http.MethodPost || stub.requests[0].path != "/v2beta/users/human" {
+	if len(stub.requests) != 2 || stub.requests[0].method != http.MethodPost || stub.requests[0].path != "/management/v1/users/_search" || stub.requests[1].path != "/v2beta/users/human" {
 		t.Fatalf("provider calls = %#v", stub.requests)
 	}
-	body := stub.requests[0].body
+	searchQueries, _ := stub.requests[0].body["queries"].([]any)
+	if len(searchQueries) != 1 {
+		t.Fatalf("provider email lookup shape = %#v", stub.requests[0].body)
+	}
+	emailQuery, _ := searchQueries[0].(map[string]any)["emailQuery"].(map[string]any)
+	if emailQuery["emailAddress"] != "ada@example.com" || emailQuery["method"] != "TEXT_QUERY_METHOD_EQUALS_IGNORE_CASE" {
+		t.Fatalf("provider email lookup shape = %#v", stub.requests[0].body)
+	}
+	body := stub.requests[1].body
 	emailObject, _ := body["email"].(map[string]any)
 	if _, present := emailObject["isVerified"]; present {
 		t.Fatalf("creation marked verification directly: %#v", emailObject)
@@ -445,8 +495,8 @@ func TestHandleEnterLostCreateResponseRecoversByCheckedResend(t *testing.T) {
 	stub.mu.Lock()
 	createCalls, resendCalls := stub.createCalls, stub.resendCalls
 	stub.mu.Unlock()
-	if createCalls != 2 || resendCalls != 1 {
-		t.Fatalf("recovery calls create=%d resend=%d, want 2/1", createCalls, resendCalls)
+	if createCalls != 1 || resendCalls != 1 {
+		t.Fatalf("recovery calls create=%d resend=%d, want 1/1", createCalls, resendCalls)
 	}
 	if strings.Contains(first.Body.String(), providerCanary) || strings.Contains(logs.String(), providerCanary) || strings.Contains(logs.String(), "ada@example.com") {
 		t.Fatalf("provider details leaked: body=%q logs=%q", first.Body.String(), logs.String())
@@ -475,8 +525,125 @@ func TestHandleEnterVerifiedConflictRecoversWithoutEnumerationOrMailBurst(t *tes
 	}
 	stub.mu.Lock()
 	defer stub.mu.Unlock()
-	if stub.createCalls != 2 || stub.passkeyCalls != 1 {
-		t.Fatalf("verified recovery calls create=%d passkey=%d, want 2/1 idempotent send", stub.createCalls, stub.passkeyCalls)
+	if stub.searchCalls != 2 || stub.createCalls != 0 || stub.passkeyCalls != 1 {
+		t.Fatalf("verified recovery calls search=%d create=%d passkey=%d, want 2/0/1 idempotent send", stub.searchCalls, stub.createCalls, stub.passkeyCalls)
+	}
+}
+
+func TestSignupRecoveryFindsProviderAndRotatedKeyUserIDs(t *testing.T) {
+	originalKey := append([]byte(nil), cookieKey...)
+	t.Cleanup(func() { cookieKey = originalKey })
+	cookieKey = bytes.Repeat([]byte{0x11}, 32)
+	rotatedUserID := signupUserID("rotated@example.com")
+	cookieKey = bytes.Repeat([]byte{0x22}, 32)
+	if rotatedUserID == signupUserID("rotated@example.com") {
+		t.Fatal("test did not rotate the deterministic user ID")
+	}
+
+	stub := &zitadelStub{users: map[string]*stubUser{
+		"provider-random-id": {email: "legacy@example.com", verified: true},
+		rotatedUserID:        {email: "rotated@example.com", verified: false},
+	}}
+	server := httptest.NewServer(stub)
+	defer server.Close()
+	installEnterTestState(t, server.URL, newSignupRateLimiter(10, 10, time.Minute, 32))
+
+	legacy := postSignup(t, getSignupCSRF(t), "Legacy", "legacy@example.com", "192.0.2.2:1234", "")
+	rotated := postSignup(t, getSignupCSRF(t), "Rotated", "rotated@example.com", "192.0.2.3:1234", "")
+	if legacy.Code != http.StatusOK || rotated.Code != http.StatusOK || !strings.Contains(legacy.Body.String(), "the next step") || !strings.Contains(rotated.Body.String(), "the next step") {
+		t.Fatalf("historical recovery statuses = %d/%d", legacy.Code, rotated.Code)
+	}
+	stub.mu.Lock()
+	defer stub.mu.Unlock()
+	if stub.createCalls != 0 || stub.passkeyCalls != 1 || stub.resendCalls != 1 {
+		t.Fatalf("historical recovery calls create=%d passkey=%d resend=%d", stub.createCalls, stub.passkeyCalls, stub.resendCalls)
+	}
+	last := stub.requests[len(stub.requests)-1]
+	if last.path != "/v2beta/users/"+rotatedUserID+"/email/resend" {
+		t.Fatalf("rotated-key recovery targeted %q", last.path)
+	}
+}
+
+func TestNewAndRecoverySignupResponsesHaveSamePublicAndCallShape(t *testing.T) {
+	var newBody, recoveryBody string
+	var newDuration, recoveryDuration time.Duration
+
+	t.Run("new", func(t *testing.T) {
+		stub := &zitadelStub{requestDelay: 10 * time.Millisecond}
+		server := httptest.NewServer(stub)
+		defer server.Close()
+		installEnterTestState(t, server.URL, newSignupRateLimiter(10, 10, time.Minute, 32))
+		start := time.Now()
+		response := postSignup(t, getSignupCSRF(t), "Ada", "ada@example.com", "192.0.2.2:1234", "")
+		newDuration = time.Since(start)
+		newBody = response.Body.String()
+		if response.Code != http.StatusOK {
+			t.Fatalf("new status = %d", response.Code)
+		}
+		stub.mu.Lock()
+		defer stub.mu.Unlock()
+		if stub.searchCalls != 1 || stub.createCalls != 1 || len(stub.requests) != 2 {
+			t.Fatalf("new provider call shape = %#v", stub.requests)
+		}
+	})
+
+	t.Run("recovery", func(t *testing.T) {
+		stub := &zitadelStub{requestDelay: 10 * time.Millisecond, users: map[string]*stubUser{
+			"provider-random-id": {email: "ada@example.com", verified: true},
+		}}
+		server := httptest.NewServer(stub)
+		defer server.Close()
+		installEnterTestState(t, server.URL, newSignupRateLimiter(10, 10, time.Minute, 32))
+		start := time.Now()
+		response := postSignup(t, getSignupCSRF(t), "Ada", "ada@example.com", "192.0.2.2:1234", "")
+		recoveryDuration = time.Since(start)
+		recoveryBody = response.Body.String()
+		if response.Code != http.StatusOK {
+			t.Fatalf("recovery status = %d", response.Code)
+		}
+		stub.mu.Lock()
+		defer stub.mu.Unlock()
+		if stub.searchCalls != 1 || stub.passkeyCalls != 1 || len(stub.requests) != 2 {
+			t.Fatalf("recovery provider call shape = %#v", stub.requests)
+		}
+	})
+
+	if newBody != recoveryBody {
+		t.Fatal("new and recovery signup bodies expose different account states")
+	}
+	delta := newDuration - recoveryDuration
+	if delta < 0 {
+		delta = -delta
+	}
+	if delta > 25*time.Millisecond {
+		t.Fatalf("equal two-call provider paths diverged materially: new=%v recovery=%v", newDuration, recoveryDuration)
+	}
+}
+
+func TestSignupRecoveryFailsClosedOnAmbiguousProviderEmail(t *testing.T) {
+	stub := &zitadelStub{users: map[string]*stubUser{
+		"provider-id-one": {email: "ada@example.com", verified: true},
+		"provider-id-two": {email: "ADA@example.com", verified: false},
+	}}
+	server := httptest.NewServer(stub)
+	defer server.Close()
+	installEnterTestState(t, server.URL, newSignupRateLimiter(10, 10, time.Minute, 32))
+	var logs bytes.Buffer
+	oldLogOutput := log.Writer()
+	log.SetOutput(&logs)
+	t.Cleanup(func() { log.SetOutput(oldLogOutput) })
+
+	response := postSignup(t, getSignupCSRF(t), "Ada", "ada@example.com", "192.0.2.2:1234", "")
+	if response.Code != http.StatusBadGateway || strings.Contains(response.Body.String(), "looks like you've") || strings.Contains(response.Body.String(), "address is verified") {
+		t.Fatalf("ambiguous lookup response = %d %s", response.Code, response.Body.String())
+	}
+	if strings.Contains(logs.String(), "ada@example.com") || !strings.Contains(logs.String(), "stage=lookup status=transport") {
+		t.Fatalf("ambiguous lookup diagnostics leaked identity: %q", logs.String())
+	}
+	stub.mu.Lock()
+	defer stub.mu.Unlock()
+	if stub.searchCalls != 1 || stub.createCalls != 0 || stub.resendCalls != 0 || stub.passkeyCalls != 0 {
+		t.Fatalf("ambiguous lookup performed unsafe provider action: %#v", stub.requests)
 	}
 }
 
@@ -619,6 +786,65 @@ func TestEnterVerificationRetryRecoversAfterPasskeyFailure(t *testing.T) {
 	}
 }
 
+func TestConcurrentVerificationFollowerWaitsForSharedProviderFailure(t *testing.T) {
+	passkeyStarted := make(chan struct{}, 1)
+	passkeyRelease := make(chan struct{})
+	stub := &zitadelStub{
+		passkeyFailures: 1,
+		passkeyStarted:  passkeyStarted,
+		passkeyRelease:  passkeyRelease,
+	}
+	server := httptest.NewServer(stub)
+	defer server.Close()
+	installEnterTestState(t, server.URL, newSignupRateLimiter(10, 10, time.Minute, 32))
+	_ = postSignup(t, getSignupCSRF(t), "Ada", "ada@example.com", "192.0.2.2:1234", "")
+	stub.mu.Lock()
+	userID, link := signupUserID("ada@example.com"), stub.lastURLTemplate
+	stub.mu.Unlock()
+
+	type verificationResult struct {
+		status int
+		body   string
+	}
+	callVerification := func(request *http.Request, done chan<- verificationResult) {
+		recorder := httptest.NewRecorder()
+		handleEnterVerify(recorder, request)
+		done <- verificationResult{status: recorder.Code, body: recorder.Body.String()}
+	}
+	leaderDone := make(chan verificationResult, 1)
+	followerDone := make(chan verificationResult, 1)
+	leaderRequest := verificationRequest(t, link, userID)
+	followerRequest := verificationRequest(t, link, userID)
+	go callVerification(leaderRequest, leaderDone)
+	select {
+	case <-passkeyStarted:
+	case <-time.After(time.Second):
+		t.Fatal("leader did not reach the blocked provider send")
+	}
+	go callVerification(followerRequest, followerDone)
+	select {
+	case early := <-followerDone:
+		t.Fatalf("follower returned before shared provider result: %d %s", early.status, early.body)
+	case <-time.After(30 * time.Millisecond):
+	}
+	close(passkeyRelease)
+	leader, follower := <-leaderDone, <-followerDone
+	if leader.status != http.StatusBadGateway || follower.status != http.StatusBadGateway || strings.Contains(follower.body, "address is verified") {
+		t.Fatalf("shared failure statuses leader=%d follower=%d body=%s", leader.status, follower.status, follower.body)
+	}
+
+	retry := httptest.NewRecorder()
+	handleEnterVerify(retry, verificationRequest(t, link, userID))
+	if retry.Code != http.StatusOK || !strings.Contains(retry.Body.String(), "address is verified") {
+		t.Fatalf("released shared failure did not recover: %d %s", retry.Code, retry.Body.String())
+	}
+	stub.mu.Lock()
+	defer stub.mu.Unlock()
+	if stub.verifyCalls != 2 || stub.passkeyCalls != 2 {
+		t.Fatalf("shared failure/retry provider calls verify=%d passkey=%d, want 2/2", stub.verifyCalls, stub.passkeyCalls)
+	}
+}
+
 func TestEnterVerificationRejectsForgedStateBeforeProvider(t *testing.T) {
 	stub := &zitadelStub{}
 	server := httptest.NewServer(stub)
@@ -660,13 +886,16 @@ func TestDeliveryTrackerSerializesConcurrentReplayAndFailsClosedAtCapacity(t *te
 	expires := now.Add(time.Hour)
 	var started atomic.Int32
 	var already atomic.Int32
+	var leader atomic.Pointer[deliveryEntry]
 	var workers sync.WaitGroup
 	for range 64 {
 		workers.Add(1)
 		go func() {
 			defer workers.Done()
-			switch tracker.Start("same-signed-link", now, expires) {
+			decision, entry := tracker.Start("same-signed-link", now, expires)
+			switch decision {
 			case deliveryStarted:
+				leader.Store(entry)
 				started.Add(1)
 			case deliveryAlready:
 				already.Add(1)
@@ -680,15 +909,18 @@ func TestDeliveryTrackerSerializesConcurrentReplayAndFailsClosedAtCapacity(t *te
 		t.Fatalf("concurrent replay decisions started=%d already=%d", started.Load(), already.Load())
 	}
 
-	tracker.Finish("same-signed-link", false)
-	if got := tracker.Start("same-signed-link", now, expires); got != deliveryStarted {
+	tracker.Finish("same-signed-link", leader.Load(), false)
+	got, firstRetry := tracker.Start("same-signed-link", now, expires)
+	if got != deliveryStarted {
 		t.Fatalf("failed delivery did not release retry reservation: %v", got)
 	}
-	tracker.Finish("same-signed-link", true)
-	if got := tracker.Start("second-link", now, expires); got != deliveryStarted {
+	tracker.Finish("same-signed-link", firstRetry, true)
+	got, _ = tracker.Start("second-link", now, expires)
+	if got != deliveryStarted {
 		t.Fatalf("second live delivery = %v, want started", got)
 	}
-	if got := tracker.Start("third-link", now, expires); got != deliveryFull {
+	got, _ = tracker.Start("third-link", now, expires)
+	if got != deliveryFull {
 		t.Fatalf("full tracker decision = %v, want fail-closed full", got)
 	}
 }

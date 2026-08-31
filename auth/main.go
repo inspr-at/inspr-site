@@ -555,15 +555,11 @@ func handleEnter(w http.ResponseWriter, r *http.Request) {
 				log.Printf("enter: zitadel signup failed stage=%s status=%d", stage, status)
 			}
 			// Surface a friendly message without reflecting provider details.
-			msg := "something didn't land — try again, or sign in if you've been here before."
-			if stage == "existing" {
-				msg = "looks like you've been here before. try signing in instead."
-			}
 			renderEnterStatus(w, enterView{
 				State:     "signup",
 				FormName:  name,
 				FormEmail: email,
-				FormError: msg,
+				FormError: "something didn't land — try again, or sign in if you've been here before.",
 			}, http.StatusBadGateway)
 			return
 		}
@@ -603,34 +599,43 @@ func handleEnterVerify(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	deliveryKey := "ownership-link:" + userID + ":" + state
 	deliveryExpiry := time.Unix(mustParseUnix(expires), 0)
-	switch signupDeliveries.Start(deliveryKey, now, deliveryExpiry) {
+	deliveryDecision, delivery := signupDeliveries.Start(deliveryKey, now, deliveryExpiry)
+	switch deliveryDecision {
 	case deliveryAlready:
-		renderEnter(w, enterView{State: "inbox", OwnershipVerified: true})
+		if signupDeliveries.Wait(r.Context(), delivery) {
+			renderEnter(w, enterView{State: "inbox", OwnershipVerified: true})
+		} else {
+			renderEnterVerifyFailure(w)
+		}
 		return
 	case deliveryFull:
 		renderEnterStatus(w, enterView{State: "signup", FormError: "that link is busy — wait a few minutes and try again."}, http.StatusTooManyRequests)
 		return
 	}
 	if !verificationLimiter.Allow(signupClientIP(r), userID, now) {
-		signupDeliveries.Finish(deliveryKey, false)
+		signupDeliveries.Finish(deliveryKey, delivery, false)
 		w.Header().Set("Retry-After", strconv.Itoa(int(signupRateWindow.Seconds())))
 		renderEnterStatus(w, enterView{State: "signup", FormError: "too many attempts — wait a few minutes and try again."}, http.StatusTooManyRequests)
 		return
 	}
 	err := zitadelCompleteSignup(r.Context(), userID, code)
 	if err != nil {
-		signupDeliveries.Finish(deliveryKey, false)
+		signupDeliveries.Finish(deliveryKey, delivery, false)
 		stage, status := signupFailureDetails(err)
 		if status == 0 {
 			log.Printf("enter: zitadel verification failed stage=%s status=transport", stage)
 		} else {
 			log.Printf("enter: zitadel verification failed stage=%s status=%d", stage, status)
 		}
-		renderEnterStatus(w, enterView{State: "signup", FormError: "that link could not be completed — open it again, or start over."}, http.StatusBadGateway)
+		renderEnterVerifyFailure(w)
 		return
 	}
-	signupDeliveries.Finish(deliveryKey, true)
+	signupDeliveries.Finish(deliveryKey, delivery, true)
 	renderEnter(w, enterView{State: "inbox", OwnershipVerified: true})
+}
+
+func renderEnterVerifyFailure(w http.ResponseWriter) {
+	renderEnterStatus(w, enterView{State: "signup", FormError: "that link could not be completed — open it again, or start over."}, http.StatusBadGateway)
 }
 
 func mustParseUnix(value string) int64 {
@@ -800,7 +805,9 @@ const (
 
 type deliveryEntry struct {
 	expiresAt time.Time
-	inFlight  bool
+	done      chan struct{}
+	completed bool
+	success   bool
 }
 
 // deliveryTracker makes mail-producing operations idempotent without retaining
@@ -809,53 +816,68 @@ type deliveryEntry struct {
 // its reservation so the legitimate owner can retry.
 type deliveryTracker struct {
 	mu      sync.Mutex
-	entries map[string]deliveryEntry
+	entries map[string]*deliveryEntry
 	maxKeys int
 }
 
 func newDeliveryTracker(maxKeys int) *deliveryTracker {
-	return &deliveryTracker{entries: make(map[string]deliveryEntry), maxKeys: maxKeys}
+	return &deliveryTracker{entries: make(map[string]*deliveryEntry), maxKeys: maxKeys}
 }
 
-func (t *deliveryTracker) Start(key string, now, expiresAt time.Time) deliveryDecision {
+func (t *deliveryTracker) Start(key string, now, expiresAt time.Time) (deliveryDecision, *deliveryEntry) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	for existingKey, entry := range t.entries {
-		if !now.Before(entry.expiresAt) {
+		if entry.completed && !now.Before(entry.expiresAt) {
 			delete(t.entries, existingKey)
 		}
 	}
 	key = deliveryKey(key)
-	if _, exists := t.entries[key]; exists {
-		return deliveryAlready
+	if entry, exists := t.entries[key]; exists {
+		return deliveryAlready, entry
 	}
 	if len(t.entries) >= t.maxKeys {
-		return deliveryFull
+		return deliveryFull, nil
 	}
-	t.entries[key] = deliveryEntry{expiresAt: expiresAt, inFlight: true}
-	return deliveryStarted
+	entry := &deliveryEntry{expiresAt: expiresAt, done: make(chan struct{})}
+	t.entries[key] = entry
+	return deliveryStarted, entry
 }
 
-func (t *deliveryTracker) Finish(key string, success bool) {
+func (t *deliveryTracker) Finish(key string, entry *deliveryEntry, success bool) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	key = deliveryKey(key)
-	entry, exists := t.entries[key]
-	if !exists {
+	current, exists := t.entries[key]
+	if !exists || current != entry || entry.completed {
 		return
 	}
+	entry.completed = true
+	entry.success = success
 	if !success {
 		delete(t.entries, key)
-		return
 	}
-	entry.inFlight = false
-	t.entries[key] = entry
+	close(entry.done)
+}
+
+// Wait joins an in-flight delivery. The close synchronizes the result write,
+// so every follower observes the provider outcome before returning success.
+func (t *deliveryTracker) Wait(ctx context.Context, entry *deliveryEntry) bool {
+	if entry == nil {
+		return false
+	}
+	select {
+	case <-entry.done:
+		return entry.success
+	case <-ctx.Done():
+		return false
+	}
 }
 
 func (t *deliveryTracker) Record(key string, now, expiresAt time.Time) {
-	decision := t.Start(key, now, expiresAt)
+	decision, entry := t.Start(key, now, expiresAt)
 	if decision == deliveryStarted {
-		t.Finish(key, true)
+		t.Finish(key, entry, true)
 	}
 }
 
@@ -871,13 +893,22 @@ func deliveryKey(value string) string {
 // an Initial-state account: it appends an unverified email-code event whose
 // notification link comes back here. Email ownership is still false at create.
 //
-// The HMAC-derived user ID makes creation idempotent without retaining email in
-// process memory. If the create response was lost, or the first notification
-// did not arrive, a retry can prove that exact user/email pair is still
-// unverified and ask ZITADEL to resend its email code. It never re-imports.
+// Recovery is keyed by ZITADEL's organization-scoped exact email lookup, not
+// the locally derived ID. That keeps accounts created under an older COOKIE_KEY
+// or provider-generated ID recoverable. New and recovery paths each perform a
+// lookup followed by one mail-producing operation and return the same public
+// state, avoiding an account-existence signal in status, body, or call count.
 func zitadelStartSignup(ctx context.Context, name, email string) error {
 	now := time.Now()
-	userID := signupUserID(email)
+	userID, verified, found, err := zitadelFindUserByEmail(ctx, email)
+	if err != nil {
+		return &signupProviderError{stage: "lookup", cause: err, status: providerHTTPStatus(err)}
+	}
+	if found {
+		return zitadelSendRecoveryMail(ctx, userID, verified, now)
+	}
+
+	userID = signupUserID(email)
 	ownershipExpiry := now.Add(ownershipLinkTTL)
 	first, last := splitName(name)
 	createBody := map[string]any{
@@ -906,8 +937,8 @@ func zitadelStartSignup(ctx context.Context, name, email string) error {
 	// ZITADEL v2.54.8 maps its AlreadyExisting precondition to HTTP 400.
 	// A 409 is accepted as well for forward-compatible gateway mappings, but
 	// recovery succeeds only after an exact provider-state check.
-	verified, providerEmail, err := zitadelUserEmailState(ctx, userID)
-	if err != nil || !strings.EqualFold(providerEmail, email) {
+	userID, verified, found, err = zitadelFindUserByEmail(ctx, email)
+	if err != nil || !found {
 		return &signupProviderError{stage: "recover", cause: err, status: providerHTTPStatus(err)}
 	}
 	if verified {
@@ -916,22 +947,69 @@ func zitadelStartSignup(ctx context.Context, name, email string) error {
 	return zitadelSendRecoveryMail(ctx, userID, false, now)
 }
 
+func zitadelFindUserByEmail(ctx context.Context, email string) (userID string, verified, found bool, err error) {
+	searchBody := map[string]any{
+		"query": map[string]any{"limit": 2},
+		"queries": []any{
+			map[string]any{
+				"emailQuery": map[string]any{
+					"emailAddress": email,
+					"method":       "TEXT_QUERY_METHOD_EQUALS_IGNORE_CASE",
+				},
+			},
+		},
+	}
+	response, err := zitadelCall(ctx, http.MethodPost, "/management/v1/users/_search", searchBody)
+	if err != nil {
+		return "", false, false, err
+	}
+	resultValue, hasResults := response["result"]
+	if !hasResults {
+		// ZITADEL's pinned protojson gateway omits empty repeated fields.
+		if _, hasDetails := response["details"]; !hasDetails {
+			return "", false, false, errors.New("invalid provider search response")
+		}
+		return "", false, false, nil
+	}
+	results, ok := resultValue.([]any)
+	if !ok {
+		return "", false, false, errors.New("invalid provider search response")
+	}
+	if len(results) != 1 {
+		return "", false, false, errors.New("ambiguous provider search response")
+	}
+	user, _ := results[0].(map[string]any)
+	userID, _ = user["id"].(string)
+	human, _ := user["human"].(map[string]any)
+	emailObject, _ := human["email"].(map[string]any)
+	providerEmail, _ := emailObject["email"].(string)
+	verified, verifiedOK := emailObject["isEmailVerified"].(bool)
+	if userID == "" || !verifiedOK || !strings.EqualFold(providerEmail, email) {
+		return "", false, false, errors.New("invalid provider search result")
+	}
+	return userID, verified, true, nil
+}
+
 func zitadelSendRecoveryMail(ctx context.Context, userID string, verified bool, now time.Time) error {
 	kind := "ownership"
 	if verified {
 		kind = "passkey"
 	}
 	deliveryKey := "recovery-" + kind + ":" + userID
-	switch signupDeliveries.Start(deliveryKey, now, now.Add(mailCooldown)) {
+	deliveryDecision, delivery := signupDeliveries.Start(deliveryKey, now, now.Add(mailCooldown))
+	switch deliveryDecision {
 	case deliveryAlready:
-		return nil
+		if signupDeliveries.Wait(ctx, delivery) {
+			return nil
+		}
+		return &signupProviderError{stage: "recovery-wait", cause: errors.New("shared delivery failed")}
 	case deliveryFull:
 		return &signupProviderError{stage: "recovery-limit", cause: errors.New("delivery tracker full")}
 	}
 
 	if verified {
 		err := zitadelSendPasswordless(ctx, userID)
-		signupDeliveries.Finish(deliveryKey, err == nil)
+		signupDeliveries.Finish(deliveryKey, delivery, err == nil)
 		return err
 	}
 	resendBody := map[string]any{
@@ -941,10 +1019,10 @@ func zitadelSendRecoveryMail(ctx context.Context, userID string, verified bool, 
 	}
 	path := "/v2beta/users/" + url.PathEscape(userID) + "/email/resend"
 	if _, err := zitadelCall(ctx, http.MethodPost, path, resendBody); err != nil {
-		signupDeliveries.Finish(deliveryKey, false)
+		signupDeliveries.Finish(deliveryKey, delivery, false)
 		return &signupProviderError{stage: "resend", cause: err, status: providerHTTPStatus(err)}
 	}
-	signupDeliveries.Finish(deliveryKey, true)
+	signupDeliveries.Finish(deliveryKey, delivery, true)
 	return nil
 }
 

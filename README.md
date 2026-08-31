@@ -203,11 +203,14 @@ returns to `/enter/verify`, and only a successful ownership check can request a
 passwordless-registration mail. That exact management endpoint requires
 `user.write`, which is present in the scoped `ORG_USER_MANAGER` role; the v2
 returned-code endpoint requires the broader `user.passkey.write` permission and
-is deliberately not used. Deterministic HMAC user IDs make a lost create
-response or missing notification recoverable through a checked resend rather
-than a second import. A verified credentialless account receives the same
-non-enumerating success state and a throttled passwordless recovery mail;
-successful ownership-link replay is idempotent until link expiry. The pinned
+is deliberately not used. Before creating, signup uses ZITADEL's
+organization/permission-filtered exact-email search, so a lost response,
+provider-generated historical ID, or local `COOKIE_KEY` rotation still reaches
+the provider-held account rather than importing again. New and recovery paths
+both make two provider calls and return the same public status/body. A verified
+credentialless account receives a throttled passwordless recovery mail;
+concurrent ownership-link followers wait for the shared provider result, and a
+successful replay remains idempotent until link expiry. The pinned
 endpoint, event, and role evidence is recorded in
 [`auth/ZITADEL-CONTRACT.md`](auth/ZITADEL-CONTRACT.md).
 

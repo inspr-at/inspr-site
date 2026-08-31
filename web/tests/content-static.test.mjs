@@ -174,6 +174,16 @@ test("apex and identity edge routes enforce HTTPS and HSTS", async () => {
   assert.match(deploy, /automatic web edge rollback needs operator attention/);
 });
 
+test("identity edge rejects the deployed sibling-header spoof contract", () => {
+  const contract = spawnSync(
+    process.execPath,
+    [fileURLToPath(new URL("../../auth/check-edge-contract.mjs", import.meta.url))],
+    { encoding: "utf8" },
+  );
+  assert.equal(contract.status, 0, contract.stderr || contract.stdout);
+  assert.match(contract.stdout, /inspr-auth edge contract: ok/);
+});
+
 test("product copy contains no em dashes and no hardcoded business host", async () => {
   for (const { slug } of products) {
     const content = await source(`content/${slug}.ts`);

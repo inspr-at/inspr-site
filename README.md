@@ -176,12 +176,26 @@ public product sites.
 
 The bridge has no published host port and is reachable publicly only through
 Traefik on `csb1_traefik`. That Docker bridge is shared with unrelated
-containers, so a private source address alone is not trusted. The deployment
-sets `ENTER_TRUSTED_PROXY_HOST=traefik`; `/enter` resolves that compose-owned
-Docker DNS identity for each request and accepts the single matching
-`X-Real-IP`/`X-Forwarded-For` client key only when the direct peer is one of
-those resolved addresses. DNS failure, any other peer, malformed chains, and
-conflicting headers all fall back to the non-spoofable direct-peer key.
+containers, and the deployed cloudflarewarp v1.3.3 middleware incorrectly
+trusts `172.16.0.0/12`, so neither a private source nor its rewritten headers
+are identity evidence. The deployable edge contract filters the auth router to
+Cloudflare's official source ranges before cloudflarewarp, overwrites a secret
+attestation header after that check, and gives the same age-backed token to the
+auth process. `/enter` accepts the single matching `X-Real-IP` and
+`X-Forwarded-For` value only with that constant-time token, the plugin's trusted
+marker, and an exact Docker-DNS-resolved Traefik peer. Any missing component
+falls back to the non-spoofable direct Traefik peer, intentionally sharing one
+public bucket instead of trusting attacker-selected identity.
+
+The repository compose file is executable reference evidence, not the
+authoritative csb1 configuration. **NIX-400 is a required rollout dependency**:
+it owns the matching Cloudflare-first middleware and age-backed attestation in
+nixcfg. No INSPR-310 image may be rolled out as fully functional before NIX-400
+lands; without its token the application remains safe but uses the shared proxy
+bucket. `auth/check-edge-contract.mjs` reproduces the sibling-through-Traefik
+spoof, rejects it with the ordered reference gate, and CI compares the pinned
+CIDRs with Cloudflare's official IPv4/IPv6 endpoints so range drift fails
+visibly.
 
 Signup uses the User API v2beta contract shipped by the deployed ZITADEL
 v2.54.8 image: creation emits an unverified email-code notification, the link
@@ -191,7 +205,9 @@ passwordless-registration mail. That exact management endpoint requires
 returned-code endpoint requires the broader `user.passkey.write` permission and
 is deliberately not used. Deterministic HMAC user IDs make a lost create
 response or missing notification recoverable through a checked resend rather
-than a second import; a verified account is directed to sign in. The pinned
+than a second import. A verified credentialless account receives the same
+non-enumerating success state and a throttled passwordless recovery mail;
+successful ownership-link replay is idempotent until link expiry. The pinned
 endpoint, event, and role evidence is recorded in
 [`auth/ZITADEL-CONTRACT.md`](auth/ZITADEL-CONTRACT.md).
 

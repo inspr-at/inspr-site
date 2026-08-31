@@ -30,3 +30,20 @@ unverified at creation, reject a forged ownership-link state before provider
 access, and exercise both lost-create-response resend and
 verified-email/passkey-send retry recovery. Provider response bodies are never
 logged or returned.
+
+Successful ownership-link delivery is recorded in a bounded in-memory tracker
+through the signed link's expiry, so replay does not emit another passwordless
+mail. Distinct links are independently limited per user and authoritative
+client key. A verified deterministic-account conflict uses the already bounded
+signup IP/email buckets and a per-user delivery cooldown to request recovery
+without returning a distinguishable account state.
+
+## Required edge dependency
+
+NIX-400 owns the authoritative csb1 Cloudflare-only router gate and age-backed
+proxy-attestation secret. It must land before this signup flow is rolled out.
+This repository's compose file is reference evidence only; when the token is
+absent or mismatched, the application deliberately ignores forwarded identity
+and uses the direct Traefik peer as one shared fail-closed rate bucket. The
+pinned cloudflarewarp source contract and official Cloudflare CIDR update check
+live in `cloudflare-edge-contract.json` and `check-edge-contract.mjs`.

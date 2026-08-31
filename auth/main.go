@@ -68,6 +68,10 @@ var (
 	// headers used by /enter. The deployed compose service is named traefik;
 	// unrelated peers on the shared bridge cannot claim its source address.
 	trustedProxyHost = envOr("ENTER_TRUSTED_PROXY_HOST", "traefik")
+	// Shared only with the ordered Traefik edge middleware. Empty is a safe
+	// migration state: forwarded identity is ignored and all proxied callers
+	// share the direct Traefik bucket until the authoritative edge lands.
+	trustedEdgeToken = os.Getenv("ENTER_EDGE_TOKEN")
 	// PAT for the Zitadel management API. Used only by /enter for user
 	// creation + passwordless registration link delivery.
 	//
@@ -92,8 +96,11 @@ const (
 	signupIPLimit      = 10
 	signupEmailLimit   = 3
 	signupRateMaxKeys  = 4096
+	verifyIPLimit      = 10
+	verifyUserLimit    = 3
 	enterFormMaxBytes  = 16 << 10
 	ownershipLinkTTL   = 24 * time.Hour
+	mailCooldown       = 2 * time.Minute
 	zitadelHTTPTimeout = 10 * time.Second
 )
 
@@ -114,6 +121,13 @@ var (
 		signupRateWindow,
 		signupRateMaxKeys,
 	)
+	verificationLimiter = newSignupRateLimiter(
+		verifyIPLimit,
+		verifyUserLimit,
+		signupRateWindow,
+		signupRateMaxKeys,
+	)
+	signupDeliveries  = newDeliveryTracker(signupRateMaxKeys)
 	zitadelHTTPClient = &http.Client{Timeout: zitadelHTTPTimeout}
 )
 
@@ -164,8 +178,12 @@ func main() {
 		}
 		signupStatus = fmt.Sprintf("ENABLED (PAT len=%d source=%s)", len(zitadelPAT), patSource)
 	}
-	log.Printf("inspr-auth: issuer=%s base=%s listen=%s signup=%s",
-		issuer, baseURL, listen, signupStatus)
+	edgeStatus := "DIRECT-PEER-FALLBACK"
+	if trustedEdgeToken != "" {
+		edgeStatus = "ATTESTED-PROXY"
+	}
+	log.Printf("inspr-auth: issuer=%s base=%s listen=%s signup=%s edge=%s",
+		issuer, baseURL, listen, signupStatus, edgeStatus)
 	server := &http.Server{
 		Addr:              listen,
 		Handler:           mux,
@@ -582,8 +600,26 @@ func handleEnterVerify(w http.ResponseWriter, r *http.Request) {
 		renderEnterStatus(w, enterView{State: "signup", FormError: "that link is invalid or expired — start again."}, http.StatusBadRequest)
 		return
 	}
+	now := time.Now()
+	deliveryKey := "ownership-link:" + userID + ":" + state
+	deliveryExpiry := time.Unix(mustParseUnix(expires), 0)
+	switch signupDeliveries.Start(deliveryKey, now, deliveryExpiry) {
+	case deliveryAlready:
+		renderEnter(w, enterView{State: "inbox", OwnershipVerified: true})
+		return
+	case deliveryFull:
+		renderEnterStatus(w, enterView{State: "signup", FormError: "that link is busy — wait a few minutes and try again."}, http.StatusTooManyRequests)
+		return
+	}
+	if !verificationLimiter.Allow(signupClientIP(r), userID, now) {
+		signupDeliveries.Finish(deliveryKey, false)
+		w.Header().Set("Retry-After", strconv.Itoa(int(signupRateWindow.Seconds())))
+		renderEnterStatus(w, enterView{State: "signup", FormError: "too many attempts — wait a few minutes and try again."}, http.StatusTooManyRequests)
+		return
+	}
 	err := zitadelCompleteSignup(r.Context(), userID, code)
 	if err != nil {
+		signupDeliveries.Finish(deliveryKey, false)
 		stage, status := signupFailureDetails(err)
 		if status == 0 {
 			log.Printf("enter: zitadel verification failed stage=%s status=transport", stage)
@@ -593,7 +629,13 @@ func handleEnterVerify(w http.ResponseWriter, r *http.Request) {
 		renderEnterStatus(w, enterView{State: "signup", FormError: "that link could not be completed — open it again, or start over."}, http.StatusBadGateway)
 		return
 	}
+	signupDeliveries.Finish(deliveryKey, true)
 	renderEnter(w, enterView{State: "inbox", OwnershipVerified: true})
+}
+
+func mustParseUnix(value string) int64 {
+	parsed, _ := strconv.ParseInt(value, 10, 64)
+	return parsed
 }
 
 // consumeEnterCSRF implements a double-submit token: the random value issued
@@ -620,9 +662,11 @@ func consumeEnterCSRF(w http.ResponseWriter, r *http.Request) bool {
 // signupClientIP follows the production edge contract rather than trusting an
 // arbitrary private peer. inspr-auth has no published port and is attached to
 // csb1_traefik, a bridge shared by unrelated containers. The only authoritative
-// proxy boundary is therefore the current IP resolved from the deployment-owned
-// Docker DNS service name "traefik". Resolution failure, a different source IP,
-// or malformed/conflicting headers all fall back to the non-spoofable peer IP.
+// proxy boundary is therefore: current IP resolved from the deployment-owned
+// Docker DNS service name "traefik", the plugin's trusted marker, and a secret
+// header overwritten only after the Cloudflare source allowlist. Missing or
+// mismatched attestation, resolution failure, a different source IP, or
+// malformed/conflicting headers all fall back to the non-spoofable peer IP.
 func signupClientIP(r *http.Request) string {
 	return signupClientIPWithResolver(r, net.DefaultResolver.LookupIPAddr)
 }
@@ -648,7 +692,8 @@ func signupClientIPWithResolver(r *http.Request, resolve proxyIPResolver) string
 			}
 		}
 	}
-	if trusted {
+	edgeToken := r.Header.Get("X-Inspr-Edge-Token")
+	if trusted && trustedEdgeToken != "" && subtle.ConstantTimeCompare([]byte(edgeToken), []byte(trustedEdgeToken)) == 1 && r.Header.Get("X-Is-Trusted") == "yes" {
 		forwardedRaw := strings.TrimSpace(r.Header.Get("X-Forwarded-For"))
 		forwarded := net.ParseIP(forwardedRaw)
 		realIP := net.ParseIP(strings.TrimSpace(r.Header.Get("X-Real-IP")))
@@ -745,6 +790,80 @@ func (l *signupRateLimiter) makeRoom(now time.Time, needed int) bool {
 	return len(l.entries)+needed <= l.maxKeys
 }
 
+type deliveryDecision uint8
+
+const (
+	deliveryStarted deliveryDecision = iota
+	deliveryAlready
+	deliveryFull
+)
+
+type deliveryEntry struct {
+	expiresAt time.Time
+	inFlight  bool
+}
+
+// deliveryTracker makes mail-producing operations idempotent without retaining
+// email addresses. Entries are bounded and expire; at capacity it fails closed
+// rather than dropping a live replay guard. A failed provider operation releases
+// its reservation so the legitimate owner can retry.
+type deliveryTracker struct {
+	mu      sync.Mutex
+	entries map[string]deliveryEntry
+	maxKeys int
+}
+
+func newDeliveryTracker(maxKeys int) *deliveryTracker {
+	return &deliveryTracker{entries: make(map[string]deliveryEntry), maxKeys: maxKeys}
+}
+
+func (t *deliveryTracker) Start(key string, now, expiresAt time.Time) deliveryDecision {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	for existingKey, entry := range t.entries {
+		if !now.Before(entry.expiresAt) {
+			delete(t.entries, existingKey)
+		}
+	}
+	key = deliveryKey(key)
+	if _, exists := t.entries[key]; exists {
+		return deliveryAlready
+	}
+	if len(t.entries) >= t.maxKeys {
+		return deliveryFull
+	}
+	t.entries[key] = deliveryEntry{expiresAt: expiresAt, inFlight: true}
+	return deliveryStarted
+}
+
+func (t *deliveryTracker) Finish(key string, success bool) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	key = deliveryKey(key)
+	entry, exists := t.entries[key]
+	if !exists {
+		return
+	}
+	if !success {
+		delete(t.entries, key)
+		return
+	}
+	entry.inFlight = false
+	t.entries[key] = entry
+}
+
+func (t *deliveryTracker) Record(key string, now, expiresAt time.Time) {
+	decision := t.Start(key, now, expiresAt)
+	if decision == deliveryStarted {
+		t.Finish(key, true)
+	}
+}
+
+func deliveryKey(value string) string {
+	digest := sha256.Sum256([]byte(value))
+	return base64.RawURLEncoding.EncodeToString(digest[:])
+}
+
 // ── Zitadel management API client ─────────────────────────────────────────
 
 // zitadelStartSignup uses the exact User API contract present in the deployed
@@ -757,7 +876,9 @@ func (l *signupRateLimiter) makeRoom(now time.Time, needed int) bool {
 // did not arrive, a retry can prove that exact user/email pair is still
 // unverified and ask ZITADEL to resend its email code. It never re-imports.
 func zitadelStartSignup(ctx context.Context, name, email string) error {
+	now := time.Now()
 	userID := signupUserID(email)
+	ownershipExpiry := now.Add(ownershipLinkTTL)
 	first, last := splitName(name)
 	createBody := map[string]any{
 		"userId":   userID,
@@ -771,11 +892,12 @@ func zitadelStartSignup(ctx context.Context, name, email string) error {
 		"email": map[string]any{
 			"email": email,
 			"sendCode": map[string]any{
-				"urlTemplate": ownershipURLTemplate(userID, time.Now().Add(ownershipLinkTTL)),
+				"urlTemplate": ownershipURLTemplate(userID, ownershipExpiry),
 			},
 		},
 	}
 	if _, err := zitadelCall(ctx, http.MethodPost, "/v2beta/users/human", createBody); err == nil {
+		signupDeliveries.Record("recovery-ownership:"+userID, now, now.Add(mailCooldown))
 		return nil
 	} else if status := providerHTTPStatus(err); status != http.StatusBadRequest && status != http.StatusConflict {
 		return &signupProviderError{stage: "create", cause: err, status: status}
@@ -789,17 +911,40 @@ func zitadelStartSignup(ctx context.Context, name, email string) error {
 		return &signupProviderError{stage: "recover", cause: err, status: providerHTTPStatus(err)}
 	}
 	if verified {
-		return &signupProviderError{stage: "existing", cause: errors.New("email already verified"), status: http.StatusConflict}
+		return zitadelSendRecoveryMail(ctx, userID, true, now)
+	}
+	return zitadelSendRecoveryMail(ctx, userID, false, now)
+}
+
+func zitadelSendRecoveryMail(ctx context.Context, userID string, verified bool, now time.Time) error {
+	kind := "ownership"
+	if verified {
+		kind = "passkey"
+	}
+	deliveryKey := "recovery-" + kind + ":" + userID
+	switch signupDeliveries.Start(deliveryKey, now, now.Add(mailCooldown)) {
+	case deliveryAlready:
+		return nil
+	case deliveryFull:
+		return &signupProviderError{stage: "recovery-limit", cause: errors.New("delivery tracker full")}
+	}
+
+	if verified {
+		err := zitadelSendPasswordless(ctx, userID)
+		signupDeliveries.Finish(deliveryKey, err == nil)
+		return err
 	}
 	resendBody := map[string]any{
 		"sendCode": map[string]any{
-			"urlTemplate": ownershipURLTemplate(userID, time.Now().Add(ownershipLinkTTL)),
+			"urlTemplate": ownershipURLTemplate(userID, now.Add(ownershipLinkTTL)),
 		},
 	}
 	path := "/v2beta/users/" + url.PathEscape(userID) + "/email/resend"
 	if _, err := zitadelCall(ctx, http.MethodPost, path, resendBody); err != nil {
+		signupDeliveries.Finish(deliveryKey, false)
 		return &signupProviderError{stage: "resend", cause: err, status: providerHTTPStatus(err)}
 	}
+	signupDeliveries.Finish(deliveryKey, true)
 	return nil
 }
 
@@ -819,6 +964,10 @@ func zitadelCompleteSignup(ctx context.Context, userID, verificationCode string)
 		}
 	}
 
+	return zitadelSendPasswordless(ctx, userID)
+}
+
+func zitadelSendPasswordless(ctx context.Context, userID string) error {
 	passkeyPath := "/management/v1/users/" + url.PathEscape(userID) + "/passwordless/_send_link"
 	_, err := zitadelCall(ctx, http.MethodPost, passkeyPath, map[string]any{})
 	if err != nil {

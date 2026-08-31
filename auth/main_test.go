@@ -142,18 +142,23 @@ func (s *zitadelStub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func installEnterTestState(t *testing.T, serverURL string, limiter *signupRateLimiter) {
 	t.Helper()
 	oldIssuer, oldBaseURL := issuer, baseURL
-	oldPAT, oldProxyHost := zitadelPAT, trustedProxyHost
-	oldLimiter, oldTemplate := signupLimiter, tmpl
+	oldPAT, oldProxyHost, oldEdgeToken := zitadelPAT, trustedProxyHost, trustedEdgeToken
+	oldLimiter, oldVerificationLimiter := signupLimiter, verificationLimiter
+	oldDeliveries, oldTemplate := signupDeliveries, tmpl
 	issuer = serverURL
 	baseURL = "https://inspr.example"
 	zitadelPAT = "test-pat"
 	trustedProxyHost = "traefik"
+	trustedEdgeToken = "test-edge-token"
 	signupLimiter = limiter
+	verificationLimiter = newSignupRateLimiter(10, 10, time.Minute, 32)
+	signupDeliveries = newDeliveryTracker(32)
 	tmpl = htmltemplate.Must(htmltemplate.ParseFiles("templates/welcome.html", "templates/enter.html"))
 	t.Cleanup(func() {
 		issuer, baseURL = oldIssuer, oldBaseURL
-		zitadelPAT, trustedProxyHost = oldPAT, oldProxyHost
-		signupLimiter, tmpl = oldLimiter, oldTemplate
+		zitadelPAT, trustedProxyHost, trustedEdgeToken = oldPAT, oldProxyHost, oldEdgeToken
+		signupLimiter, verificationLimiter = oldLimiter, oldVerificationLimiter
+		signupDeliveries, tmpl = oldDeliveries, oldTemplate
 	})
 }
 
@@ -285,6 +290,9 @@ func TestHandleEnterRejectsFormParseErrorsBeforeSecurityAndProviderWork(t *testi
 }
 
 func TestSignupClientIPTrustsOnlyResolvedTraefikPeer(t *testing.T) {
+	oldEdgeToken := trustedEdgeToken
+	trustedEdgeToken = "test-edge-token"
+	t.Cleanup(func() { trustedEdgeToken = oldEdgeToken })
 	resolve := func(_ context.Context, host string) ([]net.IPAddr, error) {
 		if host != "traefik" {
 			t.Fatalf("resolved host = %q", host)
@@ -296,6 +304,8 @@ func TestSignupClientIPTrustsOnlyResolvedTraefikPeer(t *testing.T) {
 		req.RemoteAddr = peer + ":4321"
 		req.Header.Set("X-Forwarded-For", forwarded)
 		req.Header.Set("X-Real-IP", realIP)
+		req.Header.Set("X-Is-Trusted", "yes")
+		req.Header.Set("X-Inspr-Edge-Token", "test-edge-token")
 		return req
 	}
 	first := signupClientIPWithResolver(request("172.20.0.5", "198.51.100.8", "198.51.100.8"), resolve)
@@ -303,6 +313,21 @@ func TestSignupClientIPTrustsOnlyResolvedTraefikPeer(t *testing.T) {
 	if first == second {
 		t.Fatalf("distinct callers behind authoritative Traefik collapsed to %q", first)
 	}
+	missingToken := request("172.20.0.5", "198.51.100.8", "198.51.100.8")
+	missingToken.Header.Del("X-Inspr-Edge-Token")
+	if got := signupClientIPWithResolver(missingToken, resolve); got != "172.20.0.5" {
+		t.Fatalf("missing edge attestation trusted forwarded key %q", got)
+	}
+	badToken := request("172.20.0.5", "198.51.100.8", "198.51.100.8")
+	badToken.Header.Set("X-Inspr-Edge-Token", "attacker-chosen")
+	if got := signupClientIPWithResolver(badToken, resolve); got != "172.20.0.5" {
+		t.Fatalf("mismatched edge attestation trusted forwarded key %q", got)
+	}
+	trustedEdgeToken = ""
+	if got := signupClientIPWithResolver(request("172.20.0.5", "198.51.100.8", "198.51.100.8"), resolve); got != "172.20.0.5" {
+		t.Fatalf("unconfigured edge attestation did not fail closed: %q", got)
+	}
+	trustedEdgeToken = "test-edge-token"
 	if got := signupClientIPWithResolver(request("172.20.0.6", "198.51.100.8", "198.51.100.8"), resolve); got != "172.20.0.6" {
 		t.Fatalf("unrelated private peer spoofed key %q", got)
 	}
@@ -368,7 +393,7 @@ func TestHandleEnterUsesUnverifiedV2OwnershipContract(t *testing.T) {
 	defer server.Close()
 	installEnterTestState(t, server.URL, newSignupRateLimiter(10, 10, time.Minute, 32))
 	recorder := postSignup(t, getSignupCSRF(t), "Ada Lovelace", "ada@example.com", "192.0.2.2:1234", "")
-	if recorder.Code != http.StatusOK || !strings.Contains(recorder.Body.String(), "ownership link") || strings.Contains(recorder.Body.String(), "we just sent") {
+	if recorder.Code != http.StatusOK || !strings.Contains(recorder.Body.String(), "the next step") || strings.Contains(recorder.Body.String(), "we just sent") {
 		t.Fatalf("successful signup = %d %s", recorder.Code, recorder.Body.String())
 	}
 	stub.mu.Lock()
@@ -414,7 +439,7 @@ func TestHandleEnterLostCreateResponseRecoversByCheckedResend(t *testing.T) {
 	t.Cleanup(func() { log.SetOutput(oldLogOutput) })
 	first := postSignup(t, getSignupCSRF(t), "Ada", "ada@example.com", "192.0.2.2:1234", "")
 	second := postSignup(t, getSignupCSRF(t), "Ada", "ada@example.com", "192.0.2.2:4321", "")
-	if first.Code != http.StatusBadGateway || second.Code != http.StatusOK || !strings.Contains(second.Body.String(), "ownership link") {
+	if first.Code != http.StatusBadGateway || second.Code != http.StatusOK || !strings.Contains(second.Body.String(), "the next step") {
 		t.Fatalf("lost-response recovery statuses = %d/%d", first.Code, second.Code)
 	}
 	stub.mu.Lock()
@@ -428,6 +453,57 @@ func TestHandleEnterLostCreateResponseRecoversByCheckedResend(t *testing.T) {
 	}
 	if !strings.Contains(logs.String(), "stage=create status=502") {
 		t.Fatalf("redacted log lost stage/status: %q", logs.String())
+	}
+}
+
+func TestHandleEnterVerifiedConflictRecoversWithoutEnumerationOrMailBurst(t *testing.T) {
+	userID := signupUserID("ada@example.com")
+	stub := &zitadelStub{users: map[string]*stubUser{
+		userID: {email: "ada@example.com", verified: true},
+	}}
+	server := httptest.NewServer(stub)
+	defer server.Close()
+	installEnterTestState(t, server.URL, newSignupRateLimiter(10, 10, time.Minute, 32))
+
+	first := postSignup(t, getSignupCSRF(t), "Ada", "ada@example.com", "192.0.2.2:1234", "")
+	second := postSignup(t, getSignupCSRF(t), "Ada", "ada@example.com", "192.0.2.2:4321", "")
+	for i, recorder := range []*httptest.ResponseRecorder{first, second} {
+		body := recorder.Body.String()
+		if recorder.Code != http.StatusOK || !strings.Contains(body, "the next step") || strings.Contains(body, "verified") || strings.Contains(body, "already") {
+			t.Fatalf("recovery response %d leaks state or is unusable: %d %s", i, recorder.Code, body)
+		}
+	}
+	stub.mu.Lock()
+	defer stub.mu.Unlock()
+	if stub.createCalls != 2 || stub.passkeyCalls != 1 {
+		t.Fatalf("verified recovery calls create=%d passkey=%d, want 2/1 idempotent send", stub.createCalls, stub.passkeyCalls)
+	}
+}
+
+func TestExpiredOwnershipLinkRecoversThroughGenericSignup(t *testing.T) {
+	userID := signupUserID("ada@example.com")
+	stub := &zitadelStub{users: map[string]*stubUser{
+		userID: {email: "ada@example.com", verified: true},
+	}}
+	server := httptest.NewServer(stub)
+	defer server.Close()
+	installEnterTestState(t, server.URL, newSignupRateLimiter(10, 10, time.Minute, 32))
+
+	expired := ownershipURLTemplate(userID, time.Now().Add(-time.Minute))
+	expiredRecorder := httptest.NewRecorder()
+	handleEnterVerify(expiredRecorder, verificationRequest(t, expired, userID))
+	if expiredRecorder.Code != http.StatusBadRequest {
+		t.Fatalf("expired link status = %d, want 400", expiredRecorder.Code)
+	}
+
+	recovery := postSignup(t, getSignupCSRF(t), "Ada", "ada@example.com", "192.0.2.2:1234", "")
+	if recovery.Code != http.StatusOK || !strings.Contains(recovery.Body.String(), "the next step") {
+		t.Fatalf("expired-link recovery = %d %s", recovery.Code, recovery.Body.String())
+	}
+	stub.mu.Lock()
+	defer stub.mu.Unlock()
+	if stub.verifyCalls != 0 || stub.passkeyCalls != 1 {
+		t.Fatalf("expired link/provider recovery calls verify=%d passkey=%d", stub.verifyCalls, stub.passkeyCalls)
 	}
 }
 
@@ -458,6 +534,57 @@ func TestEnterVerificationProvesOwnershipBeforePasskey(t *testing.T) {
 	last := stub.requests[len(stub.requests)-1]
 	if last.path != "/management/v1/users/"+userID+"/passwordless/_send_link" || len(last.body) != 0 {
 		t.Fatalf("passkey send request shape = %#v", last)
+	}
+}
+
+func TestEnterVerificationReplayIsIdempotent(t *testing.T) {
+	stub := &zitadelStub{}
+	server := httptest.NewServer(stub)
+	defer server.Close()
+	installEnterTestState(t, server.URL, newSignupRateLimiter(10, 10, time.Minute, 32))
+	_ = postSignup(t, getSignupCSRF(t), "Ada", "ada@example.com", "192.0.2.2:1234", "")
+	stub.mu.Lock()
+	userID, link := signupUserID("ada@example.com"), stub.lastURLTemplate
+	stub.mu.Unlock()
+
+	for i := 0; i < 20; i++ {
+		recorder := httptest.NewRecorder()
+		handleEnterVerify(recorder, verificationRequest(t, link, userID))
+		if recorder.Code != http.StatusOK || !strings.Contains(recorder.Body.String(), "address is verified") {
+			t.Fatalf("replay %d = %d", i, recorder.Code)
+		}
+	}
+	stub.mu.Lock()
+	defer stub.mu.Unlock()
+	if stub.verifyCalls != 1 || stub.passkeyCalls != 1 {
+		t.Fatalf("20 replays emitted provider calls verify=%d passkey=%d, want 1/1", stub.verifyCalls, stub.passkeyCalls)
+	}
+}
+
+func TestEnterVerificationDistinctLinksAreRateLimitedPerUser(t *testing.T) {
+	userID := signupUserID("ada@example.com")
+	stub := &zitadelStub{users: map[string]*stubUser{
+		userID: {email: "ada@example.com", verified: true},
+	}}
+	server := httptest.NewServer(stub)
+	defer server.Close()
+	installEnterTestState(t, server.URL, newSignupRateLimiter(10, 10, time.Minute, 32))
+	verificationLimiter = newSignupRateLimiter(10, 2, time.Minute, 32)
+
+	statuses := make([]int, 0, 3)
+	for i := 1; i <= 3; i++ {
+		link := ownershipURLTemplate(userID, time.Now().Add(time.Duration(i)*time.Hour))
+		recorder := httptest.NewRecorder()
+		handleEnterVerify(recorder, verificationRequest(t, link, userID))
+		statuses = append(statuses, recorder.Code)
+	}
+	if statuses[0] != http.StatusOK || statuses[1] != http.StatusOK || statuses[2] != http.StatusTooManyRequests {
+		t.Fatalf("distinct-link statuses = %v, want [200 200 429]", statuses)
+	}
+	stub.mu.Lock()
+	defer stub.mu.Unlock()
+	if stub.passkeyCalls != 2 {
+		t.Fatalf("distinct links emitted %d passkey mails, want 2", stub.passkeyCalls)
 	}
 }
 
@@ -524,5 +651,44 @@ func TestSignupRateLimiterBoundsMemory(t *testing.T) {
 	}
 	if denied == 0 {
 		t.Fatal("full limiter evicted live entries instead of failing closed")
+	}
+}
+
+func TestDeliveryTrackerSerializesConcurrentReplayAndFailsClosedAtCapacity(t *testing.T) {
+	tracker := newDeliveryTracker(2)
+	now := time.Now()
+	expires := now.Add(time.Hour)
+	var started atomic.Int32
+	var already atomic.Int32
+	var workers sync.WaitGroup
+	for range 64 {
+		workers.Add(1)
+		go func() {
+			defer workers.Done()
+			switch tracker.Start("same-signed-link", now, expires) {
+			case deliveryStarted:
+				started.Add(1)
+			case deliveryAlready:
+				already.Add(1)
+			default:
+				t.Error("same-key replay unexpectedly exhausted tracker capacity")
+			}
+		}()
+	}
+	workers.Wait()
+	if started.Load() != 1 || already.Load() != 63 {
+		t.Fatalf("concurrent replay decisions started=%d already=%d", started.Load(), already.Load())
+	}
+
+	tracker.Finish("same-signed-link", false)
+	if got := tracker.Start("same-signed-link", now, expires); got != deliveryStarted {
+		t.Fatalf("failed delivery did not release retry reservation: %v", got)
+	}
+	tracker.Finish("same-signed-link", true)
+	if got := tracker.Start("second-link", now, expires); got != deliveryStarted {
+		t.Fatalf("second live delivery = %v, want started", got)
+	}
+	if got := tracker.Start("third-link", now, expires); got != deliveryFull {
+		t.Fatalf("full tracker decision = %v, want fail-closed full", got)
 	}
 }

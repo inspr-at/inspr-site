@@ -39,6 +39,15 @@ def step(text: str, name: str) -> tuple[int, str]:
     return start, text[start : len(text) if end < 0 else end]
 
 
+def condition_lines(block: str) -> list[str]:
+    return [line.strip() for line in block.splitlines() if line.startswith("        if:")]
+
+
+def shell_block_body(block: str) -> str:
+    require("        run: |\n" in block, "required shell block is missing")
+    return block.split("        run: |\n", 1)[1].split("\n\n", 1)[0]
+
+
 def validate(text: str) -> None:
     required_order = [
         "test fail-closed publication contract",
@@ -71,7 +80,10 @@ def validate(text: str) -> None:
     )
 
     guard = blocks["refuse version tag overwrite"][1]
-    require("if: github.ref_type == 'tag'" in guard, "version immutability guard must cover tag events")
+    require(
+        condition_lines(guard) == ["if: github.ref_type == 'tag'"],
+        "version immutability guard must run on every tag event",
+    )
     require("could not prove" in guard and "exit 1" in guard, "version guard must fail closed")
 
     local = blocks["build image for local scan"][1]
@@ -86,6 +98,11 @@ def validate(text: str) -> None:
     require("steps.meta.outputs.tags" not in local, "local scan build must not use release tags")
 
     scan = blocks["scan image for fixable CRITICAL/HIGH vulnerabilities"][1]
+    require(condition_lines(scan) == [], "Trivy scan must be unconditional")
+    require(
+        "uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0" in scan,
+        "Trivy action must remain pinned to the reviewed commit",
+    )
     require("image-ref: ${{ env.SCAN_IMAGE }}" in scan, "Trivy must scan the locally loaded image")
     require('exit-code: "1"' in scan, "Trivy findings must fail the job")
     require("continue-on-error" not in scan, "Trivy must not be advisory")
@@ -104,9 +121,24 @@ def validate(text: str) -> None:
     require("tags:" not in publish_digest, "digest publication must not create release tags")
 
     identity = blocks["verify pushed image is the scanned image"][1]
-    require("docker image inspect" in identity, "scanned local image identity must be read")
-    require("docker buildx imagetools inspect" in identity, "pushed image identity must be read")
-    require("SCANNED_CONFIG" in identity and "PUSHED_CONFIG" in identity, "image configs must be compared")
+    expected_identity_body = """          SCANNED_CONFIG=$(docker image inspect --format '{{.Id}}' "${SCAN_IMAGE}")
+          PLATFORM_DIGEST=$(
+            docker buildx imagetools inspect "${IMAGE}@${DIGEST}" --format '{{json .Manifest}}' |
+              jq -er '[.manifests[] | select(.platform.os == "linux" and .platform.architecture == "amd64")] | if length == 1 then .[0].digest else error("expected exactly one linux/amd64 manifest") end'
+          )
+          PUSHED_CONFIG=$(
+            docker buildx imagetools inspect --raw "${IMAGE}@${PLATFORM_DIGEST}" |
+              jq -er '.config.digest'
+          )
+          if [ "${SCANNED_CONFIG}" != "${PUSHED_CONFIG}" ]; then
+            echo "error: pushed image config does not match the image that passed Trivy" >&2
+            exit 1
+          fi
+"""
+    require(
+        shell_block_body(identity) == expected_identity_body,
+        "scanned-to-pushed image identity check must remain exact and fail closed",
+    )
 
     provenance = blocks["verify embedded provenance and SBOM"][1]
     require("steps.release.outputs.digest" in provenance, "attestations must be checked on the untagged digest")
@@ -114,10 +146,9 @@ def validate(text: str) -> None:
 
     for name in NON_PR_STEPS:
         block = blocks[name][1]
-        if_lines = [line.strip() for line in block.splitlines() if line.startswith("        if:")]
         require(
-            if_lines == ["if: github.event_name != 'pull_request'"],
-            f"{name} must be disabled on pull requests",
+            condition_lines(block) == ["if: github.event_name != 'pull_request'"],
+            f"{name} must use the exact non-PR publication guard",
         )
 
     installer = blocks["install cosign"][1]
@@ -140,8 +171,7 @@ def validate(text: str) -> None:
         '            --certificate-identity "https://github.com/${GITHUB_REPOSITORY}/.github/workflows/auth-image.yml@${GITHUB_REF}" \\\n',
         '            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" >/dev/null\n',
     ]
-    require("        run: |\n" in signature, "signature verification must use a shell block")
-    verify_body = signature.split("        run: |\n", 1)[1].split("\n\n", 1)[0]
+    verify_body = shell_block_body(signature)
     actual_verify_body = [f"{line}\n" for line in verify_body.splitlines()]
     require(actual_verify_body == expected_verify_body, "signature verification command must remain exact")
     for token in expected_verify_body:
@@ -193,6 +223,48 @@ def main() -> int:
         "ignored failing vulnerability scan",
     )
     must_reject(text, "push-by-digest=true", "push-by-digest=false", "taggable pre-sign push")
+    must_reject_step(
+        text,
+        "scan image for fixable CRITICAL/HIGH vulnerabilities",
+        "      - name: scan image for fixable CRITICAL/HIGH vulnerabilities\n",
+        "      - name: scan image for fixable CRITICAL/HIGH vulnerabilities\n        if: false\n",
+        "disabled Trivy scan",
+    )
+    must_reject_step(
+        text,
+        "scan image for fixable CRITICAL/HIGH vulnerabilities",
+        "uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25",
+        "uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09",
+        "substituted Trivy action",
+    )
+    must_reject_step(
+        text,
+        "refuse version tag overwrite",
+        "if: github.ref_type == 'tag'",
+        "if: github.ref_type == 'tag' && false",
+        "disabled immutable-tag guard",
+    )
+    must_reject_step(
+        text,
+        "verify pushed image is the scanned image",
+        "if: github.event_name != 'pull_request'",
+        "if: false",
+        "disabled config identity comparison",
+    )
+    must_reject_step(
+        text,
+        "verify pushed image is the scanned image",
+        'if [ "${SCANNED_CONFIG}" != "${PUSHED_CONFIG}" ]; then',
+        "if false; then",
+        "no-op config identity comparison",
+    )
+    must_reject_step(
+        text,
+        "verify pushed image is the scanned image",
+        "docker image inspect",
+        "echo docker image inspect",
+        "no-op local image identity read",
+    )
     for name in NON_PR_STEPS:
         must_reject_step(
             text,

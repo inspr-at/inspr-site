@@ -10,6 +10,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"html/template"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -182,6 +183,24 @@ func TestCompleteLoginRejectsStateBeforeTokenExchange(t *testing.T) {
 }
 
 func TestHandleWelcomeConsumesFailedAndMalformedOIDCCallbacks(t *testing.T) {
+	previousKey := cookieKey
+	previousTemplate := tmpl
+	cookieKey = bytes.Repeat([]byte{0x42}, 32)
+	tmpl = template.Must(template.New("welcome.html").Parse(`{{define "welcome.html"}}welcome {{.Name}}{{end}}`))
+	t.Cleanup(func() {
+		cookieKey = previousKey
+		tmpl = previousTemplate
+	})
+
+	sessionRecorder := httptest.NewRecorder()
+	if err := writeSession(sessionRecorder, sessionPayload{Name: "Existing User", Exp: time.Now().Add(time.Hour).Unix()}); err != nil {
+		t.Fatalf("write existing session: %v", err)
+	}
+	sessionCookie := responseCookies(sessionRecorder.Result())[sessionCookieName]
+	if sessionCookie == nil {
+		t.Fatal("existing session cookie was not written")
+	}
+
 	for _, test := range []struct {
 		name string
 		url  string
@@ -194,12 +213,25 @@ func TestHandleWelcomeConsumesFailedAndMalformedOIDCCallbacks(t *testing.T) {
 			name: "state without result",
 			url:  "https://inspr.at/welcome?state=state",
 		},
+		{
+			name: "empty code",
+			url:  "https://inspr.at/welcome?code=",
+		},
+		{
+			name: "empty error",
+			url:  "https://inspr.at/welcome?error=",
+		},
+		{
+			name: "conflicting code and empty error",
+			url:  "https://inspr.at/welcome?code=authorization-code&error=&state=state",
+		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			recorder := httptest.NewRecorder()
 			request := httptest.NewRequest(http.MethodGet, test.url, nil)
 			request.AddCookie(&http.Cookie{Name: stateCookieName, Value: "state"})
 			request.AddCookie(&http.Cookie{Name: nonceCookieName, Value: "nonce"})
+			request.AddCookie(sessionCookie)
 
 			handleWelcome(recorder, request)
 			response := recorder.Result()
@@ -303,6 +335,17 @@ func TestVerifyLoginIDTokenExtractsNonceFromSignedJWT(t *testing.T) {
 	}
 	if verified.Claims.Name != "Ada Lovelace" || verified.Claims.Sub != "subject-1" {
 		t.Fatalf("claims = %#v", verified.Claims)
+	}
+
+	parts := strings.Split(rawIDToken, ".")
+	signature, err := base64.RawURLEncoding.DecodeString(parts[2])
+	if err != nil {
+		t.Fatalf("decode test JWT signature: %v", err)
+	}
+	signature[0] ^= 0xff
+	tampered := parts[0] + "." + parts[1] + "." + base64.RawURLEncoding.EncodeToString(signature)
+	if _, err := verifyLoginIDToken(context.Background(), tampered); err == nil {
+		t.Fatal("tampered ID token signature was accepted")
 	}
 }
 

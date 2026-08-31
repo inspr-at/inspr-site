@@ -188,15 +188,29 @@ func handleWelcome(w http.ResponseWriter, r *http.Request) {
 	// treated as a refresh of an existing session.
 	query := r.URL.Query()
 	code := query.Get("code")
-	if query.Get("error") != "" {
+	_, hasCode := query["code"]
+	_, hasError := query["error"]
+	if hasError {
 		if _, err := consumeLoginAttempt(w, r); err != nil {
 			rejectLoginCallback(w, err)
 			return
 		}
-		rejectLoginCallback(w, loginFailureAuthorizationRejected)
+		if hasCode || query.Get("error") == "" {
+			rejectLoginCallback(w, loginFailureResultMissing)
+		} else {
+			rejectLoginCallback(w, loginFailureAuthorizationRejected)
+		}
 		return
 	}
-	if code != "" {
+	if hasCode {
+		if code == "" {
+			if _, err := consumeLoginAttempt(w, r); err != nil {
+				rejectLoginCallback(w, err)
+			} else {
+				rejectLoginCallback(w, loginFailureResultMissing)
+			}
+			return
+		}
 		name, err := completeLogin(r.Context(), w, r, code)
 		if err != nil {
 			rejectLoginCallback(w, err)

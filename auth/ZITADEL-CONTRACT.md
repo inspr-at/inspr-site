@@ -64,4 +64,7 @@ This repository's compose file is reference evidence only; when the token is
 absent or mismatched, the application deliberately ignores forwarded identity
 and uses the direct Traefik peer as one shared fail-closed rate bucket. The
 pinned cloudflarewarp source contract and official Cloudflare CIDR update check
-live in `cloudflare-edge-contract.json` and `check-edge-contract.mjs`.
+live in `cloudflare-edge-contract.json` and `check-edge-contract.mjs`. The same
+contract pins the observed Traefik proxy sources: cloudflarewarp's visitor
+value remains in `X-Real-IP`, while the backend request carries exactly
+`X-Forwarded-For: visitor, cloudflare-edge`.

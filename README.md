@@ -181,11 +181,14 @@ trusts `172.16.0.0/12`, so neither a private source nor its rewritten headers
 are identity evidence. The deployable edge contract filters the auth router to
 Cloudflare's official source ranges before cloudflarewarp, overwrites a secret
 attestation header after that check, and gives the same age-backed token to the
-auth process. `/enter` accepts the single matching `X-Real-IP` and
-`X-Forwarded-For` value only with that constant-time token, the plugin's trusted
-marker, and an exact Docker-DNS-resolved Traefik peer. Any missing component
-falls back to the non-spoofable direct Traefik peer, intentionally sharing one
-public bucket instead of trusting attacker-selected identity.
+auth process. cloudflarewarp writes the visitor into `X-Real-IP` and
+`X-Forwarded-For`; Traefik's service proxy then appends the immediate Cloudflare
+edge to XFF. `/enter` accepts exactly that two-hop XFF shape when its first
+value matches `X-Real-IP`, and only with the constant-time token, the plugin's
+trusted marker, and an exact Docker-DNS-resolved Traefik peer. Any missing or
+extra component falls back to the non-spoofable direct Traefik peer,
+intentionally sharing one public bucket instead of trusting attacker-selected
+identity.
 
 The repository compose file is executable reference evidence, not the
 authoritative csb1 configuration. **NIX-400 is a required rollout dependency**:
@@ -198,6 +201,8 @@ CIDRs with Cloudflare's official IPv4/IPv6 endpoints so range drift fails
 visibly. The gate also pins cloudflarewarp's built-in range source, proves
 `disableDefault: false` trusts every official IPv6 range, and verifies that the
 plugin overwrites its trusted marker on both trusted and untrusted branches.
+It also pins the observed Traefik v3.7.12 proxy sources that preserve
+`X-Real-IP` and append the edge peer to `X-Forwarded-For`.
 
 Signup uses the User API v2beta contract shipped by the deployed ZITADEL
 v2.54.8 image: creation emits an unverified email-code notification, the link

@@ -16,6 +16,17 @@
     "trustedBehavior": "overwrite-X-Is-Trusted-yes-and-copy-CF-Connecting-IP-to-X-Forwarded-For-and-X-Real-IP",
     "untrustedBehavior": "overwrite-X-Is-Trusted-no-and-delete-CF-Connecting-IP"
   },
+  "traefik": {
+    "observedVersion": "v3.7.12",
+    "observedImageId": "sha256:edf5c7c4baa712cf722f8c80394116696fdfaa283b3448c4cccf6a2b2f21aa99",
+    "fastProxySource": "https://raw.githubusercontent.com/traefik/traefik/v3.7.12/pkg/proxy/fast/proxy.go",
+    "fastProxySourceSha256": "a4abbcc607a1d7bf876a995734a01b297634d8dc762a24e315b2dce0baeeec41",
+    "httpUtilProxySource": "https://raw.githubusercontent.com/traefik/traefik/v3.7.12/pkg/proxy/httputil/proxy.go",
+    "httpUtilProxySourceSha256": "22041dcd5cbd9ad4ced154d9e7e2726772eaca6ba25c22d915e4fd07f76bc647",
+    "forwardedHeadersSource": "https://raw.githubusercontent.com/traefik/traefik/v3.7.12/pkg/middlewares/forwardedheaders/forwarded_header.go",
+    "forwardedHeadersSourceSha256": "d3c906b11ebcb36a6dafb4b50b03e576893bd558af9b302b6cc66422812a1758",
+    "backendHeaderShape": "X-Real-IP=client; X-Forwarded-For=client, cloudflare-edge"
+  },
   "cloudflareRanges": [
     "173.245.48.0/20",
     "103.21.244.0/22",

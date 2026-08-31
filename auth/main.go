@@ -887,11 +887,22 @@ func signupClientIPWithResolver(r *http.Request, resolve proxyIPResolver) string
 	}
 	edgeToken := r.Header.Get("X-Inspr-Edge-Token")
 	if trusted && trustedEdgeToken != "" && subtle.ConstantTimeCompare([]byte(edgeToken), []byte(trustedEdgeToken)) == 1 && r.Header.Get("X-Is-Trusted") == "yes" {
-		forwardedRaw := strings.TrimSpace(r.Header.Get("X-Forwarded-For"))
-		forwarded := net.ParseIP(forwardedRaw)
+		forwardedValues := r.Header.Values("X-Forwarded-For")
 		realIP := net.ParseIP(strings.TrimSpace(r.Header.Get("X-Real-IP")))
-		if !strings.Contains(forwardedRaw, ",") && forwarded != nil && realIP != nil && forwarded.Equal(realIP) {
-			return forwarded.String()
+		if len(forwardedValues) == 1 && realIP != nil {
+			// cloudflarewarp replaces XFF with the visitor address; Traefik's
+			// service proxy then appends the immediate Cloudflare edge peer.
+			// Accept exactly that two-hop chain and require its first value to
+			// equal the independently rewritten X-Real-IP. Extra, missing, or
+			// malformed hops remain fail-closed to the Docker peer.
+			forwardedParts := strings.Split(forwardedValues[0], ",")
+			if len(forwardedParts) == 2 {
+				clientIP := net.ParseIP(strings.TrimSpace(forwardedParts[0]))
+				edgeIP := net.ParseIP(strings.TrimSpace(forwardedParts[1]))
+				if clientIP != nil && edgeIP != nil && clientIP.Equal(realIP) && !clientIP.Equal(edgeIP) {
+					return clientIP.String()
+				}
+			}
 		}
 	}
 	if peer != nil {

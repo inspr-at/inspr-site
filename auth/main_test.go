@@ -426,34 +426,49 @@ func TestSignupClientIPTrustsOnlyResolvedTraefikPeer(t *testing.T) {
 		req.Header.Set("X-Inspr-Edge-Token", "test-edge-token")
 		return req
 	}
-	first := signupClientIPWithResolver(request("172.20.0.5", "198.51.100.8", "198.51.100.8"), resolve)
-	second := signupClientIPWithResolver(request("172.20.0.5", "203.0.113.9", "203.0.113.9"), resolve)
+	first := signupClientIPWithResolver(request("172.20.0.5", "198.51.100.8, 173.245.48.10", "198.51.100.8"), resolve)
+	second := signupClientIPWithResolver(request("172.20.0.5", "203.0.113.9, 2606:4700::10", "203.0.113.9"), resolve)
 	if first == second {
 		t.Fatalf("distinct callers behind authoritative Traefik collapsed to %q", first)
 	}
-	missingToken := request("172.20.0.5", "198.51.100.8", "198.51.100.8")
+	missingToken := request("172.20.0.5", "198.51.100.8, 173.245.48.10", "198.51.100.8")
 	missingToken.Header.Del("X-Inspr-Edge-Token")
 	if got := signupClientIPWithResolver(missingToken, resolve); got != "172.20.0.5" {
 		t.Fatalf("missing edge attestation trusted forwarded key %q", got)
 	}
-	badToken := request("172.20.0.5", "198.51.100.8", "198.51.100.8")
+	badToken := request("172.20.0.5", "198.51.100.8, 173.245.48.10", "198.51.100.8")
 	badToken.Header.Set("X-Inspr-Edge-Token", "attacker-chosen")
 	if got := signupClientIPWithResolver(badToken, resolve); got != "172.20.0.5" {
 		t.Fatalf("mismatched edge attestation trusted forwarded key %q", got)
 	}
 	trustedEdgeToken = ""
-	if got := signupClientIPWithResolver(request("172.20.0.5", "198.51.100.8", "198.51.100.8"), resolve); got != "172.20.0.5" {
+	if got := signupClientIPWithResolver(request("172.20.0.5", "198.51.100.8, 173.245.48.10", "198.51.100.8"), resolve); got != "172.20.0.5" {
 		t.Fatalf("unconfigured edge attestation did not fail closed: %q", got)
 	}
 	trustedEdgeToken = "test-edge-token"
-	if got := signupClientIPWithResolver(request("172.20.0.6", "198.51.100.8", "198.51.100.8"), resolve); got != "172.20.0.6" {
+	if got := signupClientIPWithResolver(request("172.20.0.6", "198.51.100.8, 173.245.48.10", "198.51.100.8"), resolve); got != "172.20.0.6" {
 		t.Fatalf("unrelated private peer spoofed key %q", got)
 	}
 	if got := signupClientIPWithResolver(request("172.20.0.5", "192.0.2.44, 198.51.100.8", "198.51.100.8"), resolve); got != "172.20.0.5" {
 		t.Fatalf("forwarded chain selected spoofable key %q", got)
 	}
+	for name, candidate := range map[string]*http.Request{
+		"single hop":       request("172.20.0.5", "198.51.100.8", "198.51.100.8"),
+		"extra hop":        request("172.20.0.5", "198.51.100.8, 173.245.48.10, 172.20.0.5", "198.51.100.8"),
+		"malformed edge":   request("172.20.0.5", "198.51.100.8, not-an-ip", "198.51.100.8"),
+		"same client edge": request("172.20.0.5", "198.51.100.8, 198.51.100.8", "198.51.100.8"),
+	} {
+		if got := signupClientIPWithResolver(candidate, resolve); got != "172.20.0.5" {
+			t.Fatalf("%s selected unpinned forwarded key %q", name, got)
+		}
+	}
+	multipleHeaders := request("172.20.0.5", "198.51.100.8, 173.245.48.10", "198.51.100.8")
+	multipleHeaders.Header.Add("X-Forwarded-For", "203.0.113.9")
+	if got := signupClientIPWithResolver(multipleHeaders, resolve); got != "172.20.0.5" {
+		t.Fatalf("multiple XFF header lines selected forwarded key %q", got)
+	}
 	failedResolve := func(context.Context, string) ([]net.IPAddr, error) { return nil, errors.New("dns unavailable") }
-	if got := signupClientIPWithResolver(request("172.20.0.5", "198.51.100.8", "198.51.100.8"), failedResolve); got != "172.20.0.5" {
+	if got := signupClientIPWithResolver(request("172.20.0.5", "198.51.100.8, 173.245.48.10", "198.51.100.8"), failedResolve); got != "172.20.0.5" {
 		t.Fatalf("DNS failure did not fail closed to peer: %q", got)
 	}
 }

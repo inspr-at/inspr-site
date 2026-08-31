@@ -103,6 +103,11 @@ for (const address of [
     `cloudflarewarp effective trust omitted ${address}`,
   );
 }
+assert.equal(contract.traefik.observedVersion, "v3.7.12");
+assert.equal(
+  contract.traefik.backendHeaderShape,
+  "X-Real-IP=client; X-Forwarded-For=client, cloudflare-edge",
+);
 
 if (process.argv.includes("--online")) {
   const fetchRanges = async (source) => {
@@ -170,6 +175,52 @@ if (process.argv.includes("--online")) {
     pluginDefaultRanges,
     contract.cloudflareRanges,
     "cloudflarewarp built-in ranges differ from the pinned Cloudflare contract",
+  );
+
+  const fetchPinnedSource = async (source, expectedHash, label) => {
+    const response = await fetch(source, { signal: AbortSignal.timeout(10_000) });
+    assert.equal(response.ok, true, `${source} returned ${response.status}`);
+    const body = await response.text();
+    assert.equal(
+      createHash("sha256").update(body).digest("hex"),
+      expectedHash,
+      `${label} source changed unexpectedly`,
+    );
+    return body;
+  };
+  const fastProxySource = await fetchPinnedSource(
+    contract.traefik.fastProxySource,
+    contract.traefik.fastProxySourceSha256,
+    "Traefik fast proxy",
+  );
+  const httpUtilProxySource = await fetchPinnedSource(
+    contract.traefik.httpUtilProxySource,
+    contract.traefik.httpUtilProxySourceSha256,
+    "Traefik httputil proxy",
+  );
+  const forwardedHeadersSource = await fetchPinnedSource(
+    contract.traefik.forwardedHeadersSource,
+    contract.traefik.forwardedHeadersSourceSha256,
+    "Traefik forwarded-headers middleware",
+  );
+  for (const [label, source] of [
+    ["fast proxy", fastProxySource],
+    ["httputil proxy", httpUtilProxySource],
+  ]) {
+    assert.match(
+      source,
+      /strings\.Join\(prior, ", "\) \+ ", " \+ clientIP/,
+      `${label} no longer appends its immediate peer to X-Forwarded-For`,
+    );
+  }
+  assert.match(
+    forwardedHeadersSource,
+    /if unsafeHeader\(outreq\.Header\)\.Get\(xRealIP\) == ""/,
+    "Traefik no longer preserves cloudflarewarp's X-Real-IP",
+  );
+  assert.match(
+    forwardedHeadersSource,
+    /unsafeHeader\(outreq\.Header\)\.Set\(xRealIP, clientIP\)/,
   );
 }
 

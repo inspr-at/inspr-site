@@ -45,7 +45,8 @@ type zitadelStub struct {
 	passkeyFailures       int
 	errorBody             string
 	lastURLTemplate       string
-	requestDelay          time.Duration
+	requestStarted        chan<- capturedRequest
+	requestRelease        <-chan struct{}
 	passkeyStarted        chan struct{}
 	passkeyRelease        <-chan struct{}
 }
@@ -60,12 +61,23 @@ func (s *zitadelStub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Body != nil {
 		_ = json.NewDecoder(r.Body).Decode(&body)
 	}
-	s.requests = append(s.requests, capturedRequest{method: r.Method, path: r.URL.Path, body: body})
+	request := capturedRequest{method: r.Method, path: r.URL.Path, body: body}
+	s.requests = append(s.requests, request)
 	w.Header().Set("Content-Type", "application/json")
-	if s.requestDelay > 0 {
-		time.Sleep(s.requestDelay)
+	if s.requestStarted != nil {
+		select {
+		case s.requestStarted <- request:
+		case <-r.Context().Done():
+			return
+		}
 	}
-
+	if s.requestRelease != nil {
+		select {
+		case <-s.requestRelease:
+		case <-r.Context().Done():
+			return
+		}
+	}
 	switch {
 	case r.Method == http.MethodPost && r.URL.Path == "/management/v1/users/_search":
 		s.searchCalls++
@@ -565,58 +577,84 @@ func TestSignupRecoveryFindsProviderAndRotatedKeyUserIDs(t *testing.T) {
 }
 
 func TestNewAndRecoverySignupResponsesHaveSamePublicAndCallShape(t *testing.T) {
-	var newBody, recoveryBody string
-	var newDuration, recoveryDuration time.Duration
+	type observation struct {
+		body     string
+		requests []capturedRequest
+	}
+	exercise := func(t *testing.T, users map[string]*stubUser) observation {
+		t.Helper()
+		// Each provider response waits for an explicit release. This proves the
+		// public handler cannot return after fewer external round trips without
+		// comparing scheduler-sensitive wall-clock durations.
+		started := make(chan capturedRequest, 3)
+		release := make(chan struct{})
+		stub := &zitadelStub{
+			users:          users,
+			requestStarted: started,
+			requestRelease: release,
+		}
+		server := httptest.NewServer(stub)
+		defer func() {
+			close(release)
+			server.Close()
+		}()
+		installEnterTestState(t, server.URL, newSignupRateLimiter(10, 10, time.Minute, 32))
+		csrf := getSignupCSRF(t)
+		completed := make(chan *httptest.ResponseRecorder, 1)
+		go func() {
+			completed <- postSignup(t, csrf, "Ada", "ada@example.com", "192.0.2.2:1234", "")
+		}()
 
+		requests := make([]capturedRequest, 0, 2)
+		for requestNumber := 1; requestNumber <= 2; requestNumber++ {
+			select {
+			case request := <-started:
+				requests = append(requests, request)
+			case response := <-completed:
+				t.Fatalf("signup returned after only %d provider calls: %d %s", requestNumber-1, response.Code, response.Body.String())
+			case <-time.After(5 * time.Second):
+				t.Fatalf("signup did not reach provider call %d", requestNumber)
+			}
+			select {
+			case response := <-completed:
+				t.Fatalf("signup returned while provider call %d was blocked: %d %s", requestNumber, response.Code, response.Body.String())
+			default:
+			}
+			release <- struct{}{}
+		}
+
+		var response *httptest.ResponseRecorder
+		select {
+		case response = <-completed:
+		case request := <-started:
+			t.Fatalf("signup made a third provider call: %#v", request)
+		case <-time.After(5 * time.Second):
+			t.Fatal("signup did not return after two completed provider calls")
+		}
+		if response.Code != http.StatusOK {
+			t.Fatalf("signup status = %d", response.Code)
+		}
+		return observation{body: response.Body.String(), requests: requests}
+	}
+
+	var newSignup, recoverySignup observation
 	t.Run("new", func(t *testing.T) {
-		stub := &zitadelStub{requestDelay: 10 * time.Millisecond}
-		server := httptest.NewServer(stub)
-		defer server.Close()
-		installEnterTestState(t, server.URL, newSignupRateLimiter(10, 10, time.Minute, 32))
-		start := time.Now()
-		response := postSignup(t, getSignupCSRF(t), "Ada", "ada@example.com", "192.0.2.2:1234", "")
-		newDuration = time.Since(start)
-		newBody = response.Body.String()
-		if response.Code != http.StatusOK {
-			t.Fatalf("new status = %d", response.Code)
-		}
-		stub.mu.Lock()
-		defer stub.mu.Unlock()
-		if stub.searchCalls != 1 || stub.createCalls != 1 || len(stub.requests) != 2 {
-			t.Fatalf("new provider call shape = %#v", stub.requests)
+		newSignup = exercise(t, nil)
+		if len(newSignup.requests) != 2 || newSignup.requests[0].method != http.MethodPost || newSignup.requests[0].path != "/management/v1/users/_search" || newSignup.requests[1].method != http.MethodPost || newSignup.requests[1].path != "/v2beta/users/human" {
+			t.Fatalf("new provider call shape = %#v", newSignup.requests)
 		}
 	})
-
 	t.Run("recovery", func(t *testing.T) {
-		stub := &zitadelStub{requestDelay: 10 * time.Millisecond, users: map[string]*stubUser{
+		recoverySignup = exercise(t, map[string]*stubUser{
 			"provider-random-id": {email: "ada@example.com", verified: true},
-		}}
-		server := httptest.NewServer(stub)
-		defer server.Close()
-		installEnterTestState(t, server.URL, newSignupRateLimiter(10, 10, time.Minute, 32))
-		start := time.Now()
-		response := postSignup(t, getSignupCSRF(t), "Ada", "ada@example.com", "192.0.2.2:1234", "")
-		recoveryDuration = time.Since(start)
-		recoveryBody = response.Body.String()
-		if response.Code != http.StatusOK {
-			t.Fatalf("recovery status = %d", response.Code)
-		}
-		stub.mu.Lock()
-		defer stub.mu.Unlock()
-		if stub.searchCalls != 1 || stub.passkeyCalls != 1 || len(stub.requests) != 2 {
-			t.Fatalf("recovery provider call shape = %#v", stub.requests)
+		})
+		if len(recoverySignup.requests) != 2 || recoverySignup.requests[0].method != http.MethodPost || recoverySignup.requests[0].path != "/management/v1/users/_search" || recoverySignup.requests[1].method != http.MethodPost || recoverySignup.requests[1].path != "/management/v1/users/provider-random-id/passwordless/_send_link" {
+			t.Fatalf("recovery provider call shape = %#v", recoverySignup.requests)
 		}
 	})
 
-	if newBody != recoveryBody {
+	if newSignup.body != recoverySignup.body {
 		t.Fatal("new and recovery signup bodies expose different account states")
-	}
-	delta := newDuration - recoveryDuration
-	if delta < 0 {
-		delta = -delta
-	}
-	if delta > 25*time.Millisecond {
-		t.Fatalf("equal two-call provider paths diverged materially: new=%v recovery=%v", newDuration, recoveryDuration)
 	}
 }
 

@@ -9,6 +9,17 @@ import sys
 
 
 WORKFLOW = pathlib.Path(__file__).parents[1] / "workflows" / "auth-image.yml"
+NON_PR_STEPS = (
+    "publish release image by digest",
+    "verify pushed image is the scanned image",
+    "verify embedded provenance and SBOM",
+    "install cosign",
+    "sign image digest with GitHub OIDC",
+    "verify image signature",
+    "publish signed tags",
+    "verify published tags",
+    "publish summary",
+)
 
 
 class ContractError(AssertionError):
@@ -37,6 +48,7 @@ def validate(text: str) -> None:
         "publish release image by digest",
         "verify pushed image is the scanned image",
         "verify embedded provenance and SBOM",
+        "install cosign",
         "sign image digest with GitHub OIDC",
         "verify image signature",
         "publish signed tags",
@@ -46,6 +58,7 @@ def validate(text: str) -> None:
     blocks = {name: step(text, name) for name in required_order}
     positions = [blocks[name][0] for name in required_order]
     require(positions == sorted(positions), "security and publication steps are out of order")
+    require("continue-on-error" not in text, "security and publication steps must fail closed")
 
     contract_test = blocks["test fail-closed publication contract"][1]
     require(
@@ -97,11 +110,42 @@ def validate(text: str) -> None:
 
     provenance = blocks["verify embedded provenance and SBOM"][1]
     require("steps.release.outputs.digest" in provenance, "attestations must be checked on the untagged digest")
+    require("jq -e" in provenance, "provenance and SBOM validation must fail the job")
+
+    for name in NON_PR_STEPS:
+        block = blocks[name][1]
+        if_lines = [line.strip() for line in block.splitlines() if line.startswith("        if:")]
+        require(
+            if_lines == ["if: github.event_name != 'pull_request'"],
+            f"{name} must be disabled on pull requests",
+        )
+
+    installer = blocks["install cosign"][1]
+    require(
+        "uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac" in installer
+        and "cosign-release: v2.5.2" in installer,
+        "cosign installation must remain pinned",
+    )
 
     signing = blocks["sign image digest with GitHub OIDC"][1]
     signature = blocks["verify image signature"][1]
     for block, label in ((signing, "signing"), (signature, "signature verification")):
         require("steps.release.outputs.digest" in block, f"{label} must target the release digest")
+    require(
+        '        run: cosign sign --yes "${IMAGE}@${DIGEST}"\n' in signing,
+        "signing step must execute the exact non-interactive cosign command",
+    )
+    expected_verify_body = [
+        '          cosign verify "${IMAGE}@${DIGEST}" \\\n',
+        '            --certificate-identity "https://github.com/${GITHUB_REPOSITORY}/.github/workflows/auth-image.yml@${GITHUB_REF}" \\\n',
+        '            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" >/dev/null\n',
+    ]
+    require("        run: |\n" in signature, "signature verification must use a shell block")
+    verify_body = signature.split("        run: |\n", 1)[1].split("\n\n", 1)[0]
+    actual_verify_body = [f"{line}\n" for line in verify_body.splitlines()]
+    require(actual_verify_body == expected_verify_body, "signature verification command must remain exact")
+    for token in expected_verify_body:
+        require(token in signature, f"signature verification must contain {token.strip()!r}")
 
     publish_tags = blocks["publish signed tags"][1]
     for token in ("steps.release.outputs.digest", "steps.meta.outputs.tags", "imagetools create"):
@@ -126,6 +170,18 @@ def must_reject(text: str, old: str, new: str, case: str) -> None:
     raise ContractError(f"validator accepted unsafe mutation: {case}")
 
 
+def must_reject_step(text: str, name: str, old: str, new: str, case: str) -> None:
+    start, block = step(text, name)
+    require(old in block, f"self-test mutation source missing in {name} for {case}")
+    mutated_block = block.replace(old, new, 1)
+    mutated = text[:start] + mutated_block + text[start + len(block) :]
+    try:
+        validate(mutated)
+    except ContractError:
+        return
+    raise ContractError(f"validator accepted unsafe mutation: {case}")
+
+
 def main() -> int:
     text = WORKFLOW.read_text(encoding="utf-8")
     validate(text)
@@ -137,6 +193,49 @@ def main() -> int:
         "ignored failing vulnerability scan",
     )
     must_reject(text, "push-by-digest=true", "push-by-digest=false", "taggable pre-sign push")
+    for name in NON_PR_STEPS:
+        must_reject_step(
+            text,
+            name,
+            "if: github.event_name != 'pull_request'",
+            "if: always()",
+            f"unsafe pull-request condition on {name}",
+        )
+        must_reject_step(
+            text,
+            name,
+            f"      - name: {name}\n",
+            f"      - name: {name}\n        continue-on-error: true\n",
+            f"advisory {name}",
+        )
+    must_reject_step(
+        text,
+        "sign image digest with GitHub OIDC",
+        'run: cosign sign --yes "${IMAGE}@${DIGEST}"',
+        "run: echo signing skipped",
+        "no-op signing",
+    )
+    must_reject_step(
+        text,
+        "verify image signature",
+        'cosign verify "${IMAGE}@${DIGEST}"',
+        'echo cosign verify "${IMAGE}@${DIGEST}"',
+        "no-op signature verification",
+    )
+    must_reject_step(
+        text,
+        "verify image signature",
+        "--certificate-identity",
+        "--ignored-certificate-identity",
+        "missing workflow identity constraint",
+    )
+    must_reject_step(
+        text,
+        "verify image signature",
+        "--certificate-oidc-issuer",
+        "--ignored-certificate-oidc-issuer",
+        "missing OIDC issuer constraint",
+    )
     must_reject(
         text,
         "      - name: verify image signature\n",

@@ -9,8 +9,12 @@
     "revision": "5e2ccb53f08b85dde82d6676cb91076198817f0d",
     "source": "https://raw.githubusercontent.com/BetterCorp/cloudflarewarp/5e2ccb53f08b85dde82d6676cb91076198817f0d/cloudflarewarp.go",
     "sourceSha256": "fa4c58c2dc02fd3596a525531086d04706f4bef4b43e4620c8af409189359809",
+    "disableDefault": false,
+    "defaultRangeSource": "https://raw.githubusercontent.com/BetterCorp/cloudflarewarp/5e2ccb53f08b85dde82d6676cb91076198817f0d/ips/ips.go",
+    "defaultRangeSourceSha256": "4835840a2f2a182a830df423cab1fee4448a0a75150387aeb3d28de26072b54d",
     "configuredTrustedSourceRanges": ["172.16.0.0/12", "2400:cb00::/32"],
-    "trustedBehavior": "copy-CF-Connecting-IP-to-X-Forwarded-For-and-X-Real-IP"
+    "trustedBehavior": "overwrite-X-Is-Trusted-yes-and-copy-CF-Connecting-IP-to-X-Forwarded-For-and-X-Real-IP",
+    "untrustedBehavior": "overwrite-X-Is-Trusted-no-and-delete-CF-Connecting-IP"
   },
   "cloudflareRanges": [
     "173.245.48.0/20",

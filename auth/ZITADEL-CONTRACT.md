@@ -17,7 +17,11 @@ The ownership flow follows these contracts from that revision:
   `POST /management/v1/users/_search` and requires `user.read`.
   `internal/api/grpc/management/user.go` appends the authenticated service
   account's organization to the exact-email query before returning provider
-  IDs. The pinned `ORG_USER_MANAGER` role includes `user.read`.
+  IDs. The pinned `ORG_USER_MANAGER` role includes `user.read`. Protojson may
+  represent zero results as an omitted `result` field or an explicit empty
+  array, and may omit the false `isEmailVerified` scalar. The client accepts
+  both canonical default-value shapes while rejecting wrong types, ambiguous
+  results, mismatched email addresses, and response bodies without `details`.
 - `internal/api/grpc/user/v2/user.go` validates the custom URL template before
   the create command. `internal/command/user_human.go` appends
   `HumanEmailCodeAddedEventV2` when v2 creates an unverified email; it does not
@@ -30,11 +34,11 @@ The ownership flow follows these contracts from that revision:
   passwordless registration without emitting email-verification or initialized
   events. That is why `/enter` must not use `ImportHumanUser` for this flow.
 
-The tests pin the JSON field names and endpoint order, prove email remains
-unverified at creation, reject a forged ownership-link state before provider
-access, and exercise both lost-create-response resend and
-verified-email/passkey-send retry recovery. Provider response bodies are never
-logged or returned.
+The tests pin both protojson default-value shapes, the JSON field names and
+endpoint order, prove email remains unverified at creation, reject a forged
+ownership-link state before provider access, and exercise both
+lost-create-response resend and verified-email/passkey-send retry recovery.
+Provider response bodies are never logged or returned.
 
 Successful ownership-link delivery is recorded in a bounded in-memory tracker
 through the signed link's expiry, so replay does not emit another passwordless

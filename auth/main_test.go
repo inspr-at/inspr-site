@@ -53,6 +53,8 @@ type zitadelStub struct {
 	passkeyFailures       int
 	errorBody             string
 	lastURLTemplate       string
+	emitEmptySearchResult bool
+	omitFalseVerified     bool
 	requestStarted        chan<- capturedRequest
 	requestRelease        <-chan struct{}
 	passkeyStarted        chan struct{}
@@ -99,16 +101,20 @@ func (s *zitadelStub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		results := make([]map[string]any, 0, 1)
 		for userID, user := range s.users {
 			if strings.EqualFold(user.email, email) {
+				emailResult := map[string]any{"email": user.email}
+				if user.verified || !s.omitFalseVerified {
+					emailResult["isEmailVerified"] = user.verified
+				}
 				results = append(results, map[string]any{
 					"id": userID,
 					"human": map[string]any{
-						"email": map[string]any{"email": user.email, "isEmailVerified": user.verified},
+						"email": emailResult,
 					},
 				})
 			}
 		}
 		response := map[string]any{"details": map[string]any{"totalResult": len(results)}}
-		if len(results) > 0 {
+		if len(results) > 0 || s.emitEmptySearchResult {
 			response["result"] = results
 		}
 		_ = json.NewEncoder(w).Encode(response)
@@ -222,6 +228,56 @@ func installEnterTestState(t *testing.T, serverURL string, limiter *signupRateLi
 		signupLimiter, verificationLimiter = oldLimiter, oldVerificationLimiter
 		signupDeliveries, tmpl = oldDeliveries, oldTemplate
 	})
+}
+
+func TestZitadelFindUserByEmailAcceptsPinnedProtojsonDefaults(t *testing.T) {
+	for _, test := range []struct {
+		name       string
+		stub       *zitadelStub
+		wantFound  bool
+		wantVerify bool
+	}{
+		{
+			name: "empty repeated result omitted",
+			stub: &zitadelStub{},
+		},
+		{
+			name: "empty repeated result emitted",
+			stub: &zitadelStub{emitEmptySearchResult: true},
+		},
+		{
+			name: "false scalar omitted",
+			stub: &zitadelStub{
+				users:             map[string]*stubUser{"user-1": {email: "ada@example.com", verified: false}},
+				omitFalseVerified: true,
+			},
+			wantFound: true,
+		},
+		{
+			name: "true scalar emitted",
+			stub: &zitadelStub{
+				users: map[string]*stubUser{"user-1": {email: "ada@example.com", verified: true}},
+			},
+			wantFound:  true,
+			wantVerify: true,
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			server := httptest.NewServer(test.stub)
+			defer server.Close()
+			installEnterTestState(t, server.URL, newSignupRateLimiter(10, 10, time.Minute, 32))
+			userID, verified, found, err := zitadelFindUserByEmail(context.Background(), "ada@example.com")
+			if err != nil {
+				t.Fatalf("lookup failed: %v", err)
+			}
+			if found != test.wantFound || verified != test.wantVerify {
+				t.Fatalf("lookup = id:%q verified:%t found:%t, want verified:%t found:%t", userID, verified, found, test.wantVerify, test.wantFound)
+			}
+			if found && userID != "user-1" {
+				t.Fatalf("user id = %q, want user-1", userID)
+			}
+		})
+	}
 }
 
 func getSignupCSRF(t *testing.T) *http.Cookie {
@@ -344,7 +400,7 @@ func TestHandleEnterRejectsFormParseErrorsBeforeSecurityAndProviderWork(t *testi
 	providerCalls := len(stub.requests)
 	stub.mu.Unlock()
 	limiter.mu.Lock()
-	limiterKeys := len(limiter.entries)
+	limiterKeys := len(limiter.ipEntries) + len(limiter.emailEntries)
 	limiter.mu.Unlock()
 	if providerCalls != 0 || limiterKeys != 0 {
 		t.Fatalf("parse failures reached provider/limiter: provider=%d limiterKeys=%d", providerCalls, limiterKeys)
@@ -912,17 +968,41 @@ func TestEnterVerificationRejectsForgedStateBeforeProvider(t *testing.T) {
 func TestSignupRateLimiterBoundsMemory(t *testing.T) {
 	limiter := newSignupRateLimiter(100, 100, time.Hour, 4)
 	now := time.Now()
-	denied := 0
-	for i := 0; i < 20; i++ {
+	for i := 0; i < limiter.maxKeysPerNamespace; i++ {
 		if !limiter.Allow(fmt.Sprintf("192.0.2.%d", i), fmt.Sprintf("person%d@example.com", i), now.Add(time.Duration(i)*time.Second)) {
-			denied++
-		}
-		if got := len(limiter.entries); got > limiter.maxKeys {
-			t.Fatalf("limiter retained %d keys, cap is %d", got, limiter.maxKeys)
+			t.Fatalf("initial key %d was denied", i)
 		}
 	}
-	if denied == 0 {
-		t.Fatal("full limiter evicted live entries instead of failing closed")
+	if limiter.Allow("198.51.100.50", "new@example.com", now.Add(10*time.Second)) {
+		t.Fatal("full email namespace admitted an unseen address")
+	}
+	if !limiter.Allow("198.51.100.51", "person0@example.com", now.Add(11*time.Second)) {
+		t.Fatal("full namespace denied an existing email key")
+	}
+	if got := len(limiter.ipEntries); got > limiter.maxKeysPerNamespace {
+		t.Fatalf("limiter retained %d IP keys, cap is %d", got, limiter.maxKeysPerNamespace)
+	}
+	if got := len(limiter.emailEntries); got > limiter.maxKeysPerNamespace {
+		t.Fatalf("limiter retained %d email keys, cap is %d", got, limiter.maxKeysPerNamespace)
+	}
+	if _, retained := limiter.ipEntries["192.0.2.0"]; retained {
+		t.Fatal("least-recently-seen IP was not evicted for an existing email caller")
+	}
+	if _, retained := limiter.emailEntries[deliveryKey("new@example.com")]; retained {
+		t.Fatal("denied unseen email consumed capacity")
+	}
+
+	hotIP := newSignupRateLimiter(1, 100, time.Hour, 4)
+	if !hotIP.Allow("203.0.113.5", "first@example.com", now) {
+		t.Fatal("initial hot-IP request denied")
+	}
+	for i := 0; i < 20; i++ {
+		if hotIP.Allow("203.0.113.5", fmt.Sprintf("denied%d@example.com", i), now.Add(time.Duration(i+1)*time.Second)) {
+			t.Fatalf("over-limit IP request %d was allowed", i)
+		}
+	}
+	if got := len(hotIP.emailEntries); got != 1 {
+		t.Fatalf("denied hot-IP requests retained %d email keys, want 1", got)
 	}
 }
 

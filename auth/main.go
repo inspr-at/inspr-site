@@ -903,30 +903,36 @@ func signupClientIPWithResolver(r *http.Request, resolve proxyIPResolver) string
 type signupRateEntry struct {
 	count   int
 	resetAt time.Time
+	seenAt  time.Time
 }
 
 type signupRateLimiter struct {
-	mu         sync.Mutex
-	entries    map[string]signupRateEntry
-	ipLimit    int
-	emailLimit int
-	window     time.Duration
-	maxKeys    int
+	mu                  sync.Mutex
+	ipEntries           map[string]signupRateEntry
+	emailEntries        map[string]signupRateEntry
+	ipLimit             int
+	emailLimit          int
+	window              time.Duration
+	maxKeysPerNamespace int
 }
 
 func newSignupRateLimiter(ipLimit, emailLimit int, window time.Duration, maxKeys int) *signupRateLimiter {
 	return &signupRateLimiter{
-		entries:    make(map[string]signupRateEntry),
-		ipLimit:    ipLimit,
-		emailLimit: emailLimit,
-		window:     window,
-		maxKeys:    maxKeys,
+		ipEntries:           make(map[string]signupRateEntry),
+		emailEntries:        make(map[string]signupRateEntry),
+		ipLimit:             ipLimit,
+		emailLimit:          emailLimit,
+		window:              window,
+		maxKeysPerNamespace: maxKeys,
 	}
 }
 
 // Allow atomically checks and consumes one attempt from both independent
-// fixed-window buckets. The map is capped; expired entries are removed first,
-// then the least-recently-seen entry is evicted when necessary.
+// fixed-window buckets. IP and email keys have separate memory budgets so a
+// distributed IP flood cannot consume the email-replay budget. Live IP keys
+// are least-recently-seen evicted at capacity; live email keys fail closed so
+// eviction cannot reset the per-address mail limit. Existing email keys remain
+// usable even when the email namespace is full.
 func (l *signupRateLimiter) Allow(ip, email string, now time.Time) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -934,53 +940,85 @@ func (l *signupRateLimiter) Allow(ip, email string, now time.Time) bool {
 	// Hash the normalized email so the bounded process-local map does not retain
 	// the address itself after the request completes.
 	emailHash := sha256.Sum256([]byte(email))
-	keys := []struct {
-		key   string
-		limit int
-	}{
-		{key: "ip:" + ip, limit: l.ipLimit},
-		{key: "email:" + base64.RawURLEncoding.EncodeToString(emailHash[:]), limit: l.emailLimit},
-	}
-
-	missing := 0
-	for _, item := range keys {
-		if _, ok := l.entries[item.key]; !ok {
-			missing++
-		}
-	}
-	if !l.makeRoom(now, missing) {
+	ipKey := ip
+	emailKey := base64.RawURLEncoding.EncodeToString(emailHash[:])
+	l.pruneExpired(now)
+	if l.maxKeysPerNamespace <= 0 {
 		return false
 	}
 
-	updated := make([]signupRateEntry, len(keys))
-	for i, item := range keys {
-		entry := l.entries[item.key]
-		if entry.resetAt.IsZero() || !now.Before(entry.resetAt) {
-			entry.count = 0
-			entry.resetAt = now.Add(l.window)
-		}
-		updated[i] = entry
-		if entry.count >= item.limit {
-			l.entries[item.key] = entry
+	ipEntry, ipExists := l.ipEntries[ipKey]
+	emailEntry, emailExists := l.emailEntries[emailKey]
+	if ipExists {
+		ipEntry = currentRateEntry(ipEntry, now, l.window)
+		ipEntry.seenAt = now
+		if ipEntry.count >= l.ipLimit {
+			l.ipEntries[ipKey] = ipEntry
 			return false
 		}
 	}
-	for i, item := range keys {
-		updated[i].count++
-		l.entries[item.key] = updated[i]
+	if emailExists {
+		emailEntry = currentRateEntry(emailEntry, now, l.window)
+		emailEntry.seenAt = now
+		if emailEntry.count >= l.emailLimit {
+			l.emailEntries[emailKey] = emailEntry
+			return false
+		}
 	}
+	if !emailExists && len(l.emailEntries) >= l.maxKeysPerNamespace {
+		return false
+	}
+	if !ipExists && len(l.ipEntries) >= l.maxKeysPerNamespace {
+		l.evictOldestIP()
+	}
+	if !ipExists {
+		ipEntry = currentRateEntry(signupRateEntry{}, now, l.window)
+	}
+	if !emailExists {
+		emailEntry = currentRateEntry(signupRateEntry{}, now, l.window)
+	}
+
+	ipEntry.seenAt = now
+	emailEntry.seenAt = now
+	ipEntry.count++
+	emailEntry.count++
+	l.ipEntries[ipKey] = ipEntry
+	l.emailEntries[emailKey] = emailEntry
 	return true
 }
 
-func (l *signupRateLimiter) makeRoom(now time.Time, needed int) bool {
-	for key, entry := range l.entries {
+func currentRateEntry(entry signupRateEntry, now time.Time, window time.Duration) signupRateEntry {
+	if entry.resetAt.IsZero() || !now.Before(entry.resetAt) {
+		return signupRateEntry{resetAt: now.Add(window), seenAt: now}
+	}
+	return entry
+}
+
+func (l *signupRateLimiter) pruneExpired(now time.Time) {
+	for key, entry := range l.ipEntries {
 		if !now.Before(entry.resetAt) {
-			delete(l.entries, key)
+			delete(l.ipEntries, key)
 		}
 	}
-	// Fail closed at capacity. Evicting live entries would keep memory bounded
-	// but let a key-flood attacker recycle and bypass earlier limits.
-	return len(l.entries)+needed <= l.maxKeys
+	for key, entry := range l.emailEntries {
+		if !now.Before(entry.resetAt) {
+			delete(l.emailEntries, key)
+		}
+	}
+}
+
+func (l *signupRateLimiter) evictOldestIP() {
+	var oldestKey string
+	var oldestSeen time.Time
+	for key, entry := range l.ipEntries {
+		if oldestKey == "" || entry.seenAt.Before(oldestSeen) || (entry.seenAt.Equal(oldestSeen) && key < oldestKey) {
+			oldestKey = key
+			oldestSeen = entry.seenAt
+		}
+	}
+	if oldestKey != "" {
+		delete(l.ipEntries, oldestKey)
+	}
 }
 
 type deliveryDecision uint8
@@ -1153,7 +1191,9 @@ func zitadelFindUserByEmail(ctx context.Context, email string) (userID string, v
 	}
 	resultValue, hasResults := response["result"]
 	if !hasResults {
-		// ZITADEL's pinned protojson gateway omits empty repeated fields.
+		// ZITADEL's pinned protojson gateway may omit empty repeated fields.
+		// Accept both omission and an explicit [] below; require the details
+		// envelope so an unrelated/error body cannot become a zero-match result.
 		if _, hasDetails := response["details"]; !hasDetails {
 			return "", false, false, errors.New("invalid provider search response")
 		}
@@ -1163,7 +1203,10 @@ func zitadelFindUserByEmail(ctx context.Context, email string) (userID string, v
 	if !ok {
 		return "", false, false, errors.New("invalid provider search response")
 	}
-	if len(results) != 1 {
+	if len(results) == 0 {
+		return "", false, false, nil
+	}
+	if len(results) > 1 {
 		return "", false, false, errors.New("ambiguous provider search response")
 	}
 	user, _ := results[0].(map[string]any)
@@ -1172,7 +1215,16 @@ func zitadelFindUserByEmail(ctx context.Context, email string) (userID string, v
 	emailObject, _ := human["email"].(map[string]any)
 	providerEmail, _ := emailObject["email"].(string)
 	verified, verifiedOK := emailObject["isEmailVerified"].(bool)
-	if userID == "" || !verifiedOK || !strings.EqualFold(providerEmail, email) {
+	if !verifiedOK {
+		// ZITADEL's pinned protojson gateway may omit an unpopulated false
+		// scalar. Missing means false; a present non-boolean remains invalid.
+		_, present := emailObject["isEmailVerified"]
+		if present {
+			return "", false, false, errors.New("invalid provider search result")
+		}
+		verified = false
+	}
+	if userID == "" || !strings.EqualFold(providerEmail, email) {
 		return "", false, false, errors.New("invalid provider search result")
 	}
 	return userID, verified, true, nil

@@ -195,7 +195,9 @@ lands; without its token the application remains safe but uses the shared proxy
 bucket. `auth/check-edge-contract.mjs` reproduces the sibling-through-Traefik
 spoof, rejects it with the ordered reference gate, and CI compares the pinned
 CIDRs with Cloudflare's official IPv4/IPv6 endpoints so range drift fails
-visibly.
+visibly. The gate also pins cloudflarewarp's built-in range source, proves
+`disableDefault: false` trusts every official IPv6 range, and verifies that the
+plugin overwrites its trusted marker on both trusted and untrusted branches.
 
 Signup uses the User API v2beta contract shipped by the deployed ZITADEL
 v2.54.8 image: creation emits an unverified email-code notification, the link
@@ -210,7 +212,10 @@ the provider-held account rather than importing again. New and recovery paths
 both make two provider calls and return the same public status/body. A verified
 credentialless account receives a throttled passwordless recovery mail;
 concurrent ownership-link followers wait for the shared provider result, and a
-successful replay remains idempotent until link expiry. The pinned
+successful replay remains idempotent until link expiry. IP and hashed-email
+rate keys have separate bounded namespaces; live IP keys use LRU admission,
+while live email keys fail closed so capacity pressure cannot reset a mail
+limit or deny already-known email keys. The pinned
 endpoint, event, and role evidence is recorded in
 [`auth/ZITADEL-CONTRACT.md`](auth/ZITADEL-CONTRACT.md).
 

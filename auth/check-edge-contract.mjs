@@ -13,6 +13,11 @@ const contract = JSON.parse(
 const compose = await readFile(resolve(repoRoot, "docker-compose.yml"), "utf8");
 const configuredPluginRanges = ["172.16.0.0/12", "2400:cb00::/32"];
 
+assert.equal(
+  contract.cloudflarewarp.disableDefault,
+  false,
+  "cloudflarewarp must retain its pinned built-in Cloudflare ranges",
+);
 assert.deepEqual(
   contract.cloudflarewarp.configuredTrustedSourceRanges,
   configuredPluginRanges,
@@ -74,6 +79,31 @@ assert.equal(edgeAllowList.check(siblingIP, "ipv4"), false);
 assert.equal(edgeAllowList.check("173.245.48.1", "ipv4"), true);
 assert.equal(edgeAllowList.check("2606:4700::1", "ipv6"), true);
 
+// disableDefault=false makes cloudflarewarp append every range returned by
+// its pinned ips.CFIPs() source to the two explicitly configured ranges.
+// Prove the complete effective set, not one representative IPv6 prefix.
+const effectivePluginTrust = blockList([
+  ...contract.cloudflarewarp.configuredTrustedSourceRanges,
+  ...contract.cloudflareRanges,
+]);
+for (const address of [
+  "173.245.48.1",
+  "2400:cb00::1",
+  "2606:4700::1",
+  "2803:f800::1",
+  "2405:b500::1",
+  "2405:8100::1",
+  "2a06:98c0::1",
+  "2c0f:f248::1",
+]) {
+  const family = isIP(address) === 6 ? "ipv6" : "ipv4";
+  assert.equal(
+    effectivePluginTrust.check(address, family),
+    true,
+    `cloudflarewarp effective trust omitted ${address}`,
+  );
+}
+
 if (process.argv.includes("--online")) {
   const fetchRanges = async (source) => {
     const response = await fetch(source, { signal: AbortSignal.timeout(10_000) });
@@ -105,6 +135,8 @@ if (process.argv.includes("--online")) {
     "pinned cloudflarewarp source changed unexpectedly",
   );
   assert.match(pluginSource, /req\.Header\.Set\(xCfTrusted, "yes"\)/);
+  assert.match(pluginSource, /if !config\.DisableDefaultCFIPs/);
+  assert.match(pluginSource, /for _, v := range ips\.CFIPs\(\)/);
   assert.match(
     pluginSource,
     /req\.Header\.Set\(xForwardFor, req\.Header\.Get\(cfConnectingIP\)\)/,
@@ -112,6 +144,32 @@ if (process.argv.includes("--online")) {
   assert.match(
     pluginSource,
     /req\.Header\.Set\(xRealIP, req\.Header\.Get\(cfConnectingIP\)\)/,
+  );
+  assert.match(pluginSource, /req\.Header\.Set\(xCfTrusted, "no"\)/);
+  assert.match(pluginSource, /req\.Header\.Del\(cfConnectingIP\)/);
+
+  const defaultRangeResponse = await fetch(
+    contract.cloudflarewarp.defaultRangeSource,
+    { signal: AbortSignal.timeout(10_000) },
+  );
+  assert.equal(
+    defaultRangeResponse.ok,
+    true,
+    `${contract.cloudflarewarp.defaultRangeSource} returned ${defaultRangeResponse.status}`,
+  );
+  const defaultRangeSource = await defaultRangeResponse.text();
+  assert.equal(
+    createHash("sha256").update(defaultRangeSource).digest("hex"),
+    contract.cloudflarewarp.defaultRangeSourceSha256,
+    "pinned cloudflarewarp default range source changed unexpectedly",
+  );
+  const pluginDefaultRanges = [...defaultRangeSource.matchAll(/"([^"\\]+\/\d+)"/g)].map(
+    (match) => match[1],
+  );
+  assert.deepEqual(
+    pluginDefaultRanges,
+    contract.cloudflareRanges,
+    "cloudflarewarp built-in ranges differ from the pinned Cloudflare contract",
   );
 }
 

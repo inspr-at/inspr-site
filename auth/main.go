@@ -4,27 +4,28 @@
 // (Traefik routes them to this container, everything else falls through to
 // the static Astro site):
 //
-//   GET /login    → start Authorization Code flow at the configured Zitadel
-//                   issuer; persist `state` in a short-lived HTTP-only cookie;
-//                   302 to the IdP authorize endpoint.
-//   GET /welcome  → OIDC callback. Verifies state + nonce, exchanges code,
-//                   verifies ID token signature against the issuer's JWKS,
-//                   sets a long-lived (TTL hours) HMAC-signed session cookie,
-//                   renders the greeting page server-side using the verified
-//                   `name` claim. Idempotent: if a valid session already
-//                   exists and no `code` is present, just renders the
-//                   greeting (so refresh works after login).
-//   GET /logout   → clears session cookie, hits the OIDC RP-Initiated Logout
-//                   endpoint to also kill the IdP session, then 302 to /.
+//	GET /login    → start Authorization Code flow at the configured Zitadel
+//	                issuer; persist independent `state` and `nonce` values in
+//	                short-lived HTTP-only cookies; 302 to the IdP authorize
+//	                endpoint.
+//	GET /welcome  → OIDC callback. Verifies state + nonce, exchanges code,
+//	                verifies ID token signature against the issuer's JWKS,
+//	                sets a long-lived (TTL hours) HMAC-signed session cookie,
+//	                renders the greeting page server-side using the verified
+//	                `name` claim. Idempotent: if a valid session already
+//	                exists and no `code` is present, just renders the
+//	                greeting (so refresh works after login).
+//	GET /logout   → clears session cookie, hits the OIDC RP-Initiated Logout
+//	                endpoint to also kill the IdP session, then 302 to /.
 //
 // Design notes:
-//   * Server-side OIDC: client secret never reaches the browser; tokens never
+//   - Server-side OIDC: client secret never reaches the browser; tokens never
 //     reach JavaScript. Welcome page is static HTML rendered with the name
 //     claim — no JS needed for the greeting itself, no XHR to auth.inspr.at,
 //     so the existing inspr-www CSP stays untouched.
-//   * Session cookie format: base64url(JSON payload).base64url(HMAC-SHA256).
+//   - Session cookie format: base64url(JSON payload).base64url(HMAC-SHA256).
 //     Stateless (no server-side store); rotates by changing COOKIE_KEY.
-//   * Single binary, distroless container, ~12MB. Two prod deps: oauth2 +
+//   - Single binary, distroless container, ~12MB. Two prod deps: oauth2 +
 //     go-oidc.
 package main
 
@@ -75,6 +76,7 @@ var (
 const (
 	sessionCookieName = "inspr_sess"
 	stateCookieName   = "inspr_state"
+	nonceCookieName   = "inspr_nonce"
 	sessionTTL        = 8 * time.Hour
 	stateTTL          = 5 * time.Minute
 )
@@ -142,21 +144,41 @@ func main() {
 // ── Handlers ──────────────────────────────────────────────────────────────
 
 func handleLogin(w http.ResponseWriter, r *http.Request) {
-	// Generate state — one-time-use random token, stored in a short-lived
-	// cookie and echoed back in the callback. Defends against CSRF on the
-	// authorization code redirect.
+	// Generate independent, one-time state and nonce values. State binds the
+	// callback to this browser request; nonce binds the returned ID token to
+	// this exact authorization attempt.
 	state := randString(24)
+	nonce := randString(24)
+	setLoginAttemptCookie(w, stateCookieName, state)
+	setLoginAttemptCookie(w, nonceCookieName, nonce)
+	authURL := oauthCfg.AuthCodeURL(state, oidc.Nonce(nonce))
+	http.Redirect(w, r, authURL, http.StatusFound)
+}
+
+func setLoginAttemptCookie(w http.ResponseWriter, name, value string) {
 	http.SetCookie(w, &http.Cookie{
-		Name:     stateCookieName,
-		Value:    state,
+		Name:     name,
+		Value:    value,
 		Path:     "/",
 		MaxAge:   int(stateTTL.Seconds()),
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 	})
-	authURL := oauthCfg.AuthCodeURL(state)
-	http.Redirect(w, r, authURL, http.StatusFound)
+}
+
+func clearLoginAttemptCookies(w http.ResponseWriter) {
+	for _, name := range []string{stateCookieName, nonceCookieName} {
+		http.SetCookie(w, &http.Cookie{
+			Name:     name,
+			Value:    "",
+			Path:     "/",
+			MaxAge:   -1,
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteLaxMode,
+		})
+	}
 }
 
 func handleWelcome(w http.ResponseWriter, r *http.Request) {
@@ -218,20 +240,61 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 
 // ── OIDC callback exchange ────────────────────────────────────────────────
 
+type loginClaims struct {
+	Sub               string `json:"sub"`
+	Name              string `json:"name"`
+	PreferredUsername string `json:"preferred_username"`
+	Email             string `json:"email"`
+}
+
+type verifiedLoginToken struct {
+	Nonce  string
+	Claims loginClaims
+}
+
+type exchangeCodeFunc func(context.Context, string) (*oauth2.Token, error)
+type verifyIDTokenFunc func(context.Context, string) (verifiedLoginToken, error)
+
 func completeLogin(ctx context.Context, w http.ResponseWriter, r *http.Request, code string) (string, error) {
+	return completeLoginWith(ctx, w, r, code,
+		func(ctx context.Context, code string) (*oauth2.Token, error) {
+			return oauthCfg.Exchange(ctx, code)
+		},
+		func(ctx context.Context, rawIDToken string) (verifiedLoginToken, error) {
+			idToken, err := verifier.Verify(ctx, rawIDToken)
+			if err != nil {
+				return verifiedLoginToken{}, fmt.Errorf("id_token verify: %w", err)
+			}
+			var claims loginClaims
+			if err := idToken.Claims(&claims); err != nil {
+				return verifiedLoginToken{}, fmt.Errorf("claims decode: %w", err)
+			}
+			return verifiedLoginToken{Nonce: idToken.Nonce, Claims: claims}, nil
+		},
+	)
+}
+
+func completeLoginWith(ctx context.Context, w http.ResponseWriter, r *http.Request, code string, exchange exchangeCodeFunc, verify verifyIDTokenFunc) (string, error) {
+	// Every callback attempt consumes both values, including malformed or
+	// failed attempts. The response-side deletion does not affect the request
+	// cookies used below.
+	clearLoginAttemptCookies(w)
+
 	// 1. State verification.
 	stateCookie, err := r.Cookie(stateCookieName)
 	if err != nil {
 		return "", errors.New("missing state cookie")
 	}
+	nonceCookie, err := r.Cookie(nonceCookieName)
+	if err != nil {
+		return "", errors.New("missing nonce cookie")
+	}
 	if subtle.ConstantTimeCompare([]byte(stateCookie.Value), []byte(r.URL.Query().Get("state"))) != 1 {
 		return "", errors.New("state mismatch")
 	}
-	// State cookie has done its job — kill it.
-	http.SetCookie(w, &http.Cookie{Name: stateCookieName, Value: "", Path: "/", MaxAge: -1, HttpOnly: true, Secure: true, SameSite: http.SameSiteLaxMode})
 
 	// 2. Code → tokens.
-	token, err := oauthCfg.Exchange(ctx, code)
+	token, err := exchange(ctx, code)
 	if err != nil {
 		return "", fmt.Errorf("token exchange: %w", err)
 	}
@@ -240,23 +303,17 @@ func completeLogin(ctx context.Context, w http.ResponseWriter, r *http.Request, 
 		return "", errors.New("no id_token in token response")
 	}
 
-	// 3. ID token signature + standard claims verification.
-	idToken, err := verifier.Verify(ctx, rawIDToken)
+	// 3. ID token signature, standard claims, and authorization-attempt nonce.
+	verified, err := verify(ctx, rawIDToken)
 	if err != nil {
-		return "", fmt.Errorf("id_token verify: %w", err)
+		return "", err
 	}
-	var claims struct {
-		Sub               string `json:"sub"`
-		Name              string `json:"name"`
-		PreferredUsername string `json:"preferred_username"`
-		Email             string `json:"email"`
-	}
-	if err := idToken.Claims(&claims); err != nil {
-		return "", fmt.Errorf("claims decode: %w", err)
+	if subtle.ConstantTimeCompare([]byte(nonceCookie.Value), []byte(verified.Nonce)) != 1 {
+		return "", errors.New("nonce mismatch")
 	}
 
 	// 4. Pick the friendliest available display name.
-	name := firstNonEmpty(claims.Name, claims.PreferredUsername, claims.Email, claims.Sub)
+	name := firstNonEmpty(verified.Claims.Name, verified.Claims.PreferredUsername, verified.Claims.Email, verified.Claims.Sub)
 
 	// 5. Persist server-stateless session (HMAC-signed cookie).
 	if err := writeSession(w, sessionPayload{Name: name, Exp: time.Now().Add(sessionTTL).Unix()}); err != nil {

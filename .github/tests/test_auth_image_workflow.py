@@ -15,8 +15,27 @@ WORKFLOW = pathlib.Path(__file__).parents[1] / "workflows" / "auth-image.yml"
 EXPECTED_STEPS_SHA256 = (
     "da75ef2dba5c5a490b8ea9acd453916d5384a7a2b3d830f10055b2ff02c6b083"
 )
+EXPECTED_WORKFLOW_SHA256 = (
+    "399c72de7fce2c685379c941ee05637c24ad96fe27a44ba587741a6a9ad542cb"
+)
 NON_PR = "github.event_name != 'pull_request'"
 RELEASE_DIGEST_ENV = {"DIGEST": "${{ steps.release.outputs.digest }}"}
+CONTRACT_PATH = ".github/tests/test_auth_image_workflow.py"
+WATCHED_PATHS = [
+    "auth/**",
+    ".github/workflows/auth-image.yml",
+    CONTRACT_PATH,
+]
+
+EXPECTED_TRIGGERS = {
+    "push": {
+        "branches": ["main"],
+        "tags": ["auth-v*"],
+        "paths": WATCHED_PATHS,
+    },
+    "pull_request": {"paths": WATCHED_PATHS},
+    "workflow_dispatch": None,
+}
 
 EXPECTED_ORDER = [
     "uses:actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09",
@@ -86,7 +105,35 @@ VERIFY_SIGNATURE_RUN = """cosign verify "${IMAGE}@${DIGEST}" \\
 RUBY_PARSE = r"""
 require "json"
 require "yaml"
-document = YAML.safe_load(STDIN.read, permitted_classes: [], permitted_symbols: [], aliases: false)
+source = STDIN.read
+
+def reject_duplicate_keys(node, scanner, path = "$")
+  case node
+  when Psych::Nodes::Mapping
+    seen = {}
+    node.children.each_slice(2) do |key, value|
+      raise "non-scalar YAML key at #{path}" unless key.is_a?(Psych::Nodes::Scalar)
+      raise "tagged YAML key #{key.value.inspect} at #{path}" unless key.tag.nil?
+      resolved = key.quoted ? key.value : scanner.tokenize(key.value)
+      identity = [resolved.class.name, resolved]
+      raise "duplicate YAML key #{key.value.inspect} at #{path}" if seen.key?(identity)
+      seen[identity] = true
+      reject_duplicate_keys(value, scanner, "#{path}.#{key.value}")
+    end
+  when Psych::Nodes::Sequence
+    node.children.each_with_index do |child, index|
+      reject_duplicate_keys(child, scanner, "#{path}[#{index}]")
+    end
+  else
+    children = node.respond_to?(:children) ? node.children : nil
+    children&.each { |child| reject_duplicate_keys(child, scanner, path) }
+  end
+end
+
+syntax_tree = Psych.parse_stream(source)
+scanner = Psych::ScalarScanner.new(Psych::ClassLoader::Restricted.new([], []))
+reject_duplicate_keys(syntax_tree, scanner)
+document = YAML.safe_load(source, permitted_classes: [], permitted_symbols: [], aliases: false)
 STDOUT.write(JSON.generate(document))
 """
 
@@ -169,9 +216,52 @@ def require_exact(actual: Any, expected: Any, label: str) -> None:
 
 def validate(text: str) -> None:
     document = parse_yaml(text)
+    require_exact(
+        sorted(document),
+        ["concurrency", "env", "jobs", "name", "permissions", "true"],
+        "workflow root keys",
+    )
+    require_exact(document.get("name"), "auth-image", "workflow name")
+
+    # Psych implements YAML 1.1, so the unquoted workflow key `on` is returned
+    # as JSON key `true`. Pin its complete mapping: no broad refs or extra
+    # trigger may gain access to the publication credentials.
+    require_exact(document.get("true"), EXPECTED_TRIGGERS, "workflow triggers")
+    require_exact(
+        document.get("env"),
+        {
+            "IMAGE": "ghcr.io/inspr-at/inspr-site/inspr-auth",
+            "SCAN_IMAGE": "ghcr.io/inspr-at/inspr-site/inspr-auth:scan-${{ github.run_id }}-${{ github.run_attempt }}",
+        },
+        "workflow environment",
+    )
+    require_exact(
+        document.get("permissions"),
+        {"contents": "read", "packages": "write", "id-token": "write"},
+        "workflow permissions",
+    )
+    require_exact(
+        document.get("concurrency"),
+        {
+            "group": "auth-image-${{ github.ref }}",
+            "cancel-in-progress": "${{ github.event_name == 'pull_request' }}",
+        },
+        "workflow concurrency",
+    )
+
     jobs = document.get("jobs")
     require(isinstance(jobs, dict), "workflow jobs must be a mapping")
     require(set(jobs) == {"image"}, f"unexpected workflow jobs: {sorted(jobs)}")
+    image_job = jobs["image"]
+    require(isinstance(image_job, dict), "jobs.image must be a mapping")
+    require_exact(
+        sorted(image_job),
+        ["runs-on", "steps", "timeout-minutes"],
+        "image job keys",
+    )
+    require_exact(image_job.get("runs-on"), "ubuntu-24.04", "image job runner")
+    require_exact(image_job.get("timeout-minutes"), 20, "image job timeout")
+
     steps = parsed_steps(document)
     require(len(steps) == 17, f"expected exactly 17 image steps, got {len(steps)}")
     require_exact(
@@ -184,26 +274,14 @@ def validate(text: str) -> None:
         actual_hash == EXPECTED_STEPS_SHA256,
         f"parsed image-step contract changed: expected {EXPECTED_STEPS_SHA256}, got {actual_hash}",
     )
-
-    events = document.get("on", document.get("true"))
-    if events is None:
-        events = document.get(
-            True
-        )  # Psych treats unquoted `on` as a YAML 1.1 boolean key.
-    require(isinstance(events, dict), "workflow triggers must be a mapping")
-    contract_path = ".github/tests/test_auth_image_workflow.py"
-    for event_name in ("push", "pull_request"):
-        event = events.get(event_name)
-        require(isinstance(event, dict), f"{event_name} trigger must be a mapping")
-        require(
-            contract_path in event.get("paths", []),
-            f"{event_name} must watch the contract test",
-        )
-
-    require_exact(
-        document.get("permissions"),
-        {"contents": "read", "packages": "write", "id-token": "write"},
-        "workflow permissions",
+    workflow_canonical = json.dumps(
+        document, sort_keys=True, separators=(",", ":")
+    ).encode()
+    workflow_hash = hashlib.sha256(workflow_canonical).hexdigest()
+    require(
+        workflow_hash == EXPECTED_WORKFLOW_SHA256,
+        "parsed full-workflow contract changed: "
+        f"expected {EXPECTED_WORKFLOW_SHA256}, got {workflow_hash}",
     )
 
     by_name = named_steps(steps)
@@ -377,6 +455,114 @@ def main() -> int:
 
     must_reject(
         text,
+        lambda value: value.replace(
+            "  image:\n    runs-on:",
+            "  image:\n"
+            "    defaults:\n"
+            "      run:\n"
+            '        shell: bash -c \'docker buildx imagetools create --tag "${IMAGE}:unsigned-bypass" "${IMAGE}@${DIGEST}"; bash "$1"\' -- {0}\n'
+            "    runs-on:",
+            1,
+        ),
+        "job shell wrapper publishes an unsigned tag before every run step",
+    )
+    must_reject(
+        text,
+        lambda value: value.replace(
+            "  image:\n    runs-on:",
+            "  image:\n"
+            "    defaults:\n"
+            "      run:\n"
+            "        shell: bash -c 'bash \"$1\" || true' -- {0}\n"
+            "    runs-on:",
+            1,
+        ),
+        "job shell wrapper makes every run step advisory",
+    )
+    must_reject(
+        text,
+        lambda value: value.replace(
+            "    branches: [main]\n", '    branches: ["**"]\n', 1
+        ),
+        "push trigger broadened to every branch",
+    )
+    must_reject(
+        text,
+        lambda value: value.replace(
+            "  workflow_dispatch:\n",
+            '  schedule:\n    - cron: "0 0 * * *"\n  workflow_dispatch:\n',
+            1,
+        ),
+        "unexpected non-PR schedule trigger",
+    )
+    must_reject(
+        text,
+        lambda value: value.replace(
+            "  image:\n    runs-on:",
+            "  image:\n    if: github.event_name == 'pull_request'\n    runs-on:",
+            1,
+        ),
+        "job condition disables non-PR security gates",
+    )
+    must_reject(
+        text,
+        lambda value: value.replace(
+            "  image:\n    runs-on:",
+            "  image:\n"
+            "    permissions:\n"
+            "      contents: read\n"
+            "      packages: read\n"
+            "      id-token: none\n"
+            "    runs-on:",
+            1,
+        ),
+        "job permission override",
+    )
+    must_reject(
+        text,
+        lambda value: value.replace(
+            "env:\n",
+            "defaults:\n  run:\n    shell: bash {0}\nenv:\n",
+            1,
+        ),
+        "unexpected top-level defaults",
+    )
+    must_reject(
+        text,
+        lambda value: mutate_step(
+            value,
+            "verify image signature",
+            "        run: |\n",
+            "        shell: bash -c 'bash \"$1\" || true' -- {0}\n        run: |\n",
+        ),
+        "step shell override makes signature verification advisory",
+    )
+    must_reject(
+        text,
+        lambda value: value.replace(
+            "permissions:\n  contents: read\n",
+            "permissions:\n  contents: read\npermissions:\n  contents: read\n",
+            1,
+        ),
+        "duplicate top-level permissions key",
+    )
+    must_reject(
+        text,
+        lambda value: value.replace("on:\n", "true:\non:\n", 1),
+        "semantically duplicate YAML 1.1 trigger key",
+    )
+    must_reject(
+        text,
+        lambda value: value.replace(
+            "    runs-on: ubuntu-24.04\n",
+            "    runs-on: ubuntu-24.04\n    runs-on: ubuntu-24.04\n",
+            1,
+        ),
+        "duplicate image-job runner key",
+    )
+
+    must_reject(
+        text,
         lambda value: mutate_step(
             value,
             "scan image for fixable CRITICAL/HIGH vulnerabilities",
@@ -523,7 +709,8 @@ def main() -> int:
 
     print(
         "auth-image parsed workflow contract: ok "
-        "(17 exact steps; comments cannot satisfy gates; unexpected publication denied)"
+        "(exact workflow/job envelope and 17 steps; duplicate keys, shell overrides, "
+        "and unexpected publication denied)"
     )
     return 0
 

@@ -174,6 +174,56 @@ are managed on the host.
 third-party identity service and remains operationally separate from the four
 public product sites.
 
+The bridge has no published host port and is reachable publicly only through
+Traefik on `csb1_traefik`. That Docker bridge is shared with unrelated
+containers, and the deployed cloudflarewarp v1.3.3 middleware incorrectly
+trusts `172.16.0.0/12`, so neither a private source nor its rewritten headers
+are identity evidence. The deployable edge contract filters the auth router to
+Cloudflare's official source ranges before cloudflarewarp, overwrites a secret
+attestation header after that check, and gives the same age-backed token to the
+auth process. cloudflarewarp writes the visitor into `X-Real-IP` and
+`X-Forwarded-For`; Traefik's service proxy then appends the immediate Cloudflare
+edge to XFF. `/enter` accepts exactly that two-hop XFF shape when its first
+value matches `X-Real-IP`, and only with the constant-time token, the plugin's
+trusted marker, and an exact Docker-DNS-resolved Traefik peer. Any missing or
+extra component falls back to the non-spoofable direct Traefik peer,
+intentionally sharing one public bucket instead of trusting attacker-selected
+identity.
+
+The repository compose file is executable reference evidence, not the
+authoritative csb1 configuration. **NIX-400 is a required rollout dependency**:
+it owns the matching Cloudflare-first middleware and age-backed attestation in
+nixcfg. No INSPR-310 image may be rolled out as fully functional before NIX-400
+lands; without its token the application remains safe but uses the shared proxy
+bucket. `auth/check-edge-contract.mjs` reproduces the sibling-through-Traefik
+spoof, rejects it with the ordered reference gate, and CI compares the pinned
+CIDRs with Cloudflare's official IPv4/IPv6 endpoints so range drift fails
+visibly. The gate also pins cloudflarewarp's built-in range source, proves
+`disableDefault: false` trusts every official IPv6 range, and verifies that the
+plugin overwrites its trusted marker on both trusted and untrusted branches.
+It also pins the observed Traefik v3.7.12 proxy sources that preserve
+`X-Real-IP` and append the edge peer to `X-Forwarded-For`.
+
+Signup uses the User API v2beta contract shipped by the deployed ZITADEL
+v2.54.8 image: creation emits an unverified email-code notification, the link
+returns to `/enter/verify`, and only a successful ownership check can request a
+passwordless-registration mail. That exact management endpoint requires
+`user.write`, which is present in the scoped `ORG_USER_MANAGER` role; the v2
+returned-code endpoint requires the broader `user.passkey.write` permission and
+is deliberately not used. Before creating, signup uses ZITADEL's
+organization/permission-filtered exact-email search, so a lost response,
+provider-generated historical ID, or local `COOKIE_KEY` rotation still reaches
+the provider-held account rather than importing again. New and recovery paths
+both make two provider calls and return the same public status/body. A verified
+credentialless account receives a throttled passwordless recovery mail;
+concurrent ownership-link followers wait for the shared provider result, and a
+successful replay remains idempotent until link expiry. IP and hashed-email
+rate keys have separate bounded namespaces; live IP keys use LRU admission,
+while live email keys fail closed so capacity pressure cannot reset a mail
+limit or deny already-known email keys. The pinned
+endpoint, event, and role evidence is recorded in
+[`auth/ZITADEL-CONTRACT.md`](auth/ZITADEL-CONTRACT.md).
+
 The image running on csb1 (`ghcr.io/inspr-at/inspr-auth:legacy-20260511`) was
 built from this `auth/` source; the host's working copy differs only by the
 later AGPL image label and the module path from the organisation move.

@@ -45,6 +45,9 @@ jobs:
       - name: content contract tests
         run: npm run test:content
 
+      - name: verify official Cloudflare ingress ranges
+        run: node ../auth/check-edge-contract.mjs --online
+
       - name: type-check
         run: npm run check
 

@@ -566,6 +566,7 @@
         {{ else if eq .State "signup" }}
           <h1 class="head">let's get you <em>in</em><span class="punct">.</span></h1>
           <form class="form" method="POST" action="/enter" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ .CSRFToken }}" />
             <div class="form__field">
               <label class="form__label" for="name">your name</label>
               <input
@@ -615,9 +616,15 @@
             <div class="inbox__envelope" aria-hidden="true">✉</div>
             <h1 class="head">your door is <em>open</em><span class="punct">.</span></h1>
             <p class="inbox__lede">
-              we just sent <em>{{ .FormEmail }}</em> a one-tap link.
-              click it and your passkey will be set up in a single
-              gesture — no password to remember.
+              {{ if .OwnershipVerified }}
+                your address is verified. check your inbox for a separate
+                passkey setup link. if it doesn't arrive, reopen the ownership
+                link to request another — no password to remember.
+              {{ else }}
+                check <em>{{ .FormEmail }}</em> for the next step.
+                follow the link when it arrives to continue your private
+                passkey setup — no password to remember.
+              {{ end }}
             </p>
             <p class="inbox__meta">
               wrong address? <a href="/enter?step=signup">try again</a>

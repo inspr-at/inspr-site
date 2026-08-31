@@ -16,6 +16,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -70,7 +71,7 @@ func TestCompleteLoginRequiresBothOneTimeCookies(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "https://inspr.at/welcome?code=code&state=state", nil)
 	request.AddCookie(&http.Cookie{Name: stateCookieName, Value: "state"})
 
-	_, err := completeLoginWith(context.Background(), recorder, request, "code",
+	_, err := completeLoginWith(context.Background(), recorder, request, "code", "state",
 		func(context.Context, string) (*oauth2.Token, error) {
 			t.Fatal("token exchange ran without a nonce cookie")
 			return nil, nil
@@ -97,7 +98,7 @@ func TestCompleteLoginRejectsNonceMismatchBeforeSession(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			recorder := httptest.NewRecorder()
 			request := callbackRequest("state", "expected-nonce")
-			_, err := completeLoginWith(context.Background(), recorder, request, "code",
+			_, err := completeLoginWith(context.Background(), recorder, request, "code", "state",
 				stubTokenExchange(t),
 				func(_ context.Context, raw string) (verifiedLoginToken, error) {
 					if raw != "raw-id-token" {
@@ -128,7 +129,7 @@ func TestCompleteLoginAcceptsMatchingNonceAndConsumesAttempt(t *testing.T) {
 
 	recorder := httptest.NewRecorder()
 	request := callbackRequest("state", "expected-nonce")
-	name, err := completeLoginWith(context.Background(), recorder, request, "code",
+	name, err := completeLoginWith(context.Background(), recorder, request, "code", "state",
 		stubTokenExchange(t),
 		func(_ context.Context, raw string) (verifiedLoginToken, error) {
 			if raw != "raw-id-token" {
@@ -166,7 +167,7 @@ func TestCompleteLoginAcceptsMatchingNonceAndConsumesAttempt(t *testing.T) {
 func TestCompleteLoginRejectsStateBeforeTokenExchange(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	request := callbackRequest("different-state", "nonce")
-	_, err := completeLoginWith(context.Background(), recorder, request, "code",
+	_, err := completeLoginWith(context.Background(), recorder, request, "code", "state",
 		func(context.Context, string) (*oauth2.Token, error) {
 			t.Fatal("token exchange ran after state mismatch")
 			return nil, nil
@@ -246,11 +247,97 @@ func TestHandleWelcomeConsumesFailedAndMalformedOIDCCallbacks(t *testing.T) {
 	}
 }
 
+func TestHandleWelcomeStrictlyRejectsAmbiguousAndMalformedOIDCCallbacks(t *testing.T) {
+	const canary = "secret-ambiguous-callback-canary"
+
+	var exchanges atomic.Int32
+	tokenEndpoint := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		exchanges.Add(1)
+		http.Error(w, "unexpected token exchange", http.StatusBadRequest)
+	}))
+	t.Cleanup(tokenEndpoint.Close)
+
+	previousKey := cookieKey
+	previousOAuthCfg := oauthCfg
+	previousTemplate := tmpl
+	cookieKey = bytes.Repeat([]byte{0x42}, 32)
+	oauthCfg = &oauth2.Config{
+		ClientID:     "test-client",
+		ClientSecret: "test-secret",
+		RedirectURL:  "https://inspr.at/welcome",
+		Endpoint: oauth2.Endpoint{
+			TokenURL: tokenEndpoint.URL,
+		},
+	}
+	tmpl = template.Must(template.New("welcome.html").Parse(`{{define "welcome.html"}}welcome {{.Name}}{{end}}`))
+	t.Cleanup(func() {
+		cookieKey = previousKey
+		oauthCfg = previousOAuthCfg
+		tmpl = previousTemplate
+	})
+
+	sessionRecorder := httptest.NewRecorder()
+	if err := writeSession(sessionRecorder, sessionPayload{Name: "Existing User", Exp: time.Now().Add(time.Hour).Unix()}); err != nil {
+		t.Fatalf("write existing session: %v", err)
+	}
+	sessionCookie := responseCookies(sessionRecorder.Result())[sessionCookieName]
+	if sessionCookie == nil {
+		t.Fatal("existing session cookie was not written")
+	}
+
+	for _, test := range []struct {
+		name     string
+		rawQuery string
+	}{
+		{name: "duplicate code", rawQuery: "code=authorization-code&code=" + canary + "&state=state"},
+		{name: "duplicate state", rawQuery: "code=authorization-code&state=state&state=" + canary},
+		{name: "duplicate error", rawQuery: "error=access_denied&error=" + canary + "&state=state"},
+		{name: "invalid percent encoding", rawQuery: "code=authorization-code&state=state&error_description=%zz" + canary},
+		{name: "orphan error description", rawQuery: "error_description=" + canary},
+		{name: "orphan error URI", rawQuery: "error_uri=https%3A%2F%2Fissuer.example%2F" + canary},
+		{name: "orphan issuer", rawQuery: "iss=https%3A%2F%2Fissuer.example%2F" + canary},
+		{name: "orphan session state", rawQuery: "session_state=" + canary},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var logs bytes.Buffer
+			previousWriter := log.Writer()
+			previousFlags := log.Flags()
+			log.SetOutput(&logs)
+			log.SetFlags(0)
+			t.Cleanup(func() {
+				log.SetOutput(previousWriter)
+				log.SetFlags(previousFlags)
+			})
+
+			before := exchanges.Load()
+			recorder := httptest.NewRecorder()
+			request := httptest.NewRequest(http.MethodGet, "https://inspr.at/welcome", nil)
+			request.URL.RawQuery = test.rawQuery
+			request.AddCookie(&http.Cookie{Name: stateCookieName, Value: "state"})
+			request.AddCookie(&http.Cookie{Name: nonceCookieName, Value: "nonce"})
+			request.AddCookie(sessionCookie)
+
+			handleWelcome(recorder, request)
+			response := recorder.Result()
+			if response.StatusCode != http.StatusBadRequest {
+				t.Fatalf("status = %d, want %d", response.StatusCode, http.StatusBadRequest)
+			}
+			requireLoginAttemptCookiesCleared(t, response)
+			if got := exchanges.Load(); got != before {
+				t.Fatalf("token exchanges = %d, want %d", got, before)
+			}
+			if body := recorder.Body.String(); strings.Contains(body, canary) || strings.Contains(logs.String(), canary) {
+				t.Fatalf("callback canary escaped: body=%q log=%q", body, logs.String())
+			}
+		})
+	}
+}
+
 func TestCompleteLoginRedactsTokenExchangeError(t *testing.T) {
 	const canary = "secret-token-endpoint-response-canary"
 	recorder := httptest.NewRecorder()
 	request := callbackRequest("state", "nonce")
-	_, err := completeLoginWith(context.Background(), recorder, request, "code",
+	_, err := completeLoginWith(context.Background(), recorder, request, "code", "state",
 		func(context.Context, string) (*oauth2.Token, error) {
 			return nil, errors.New(canary)
 		},

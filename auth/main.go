@@ -186,45 +186,22 @@ func handleWelcome(w http.ResponseWriter, r *http.Request) {
 	// and malformed callbacks consume the one-time attempt without echoing
 	// provider-controlled details. Only a URL without callback fields may be
 	// treated as a refresh of an existing session.
-	query := r.URL.Query()
-	code := query.Get("code")
-	_, hasCode := query["code"]
-	_, hasError := query["error"]
-	if hasError {
-		if _, err := consumeLoginAttempt(w, r); err != nil {
-			rejectLoginCallback(w, err)
-			return
-		}
-		if hasCode || query.Get("error") == "" {
-			rejectLoginCallback(w, loginFailureResultMissing)
-		} else {
-			rejectLoginCallback(w, loginFailureAuthorizationRejected)
-		}
+	callback, err := parseLoginCallback(r.URL.RawQuery)
+	if err != nil {
+		rejectLoginAttempt(w, r, callback.state, err)
 		return
 	}
-	if hasCode {
-		if code == "" {
-			if _, err := consumeLoginAttempt(w, r); err != nil {
-				rejectLoginCallback(w, err)
-			} else {
-				rejectLoginCallback(w, loginFailureResultMissing)
-			}
-			return
-		}
-		name, err := completeLogin(r.Context(), w, r, code)
+	if callback.failure != "" {
+		rejectLoginAttempt(w, r, callback.state, callback.failure)
+		return
+	}
+	if callback.code != "" {
+		name, err := completeLogin(r.Context(), w, r, callback.code, callback.state)
 		if err != nil {
 			rejectLoginCallback(w, err)
 			return
 		}
 		renderWelcome(w, name)
-		return
-	}
-	if _, hasState := query["state"]; hasState {
-		if _, err := consumeLoginAttempt(w, r); err != nil {
-			rejectLoginCallback(w, err)
-		} else {
-			rejectLoginCallback(w, loginFailureResultMissing)
-		}
 		return
 	}
 
@@ -305,8 +282,81 @@ const (
 type exchangeCodeFunc func(context.Context, string) (*oauth2.Token, error)
 type verifyIDTokenFunc func(context.Context, string) (verifiedLoginToken, error)
 
-func completeLogin(ctx context.Context, w http.ResponseWriter, r *http.Request, code string) (string, error) {
-	return completeLoginWith(ctx, w, r, code,
+type loginCallback struct {
+	code    string
+	state   string
+	failure loginFailure
+}
+
+var reservedLoginCallbackParameters = [...]string{
+	"code",
+	"state",
+	"error",
+	"error_description",
+	"error_uri",
+	"iss",
+	"session_state",
+}
+
+func parseLoginCallback(rawQuery string) (loginCallback, error) {
+	query, err := url.ParseQuery(rawQuery)
+	if err != nil {
+		return loginCallback{}, loginFailureResultMissing
+	}
+
+	hasCallbackParameter := false
+	for _, name := range reservedLoginCallbackParameters {
+		values, present := query[name]
+		if !present {
+			continue
+		}
+		hasCallbackParameter = true
+		if len(values) != 1 || values[0] == "" {
+			return loginCallback{}, loginFailureResultMissing
+		}
+	}
+	if !hasCallbackParameter {
+		return loginCallback{}, nil
+	}
+
+	code, hasCode := query["code"]
+	state, hasState := query["state"]
+	callback := loginCallback{}
+	if hasState {
+		callback.state = state[0]
+	}
+	_, hasError := query["error"]
+	_, hasErrorDescription := query["error_description"]
+	_, hasErrorURI := query["error_uri"]
+	_, hasIssuer := query["iss"]
+	_, hasSessionState := query["session_state"]
+
+	if hasCode && hasError {
+		return callback, loginFailureResultMissing
+	}
+	if (hasErrorDescription || hasErrorURI) && !hasError {
+		return callback, loginFailureResultMissing
+	}
+	if (hasIssuer || hasSessionState) && !hasCode && !hasError {
+		return callback, loginFailureResultMissing
+	}
+	if (hasCode || hasError) && !hasState {
+		return callback, loginFailureResultMissing
+	}
+	if !hasCode && !hasError {
+		return callback, loginFailureResultMissing
+	}
+	if hasError {
+		callback.failure = loginFailureAuthorizationRejected
+		return callback, nil
+	}
+
+	callback.code = code[0]
+	return callback, nil
+}
+
+func completeLogin(ctx context.Context, w http.ResponseWriter, r *http.Request, code, state string) (string, error) {
+	return completeLoginWith(ctx, w, r, code, state,
 		func(ctx context.Context, code string) (*oauth2.Token, error) {
 			return oauthCfg.Exchange(ctx, code)
 		},
@@ -326,9 +376,9 @@ func verifyLoginIDToken(ctx context.Context, rawIDToken string) (verifiedLoginTo
 	return verifiedLoginToken{Nonce: idToken.Nonce, Claims: claims}, nil
 }
 
-func completeLoginWith(ctx context.Context, w http.ResponseWriter, r *http.Request, code string, exchange exchangeCodeFunc, verify verifyIDTokenFunc) (string, error) {
+func completeLoginWith(ctx context.Context, w http.ResponseWriter, r *http.Request, code, state string, exchange exchangeCodeFunc, verify verifyIDTokenFunc) (string, error) {
 	// 1. State verification.
-	nonce, err := consumeLoginAttempt(w, r)
+	nonce, err := consumeLoginAttempt(w, r, state)
 	if err != nil {
 		return "", err
 	}
@@ -362,7 +412,7 @@ func completeLoginWith(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	return name, nil
 }
 
-func consumeLoginAttempt(w http.ResponseWriter, r *http.Request) (string, error) {
+func consumeLoginAttempt(w http.ResponseWriter, r *http.Request, callbackState string) (string, error) {
 	// Every callback attempt consumes both values, including malformed or
 	// failed attempts. The response-side deletion does not affect the request
 	// cookies used below.
@@ -376,10 +426,17 @@ func consumeLoginAttempt(w http.ResponseWriter, r *http.Request) (string, error)
 	if err != nil {
 		return "", loginFailureMissingNonce
 	}
-	if subtle.ConstantTimeCompare([]byte(stateCookie.Value), []byte(r.URL.Query().Get("state"))) != 1 {
+	if subtle.ConstantTimeCompare([]byte(stateCookie.Value), []byte(callbackState)) != 1 {
 		return "", loginFailureStateMismatch
 	}
 	return nonceCookie.Value, nil
+}
+
+func rejectLoginAttempt(w http.ResponseWriter, r *http.Request, callbackState string, failure error) {
+	if _, err := consumeLoginAttempt(w, r, callbackState); err != nil {
+		failure = err
+	}
+	rejectLoginCallback(w, failure)
 }
 
 func safeLoginFailure(err error, fallback loginFailure) loginFailure {

@@ -39,7 +39,9 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"io"
 	"log"
+	"mime"
 	"net"
 	"net/http"
 	"net/url"
@@ -62,6 +64,10 @@ var (
 	baseURL      = mustEnv("BASE_URL")           // e.g. https://inspr.at
 	cookieKey    = mustEnvKey("COOKIE_KEY")      // hex, 32+ bytes after decode
 	listen       = envOr("LISTEN", ":8080")
+	// Only this Docker DNS identity is allowed to supply the client-address
+	// headers used by /enter. The deployed compose service is named traefik;
+	// unrelated peers on the shared bridge cannot claim its source address.
+	trustedProxyHost = envOr("ENTER_TRUSTED_PROXY_HOST", "traefik")
 	// PAT for the Zitadel management API. Used only by /enter for user
 	// creation + passwordless registration link delivery.
 	//
@@ -76,16 +82,19 @@ var (
 )
 
 const (
-	sessionCookieName = "inspr_sess"
-	stateCookieName   = "inspr_state"
-	csrfCookieName    = "__Host-inspr_enter_csrf"
-	sessionTTL        = 8 * time.Hour
-	stateTTL          = 5 * time.Minute
-	csrfTTL           = 5 * time.Minute
-	signupRateWindow  = 10 * time.Minute
-	signupIPLimit     = 10
-	signupEmailLimit  = 3
-	signupRateMaxKeys = 4096
+	sessionCookieName  = "inspr_sess"
+	stateCookieName    = "inspr_state"
+	csrfCookieName     = "__Host-inspr_enter_csrf"
+	sessionTTL         = 8 * time.Hour
+	stateTTL           = 5 * time.Minute
+	csrfTTL            = 5 * time.Minute
+	signupRateWindow   = 10 * time.Minute
+	signupIPLimit      = 10
+	signupEmailLimit   = 3
+	signupRateMaxKeys  = 4096
+	enterFormMaxBytes  = 16 << 10
+	ownershipLinkTTL   = 24 * time.Hour
+	zitadelHTTPTimeout = 10 * time.Second
 )
 
 // ── Globals (set in main()) ───────────────────────────────────────────────
@@ -105,6 +114,7 @@ var (
 		signupRateWindow,
 		signupRateMaxKeys,
 	)
+	zitadelHTTPClient = &http.Client{Timeout: zitadelHTTPTimeout}
 )
 
 // ── Entrypoint ────────────────────────────────────────────────────────────
@@ -134,6 +144,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/enter", handleEnter)
+	mux.HandleFunc("/enter/verify", handleEnterVerify)
 	mux.HandleFunc("/login", handleLogin)
 	mux.HandleFunc("/welcome", handleWelcome)
 	mux.HandleFunc("/logout", handleLogout)
@@ -155,7 +166,16 @@ func main() {
 	}
 	log.Printf("inspr-auth: issuer=%s base=%s listen=%s signup=%s",
 		issuer, baseURL, listen, signupStatus)
-	log.Fatal(http.ListenAndServe(listen, mux))
+	server := &http.Server{
+		Addr:              listen,
+		Handler:           mux,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       60 * time.Second,
+		MaxHeaderBytes:    32 << 10,
+	}
+	log.Fatal(server.ListenAndServe())
 }
 
 // ── Handlers ──────────────────────────────────────────────────────────────
@@ -364,12 +384,13 @@ func renderWelcome(w http.ResponseWriter, name string) {
 
 // enterView feeds enter.html. State is one of "door" | "signup" | "inbox".
 type enterView struct {
-	State     string // door | signup | inbox
-	Head      string // hero copy variant per state
-	FormName  string // sticky between renders
-	FormEmail string
-	FormError string
-	CSRFToken string
+	State             string // door | signup | inbox
+	Head              string // hero copy variant per state
+	FormName          string // sticky between renders
+	FormEmail         string
+	FormError         string
+	CSRFToken         string
+	OwnershipVerified bool
 }
 
 func renderEnter(w http.ResponseWriter, v enterView) {
@@ -438,7 +459,26 @@ func handleEnter(w http.ResponseWriter, r *http.Request) {
 		return
 
 	case http.MethodPost:
-		_ = r.ParseForm()
+		// Bound and parse the unauthenticated body before CSRF, limiter, or
+		// provider work. MaxBytesReader returns a typed error after the cap and
+		// prevents ParseForm from consuming an attacker-sized request.
+		r.Body = http.MaxBytesReader(w, r.Body, enterFormMaxBytes)
+		mediaType, _, mediaErr := mime.ParseMediaType(r.Header.Get("Content-Type"))
+		if mediaErr != nil || mediaType != "application/x-www-form-urlencoded" {
+			renderEnterStatus(w, enterView{State: "signup", FormError: "that form could not be read — please try again."}, http.StatusBadRequest)
+			return
+		}
+		if err := r.ParseForm(); err != nil {
+			status := http.StatusBadRequest
+			message := "that form could not be read — please try again."
+			var tooLarge *http.MaxBytesError
+			if errors.As(err, &tooLarge) {
+				status = http.StatusRequestEntityTooLarge
+				message = "that form is too large — please try again."
+			}
+			renderEnterStatus(w, enterView{State: "signup", FormError: message}, status)
+			return
+		}
 		name := strings.TrimSpace(r.FormValue("name"))
 		email := strings.TrimSpace(strings.ToLower(r.FormValue("email")))
 
@@ -463,7 +503,7 @@ func handleEnter(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Smart minimum validation. Zitadel will re-validate too.
-		if name == "" || email == "" || !strings.Contains(email, "@") {
+		if name == "" || email == "" || len(name) > 200 || len(email) > 200 || !strings.Contains(email, "@") {
 			renderEnter(w, enterView{
 				State:     "signup",
 				FormName:  name,
@@ -484,9 +524,11 @@ func handleEnter(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Hand off to Zitadel: create user with passwordless registration.
-		// On success, Zitadel returns a one-time link we email to the user.
-		err := zitadelCreatePasswordlessUser(r.Context(), name, email)
+		// ZITADEL v2 atomically creates an active human with an explicitly
+		// unverified email and queues the ownership-code mail. A retry after a
+		// lost response or partial delivery resends that code to the exact
+		// provider-held address instead of attempting a second import.
+		err := zitadelStartSignup(r.Context(), name, email)
 		if err != nil {
 			stage, status := signupFailureDetails(err)
 			if status == 0 {
@@ -496,7 +538,7 @@ func handleEnter(w http.ResponseWriter, r *http.Request) {
 			}
 			// Surface a friendly message without reflecting provider details.
 			msg := "something didn't land — try again, or sign in if you've been here before."
-			if stage == "create" && status == http.StatusConflict {
+			if stage == "existing" {
 				msg = "looks like you've been here before. try signing in instead."
 			}
 			renderEnterStatus(w, enterView{
@@ -518,6 +560,40 @@ func handleEnter(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Allow", "GET, POST")
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
+}
+
+// handleEnterVerify consumes the ownership proof ZITADEL sent to the address.
+// A passkey registration mail is requested only after VerifyEmail succeeds. The
+// signed state permits a safe retry after email verification succeeded but the
+// passkey-mail request failed; it cannot be minted by another shared-network
+// peer or by a caller who merely knows a user ID.
+func handleEnterVerify(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.Header().Set("Allow", "GET")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	q := r.URL.Query()
+	userID := q.Get("userID")
+	code := q.Get("code")
+	expires := q.Get("expires")
+	state := q.Get("state")
+	if len(userID) == 0 || len(userID) > 200 || len(code) == 0 || len(code) > 20 || !validOwnershipState(userID, expires, state, time.Now()) {
+		renderEnterStatus(w, enterView{State: "signup", FormError: "that link is invalid or expired — start again."}, http.StatusBadRequest)
+		return
+	}
+	err := zitadelCompleteSignup(r.Context(), userID, code)
+	if err != nil {
+		stage, status := signupFailureDetails(err)
+		if status == 0 {
+			log.Printf("enter: zitadel verification failed stage=%s status=transport", stage)
+		} else {
+			log.Printf("enter: zitadel verification failed stage=%s status=%d", stage, status)
+		}
+		renderEnterStatus(w, enterView{State: "signup", FormError: "that link could not be completed — open it again, or start over."}, http.StatusBadGateway)
+		return
+	}
+	renderEnter(w, enterView{State: "inbox", OwnershipVerified: true})
 }
 
 // consumeEnterCSRF implements a double-submit token: the random value issued
@@ -542,18 +618,37 @@ func consumeEnterCSRF(w http.ResponseWriter, r *http.Request) bool {
 }
 
 // signupClientIP follows the production edge contract rather than trusting an
-// arbitrary forwarded chain. inspr-auth has no published port and is attached
-// only to csb1_traefik; its router always runs cloudflarewarp@file, which
-// overwrites X-Real-IP and X-Forwarded-For with the same single client IP. Only
-// that exact pair from a private/loopback peer is accepted. Any missing,
-// prefixed, or conflicting value falls back to the direct peer address.
+// arbitrary private peer. inspr-auth has no published port and is attached to
+// csb1_traefik, a bridge shared by unrelated containers. The only authoritative
+// proxy boundary is therefore the current IP resolved from the deployment-owned
+// Docker DNS service name "traefik". Resolution failure, a different source IP,
+// or malformed/conflicting headers all fall back to the non-spoofable peer IP.
 func signupClientIP(r *http.Request) string {
+	return signupClientIPWithResolver(r, net.DefaultResolver.LookupIPAddr)
+}
+
+type proxyIPResolver func(context.Context, string) ([]net.IPAddr, error)
+
+func signupClientIPWithResolver(r *http.Request, resolve proxyIPResolver) string {
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		host = r.RemoteAddr
 	}
 	peer := net.ParseIP(strings.TrimSpace(host))
-	if peer != nil && (peer.IsPrivate() || peer.IsLoopback()) {
+	trusted := false
+	if peer != nil && trustedProxyHost != "" {
+		ctx, cancel := context.WithTimeout(r.Context(), 250*time.Millisecond)
+		defer cancel()
+		if addresses, lookupErr := resolve(ctx, trustedProxyHost); lookupErr == nil {
+			for _, address := range addresses {
+				if peer.Equal(address.IP) {
+					trusted = true
+					break
+				}
+			}
+		}
+	}
+	if trusted {
 		forwardedRaw := strings.TrimSpace(r.Header.Get("X-Forwarded-For"))
 		forwarded := net.ParseIP(forwardedRaw)
 		realIP := net.ParseIP(strings.TrimSpace(r.Header.Get("X-Real-IP")))
@@ -652,69 +747,130 @@ func (l *signupRateLimiter) makeRoom(now time.Time, needed int) bool {
 
 // ── Zitadel management API client ─────────────────────────────────────────
 
-// zitadelCreatePasswordlessUser creates a human user in Zitadel with the
-// passwordless-registration flag set, then triggers the registration link
-// email. The user's first sign-in completes via passkey (Touch ID / Face
-// ID / WebAuthn), no password ever set.
+// zitadelStartSignup uses the exact User API contract present in the deployed
+// ZITADEL v2.54.8 image. Unlike v1 ImportHumanUser, AddHumanUser does not create
+// an Initial-state account: it appends an unverified email-code event whose
+// notification link comes back here. Email ownership is still false at create.
 //
-// Two-step (intentional):
-//  1. POST /management/v1/users/human/_import — create user; the response
-//     includes `passwordlessRegistration` (link + lifetime) but Zitadel
-//     does NOT auto-deliver the email.
-//  2. POST /management/v1/users/{userId}/passwordless/_send_link — asks
-//     Zitadel to send the link via the configured SMTP. Spike-acceptable;
-//     for higher branding control we'd render the email ourselves and
-//     SMTP-send from inspr-auth.
-//
-// Errors are returned with enough context to surface a meaningful message
-// to the user (collision vs. transient).
-func zitadelCreatePasswordlessUser(ctx context.Context, name, email string) error {
-	// Split a single "name" field into first/last for Zitadel's schema.
+// The HMAC-derived user ID makes creation idempotent without retaining email in
+// process memory. If the create response was lost, or the first notification
+// did not arrive, a retry can prove that exact user/email pair is still
+// unverified and ask ZITADEL to resend its email code. It never re-imports.
+func zitadelStartSignup(ctx context.Context, name, email string) error {
+	userID := signupUserID(email)
 	first, last := splitName(name)
 	createBody := map[string]any{
-		"userName": email, // we use email-as-username; loginName policy must allow this
+		"userId":   userID,
+		"username": email,
 		"profile": map[string]any{
-			"firstName":         first,
-			"lastName":          last,
+			"givenName":         first,
+			"familyName":        last,
 			"displayName":       name,
 			"preferredLanguage": "en",
 		},
 		"email": map[string]any{
-			"email":           email,
-			"isEmailVerified": false, // the emailed registration flow must prove ownership
+			"email": email,
+			"sendCode": map[string]any{
+				"urlTemplate": ownershipURLTemplate(userID, time.Now().Add(ownershipLinkTTL)),
+			},
 		},
-		"requestPasswordlessRegistration": true,
 	}
-	createResp, err := zitadelCall(ctx, http.MethodPost, "/management/v1/users/human/_import", createBody)
-	if err != nil {
-		return &signupProviderError{stage: "create", cause: err, status: providerHTTPStatus(err)}
-	}
-	userID, _ := createResp["userId"].(string)
-	if userID == "" {
-		return &signupProviderError{stage: "create", cause: errors.New("invalid provider response")}
+	if _, err := zitadelCall(ctx, http.MethodPost, "/v2beta/users/human", createBody); err == nil {
+		return nil
+	} else if status := providerHTTPStatus(err); status != http.StatusBadRequest && status != http.StatusConflict {
+		return &signupProviderError{stage: "create", cause: err, status: status}
 	}
 
-	// Trigger Zitadel to send the passwordless-registration email.
-	// Endpoint name varies across Zitadel versions; try the passwordless
-	// namespace first, then fall back to the older v1 action if not found.
-	sendPaths := []string{
-		fmt.Sprintf("/management/v1/users/%s/passwordless/_send_link", userID),
-		fmt.Sprintf("/management/v1/users/%s/_send_passwordless_registration", userID),
+	// ZITADEL v2.54.8 maps its AlreadyExisting precondition to HTTP 400.
+	// A 409 is accepted as well for forward-compatible gateway mappings, but
+	// recovery succeeds only after an exact provider-state check.
+	verified, providerEmail, err := zitadelUserEmailState(ctx, userID)
+	if err != nil || !strings.EqualFold(providerEmail, email) {
+		return &signupProviderError{stage: "recover", cause: err, status: providerHTTPStatus(err)}
 	}
-	var lastErr error
-	for _, p := range sendPaths {
-		_, err := zitadelCall(ctx, http.MethodPost, p, map[string]any{})
-		if err == nil {
-			return nil
-		}
-		lastErr = err
-		if providerHTTPStatus(err) != http.StatusNotFound {
-			break
+	if verified {
+		return &signupProviderError{stage: "existing", cause: errors.New("email already verified"), status: http.StatusConflict}
+	}
+	resendBody := map[string]any{
+		"sendCode": map[string]any{
+			"urlTemplate": ownershipURLTemplate(userID, time.Now().Add(ownershipLinkTTL)),
+		},
+	}
+	path := "/v2beta/users/" + url.PathEscape(userID) + "/email/resend"
+	if _, err := zitadelCall(ctx, http.MethodPost, path, resendBody); err != nil {
+		return &signupProviderError{stage: "resend", cause: err, status: providerHTTPStatus(err)}
+	}
+	return nil
+}
+
+// zitadelCompleteSignup verifies the emailed code, then requests a passwordless
+// registration mail through the exact v2.54.8 management API, whose user.write
+// permission is present in the scoped ORG_USER_MANAGER role. A consumed
+// verification code is recoverable only when the separately HMAC-authenticated
+// link reached a provider-confirmed verified user; this covers
+// verify-success/passkey-request-failure retries.
+func zitadelCompleteSignup(ctx context.Context, userID, verificationCode string) error {
+	verifyPath := "/v2beta/users/" + url.PathEscape(userID) + "/email/verify"
+	_, verifyErr := zitadelCall(ctx, http.MethodPost, verifyPath, map[string]any{"verificationCode": verificationCode})
+	if verifyErr != nil {
+		verified, _, stateErr := zitadelUserEmailState(ctx, userID)
+		if stateErr != nil || !verified {
+			return &signupProviderError{stage: "verify", cause: verifyErr, status: providerHTTPStatus(verifyErr)}
 		}
 	}
-	// The identity exists, but claiming that an email was sent would strand the
-	// user. Preserve the failure so the handler renders an honest retry view.
-	return &signupProviderError{stage: "send", cause: lastErr, status: providerHTTPStatus(lastErr)}
+
+	passkeyPath := "/management/v1/users/" + url.PathEscape(userID) + "/passwordless/_send_link"
+	_, err := zitadelCall(ctx, http.MethodPost, passkeyPath, map[string]any{})
+	if err != nil {
+		return &signupProviderError{stage: "passkey", cause: err, status: providerHTTPStatus(err)}
+	}
+	return nil
+}
+
+func zitadelUserEmailState(ctx context.Context, userID string) (verified bool, email string, err error) {
+	response, err := zitadelCall(ctx, http.MethodGet, "/v2beta/users/"+url.PathEscape(userID), nil)
+	if err != nil {
+		return false, "", err
+	}
+	user, _ := response["user"].(map[string]any)
+	human, _ := user["human"].(map[string]any)
+	emailObject, _ := human["email"].(map[string]any)
+	email, _ = emailObject["email"].(string)
+	verified, ok := emailObject["isVerified"].(bool)
+	if email == "" || !ok {
+		return false, "", errors.New("invalid provider response")
+	}
+	return verified, email, nil
+}
+
+func signupUserID(email string) string {
+	mac := hmac.New(sha256.New, cookieKey)
+	_, _ = mac.Write([]byte("enter-user\x00" + strings.ToLower(strings.TrimSpace(email))))
+	return "signup-" + base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+}
+
+func ownershipURLTemplate(userID string, expires time.Time) string {
+	expiresText := strconv.FormatInt(expires.Unix(), 10)
+	state := ownershipState(userID, expiresText)
+	// Keep the three ZITADEL Go-template actions literal. Query.Encode would
+	// percent-escape their braces before ZITADEL can render them.
+	return baseURL + "/enter/verify?userID={{.UserID}}&code={{.Code}}&orgID={{.OrgID}}&expires=" +
+		url.QueryEscape(expiresText) + "&state=" + url.QueryEscape(state)
+}
+
+func ownershipState(userID, expires string) string {
+	mac := hmac.New(sha256.New, cookieKey)
+	_, _ = mac.Write([]byte("enter-ownership\x00" + userID + "\x00" + expires))
+	return base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+}
+
+func validOwnershipState(userID, expires, state string, now time.Time) bool {
+	expiresUnix, err := strconv.ParseInt(expires, 10, 64)
+	if err != nil || expiresUnix < now.Unix() || expiresUnix > now.Add(ownershipLinkTTL+time.Minute).Unix() {
+		return false
+	}
+	expected := ownershipState(userID, expires)
+	return subtle.ConstantTimeCompare([]byte(expected), []byte(state)) == 1
 }
 
 type zitadelHTTPError struct {
@@ -762,17 +918,23 @@ func signupFailureDetails(err error) (string, int) {
 // scoped PAT. Errors retain only the HTTP status; response bodies are never
 // propagated because they may contain PII or opaque provider diagnostics.
 func zitadelCall(ctx context.Context, method, path string, body any) (map[string]any, error) {
-	bodyBytes, err := json.Marshal(body)
-	if err != nil {
-		return nil, fmt.Errorf("marshal: %w", err)
+	var requestBody io.Reader
+	if body != nil {
+		bodyBytes, err := json.Marshal(body)
+		if err != nil {
+			return nil, fmt.Errorf("marshal: %w", err)
+		}
+		requestBody = strings.NewReader(string(bodyBytes))
 	}
-	req, err := http.NewRequestWithContext(ctx, method, issuer+path, strings.NewReader(string(bodyBytes)))
+	req, err := http.NewRequestWithContext(ctx, method, issuer+path, requestBody)
 	if err != nil {
 		return nil, fmt.Errorf("new request: %w", err)
 	}
 	req.Header.Set("Authorization", "Bearer "+zitadelPAT)
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := http.DefaultClient.Do(req)
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	resp, err := zitadelHTTPClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("http: %w", err)
 	}

@@ -175,12 +175,25 @@ third-party identity service and remains operationally separate from the four
 public product sites.
 
 The bridge has no published host port and is reachable publicly only through
-Traefik on `csb1_traefik`. Its router always applies `cloudflarewarp@file`,
-which replaces `X-Real-IP` and `X-Forwarded-For` with the same single client
-address. The `/enter` rate limiter accepts a forwarded client key only when
-those two values are valid and identical and the direct peer is private or
-loopback; malformed, prefixed, or conflicting headers fall back to the direct
-peer key.
+Traefik on `csb1_traefik`. That Docker bridge is shared with unrelated
+containers, so a private source address alone is not trusted. The deployment
+sets `ENTER_TRUSTED_PROXY_HOST=traefik`; `/enter` resolves that compose-owned
+Docker DNS identity for each request and accepts the single matching
+`X-Real-IP`/`X-Forwarded-For` client key only when the direct peer is one of
+those resolved addresses. DNS failure, any other peer, malformed chains, and
+conflicting headers all fall back to the non-spoofable direct-peer key.
+
+Signup uses the User API v2beta contract shipped by the deployed ZITADEL
+v2.54.8 image: creation emits an unverified email-code notification, the link
+returns to `/enter/verify`, and only a successful ownership check can request a
+passwordless-registration mail. That exact management endpoint requires
+`user.write`, which is present in the scoped `ORG_USER_MANAGER` role; the v2
+returned-code endpoint requires the broader `user.passkey.write` permission and
+is deliberately not used. Deterministic HMAC user IDs make a lost create
+response or missing notification recoverable through a checked resend rather
+than a second import; a verified account is directed to sign in. The pinned
+endpoint, event, and role evidence is recorded in
+[`auth/ZITADEL-CONTRACT.md`](auth/ZITADEL-CONTRACT.md).
 
 The image running on csb1 (`ghcr.io/inspr-at/inspr-auth:legacy-20260511`) was
 built from this `auth/` source; the host's working copy differs only by the

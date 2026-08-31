@@ -123,6 +123,9 @@ services:
       BASE_URL: https://inspr.at
       COOKIE_KEY: ${COOKIE_KEY:?COOKIE_KEY missing — see .env.example}
       LISTEN: ":8080"
+      # Docker DNS identity of the sole proxy allowed to supply client-IP
+      # headers. The direct peer must resolve to this exact compose service.
+      ENTER_TRUSTED_PROXY_HOST: traefik
       # Zitadel management API tokens for /enter signup flow.
       # Empty values disable signup gracefully (door + login still work).
       #

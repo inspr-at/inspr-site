@@ -3,11 +3,20 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto"
+	cryptorand "crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/json"
+	"errors"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
@@ -38,7 +47,7 @@ func TestHandleLoginBindsStateAndNonce(t *testing.T) {
 		cookies[cookie.Name] = cookie
 	}
 	state := requireTransientCookie(t, cookies, stateCookieName)
-	nonce := requireTransientCookie(t, cookies, "inspr_nonce")
+	nonce := requireTransientCookie(t, cookies, nonceCookieName)
 	if state.Value == nonce.Value {
 		t.Fatal("state and nonce must be independently generated")
 	}
@@ -70,7 +79,7 @@ func TestCompleteLoginRequiresBothOneTimeCookies(t *testing.T) {
 			return verifiedLoginToken{}, nil
 		},
 	)
-	if err == nil || !strings.Contains(err.Error(), "missing nonce cookie") {
+	if !errors.Is(err, loginFailureMissingNonce) {
 		t.Fatalf("error = %v, want missing nonce cookie", err)
 	}
 	requireLoginAttemptCookiesCleared(t, recorder.Result())
@@ -99,7 +108,7 @@ func TestCompleteLoginRejectsNonceMismatchBeforeSession(t *testing.T) {
 					}, nil
 				},
 			)
-			if err == nil || err.Error() != "nonce mismatch" {
+			if !errors.Is(err, loginFailureNonceMismatch) {
 				t.Fatalf("error = %v, want nonce mismatch", err)
 			}
 			cookies := responseCookies(recorder.Result())
@@ -166,10 +175,153 @@ func TestCompleteLoginRejectsStateBeforeTokenExchange(t *testing.T) {
 			return verifiedLoginToken{}, nil
 		},
 	)
-	if err == nil || err.Error() != "state mismatch" {
+	if !errors.Is(err, loginFailureStateMismatch) {
 		t.Fatalf("error = %v, want state mismatch", err)
 	}
 	requireLoginAttemptCookiesCleared(t, recorder.Result())
+}
+
+func TestHandleWelcomeConsumesFailedAndMalformedOIDCCallbacks(t *testing.T) {
+	for _, test := range []struct {
+		name string
+		url  string
+	}{
+		{
+			name: "identity provider error",
+			url:  "https://inspr.at/welcome?error=access_denied&error_description=private-provider-detail&state=state",
+		},
+		{
+			name: "state without result",
+			url:  "https://inspr.at/welcome?state=state",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			recorder := httptest.NewRecorder()
+			request := httptest.NewRequest(http.MethodGet, test.url, nil)
+			request.AddCookie(&http.Cookie{Name: stateCookieName, Value: "state"})
+			request.AddCookie(&http.Cookie{Name: nonceCookieName, Value: "nonce"})
+
+			handleWelcome(recorder, request)
+			response := recorder.Result()
+			if response.StatusCode != http.StatusBadRequest {
+				t.Fatalf("status = %d, want %d", response.StatusCode, http.StatusBadRequest)
+			}
+			requireLoginAttemptCookiesCleared(t, response)
+			if body := recorder.Body.String(); strings.Contains(body, "access_denied") || strings.Contains(body, "private-provider-detail") {
+				t.Fatalf("response echoed provider-controlled callback content: %q", body)
+			}
+		})
+	}
+}
+
+func TestCompleteLoginRedactsTokenExchangeError(t *testing.T) {
+	const canary = "secret-token-endpoint-response-canary"
+	recorder := httptest.NewRecorder()
+	request := callbackRequest("state", "nonce")
+	_, err := completeLoginWith(context.Background(), recorder, request, "code",
+		func(context.Context, string) (*oauth2.Token, error) {
+			return nil, errors.New(canary)
+		},
+		func(context.Context, string) (verifiedLoginToken, error) {
+			t.Fatal("verification ran after token exchange failure")
+			return verifiedLoginToken{}, nil
+		},
+	)
+	if err == nil {
+		t.Fatal("token exchange failure returned nil error")
+	}
+	if strings.Contains(err.Error(), canary) {
+		t.Fatalf("token exchange response escaped through error: %q", err)
+	}
+	if strings.Contains(recorder.Body.String(), canary) {
+		t.Fatal("token exchange response escaped through HTTP response")
+	}
+}
+
+func TestRejectLoginCallbackRedactsUnknownError(t *testing.T) {
+	const canary = "secret-callback-error-canary"
+	var logs bytes.Buffer
+	previousWriter := log.Writer()
+	previousFlags := log.Flags()
+	log.SetOutput(&logs)
+	log.SetFlags(0)
+	t.Cleanup(func() {
+		log.SetOutput(previousWriter)
+		log.SetFlags(previousFlags)
+	})
+
+	recorder := httptest.NewRecorder()
+	rejectLoginCallback(recorder, errors.New(canary))
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d", recorder.Code)
+	}
+	if strings.Contains(recorder.Body.String(), canary) || strings.Contains(logs.String(), canary) {
+		t.Fatalf("unknown callback error escaped: body=%q log=%q", recorder.Body.String(), logs.String())
+	}
+	if !strings.Contains(logs.String(), string(loginFailureUnknown)) {
+		t.Fatalf("safe failure code missing from log: %q", logs.String())
+	}
+}
+
+func TestVerifyLoginIDTokenExtractsNonceFromSignedJWT(t *testing.T) {
+	const (
+		testIssuer = "https://issuer.example"
+		testClient = "test-client"
+		testNonce  = "signed-token-nonce"
+	)
+	privateKey, err := rsa.GenerateKey(cryptorand.Reader, 2048)
+	if err != nil {
+		t.Fatalf("generate RSA key: %v", err)
+	}
+	issuedAt := time.Now().UTC().Truncate(time.Second)
+	rawIDToken := signTestJWT(t, privateKey,
+		map[string]any{"alg": "RS256", "typ": "JWT"},
+		map[string]any{
+			"iss":   testIssuer,
+			"sub":   "subject-1",
+			"aud":   testClient,
+			"iat":   issuedAt.Unix(),
+			"exp":   issuedAt.Add(5 * time.Minute).Unix(),
+			"nonce": testNonce,
+			"name":  "Ada Lovelace",
+		},
+	)
+
+	previousVerifier := verifier
+	verifier = oidc.NewVerifier(testIssuer,
+		&oidc.StaticKeySet{PublicKeys: []crypto.PublicKey{&privateKey.PublicKey}},
+		&oidc.Config{ClientID: testClient, Now: func() time.Time { return issuedAt.Add(time.Minute) }},
+	)
+	t.Cleanup(func() { verifier = previousVerifier })
+
+	verified, err := verifyLoginIDToken(context.Background(), rawIDToken)
+	if err != nil {
+		t.Fatalf("verify signed ID token: %v", err)
+	}
+	if verified.Nonce != testNonce {
+		t.Fatalf("nonce = %q, want %q", verified.Nonce, testNonce)
+	}
+	if verified.Claims.Name != "Ada Lovelace" || verified.Claims.Sub != "subject-1" {
+		t.Fatalf("claims = %#v", verified.Claims)
+	}
+}
+
+func signTestJWT(t *testing.T, privateKey *rsa.PrivateKey, header, claims map[string]any) string {
+	t.Helper()
+	encode := func(value map[string]any) string {
+		body, err := json.Marshal(value)
+		if err != nil {
+			t.Fatalf("marshal JWT section: %v", err)
+		}
+		return base64.RawURLEncoding.EncodeToString(body)
+	}
+	unsigned := encode(header) + "." + encode(claims)
+	digest := sha256.Sum256([]byte(unsigned))
+	signature, err := rsa.SignPKCS1v15(cryptorand.Reader, privateKey, crypto.SHA256, digest[:])
+	if err != nil {
+		t.Fatalf("sign JWT: %v", err)
+	}
+	return unsigned + "." + base64.RawURLEncoding.EncodeToString(signature)
 }
 
 func callbackRequest(state, nonce string) *http.Request {
@@ -217,8 +369,8 @@ func requireTransientCookie(t *testing.T, cookies map[string]*http.Cookie, name 
 	if cookie.Value == "" {
 		t.Fatalf("%s cookie is empty", name)
 	}
-	if cookie.Path != "/" || !cookie.HttpOnly || !cookie.Secure || cookie.SameSite != http.SameSiteLaxMode {
-		t.Fatalf("%s cookie flags = path:%q httponly:%t secure:%t samesite:%d", name, cookie.Path, cookie.HttpOnly, cookie.Secure, cookie.SameSite)
+	if !strings.HasPrefix(name, "__Host-") || cookie.Domain != "" || cookie.Path != "/" || !cookie.HttpOnly || !cookie.Secure || cookie.SameSite != http.SameSiteLaxMode {
+		t.Fatalf("%s cookie flags = domain:%q path:%q httponly:%t secure:%t samesite:%d", name, cookie.Domain, cookie.Path, cookie.HttpOnly, cookie.Secure, cookie.SameSite)
 	}
 	if cookie.MaxAge != int(stateTTL.Seconds()) {
 		t.Fatalf("%s max-age = %d, want %d", name, cookie.MaxAge, int(stateTTL.Seconds()))

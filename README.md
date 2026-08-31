@@ -225,6 +225,11 @@ an annotated `auth-vX.Y.Z` tag publishes the immutable `:X.Y.Z` (plus
 `:latest`). Every published image carries BuildKit SLSA provenance and an
 SPDX SBOM and is signed keyless with cosign through the workflow identity:
 
+The workflow loads and scans the image locally before any registry write. On a
+publishing event it then exports the verified image by digest, checks that the
+pushed config is exactly the config Trivy scanned, verifies its attestations,
+signs and verifies that digest, and only then creates the release tags.
+
 ```bash
 cosign verify ghcr.io/inspr-at/inspr-site/inspr-auth@<digest> \
   --certificate-identity-regexp 'https://github.com/inspr-at/inspr-site/.github/workflows/auth-image.yml@refs/tags/auth-v.*' \

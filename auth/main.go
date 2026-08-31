@@ -5,8 +5,9 @@
 // the static Astro site):
 //
 //	GET /login    → start Authorization Code flow at the configured Zitadel
-//	                issuer; persist `state` in a short-lived HTTP-only cookie;
-//	                302 to the IdP authorize endpoint.
+//	                issuer; persist independent `state` and `nonce` values in
+//	                short-lived HTTP-only cookies; 302 to the IdP authorize
+//	                endpoint.
 //	GET /welcome  → OIDC callback. Verifies state + nonce, exchanges code,
 //	                verifies ID token signature against the issuer's JWKS,
 //	                sets a long-lived (TTL hours) HMAC-signed session cookie,
@@ -87,7 +88,8 @@ var (
 
 const (
 	sessionCookieName  = "inspr_sess"
-	stateCookieName    = "inspr_state"
+	stateCookieName    = "__Host-inspr_state"
+	nonceCookieName    = "__Host-inspr_nonce"
 	csrfCookieName     = "__Host-inspr_enter_csrf"
 	sessionTTL         = 8 * time.Hour
 	stateTTL           = 5 * time.Minute
@@ -199,33 +201,61 @@ func main() {
 // ── Handlers ──────────────────────────────────────────────────────────────
 
 func handleLogin(w http.ResponseWriter, r *http.Request) {
-	// Generate state — one-time-use random token, stored in a short-lived
-	// cookie and echoed back in the callback. Defends against CSRF on the
-	// authorization code redirect.
+	// Generate independent, one-time state and nonce values. State binds the
+	// callback to this browser request; nonce binds the returned ID token to
+	// this exact authorization attempt.
 	state := randString(24)
+	nonce := randString(24)
+	setLoginAttemptCookie(w, stateCookieName, state)
+	setLoginAttemptCookie(w, nonceCookieName, nonce)
+	authURL := oauthCfg.AuthCodeURL(state, oidc.Nonce(nonce))
+	http.Redirect(w, r, authURL, http.StatusFound)
+}
+
+func setLoginAttemptCookie(w http.ResponseWriter, name, value string) {
 	http.SetCookie(w, &http.Cookie{
-		Name:     stateCookieName,
-		Value:    state,
+		Name:     name,
+		Value:    value,
 		Path:     "/",
 		MaxAge:   int(stateTTL.Seconds()),
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 	})
-	authURL := oauthCfg.AuthCodeURL(state)
-	http.Redirect(w, r, authURL, http.StatusFound)
+}
+
+func clearLoginAttemptCookies(w http.ResponseWriter) {
+	for _, name := range []string{stateCookieName, nonceCookieName} {
+		http.SetCookie(w, &http.Cookie{
+			Name:     name,
+			Value:    "",
+			Path:     "/",
+			MaxAge:   -1,
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteLaxMode,
+		})
+	}
 }
 
 func handleWelcome(w http.ResponseWriter, r *http.Request) {
-	// If the URL carries an OIDC ?code, this is the post-IdP redirect. Run
-	// the full callback exchange. Otherwise treat as a refresh of an
-	// already-authenticated welcome page (read session cookie).
-	code := r.URL.Query().Get("code")
-	if code != "" {
-		name, err := completeLogin(r.Context(), w, r, code)
+	// If the URL carries an OIDC result, this is the post-IdP redirect. Error
+	// and malformed callbacks consume the one-time attempt without echoing
+	// provider-controlled details. Only a URL without callback fields may be
+	// treated as a refresh of an existing session.
+	callback, err := parseLoginCallback(r.URL.RawQuery)
+	if err != nil {
+		rejectLoginAttempt(w, r, callback.state, err)
+		return
+	}
+	if callback.failure != "" {
+		rejectLoginAttempt(w, r, callback.state, callback.failure)
+		return
+	}
+	if callback.code != "" {
+		name, err := completeLogin(r.Context(), w, r, callback.code, callback.state)
 		if err != nil {
-			log.Printf("welcome: callback failed: %v", err)
-			http.Error(w, "login failed: "+err.Error(), http.StatusBadRequest)
+			rejectLoginCallback(w, err)
 			return
 		}
 		renderWelcome(w, name)
@@ -275,51 +305,209 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 
 // ── OIDC callback exchange ────────────────────────────────────────────────
 
-func completeLogin(ctx context.Context, w http.ResponseWriter, r *http.Request, code string) (string, error) {
-	// 1. State verification.
-	stateCookie, err := r.Cookie(stateCookieName)
+type loginClaims struct {
+	Sub               string `json:"sub"`
+	Name              string `json:"name"`
+	PreferredUsername string `json:"preferred_username"`
+	Email             string `json:"email"`
+}
+
+type verifiedLoginToken struct {
+	Nonce  string
+	Claims loginClaims
+}
+
+type loginFailure string
+
+func (failure loginFailure) Error() string { return string(failure) }
+
+const (
+	loginFailureMissingState          loginFailure = "missing_state_cookie"
+	loginFailureMissingNonce          loginFailure = "missing_nonce_cookie"
+	loginFailureStateMismatch         loginFailure = "state_mismatch"
+	loginFailureTokenExchange         loginFailure = "token_exchange_failed"
+	loginFailureMissingIDToken        loginFailure = "id_token_missing"
+	loginFailureIDTokenVerification   loginFailure = "id_token_verification_failed"
+	loginFailureIDTokenClaims         loginFailure = "id_token_claims_invalid"
+	loginFailureNonceMismatch         loginFailure = "nonce_mismatch"
+	loginFailureSessionWrite          loginFailure = "session_write_failed"
+	loginFailureAuthorizationRejected loginFailure = "authorization_rejected"
+	loginFailureResultMissing         loginFailure = "callback_result_missing"
+	loginFailureUnknown               loginFailure = "callback_failed"
+)
+
+type exchangeCodeFunc func(context.Context, string) (*oauth2.Token, error)
+type verifyIDTokenFunc func(context.Context, string) (verifiedLoginToken, error)
+
+type loginCallback struct {
+	code    string
+	state   string
+	failure loginFailure
+}
+
+var reservedLoginCallbackParameters = [...]string{
+	"code",
+	"state",
+	"error",
+	"error_description",
+	"error_uri",
+	"iss",
+	"session_state",
+}
+
+func parseLoginCallback(rawQuery string) (loginCallback, error) {
+	query, err := url.ParseQuery(rawQuery)
 	if err != nil {
-		return "", errors.New("missing state cookie")
+		return loginCallback{}, loginFailureResultMissing
 	}
-	if subtle.ConstantTimeCompare([]byte(stateCookie.Value), []byte(r.URL.Query().Get("state"))) != 1 {
-		return "", errors.New("state mismatch")
+
+	hasCallbackParameter := false
+	for _, name := range reservedLoginCallbackParameters {
+		values, present := query[name]
+		if !present {
+			continue
+		}
+		hasCallbackParameter = true
+		if len(values) != 1 || values[0] == "" {
+			return loginCallback{}, loginFailureResultMissing
+		}
 	}
-	// State cookie has done its job — kill it.
-	http.SetCookie(w, &http.Cookie{Name: stateCookieName, Value: "", Path: "/", MaxAge: -1, HttpOnly: true, Secure: true, SameSite: http.SameSiteLaxMode})
+	if !hasCallbackParameter {
+		return loginCallback{}, nil
+	}
+
+	code, hasCode := query["code"]
+	state, hasState := query["state"]
+	callback := loginCallback{}
+	if hasState {
+		callback.state = state[0]
+	}
+	_, hasError := query["error"]
+	_, hasErrorDescription := query["error_description"]
+	_, hasErrorURI := query["error_uri"]
+	_, hasIssuer := query["iss"]
+	_, hasSessionState := query["session_state"]
+
+	if hasCode && hasError {
+		return callback, loginFailureResultMissing
+	}
+	if (hasErrorDescription || hasErrorURI) && !hasError {
+		return callback, loginFailureResultMissing
+	}
+	if (hasIssuer || hasSessionState) && !hasCode && !hasError {
+		return callback, loginFailureResultMissing
+	}
+	if (hasCode || hasError) && !hasState {
+		return callback, loginFailureResultMissing
+	}
+	if !hasCode && !hasError {
+		return callback, loginFailureResultMissing
+	}
+	if hasError {
+		callback.failure = loginFailureAuthorizationRejected
+		return callback, nil
+	}
+
+	callback.code = code[0]
+	return callback, nil
+}
+
+func completeLogin(ctx context.Context, w http.ResponseWriter, r *http.Request, code, state string) (string, error) {
+	return completeLoginWith(ctx, w, r, code, state,
+		func(ctx context.Context, code string) (*oauth2.Token, error) {
+			return oauthCfg.Exchange(ctx, code)
+		},
+		verifyLoginIDToken,
+	)
+}
+
+func verifyLoginIDToken(ctx context.Context, rawIDToken string) (verifiedLoginToken, error) {
+	idToken, err := verifier.Verify(ctx, rawIDToken)
+	if err != nil {
+		return verifiedLoginToken{}, loginFailureIDTokenVerification
+	}
+	var claims loginClaims
+	if err := idToken.Claims(&claims); err != nil {
+		return verifiedLoginToken{}, loginFailureIDTokenClaims
+	}
+	return verifiedLoginToken{Nonce: idToken.Nonce, Claims: claims}, nil
+}
+
+func completeLoginWith(ctx context.Context, w http.ResponseWriter, r *http.Request, code, state string, exchange exchangeCodeFunc, verify verifyIDTokenFunc) (string, error) {
+	// 1. State verification.
+	nonce, err := consumeLoginAttempt(w, r, state)
+	if err != nil {
+		return "", err
+	}
 
 	// 2. Code → tokens.
-	token, err := oauthCfg.Exchange(ctx, code)
+	token, err := exchange(ctx, code)
 	if err != nil {
-		return "", fmt.Errorf("token exchange: %w", err)
+		return "", loginFailureTokenExchange
 	}
 	rawIDToken, ok := token.Extra("id_token").(string)
 	if !ok || rawIDToken == "" {
-		return "", errors.New("no id_token in token response")
+		return "", loginFailureMissingIDToken
 	}
 
-	// 3. ID token signature + standard claims verification.
-	idToken, err := verifier.Verify(ctx, rawIDToken)
+	// 3. ID token signature, standard claims, and authorization-attempt nonce.
+	verified, err := verify(ctx, rawIDToken)
 	if err != nil {
-		return "", fmt.Errorf("id_token verify: %w", err)
+		return "", safeLoginFailure(err, loginFailureIDTokenVerification)
 	}
-	var claims struct {
-		Sub               string `json:"sub"`
-		Name              string `json:"name"`
-		PreferredUsername string `json:"preferred_username"`
-		Email             string `json:"email"`
-	}
-	if err := idToken.Claims(&claims); err != nil {
-		return "", fmt.Errorf("claims decode: %w", err)
+	if subtle.ConstantTimeCompare([]byte(nonce), []byte(verified.Nonce)) != 1 {
+		return "", loginFailureNonceMismatch
 	}
 
 	// 4. Pick the friendliest available display name.
-	name := firstNonEmpty(claims.Name, claims.PreferredUsername, claims.Email, claims.Sub)
+	name := firstNonEmpty(verified.Claims.Name, verified.Claims.PreferredUsername, verified.Claims.Email, verified.Claims.Sub)
 
 	// 5. Persist server-stateless session (HMAC-signed cookie).
 	if err := writeSession(w, sessionPayload{Name: name, Exp: time.Now().Add(sessionTTL).Unix()}); err != nil {
-		return "", fmt.Errorf("session write: %w", err)
+		return "", loginFailureSessionWrite
 	}
 	return name, nil
+}
+
+func consumeLoginAttempt(w http.ResponseWriter, r *http.Request, callbackState string) (string, error) {
+	// Every callback attempt consumes both values, including malformed or
+	// failed attempts. The response-side deletion does not affect the request
+	// cookies used below.
+	clearLoginAttemptCookies(w)
+
+	stateCookie, err := r.Cookie(stateCookieName)
+	if err != nil {
+		return "", loginFailureMissingState
+	}
+	nonceCookie, err := r.Cookie(nonceCookieName)
+	if err != nil {
+		return "", loginFailureMissingNonce
+	}
+	if subtle.ConstantTimeCompare([]byte(stateCookie.Value), []byte(callbackState)) != 1 {
+		return "", loginFailureStateMismatch
+	}
+	return nonceCookie.Value, nil
+}
+
+func rejectLoginAttempt(w http.ResponseWriter, r *http.Request, callbackState string, failure error) {
+	if _, err := consumeLoginAttempt(w, r, callbackState); err != nil {
+		failure = err
+	}
+	rejectLoginCallback(w, failure)
+}
+
+func safeLoginFailure(err error, fallback loginFailure) loginFailure {
+	var failure loginFailure
+	if errors.As(err, &failure) {
+		return failure
+	}
+	return fallback
+}
+
+func rejectLoginCallback(w http.ResponseWriter, err error) {
+	failure := safeLoginFailure(err, loginFailureUnknown)
+	log.Printf("welcome: callback failed (%s)", failure)
+	http.Error(w, "login failed", http.StatusBadRequest)
 }
 
 // ── Session cookie (HMAC-signed, stateless) ───────────────────────────────

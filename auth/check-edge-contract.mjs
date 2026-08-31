@@ -11,6 +11,13 @@ const contract = JSON.parse(
   await readFile(resolve(authDir, "cloudflare-edge-contract.json"), "utf8"),
 );
 const compose = await readFile(resolve(repoRoot, "docker-compose.yml"), "utf8");
+const configuredPluginRanges = ["172.16.0.0/12", "2400:cb00::/32"];
+
+assert.deepEqual(
+  contract.cloudflarewarp.configuredTrustedSourceRanges,
+  configuredPluginRanges,
+  "cloudflarewarp configured trust ranges differ from the NIX-400 runtime contract",
+);
 
 function blockList(ranges) {
   const list = new BlockList();
@@ -51,6 +58,10 @@ const pluginTrust = blockList(contract.cloudflarewarp.configuredTrustedSourceRan
 const siblingIP = "172.20.0.44";
 const attackerChosenIP = "198.51.100.77";
 assert.equal(pluginTrust.check(siblingIP, "ipv4"), true);
+const trustedCloudflareIPv6 = "2400:cb00::1";
+assert.equal(isIP(trustedCloudflareIPv6), 6);
+assert.equal(pluginTrust.check(trustedCloudflareIPv6, "ipv6"), true);
+assert.equal(pluginTrust.check("2400:cb01::1", "ipv6"), false);
 const rewrittenClientIP = pluginTrust.check(siblingIP, "ipv4")
   ? attackerChosenIP
   : siblingIP;

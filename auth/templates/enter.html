@@ -566,6 +566,7 @@
         {{ else if eq .State "signup" }}
           <h1 class="head">let's get you <em>in</em><span class="punct">.</span></h1>
           <form class="form" method="POST" action="/enter" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ .CSRFToken }}" />
             <div class="form__field">
               <label class="form__label" for="name">your name</label>
               <input

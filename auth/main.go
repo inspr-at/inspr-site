@@ -4,27 +4,27 @@
 // (Traefik routes them to this container, everything else falls through to
 // the static Astro site):
 //
-//   GET /login    → start Authorization Code flow at the configured Zitadel
-//                   issuer; persist `state` in a short-lived HTTP-only cookie;
-//                   302 to the IdP authorize endpoint.
-//   GET /welcome  → OIDC callback. Verifies state + nonce, exchanges code,
-//                   verifies ID token signature against the issuer's JWKS,
-//                   sets a long-lived (TTL hours) HMAC-signed session cookie,
-//                   renders the greeting page server-side using the verified
-//                   `name` claim. Idempotent: if a valid session already
-//                   exists and no `code` is present, just renders the
-//                   greeting (so refresh works after login).
-//   GET /logout   → clears session cookie, hits the OIDC RP-Initiated Logout
-//                   endpoint to also kill the IdP session, then 302 to /.
+//	GET /login    → start Authorization Code flow at the configured Zitadel
+//	                issuer; persist `state` in a short-lived HTTP-only cookie;
+//	                302 to the IdP authorize endpoint.
+//	GET /welcome  → OIDC callback. Verifies state + nonce, exchanges code,
+//	                verifies ID token signature against the issuer's JWKS,
+//	                sets a long-lived (TTL hours) HMAC-signed session cookie,
+//	                renders the greeting page server-side using the verified
+//	                `name` claim. Idempotent: if a valid session already
+//	                exists and no `code` is present, just renders the
+//	                greeting (so refresh works after login).
+//	GET /logout   → clears session cookie, hits the OIDC RP-Initiated Logout
+//	                endpoint to also kill the IdP session, then 302 to /.
 //
 // Design notes:
-//   * Server-side OIDC: client secret never reaches the browser; tokens never
+//   - Server-side OIDC: client secret never reaches the browser; tokens never
 //     reach JavaScript. Welcome page is static HTML rendered with the name
 //     claim — no JS needed for the greeting itself, no XHR to auth.inspr.at,
 //     so the existing inspr-www CSP stays untouched.
-//   * Session cookie format: base64url(JSON payload).base64url(HMAC-SHA256).
+//   - Session cookie format: base64url(JSON payload).base64url(HMAC-SHA256).
 //     Stateless (no server-side store); rotates by changing COOKIE_KEY.
-//   * Single binary, distroless container, ~12MB. Two prod deps: oauth2 +
+//   - Single binary, distroless container, ~12MB. Two prod deps: oauth2 +
 //     go-oidc.
 package main
 
@@ -40,10 +40,13 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -75,8 +78,14 @@ var (
 const (
 	sessionCookieName = "inspr_sess"
 	stateCookieName   = "inspr_state"
+	csrfCookieName    = "__Host-inspr_enter_csrf"
 	sessionTTL        = 8 * time.Hour
 	stateTTL          = 5 * time.Minute
+	csrfTTL           = 5 * time.Minute
+	signupRateWindow  = 10 * time.Minute
+	signupIPLimit     = 10
+	signupEmailLimit  = 3
+	signupRateMaxKeys = 4096
 )
 
 // ── Globals (set in main()) ───────────────────────────────────────────────
@@ -86,6 +95,16 @@ var (
 	verifier *oidc.IDTokenVerifier
 	provider *oidc.Provider
 	tmpl     *template.Template
+
+	// A single production instance owns this bounded in-memory limiter. Its
+	// limits deliberately apply independently to the client IP and normalized
+	// email so rotating either value does not bypass both controls.
+	signupLimiter = newSignupRateLimiter(
+		signupIPLimit,
+		signupEmailLimit,
+		signupRateWindow,
+		signupRateMaxKeys,
+	)
 )
 
 // ── Entrypoint ────────────────────────────────────────────────────────────
@@ -350,9 +369,14 @@ type enterView struct {
 	FormName  string // sticky between renders
 	FormEmail string
 	FormError string
+	CSRFToken string
 }
 
 func renderEnter(w http.ResponseWriter, v enterView) {
+	renderEnterStatus(w, v, http.StatusOK)
+}
+
+func renderEnterStatus(w http.ResponseWriter, v enterView, status int) {
 	if v.State == "" {
 		v.State = "door"
 	}
@@ -367,6 +391,18 @@ func renderEnter(w http.ResponseWriter, v enterView) {
 			v.Head = "your door is open"
 		}
 	}
+	if v.State == "signup" {
+		v.CSRFToken = randString(32)
+		http.SetCookie(w, &http.Cookie{
+			Name:     csrfCookieName,
+			Value:    v.CSRFToken,
+			Path:     "/",
+			MaxAge:   int(csrfTTL.Seconds()),
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteStrictMode,
+		})
+	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	// /enter has the inline progressive-enhancement script; allow inline
 	// script for THIS page only (not exposed via inspr-www's CSP).
@@ -376,6 +412,7 @@ func renderEnter(w http.ResponseWriter, v enterView) {
 			"frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+	w.WriteHeader(status)
 	if err := tmpl.ExecuteTemplate(w, "enter.html", v); err != nil {
 		log.Printf("template execute enter: %v", err)
 	}
@@ -401,18 +438,29 @@ func handleEnter(w http.ResponseWriter, r *http.Request) {
 		return
 
 	case http.MethodPost:
+		_ = r.ParseForm()
+		name := strings.TrimSpace(r.FormValue("name"))
+		email := strings.TrimSpace(strings.ToLower(r.FormValue("email")))
+
+		if !consumeEnterCSRF(w, r) {
+			renderEnterStatus(w, enterView{
+				State:     "signup",
+				FormName:  name,
+				FormEmail: email,
+				FormError: "that form expired — please try again.",
+			}, http.StatusForbidden)
+			return
+		}
+
 		if zitadelPAT == "" {
 			renderEnter(w, enterView{
 				State:     "signup",
-				FormName:  r.FormValue("name"),
-				FormEmail: r.FormValue("email"),
+				FormName:  name,
+				FormEmail: email,
 				FormError: "signup is not configured on this instance.",
 			})
 			return
 		}
-		_ = r.ParseForm()
-		name := strings.TrimSpace(r.FormValue("name"))
-		email := strings.TrimSpace(strings.ToLower(r.FormValue("email")))
 
 		// Smart minimum validation. Zitadel will re-validate too.
 		if name == "" || email == "" || !strings.Contains(email, "@") {
@@ -425,22 +473,38 @@ func handleEnter(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		if !signupLimiter.Allow(signupClientIP(r), email, time.Now()) {
+			w.Header().Set("Retry-After", strconv.Itoa(int(signupRateWindow.Seconds())))
+			renderEnterStatus(w, enterView{
+				State:     "signup",
+				FormName:  name,
+				FormEmail: email,
+				FormError: "too many attempts — wait a few minutes and try again.",
+			}, http.StatusTooManyRequests)
+			return
+		}
+
 		// Hand off to Zitadel: create user with passwordless registration.
 		// On success, Zitadel returns a one-time link we email to the user.
 		err := zitadelCreatePasswordlessUser(r.Context(), name, email)
 		if err != nil {
-			log.Printf("enter: zitadel signup failed for %q: %v", email, err)
-			// Surface a friendly message; full error is in server logs.
+			stage, status := signupFailureDetails(err)
+			if status == 0 {
+				log.Printf("enter: zitadel signup failed stage=%s status=transport", stage)
+			} else {
+				log.Printf("enter: zitadel signup failed stage=%s status=%d", stage, status)
+			}
+			// Surface a friendly message without reflecting provider details.
 			msg := "something didn't land — try again, or sign in if you've been here before."
-			if strings.Contains(err.Error(), "already exists") || strings.Contains(err.Error(), "AlreadyExists") {
+			if stage == "create" && status == http.StatusConflict {
 				msg = "looks like you've been here before. try signing in instead."
 			}
-			renderEnter(w, enterView{
+			renderEnterStatus(w, enterView{
 				State:     "signup",
 				FormName:  name,
 				FormEmail: email,
 				FormError: msg,
-			})
+			}, http.StatusBadGateway)
 			return
 		}
 
@@ -454,6 +518,136 @@ func handleEnter(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Allow", "GET, POST")
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
+}
+
+// consumeEnterCSRF implements a double-submit token: the random value issued
+// in the signup form must match its short-lived, same-site cookie. Consume the
+// cookie on every POST so retries always require a freshly rendered form.
+func consumeEnterCSRF(w http.ResponseWriter, r *http.Request) bool {
+	http.SetCookie(w, &http.Cookie{
+		Name:     csrfCookieName,
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	})
+	cookie, err := r.Cookie(csrfCookieName)
+	formToken := r.FormValue("csrf_token")
+	if err != nil || cookie.Value == "" || formToken == "" {
+		return false
+	}
+	return subtle.ConstantTimeCompare([]byte(cookie.Value), []byte(formToken)) == 1
+}
+
+// signupClientIP follows the production edge contract rather than trusting an
+// arbitrary forwarded chain. inspr-auth has no published port and is attached
+// only to csb1_traefik; its router always runs cloudflarewarp@file, which
+// overwrites X-Real-IP and X-Forwarded-For with the same single client IP. Only
+// that exact pair from a private/loopback peer is accepted. Any missing,
+// prefixed, or conflicting value falls back to the direct peer address.
+func signupClientIP(r *http.Request) string {
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		host = r.RemoteAddr
+	}
+	peer := net.ParseIP(strings.TrimSpace(host))
+	if peer != nil && (peer.IsPrivate() || peer.IsLoopback()) {
+		forwardedRaw := strings.TrimSpace(r.Header.Get("X-Forwarded-For"))
+		forwarded := net.ParseIP(forwardedRaw)
+		realIP := net.ParseIP(strings.TrimSpace(r.Header.Get("X-Real-IP")))
+		if !strings.Contains(forwardedRaw, ",") && forwarded != nil && realIP != nil && forwarded.Equal(realIP) {
+			return forwarded.String()
+		}
+	}
+	if peer != nil {
+		return peer.String()
+	}
+	return strings.TrimSpace(host)
+}
+
+type signupRateEntry struct {
+	count   int
+	resetAt time.Time
+}
+
+type signupRateLimiter struct {
+	mu         sync.Mutex
+	entries    map[string]signupRateEntry
+	ipLimit    int
+	emailLimit int
+	window     time.Duration
+	maxKeys    int
+}
+
+func newSignupRateLimiter(ipLimit, emailLimit int, window time.Duration, maxKeys int) *signupRateLimiter {
+	return &signupRateLimiter{
+		entries:    make(map[string]signupRateEntry),
+		ipLimit:    ipLimit,
+		emailLimit: emailLimit,
+		window:     window,
+		maxKeys:    maxKeys,
+	}
+}
+
+// Allow atomically checks and consumes one attempt from both independent
+// fixed-window buckets. The map is capped; expired entries are removed first,
+// then the least-recently-seen entry is evicted when necessary.
+func (l *signupRateLimiter) Allow(ip, email string, now time.Time) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	// Hash the normalized email so the bounded process-local map does not retain
+	// the address itself after the request completes.
+	emailHash := sha256.Sum256([]byte(email))
+	keys := []struct {
+		key   string
+		limit int
+	}{
+		{key: "ip:" + ip, limit: l.ipLimit},
+		{key: "email:" + base64.RawURLEncoding.EncodeToString(emailHash[:]), limit: l.emailLimit},
+	}
+
+	missing := 0
+	for _, item := range keys {
+		if _, ok := l.entries[item.key]; !ok {
+			missing++
+		}
+	}
+	if !l.makeRoom(now, missing) {
+		return false
+	}
+
+	updated := make([]signupRateEntry, len(keys))
+	for i, item := range keys {
+		entry := l.entries[item.key]
+		if entry.resetAt.IsZero() || !now.Before(entry.resetAt) {
+			entry.count = 0
+			entry.resetAt = now.Add(l.window)
+		}
+		updated[i] = entry
+		if entry.count >= item.limit {
+			l.entries[item.key] = entry
+			return false
+		}
+	}
+	for i, item := range keys {
+		updated[i].count++
+		l.entries[item.key] = updated[i]
+	}
+	return true
+}
+
+func (l *signupRateLimiter) makeRoom(now time.Time, needed int) bool {
+	for key, entry := range l.entries {
+		if !now.Before(entry.resetAt) {
+			delete(l.entries, key)
+		}
+	}
+	// Fail closed at capacity. Evicting live entries would keep memory bounded
+	// but let a key-flood attacker recycle and bypass earlier limits.
+	return len(l.entries)+needed <= l.maxKeys
 }
 
 // ── Zitadel management API client ─────────────────────────────────────────
@@ -487,23 +681,22 @@ func zitadelCreatePasswordlessUser(ctx context.Context, name, email string) erro
 		},
 		"email": map[string]any{
 			"email":           email,
-			"isEmailVerified": true, // we trust the email; signup proves ownership via the link click
+			"isEmailVerified": false, // the emailed registration flow must prove ownership
 		},
 		"requestPasswordlessRegistration": true,
 	}
 	createResp, err := zitadelCall(ctx, http.MethodPost, "/management/v1/users/human/_import", createBody)
 	if err != nil {
-		return fmt.Errorf("user create: %w", err)
+		return &signupProviderError{stage: "create", cause: err, status: providerHTTPStatus(err)}
 	}
 	userID, _ := createResp["userId"].(string)
 	if userID == "" {
-		return fmt.Errorf("user create: no userId in response: %v", createResp)
+		return &signupProviderError{stage: "create", cause: errors.New("invalid provider response")}
 	}
 
 	// Trigger Zitadel to send the passwordless-registration email.
-	// Endpoint name varies across Zitadel versions; try the v1
-	// `_send_passwordless_registration` first, fall back to the
-	// passwordless namespace if not found.
+	// Endpoint name varies across Zitadel versions; try the passwordless
+	// namespace first, then fall back to the older v1 action if not found.
 	sendPaths := []string{
 		fmt.Sprintf("/management/v1/users/%s/passwordless/_send_link", userID),
 		fmt.Sprintf("/management/v1/users/%s/_send_passwordless_registration", userID),
@@ -515,20 +708,59 @@ func zitadelCreatePasswordlessUser(ctx context.Context, name, email string) erro
 			return nil
 		}
 		lastErr = err
-		if !strings.Contains(err.Error(), "404") && !strings.Contains(err.Error(), "Not Found") {
+		if providerHTTPStatus(err) != http.StatusNotFound {
 			break
 		}
 	}
-	// User was created but the email send failed — log and surface as
-	// success-with-degradation. The bootstrap admin can resend manually
-	// from the Zitadel console.
-	log.Printf("enter: user %s (id=%s) created but send-link failed: %v", email, userID, lastErr)
-	return nil
+	// The identity exists, but claiming that an email was sent would strand the
+	// user. Preserve the failure so the handler renders an honest retry view.
+	return &signupProviderError{stage: "send", cause: lastErr, status: providerHTTPStatus(lastErr)}
 }
 
-// zitadelCall makes a JSON request to the Zitadel management API using
-// the bootstrap PAT. Returns the decoded response or an error including
-// the HTTP status + first 200 chars of the body for diagnostics.
+type zitadelHTTPError struct {
+	status int
+}
+
+func (e *zitadelHTTPError) Error() string {
+	return fmt.Sprintf("provider HTTP %d", e.status)
+}
+
+type signupProviderError struct {
+	stage  string
+	status int
+	cause  error
+}
+
+// Error is deliberately fixed-shape: provider bodies can contain PII or
+// opaque diagnostics and must never reach application logs or the browser.
+func (e *signupProviderError) Error() string {
+	if e.status != 0 {
+		return fmt.Sprintf("signup %s failed (provider HTTP %d)", e.stage, e.status)
+	}
+	return fmt.Sprintf("signup %s failed", e.stage)
+}
+
+func (e *signupProviderError) Unwrap() error { return e.cause }
+
+func providerHTTPStatus(err error) int {
+	var httpErr *zitadelHTTPError
+	if errors.As(err, &httpErr) {
+		return httpErr.status
+	}
+	return 0
+}
+
+func signupFailureDetails(err error) (string, int) {
+	var signupErr *signupProviderError
+	if errors.As(err, &signupErr) {
+		return signupErr.stage, signupErr.status
+	}
+	return "unknown", 0
+}
+
+// zitadelCall makes a JSON request to the Zitadel management API using the
+// scoped PAT. Errors retain only the HTTP status; response bodies are never
+// propagated because they may contain PII or opaque provider diagnostics.
 func zitadelCall(ctx context.Context, method, path string, body any) (map[string]any, error) {
 	bodyBytes, err := json.Marshal(body)
 	if err != nil {
@@ -547,11 +779,7 @@ func zitadelCall(ctx context.Context, method, path string, body any) (map[string
 	defer resp.Body.Close()
 	respBody, _ := readAtMost(resp.Body, 32*1024)
 	if resp.StatusCode >= 400 {
-		snippet := string(respBody)
-		if len(snippet) > 200 {
-			snippet = snippet[:200]
-		}
-		return nil, fmt.Errorf("HTTP %d: %s", resp.StatusCode, snippet)
+		return nil, &zitadelHTTPError{status: resp.StatusCode}
 	}
 	var out map[string]any
 	if len(respBody) > 0 {

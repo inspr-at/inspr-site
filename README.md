@@ -174,6 +174,14 @@ are managed on the host.
 third-party identity service and remains operationally separate from the four
 public product sites.
 
+The bridge has no published host port and is reachable publicly only through
+Traefik on `csb1_traefik`. Its router always applies `cloudflarewarp@file`,
+which replaces `X-Real-IP` and `X-Forwarded-For` with the same single client
+address. The `/enter` rate limiter accepts a forwarded client key only when
+those two values are valid and identical and the direct peer is private or
+loopback; malformed, prefixed, or conflicting headers fall back to the direct
+peer key.
+
 The image running on csb1 (`ghcr.io/inspr-at/inspr-auth:legacy-20260511`) was
 built from this `auth/` source; the host's working copy differs only by the
 later AGPL image label and the module path from the organisation move.

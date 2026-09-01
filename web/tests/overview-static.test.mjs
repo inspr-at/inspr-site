@@ -46,7 +46,7 @@ test("Overview presents the human-approved product path truthfully in both langu
     "One path. Four tools. You approve.",
     "Ein Weg. Vier Werkzeuge. Sie geben frei.",
     "Conversation and files become clear requirements.",
-    "Projekt und Spezifikationen führen den Bau mit Agenten.",
+    "Projekt und Spezifikationen steuern die Umsetzung mit Agenten.",
     "Choose a server, verify its backup and deploy to production.",
     "Freigaben werden durchgesetzt und Zugriffe sicher rotiert.",
     "Nothing moves forward without you.",
@@ -60,6 +60,8 @@ test("Overview presents the human-approved product path truthfully in both langu
   assert.deepEqual(names, ["Aithema", "Paimos", "Pharos", "Janus"]);
   assert.equal((component.match(/approval: copy\(/g) || []).length, 4);
   assert.doesNotMatch(component, /manage users|user management|role management|ZITADEL integration/i);
+  assert.match(component, /Aithema's module is planned\./);
+  assert.match(component, /Aithemas Modul ist geplant\./);
 });
 
 test("Overview is discoverable from the full site and returns deliberately to it", async () => {
@@ -94,6 +96,7 @@ test("Shared header controls use one vertical alignment contract", async () => {
   assert.match(styles, /\.language-switch \{[\s\S]*?min-height: 2\.65rem;[\s\S]*?align-items: center;/);
   assert.match(styles, /\.language-switch a \{[\s\S]*?min-height: 2\.65rem;[\s\S]*?place-items: center;/);
   assert.match(styles, /\.product-switcher summary,[\s\S]*?\.header-action \{[\s\S]*?align-items: center;[\s\S]*?min-height: 2\.65rem;/);
+  assert.match(styles, /@media \(max-width: 72rem\) \{[\s\S]*?\.header-action \{\s*display: none;/);
 });
 
 test("Overview keeps a bounded, friendly and responsive two-screen structure", async () => {

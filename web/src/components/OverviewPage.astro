@@ -4,7 +4,7 @@ import MicrositeHeader from "./MicrositeHeader.astro";
 import MicrositeLayout from "../layouts/MicrositeLayout.astro";
 import "../styles/overview.css";
 
-import { siteUrls } from "../content/urls";
+import { productTaxonomy, siteUrls } from "../content/urls";
 import insprHero from "../assets/products/inspr/hero.png";
 import insprLogo from "../assets/products/inspr/logo.svg";
 import aithemaLogo from "../assets/products/aithema/logo.svg";
@@ -19,7 +19,7 @@ interface Props {
 const locale: "en" | "de" = Astro.props.locale === "de" ? "de" : "en";
 const copy = (english: string, german: string) => locale === "de" ? german : english;
 
-const repositoryUrl = "https://github.com/inspr-at/inspr-site";
+const openSourceUrl = "https://github.com/inspr-at";
 const englishUrl = siteUrls.overview;
 const germanUrl = siteUrls.overviewGerman;
 const canonicalUrl = locale === "de" ? germanUrl : englishUrl;
@@ -36,7 +36,7 @@ const nav = [
 const flowNodes = [
   { label: copy("Idea", "Idee"), logo: insprLogo },
   { label: copy("Requirements", "Anforderungen"), logo: aithemaLogo },
-  { label: copy("Build", "Bau"), logo: paimosLogo },
+  { label: copy("Build", "Umsetzung"), logo: paimosLogo },
   { label: copy("Deploy", "Bereitstellung"), logo: pharosLogo },
   { label: copy("Access", "Zugriff"), logo: janusLogo },
 ];
@@ -49,8 +49,11 @@ const promises = [
   },
   {
     icon: "git-branch",
-    title: copy("Your source", "Ihr Quellcode"),
-    body: copy("Work starts from source you can inspect.", "Die Arbeit beginnt mit Quellcode, den Sie prüfen können."),
+    title: copy("Open source", "Offener Quellcode"),
+    body: copy(
+      "Paimos, Pharos and Janus are open. Aithema's module is planned.",
+      "Paimos, Pharos und Janus sind offen. Aithemas Modul ist geplant.",
+    ),
   },
   {
     icon: "database",
@@ -80,14 +83,14 @@ const steps = [
   {
     number: "02",
     name: "Paimos",
-    role: copy("Build", "Bau"),
+    role: copy("Build", "Umsetzung"),
     logo: paimosLogo,
     href: siteUrls.paimos,
     body: copy(
       "Project and specs guide an agentic build.",
-      "Projekt und Spezifikationen führen den Bau mit Agenten.",
+      "Projekt und Spezifikationen steuern die Umsetzung mit Agenten.",
     ),
-    approval: copy("You approve the staged build.", "Sie geben den Staging-Build frei."),
+    approval: copy("You approve the staged build.", "Sie geben den Stand im Staging frei."),
   },
   {
     number: "03",
@@ -140,7 +143,7 @@ const steps = [
 >
   <MicrositeHeader
     name="INSPR"
-    category={copy("Open product family", "Offene Produktfamilie")}
+    category={copy(productTaxonomy.inspr, "Offene Produktfamilie")}
     logo={insprLogo.src}
     active="inspr"
     nav={nav}
@@ -187,7 +190,7 @@ const steps = [
         </ol>
       </div>
 
-      <ul class="overview-promises" id="promise" aria-label={copy("What remains yours", "Was bei Ihnen bleibt")}>
+      <ul class="overview-promises" aria-label={copy("What remains yours", "Was bei Ihnen bleibt")}>
         {promises.map((promise) => (
           <li>
             <span class="overview-promise__icon"><ContextIcon name={promise.icon} size={23} strokeWidth={1.65} /></span>
@@ -217,7 +220,7 @@ const steps = [
               <img src={step.logo.src} alt="" width="54" height="54" />
             </div>
             <p class="overview-step__role">{step.role}</p>
-            <h3><a href={step.href}>{step.name}</a></h3>
+            <h3><a href={step.href}>{step.name} <span aria-hidden="true">↗</span></a></h3>
             <p class="overview-step__body">{step.body}</p>
             <p class="overview-step__approval">
               <ContextIcon name="user-round-check" size={20} strokeWidth={1.75} />
@@ -226,7 +229,6 @@ const steps = [
             {index < steps.length - 1 && (
               <span class="overview-step__connector" aria-hidden="true">
                 <ContextIcon name="user-round-check" size={18} strokeWidth={1.6} />
-                <small>{copy("You approve", "Sie geben frei")}</small>
               </span>
             )}
           </li>
@@ -257,8 +259,8 @@ const steps = [
           <a class="overview-button" href={fullSiteUrl}>
             {copy("Explore the full site", "Ganze Website ansehen")} <span aria-hidden="true">→</span>
           </a>
-          <a class="overview-text-link" href={repositoryUrl} target="_blank" rel="noopener noreferrer">
-            {copy("Visit the source", "Quellcode ansehen")} <span aria-hidden="true">↗</span>
+          <a class="overview-text-link" href={openSourceUrl} target="_blank" rel="noopener noreferrer">
+            {copy("Explore open source", "Open Source ansehen")} <span aria-hidden="true">↗</span>
           </a>
         </div>
       </div>

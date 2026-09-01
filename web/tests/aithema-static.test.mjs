@@ -104,7 +104,7 @@ test("documentation and test discovery include the Aithema microsite", async () 
   const page = await webFile("src/components/AithemaProductPage.astro");
 
   assert.match(rootReadme, /product page is live at `aithema\.inspr\.at`/i);
-  assert.match(rootReadme, /\[aithema\.inspr\.at\]\(https:\/\/aithema\.inspr\.at\) - the Aithema requirements product page/i);
+  assert.match(rootReadme, /\[aithema\.inspr\.at\]\(https:\/\/aithema\.inspr\.at\) - requirements a person reviews/i);
   assert.doesNotMatch(rootReadme, /planned Aithema product host/i);
   assert.doesNotMatch(rootReadme, /pending edge routing/i);
   assert.match(rootReadme, /working public preview[\s\S]*start\.augmentoring\.com/);
@@ -115,4 +115,33 @@ test("documentation and test discovery include the Aithema microsite", async () 
   assert.match(packageJson, /node --test tests\/\*-static\.test\.mjs/);
   assert.match(sectionAudit, /name: "aithema"[\s\S]*minimum: 11, expectedRails: 0/);
   assert.match(page, /<section\s+class="proof-console page-shell"[\s\S]*data-section-pattern="proof-strip"/);
+});
+
+test("repository landing docs mirror the bilingual four-product story", async () => {
+  const [rootReadme, webReadme] = await Promise.all([
+    rootFile("README.md"),
+    webFile("README.md"),
+  ]);
+
+  assert.match(rootReadme, /\[English\]\(https:\/\/www\.inspr\.at\/\)/);
+  assert.match(rootReadme, /\[German\]\(https:\/\/www\.inspr\.at\/de\/\)/);
+
+  for (const url of [
+    "https://www.inspr.at/overview/",
+    "https://www.inspr.at/de/ueberblick/",
+    "https://aithema.inspr.at/de/",
+    "https://paimos.inspr.at/de/",
+    "https://pharos.inspr.at/de/",
+    "https://janus.inspr.at/de/",
+  ]) {
+    assert.match(rootReadme, new RegExp(url.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+
+  const sequence = ["aithema.inspr.at", "paimos.inspr.at", "pharos.inspr.at", "janus.inspr.at"];
+  const positions = sequence.map((host) => rootReadme.indexOf(`[${host}]`));
+  assert.ok(positions.every((position) => position >= 0));
+  assert.deepEqual([...positions].sort((a, b) => a - b), positions);
+  assert.match(rootReadme, /Augmentoring's professional services fit as a user of the[\s\S]*products rather than their owner/);
+  assert.match(rootReadme, /Copyright © 2026 \[Markus Barta\]/);
+  assert.match(webReadme, /Copyright © 2026 \[Markus Barta\]/);
 });

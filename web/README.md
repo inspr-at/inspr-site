@@ -98,6 +98,8 @@ open-source release.
 
 ## License
 
+Copyright © 2026 [Markus Barta](https://github.com/markus-barta).
+
 The original INSPR site code and content are licensed under
 `AGPL-3.0-only`; see the repository root `LICENSE`. Dependencies and bundled
 third-party assets retain their own licenses.

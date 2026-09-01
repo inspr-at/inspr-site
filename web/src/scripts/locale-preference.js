@@ -1,3 +1,5 @@
+// Kept as a standalone source module so Astro can inline this blocking locale
+// decision before first paint without adding a network round trip.
 (() => {
   const script = document.currentScript;
   if (!(script instanceof HTMLScriptElement)) return;

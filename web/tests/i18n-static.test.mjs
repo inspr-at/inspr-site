@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import vm from "node:vm";
@@ -17,7 +18,7 @@ async function runLocalePreference({
   hash = "",
   storageThrows = false,
 } = {}) {
-  const code = await readFile(new URL("public/scripts/locale-preference.js", webRoot), "utf8");
+  const code = await readFile(new URL("src/scripts/locale-preference.js", webRoot), "utf8");
   const storage = new Map(storedLocale ? [["inspr-language", storedLocale]] : []);
   const links = [];
   let replacedWith = null;
@@ -134,6 +135,7 @@ test("homepage locale routes expose static metadata and an accessible switch", a
   const compatibilityRoute = await source("pages/v2/index.astro");
   const layout = await source("layouts/MicrositeLayout.astro");
   const header = await source("components/MicrositeHeader.astro");
+  const aithema = await source("components/AithemaProductPage.astro");
   const styles = await source("styles/microsites.css");
   const caddy = await rootFile("Caddyfile");
   const legacyEditions = caddy.slice(
@@ -150,9 +152,12 @@ test("homepage locale routes expose static metadata and an accessible switch", a
   assert.match(layout, /rel="alternate" hreflang="en"/);
   assert.match(layout, /rel="alternate" hreflang="de"/);
   assert.match(layout, /rel="alternate" hreflang="x-default"/);
-  assert.match(layout, /locale-preference\.js\?v=\$\{scriptVersion\}/);
+  assert.match(layout, /import localePreferenceScript from "\.\.\/scripts\/locale-preference\.js\?raw"/);
+  assert.match(layout, /set:html=\{localePreferenceScript\}/);
 
   assert.match(header, /class="language-switch"/);
+  assert.match(header, /class="site-brand"[^>]*aria-label=\{name\}/);
+  assert.match(aithema, /class="site-brand"[^>]*aria-label=\{content\.name\}/);
   assert.match(header, /aria-label=\{labels\.languages\}/);
   assert.match(header, /aria-current=\{locale === "de" \? "page"/);
   assert.match(header, /aria-current=\{locale === "en" \? "page"/);
@@ -160,6 +165,12 @@ test("homepage locale routes expose static metadata and an accessible switch", a
   assert.match(header, /data-language-choice="en"/);
   assert.match(header, /url\.searchParams\.set\("lang", choice\)/);
   assert.match(styles, /\.language-switch a:focus-visible/);
+  assert.match(styles, /\.language-switch a \{[\s\S]*?min-width: 1\.5rem/);
+  assert.match(styles, /@media \(max-width: 27rem\) \{[\s\S]*?\.site-brand span \{[\s\S]*?display: none/);
+  assert.match(
+    styles,
+    /@media \(max-width: 21rem\) \{[\s\S]*?\.mobile-navigation summary,[\s\S]*?\.product-switcher summary \{[\s\S]*?gap: 0\.35rem;[\s\S]*?padding-inline: 0\.5rem;/,
+  );
   assert.match(legacyEditions, /path \/v1 \/v1\/\*/);
   assert.doesNotMatch(legacyEditions, /\/v2/);
 });
@@ -266,12 +277,15 @@ test("an explicit language arrival works when localStorage is unavailable", asyn
   assert.equal(manualEnglish.historyReplacement, null);
 });
 
-test("locale preference uses localStorage without cookies or inline CSP drift", async () => {
-  const script = await readFile(new URL("public/scripts/locale-preference.js", webRoot), "utf8");
+test("locale preference uses localStorage without cookies and stays CSP-pinned inline", async () => {
+  const script = await readFile(new URL("src/scripts/locale-preference.js", webRoot), "utf8");
   const layout = await source("layouts/MicrositeLayout.astro");
+  const caddy = await rootFile("Caddyfile");
+  const cspHash = `sha256-${createHash("sha256").update(script).digest("base64")}`;
 
   assert.match(script, /localStorage\.getItem\(storageKey\)/);
   assert.match(script, /localStorage\.setItem\(storageKey, choice\)/);
   assert.doesNotMatch(script, /document\.cookie/);
-  assert.match(layout, /<script[\s\S]*?is:inline[\s\S]*?src=\{`\/scripts\/locale-preference\.js/);
+  assert.match(layout, /<script[\s\S]*?is:inline[\s\S]*?set:html=\{localePreferenceScript\}/);
+  assert.ok(caddy.includes(`'${cspHash}'`));
 });

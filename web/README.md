@@ -60,7 +60,7 @@ Each product microsite is bilingual. The German editions render through the
 same components from `src/content/de/*.ts` at `/{product}/de/`; English stays
 at the host root and both editions publish canonical, `hreflang` (`en`, `de`,
 `x-default`) and matching `og:locale` metadata. The shared
-`public/scripts/locale-preference.js` applies browser-language detection only
+`src/scripts/locale-preference.js` applies browser-language detection only
 on the English root before an explicit choice; the DE | EN header switch
 persists the choice per host and preserves section hash and query. When a
 product claim changes, update both language files together; the content tests

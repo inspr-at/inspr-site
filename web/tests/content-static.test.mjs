@@ -331,7 +331,7 @@ test("all four hero loops preserve the static poster and motion controls", async
   for (const attribute of ["muted", "loop", "playsinline"]) {
     assert.match(heroLoop, new RegExp(`\\n\\s+${attribute}\\n`));
   }
-  assert.match(heroLoop, /preload="metadata"/);
+  assert.match(heroLoop, /preload=\{activation === "autoplay" \? "metadata" : "none"\}/);
   assert.match(heroLoop, /poster=\{poster\.src\}/);
   assert.match(heroLoop, /media="\(prefers-reduced-motion: no-preference\)"/);
   assert.match(heroLoop, /<Image[\s\S]*?class="hero-loop__poster"/);

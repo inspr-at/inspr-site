@@ -312,12 +312,38 @@
 .overview-step {
   --step-accent: #075e5b;
   position: relative;
+  isolation: isolate;
   min-width: 0;
   min-height: 16.75rem;
   padding: 1.2rem;
   border: 1px solid color-mix(in srgb, var(--step-accent) 25%, transparent);
   border-radius: 1.2rem;
   background: color-mix(in srgb, var(--step-accent) 5%, var(--overview-paper));
+}
+
+.overview-step__preview {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--step-accent) 70%, var(--overview-ink));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+}
+
+.overview-step__preview::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(180deg, rgb(5 25 34 / 0.12), rgb(5 25 34 / 0.7));
+}
+
+.overview-step__content {
+  position: relative;
+  z-index: 1;
+  min-height: calc(16.75rem - 2.4rem);
 }
 
 .overview-step:nth-child(2) {
@@ -387,6 +413,30 @@
 .overview-step h3 a:hover,
 .overview-step h3 a:focus-visible {
   text-decoration-color: var(--step-accent);
+}
+
+.overview-step[data-hero-loop-active] .overview-step__preview {
+  opacity: 1;
+}
+
+.overview-step[data-hero-loop-active] :is(.overview-step__top, .overview-step__role, .overview-step__body, .overview-step__approval) {
+  opacity: 0;
+}
+
+.overview-step[data-hero-loop-active] h3 a {
+  color: white;
+  text-decoration: none;
+  text-shadow: 0 1px 5px rgb(3 20 30 / 0.72);
+}
+
+.overview-step[data-hero-loop-active] h3 a span {
+  color: white;
+}
+
+.overview-step[data-hero-loop-active] h3 a:focus-visible {
+  border-radius: 0.12em;
+  outline: 3px solid white;
+  outline-offset: 0.16em;
 }
 
 .overview-step__body {
@@ -591,6 +641,16 @@
   }
 }
 
+@media (min-width: 90rem) {
+  .overview-path__header {
+    grid-template-columns: minmax(0, 1fr) max-content;
+  }
+
+  .overview-path__header > p {
+    white-space: nowrap;
+  }
+}
+
 @media (max-width: 56rem) {
   .overview-hero {
     grid-template-columns: 1fr;
@@ -690,6 +750,10 @@
     min-height: 15.5rem;
   }
 
+  .overview-step__content {
+    min-height: calc(15.5rem - 2.4rem);
+  }
+
   .overview-next {
     min-height: 24rem;
     padding: 2rem 1.25rem;
@@ -716,7 +780,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .overview-button,
-  .overview-button span {
+  .overview-button span,
+  .overview-step__preview {
     transition: none;
   }
 }

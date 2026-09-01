@@ -1,5 +1,6 @@
 ---
 import ContextIcon from "./ContextIcon.astro";
+import HeroLoop from "./HeroLoop.astro";
 import MicrositeHeader from "./MicrositeHeader.astro";
 import MicrositeLayout from "../layouts/MicrositeLayout.astro";
 import "../styles/overview.css";
@@ -7,9 +8,17 @@ import "../styles/overview.css";
 import { productTaxonomy, siteUrls } from "../content/urls";
 import insprHero from "../assets/products/inspr/hero.png";
 import insprLogo from "../assets/products/inspr/logo.svg";
+import aithemaHero from "../assets/products/aithema/hero.png";
+import aithemaHeroLoop from "../assets/products/aithema/hero-loop.mp4";
 import aithemaLogo from "../assets/products/aithema/logo.svg";
+import paimosHero from "../assets/products/paimos/hero.png";
+import paimosHeroLoop from "../assets/products/paimos/hero-loop.mp4";
 import paimosLogo from "../assets/products/paimos/logo.svg";
+import pharosHero from "../assets/products/pharos/hero.png";
+import pharosHeroLoop from "../assets/products/pharos/hero-loop.mp4";
 import pharosLogo from "../assets/products/pharos/mark.svg";
+import janusHero from "../assets/products/janus/hero.png";
+import janusHeroLoop from "../assets/products/janus/hero-loop.mp4";
 import janusLogo from "../assets/products/janus/logo.svg";
 
 interface Props {
@@ -69,10 +78,13 @@ const promises = [
 
 const steps = [
   {
+    id: "aithema" as const,
     number: "01",
     name: "Aithema",
     role: copy("Requirements", "Anforderungen"),
     logo: aithemaLogo,
+    hero: aithemaHero,
+    video: aithemaHeroLoop,
     href: siteUrls.aithema,
     body: copy(
       "Conversation and files become clear requirements.",
@@ -81,10 +93,13 @@ const steps = [
     approval: copy("You approve the requirements.", "Sie geben die Anforderungen frei."),
   },
   {
+    id: "paimos" as const,
     number: "02",
     name: "Paimos",
     role: copy("Build", "Umsetzung"),
     logo: paimosLogo,
+    hero: paimosHero,
+    video: paimosHeroLoop,
     href: siteUrls.paimos,
     body: copy(
       "Project and specs guide an agentic build.",
@@ -93,10 +108,13 @@ const steps = [
     approval: copy("You approve the staged build.", "Sie geben den Stand im Staging frei."),
   },
   {
+    id: "pharos" as const,
     number: "03",
     name: "Pharos",
     role: copy("Deploy", "Bereitstellung"),
     logo: pharosLogo,
+    hero: pharosHero,
+    video: pharosHeroLoop,
     href: siteUrls.pharos,
     body: copy(
       "Choose a server, verify its backup and deploy to production.",
@@ -105,10 +123,13 @@ const steps = [
     approval: copy("You approve production.", "Sie geben die Produktion frei."),
   },
   {
+    id: "janus" as const,
     number: "04",
     name: "Janus",
     role: copy("Access", "Zugriff"),
     logo: janusLogo,
+    hero: janusHero,
+    video: janusHeroLoop,
     href: siteUrls.janus,
     body: copy(
       "Enforce permits and rotate access safely.",
@@ -214,18 +235,33 @@ const steps = [
 
       <ol class="overview-steps">
         {steps.map((step, index) => (
-          <li class="overview-step">
-            <div class="overview-step__top">
-              <span>{step.number}</span>
-              <img src={step.logo.src} alt="" width="54" height="54" />
+          <li class="overview-step" data-hero-loop-interaction>
+            <div class="overview-step__preview" aria-hidden="true">
+              <HeroLoop
+                id={step.id}
+                poster={step.hero}
+                video={step.video}
+                alt=""
+                sizes="(min-width: 90rem) 20rem, (min-width: 40rem) 42vw, 90vw"
+                locale={locale}
+                activation="hover"
+                showControl={false}
+                loading="lazy"
+              />
             </div>
-            <p class="overview-step__role">{step.role}</p>
-            <h3><a href={step.href}>{step.name} <span aria-hidden="true">↗</span></a></h3>
-            <p class="overview-step__body">{step.body}</p>
-            <p class="overview-step__approval">
-              <ContextIcon name="user-round-check" size={20} strokeWidth={1.75} />
-              <span>{step.approval}</span>
-            </p>
+            <div class="overview-step__content">
+              <div class="overview-step__top">
+                <span>{step.number}</span>
+                <img src={step.logo.src} alt="" width="54" height="54" />
+              </div>
+              <p class="overview-step__role">{step.role}</p>
+              <h3><a href={step.href}>{step.name} <span aria-hidden="true">↗</span></a></h3>
+              <p class="overview-step__body">{step.body}</p>
+              <p class="overview-step__approval">
+                <ContextIcon name="user-round-check" size={20} strokeWidth={1.75} />
+                <span>{step.approval}</span>
+              </p>
+            </div>
             {index < steps.length - 1 && (
               <span class="overview-step__connector" aria-hidden="true">
                 <ContextIcon name="user-round-check" size={18} strokeWidth={1.6} />

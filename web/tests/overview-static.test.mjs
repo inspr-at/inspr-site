@@ -64,6 +64,58 @@ test("Overview presents the human-approved product path truthfully in both langu
   assert.match(component, /Aithemas Modul ist geplant\./);
 });
 
+test("Overview path cards preview the matching approved loops on deliberate interaction", async () => {
+  const [component, heroLoop, styles] = await Promise.all([
+    source("components/OverviewPage.astro"),
+    source("components/HeroLoop.astro"),
+    source("styles/overview.css"),
+  ]);
+
+  const products = ["aithema", "paimos", "pharos", "janus"];
+  for (const slug of products) {
+    assert.match(
+      component,
+      new RegExp(`import ${slug}Hero from "\\.\\.\\/assets\\/products\\/${slug}\\/hero\\.png"`),
+    );
+    assert.match(
+      component,
+      new RegExp(`import ${slug}HeroLoop from "\\.\\.\\/assets\\/products\\/${slug}\\/hero-loop\\.mp4"`),
+    );
+    assert.match(
+      component,
+      new RegExp(`id: "${slug}" as const,[\\s\\S]*?hero: ${slug}Hero,[\\s\\S]*?video: ${slug}HeroLoop`),
+    );
+  }
+
+  assert.match(component, /class="overview-step" data-hero-loop-interaction/);
+  assert.match(component, /<HeroLoop[\s\S]*?id=\{step\.id\}[\s\S]*?activation="hover"[\s\S]*?showControl=\{false\}[\s\S]*?loading="lazy"/);
+  assert.match(heroLoop, /preload=\{activation === "autoplay" \? "metadata" : "none"\}/);
+  assert.match(heroLoop, /interactionRoot\.addEventListener\("pointerenter"/);
+  assert.match(heroLoop, /interactionRoot\.addEventListener\("pointerleave"/);
+  assert.match(heroLoop, /interactionRoot\.addEventListener\("focusin"/);
+  assert.match(heroLoop, /interactionRoot\.addEventListener\("focusout"/);
+  assert.match(heroLoop, /event\.pointerType === "touch"/);
+  assert.match(heroLoop, /window\.matchMedia\("\(hover: none\), \(pointer: coarse\)"\)/);
+  assert.match(heroLoop, /!coarsePointer\.matches/);
+  assert.match(heroLoop, /video\.currentTime = 0/);
+  assert.match(heroLoop, /toggleAttribute\("data-hero-loop-active", interactionActive\(\)\)/);
+  assert.match(styles, /\.overview-step__preview \{[\s\S]*?position: absolute;[\s\S]*?opacity: 0;[\s\S]*?pointer-events: none;/);
+  assert.match(styles, /\.overview-step\[data-hero-loop-active\] h3 a \{[\s\S]*?color: white;[\s\S]*?text-decoration: none;[\s\S]*?text-shadow: 0 1px 5px/);
+  assert.match(styles, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.overview-step__preview \{[\s\S]*?transition: none;/);
+});
+
+test("Overview path intro stays on one line only at approved wide desktop widths", async () => {
+  const styles = await source("styles/overview.css");
+
+  assert.match(
+    styles,
+    /@media \(min-width: 90rem\) \{[\s\S]*?\.overview-path__header \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\) max-content;[\s\S]*?\.overview-path__header > p \{[\s\S]*?white-space: nowrap;/,
+  );
+  const responsiveStyles = styles.slice(styles.indexOf("@media (max-width: 56rem)"));
+  assert.match(responsiveStyles, /\.overview-path__header \{[\s\S]*?grid-template-columns: 1fr;/);
+  assert.doesNotMatch(responsiveStyles, /white-space: nowrap/);
+});
+
 test("Overview is discoverable from the full site and returns deliberately to it", async () => {
   const [overview, homepage, footer, urls] = await Promise.all([
     source("components/OverviewPage.astro"),

@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import vm from "node:vm";
@@ -18,7 +17,7 @@ async function runLocalePreference({
   hash = "",
   storageThrows = false,
 } = {}) {
-  const code = await readFile(new URL("src/scripts/locale-preference.js", webRoot), "utf8");
+  const code = await readFile(new URL("public/scripts/locale-preference.js", webRoot), "utf8");
   const storage = new Map(storedLocale ? [["inspr-language", storedLocale]] : []);
   const links = [];
   let replacedWith = null;
@@ -152,8 +151,8 @@ test("homepage locale routes expose static metadata and an accessible switch", a
   assert.match(layout, /rel="alternate" hreflang="en"/);
   assert.match(layout, /rel="alternate" hreflang="de"/);
   assert.match(layout, /rel="alternate" hreflang="x-default"/);
-  assert.match(layout, /import localePreferenceScript from "\.\.\/scripts\/locale-preference\.js\?raw"/);
-  assert.match(layout, /set:html=\{localePreferenceScript\}/);
+  assert.match(layout, /src=\{`\/scripts\/locale-preference\.js\?v=\$\{releaseMetadata\.releaseId\}`\}/);
+  assert.doesNotMatch(layout, /set:html=/);
 
   assert.match(header, /class="language-switch"/);
   assert.match(header, /class="site-brand"[^>]*aria-label=\{name\}/);
@@ -277,15 +276,20 @@ test("an explicit language arrival works when localStorage is unavailable", asyn
   assert.equal(manualEnglish.historyReplacement, null);
 });
 
-test("locale preference uses localStorage without cookies and stays CSP-pinned inline", async () => {
-  const script = await readFile(new URL("src/scripts/locale-preference.js", webRoot), "utf8");
+test("locale preference uses localStorage without cookies and stays external under CSP self", async () => {
+  const script = await readFile(new URL("public/scripts/locale-preference.js", webRoot), "utf8");
   const layout = await source("layouts/MicrositeLayout.astro");
   const caddy = await rootFile("Caddyfile");
-  const cspHash = `sha256-${createHash("sha256").update(script).digest("base64")}`;
+  const astroConfig = await readFile(new URL("astro.config.mjs", webRoot), "utf8");
 
   assert.match(script, /localStorage\.getItem\(storageKey\)/);
   assert.match(script, /localStorage\.setItem\(storageKey, choice\)/);
   assert.doesNotMatch(script, /document\.cookie/);
-  assert.match(layout, /<script[\s\S]*?is:inline[\s\S]*?set:html=\{localePreferenceScript\}/);
-  assert.ok(caddy.includes(`'${cspHash}'`));
+  assert.match(layout, /<script[\s\S]*?is:inline[\s\S]*?src=\{`\/scripts\/locale-preference\.js\?v=/);
+  assert.match(caddy, /script-src 'self'/);
+  assert.match(caddy, /object-src 'none'/);
+  assert.match(caddy, /frame-ancestors 'none'/);
+  assert.match(caddy, /base-uri 'self'/);
+  assert.match(caddy, /form-action 'self'/);
+  assert.match(astroConfig, /assetsInlineLimit: 0/);
 });

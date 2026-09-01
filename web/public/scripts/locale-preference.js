@@ -1,5 +1,5 @@
-// Kept as a standalone source module so Astro can inline this blocking locale
-// decision before first paint without adding a network round trip.
+// Blocking, same-origin locale decision. Kept external so script-src 'self'
+// covers it without a content hash; the release-id query prevents stale code.
 (() => {
   const script = document.currentScript;
   if (!(script instanceof HTMLScriptElement)) return;

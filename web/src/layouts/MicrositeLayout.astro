@@ -8,8 +8,8 @@ import "@fontsource/inria-sans/300.css";
 import "@fontsource/inria-sans/400.css";
 import "@fontsource/inria-sans/700.css";
 import "@fontsource-variable/jetbrains-mono/index.css";
-import localePreferenceScript from "../scripts/locale-preference.js?raw";
 import "../styles/microsites.css";
+import { releaseMetadata } from "../../release-metadata.mjs";
 
 interface Props {
   title: string;
@@ -75,11 +75,11 @@ const {
     {alternateEnglish && alternateGerman && (
       <script
         is:inline
+        src={`/scripts/locale-preference.js?v=${releaseMetadata.releaseId}`}
         data-current-locale={locale}
         data-english-path={new URL(alternateEnglish).pathname}
         data-german-path={new URL(alternateGerman).pathname}
         data-detect-locale={detectLocale ? "true" : "false"}
-        set:html={localePreferenceScript}
       ></script>
     )}
   </head>

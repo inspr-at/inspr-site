@@ -149,8 +149,10 @@ The content tests protect:
   and the tile type, so an unknown name fails the suite instead of degrading
   silently in the rendered page.
 
-`verify-csp.py` compares every inline script in the generated and archived
-HTML against the hashes allowed by `Caddyfile`.
+Current pages load JavaScript from release-keyed same-origin files. The four
+`script-src` hashes in `Caddyfile` exist only for the frozen archive's inline
+theme bootstrap and JSON-LD payloads. `verify-csp.py` compares the generated
+and archived HTML with that exact set and rejects both missing and stale pins.
 
 ## Production model
 

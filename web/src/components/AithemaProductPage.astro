@@ -1,7 +1,7 @@
 ---
-import { Image } from "astro:assets";
 import MicrositeLayout from "../layouts/MicrositeLayout.astro";
 import ServiceRibbon from "./ServiceRibbon.astro";
+import HeroLoop from "./HeroLoop.astro";
 import FractureAtlas from "./FractureAtlas.astro";
 import WorkflowExplorer from "./WorkflowExplorer.astro";
 import FeatureExperience from "./FeatureExperience.astro";
@@ -12,6 +12,7 @@ import { productLinks, siteUrls } from "../content/urls";
 import { releaseMetadata } from "../../release-metadata.mjs";
 
 import aithemaHero from "../assets/products/aithema/hero.png";
+import aithemaHeroLoop from "../assets/products/aithema/hero-loop.mp4";
 import aithemaLogo from "../assets/products/aithema/logo.svg";
 
 interface Props {
@@ -128,14 +129,12 @@ const deployedAtLabel = releaseMetadata.deployedAt
       </div>
 
       <figure class="product-hero__visual">
-        <Image
-          src={aithemaHero}
+        <HeroLoop
+          id="aithema"
+          poster={aithemaHero}
+          video={aithemaHeroLoop}
           alt={content.hero.alt}
-          widths={[720, 960, 1280, 1600]}
           sizes="(min-width: 64rem) 55vw, 100vw"
-          quality={84}
-          loading="eager"
-          fetchpriority="high"
         />
       </figure>
     </section>

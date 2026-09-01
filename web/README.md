@@ -60,6 +60,15 @@ hostname in product content.
 Artwork in `src/assets/products/` is part of the shared INSPR visual system.
 Prefer optimized Astro image imports over public-directory copies.
 
+The Aithema hero loop is derived from its approved `hero.png` with Higgsfield
+Seedance 2.5 (`seedance_2_5`) in `omni_reference` mode at 5 seconds, 16:9 and
+720p with audio disabled. The provisional clip is the owner's selection from
+two generated candidates; its raw v1 video bitstream is preserved unchanged
+and losslessly remuxed only for fast-start delivery. `hero.png` remains the
+exact poster and reduced-motion fallback. An automated taste review did not
+approve the prism and decision-object treatment, so the controller's final
+implementation and merge review remains required.
+
 The umbrella and products are authored by
 [Markus Barta](https://github.com/markus-barta). Augmentoring is the
 professional-services path that uses and supports them; it is not presented as

@@ -6,10 +6,41 @@ import { fileURLToPath } from "node:url";
 const webRoot = dirname(fileURLToPath(new URL("../package.json", import.meta.url)));
 const distRoot = join(webRoot, "dist");
 const pages = [
-  { slug: "inspr", html: "index.html" },
-  { slug: "paimos", html: "paimos/index.html" },
-  { slug: "pharos", html: "pharos/index.html" },
-  { slug: "janus", html: "janus/index.html" },
+  {
+    slug: "inspr",
+    html: "index.html",
+    expectedDuration: 15.042,
+    expectedProfile: "Main",
+    requiresFastStart: true,
+  },
+  {
+    slug: "aithema",
+    html: "aithema/index.html",
+    expectedDuration: 5.042,
+    expectedProfile: "High",
+    requiresFastStart: true,
+  },
+  {
+    slug: "paimos",
+    html: "paimos/index.html",
+    expectedDuration: 15.042,
+    expectedProfile: "Main",
+    requiresFastStart: true,
+  },
+  {
+    slug: "pharos",
+    html: "pharos/index.html",
+    expectedDuration: 15.042,
+    expectedProfile: "Main",
+    requiresFastStart: true,
+  },
+  {
+    slug: "janus",
+    html: "janus/index.html",
+    expectedDuration: 15.042,
+    expectedProfile: "Main",
+    requiresFastStart: true,
+  },
 ];
 const auditedMedia = new Set();
 
@@ -24,7 +55,8 @@ function resolveDistAsset(url) {
   return join(distRoot, pathname.replace(/^\/+/, ""));
 }
 
-async function auditMedia(assetPath, slug) {
+async function auditMedia(assetPath, page) {
+  const { slug, expectedDuration, expectedProfile, requiresFastStart } = page;
   if (auditedMedia.has(assetPath)) return;
   auditedMedia.add(assetPath);
 
@@ -37,7 +69,10 @@ async function auditMedia(assetPath, slug) {
   const ftyp = file.indexOf(Buffer.from("ftyp"));
   const moov = file.indexOf(Buffer.from("moov"));
   const mdat = file.indexOf(Buffer.from("mdat"));
-  if (ftyp < 0 || moov < 0 || mdat < 0 || moov > mdat) {
+  if (ftyp < 0 || moov < 0 || mdat < 0) {
+    throw new Error(`${slug}: hero loop is not a valid MP4`);
+  }
+  if (requiresFastStart && moov > mdat) {
     throw new Error(`${slug}: hero loop is not a fast-start MP4`);
   }
 
@@ -64,13 +99,13 @@ async function auditMedia(assetPath, slug) {
     videoStreams.length !== 1 ||
     audioStreams.length !== 0 ||
     video?.codec_name !== "h264" ||
-    video?.profile !== "Main" ||
+    video?.profile !== expectedProfile ||
     video?.pix_fmt !== "yuv420p" ||
     video?.width !== 1280 ||
     video?.height !== 720 ||
     video?.r_frame_rate !== "24/1" ||
     !Number.isFinite(duration) ||
-    Math.abs(duration - 15.042) > 0.08
+    Math.abs(duration - expectedDuration) > 0.08
   ) {
     throw new Error(`${slug}: unexpected hero-loop media contract: ${JSON.stringify(media)}`);
   }
@@ -111,7 +146,6 @@ for (const page of pages) {
 
   await stat(resolveDistAsset(posterUrl));
   const videoPath = resolveDistAsset(videoUrl);
-  await auditMedia(videoPath, page.slug);
+  await auditMedia(videoPath, page);
   console.log(`${page.slug}: hero loop ${videoUrl} (${(await stat(videoPath)).size} bytes)`);
 }
-

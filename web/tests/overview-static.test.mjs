@@ -109,9 +109,10 @@ test("Overview path cards preview the matching approved loops on deliberate inte
   assert.doesNotMatch(styles, /\.overview-step__preview::after/);
   assert.match(styles, /\.overview-step\[data-product="pharos"\] :is\(\.hero-loop__poster, \.hero-loop__video\) \{\s*object-position: left center;/);
   assert.match(styles, /\.overview-step__content > \* \{\s*position: relative;\s*z-index: 1;/);
-  assert.match(styles, /\.overview-step__approval \{[\s\S]*?position: absolute;[\s\S]*?right: 1\.2rem;[\s\S]*?left: 1\.2rem;/);
-  assert.doesNotMatch(styles, /\.overview-step__content\s*\{[^}]*min-height:/);
-  assert.match(styles, /\.overview-step \{[\s\S]*?cursor: pointer;[\s\S]*?text-decoration: none;/);
+  assert.match(styles, /\.overview-step \{[\s\S]*?display: flex;[\s\S]*?flex-direction: column;[\s\S]*?cursor: pointer;[\s\S]*?text-decoration: none;/);
+  assert.match(styles, /\.overview-step__content \{[\s\S]*?display: flex;[\s\S]*?flex: 1;[\s\S]*?flex-direction: column;/);
+  assert.match(styles, /\.overview-step__approval \{[\s\S]*?margin: auto 0 0;/);
+  assert.doesNotMatch(styles, /\.overview-step__approval\s*\{[^}]*position: absolute;/);
   assert.match(styles, /\.overview-step\[data-hero-loop-active\] h3 \{[\s\S]*?color: white;[\s\S]*?text-shadow: 0 1px 5px/);
   assert.match(styles, /\.overview-step\[data-hero-loop-active\] \.overview-step__top img \{[\s\S]*?filter: brightness\(0\) invert\(1\);[\s\S]*?opacity: 0\.5;/);
   assert.match(component, /class="overview-control__step" data-control-step=\{step\.id\} aria-hidden="true"/);
@@ -121,8 +122,21 @@ test("Overview path cards preview the matching approved loops on deliberate inte
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.overview-step__preview,[\s\S]*?transition: none;/);
   assert.match(
     component,
-    /sizes="\(min-width: 90rem\) 17\.5rem, \(min-width: 72rem\) calc\(20\.5vw - 1\.5rem\), \(min-width: 56rem\) calc\(\(100vw - 12rem\) \/ 4\), \(min-width: 40rem\) calc\(\(100vw - 7\.5rem\) \/ 2\), calc\(100vw - 5\.5rem\)"/,
+    /sizes="\(min-width: 90rem\) 17\.5rem, \(min-width: 80\.0625rem\) calc\(20\.5vw - 1\.5rem\), \(min-width: 40rem\) calc\(\(100vw - 7\.5rem\) \/ 2\), calc\(100vw - 5\.5rem\)"/,
   );
+});
+
+test("Overview cards leave four columns before their copy collides", async () => {
+  const styles = await source("styles/overview.css");
+  const tabletStyles = styles.slice(
+    styles.indexOf("@media (max-width: 80rem)"),
+    styles.indexOf("@media (max-width: 72rem)"),
+  );
+  const narrowStyles = styles.slice(styles.indexOf("@media (max-width: 40rem)"));
+
+  assert.match(tabletStyles, /\.overview-steps \{[\s\S]*?grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/);
+  assert.match(tabletStyles, /\.overview-step \{[\s\S]*?min-height: 17rem;/);
+  assert.match(narrowStyles, /\.overview-promises,[\s\S]*?\.overview-steps \{[\s\S]*?grid-template-columns: 1fr;/);
 });
 
 test("Overview path intro stays on one line only at approved wide desktop widths", async () => {

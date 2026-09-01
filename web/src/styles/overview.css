@@ -317,7 +317,8 @@
 .overview-step {
   --step-accent: #075e5b;
   position: relative;
-  display: block;
+  display: flex;
+  flex-direction: column;
   isolation: isolate;
   height: 100%;
   min-width: 0;
@@ -346,6 +347,12 @@
 .overview-step__content > * {
   position: relative;
   z-index: 1;
+}
+
+.overview-step__content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
 }
 
 .overview-step-item:nth-child(2) .overview-step {
@@ -467,16 +474,12 @@
 }
 
 .overview-step__approval {
-  position: absolute;
   z-index: 1;
-  right: 1.2rem;
-  bottom: 1.2rem;
-  left: 1.2rem;
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 0.55rem;
   align-items: center;
-  margin: 0;
+  margin: auto 0 0;
   padding-top: 0.85rem;
   color: var(--overview-ink);
   border-top: 1px solid color-mix(in srgb, var(--step-accent) 18%, transparent);
@@ -698,6 +701,21 @@
   text-underline-offset: 0.2em;
 }
 
+@media (max-width: 80rem) {
+  .overview-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .overview-step {
+    min-height: 17rem;
+  }
+
+  .overview-step__connector {
+    display: none;
+  }
+}
+
 @media (max-width: 72rem) {
   .overview-hero {
     grid-template-columns: minmax(18rem, 0.82fr) minmax(29rem, 1.18fr);
@@ -712,13 +730,6 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .overview-steps {
-    gap: 1rem;
-  }
-
-  .overview-step__connector {
-    display: none;
-  }
 }
 
 @media (min-width: 90rem) {
@@ -754,14 +765,6 @@
 
   .overview-path__header > p {
     max-width: 35rem;
-  }
-
-  .overview-steps {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .overview-step {
-    min-height: 17rem;
   }
 
   .overview-control__step {

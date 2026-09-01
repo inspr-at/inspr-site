@@ -164,9 +164,30 @@ test("Overview is discoverable from the full site and returns deliberately to it
   assert.match(homepage, /copy\("Overview", "Überblick"\)/);
   assert.match(footer, /labels\.overview/);
   assert.match(overview, /primaryAction=\{\{ label: copy\("Full site", "Website"\), href: fullSiteUrl \}\}/);
-  assert.match(overview, /Explore the full site/);
-  assert.match(overview, /Ganze Website ansehen/);
+  assert.match(overview, /Continue to the full site/);
+  assert.match(overview, /Weiter zur ganzen Website/);
   assert.match(overview, /current: true/);
+});
+
+test("Overview closes with the content ready for the visitor in both languages", async () => {
+  const overview = await source("components/OverviewPage.astro");
+
+  for (const phrase of [
+    "Beyond the overview",
+    "Nach dem Überblick",
+    "The rest is open to you.",
+    "Alles Weitere steht Ihnen offen.",
+    "The full site connects the four tools with their principles, evidence and complete product pages.",
+    "Die ganze Website verbindet die vier Werkzeuge mit ihren Prinzipien, Nachweisen und vollständigen Produktseiten.",
+    "Continue to the full site",
+    "Weiter zur ganzen Website",
+    "Source on GitHub",
+    "Quellcode auf GitHub",
+  ]) {
+    assert.match(overview, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+
+  assert.doesNotMatch(overview, /ready for|wenn Sie bereit|simple path|einfachen Weg/i);
 });
 
 test("Shared header controls use one vertical alignment contract", async () => {

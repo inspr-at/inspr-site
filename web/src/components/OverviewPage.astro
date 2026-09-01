@@ -27,7 +27,7 @@ const fullSiteUrl = locale === "de" ? `${siteUrls.inspr}/de/` : `${siteUrls.insp
 const ogImage = new URL(insprHero.src, siteUrls.inspr).href;
 
 const nav = [
-  { label: copy("Overview", "Überblick"), href: canonicalUrl },
+  { label: copy("Overview", "Überblick"), href: canonicalUrl, current: true },
   { label: copy("Products", "Produkte"), href: `${fullSiteUrl}#products` },
   { label: copy("Principles", "Prinzipien"), href: `${fullSiteUrl}#principles` },
   { label: copy("Source", "Quellcode"), href: `${fullSiteUrl}#source` },
@@ -175,7 +175,7 @@ const steps = [
 
       <div class="overview-flow" role="img" aria-label={copy(
         "An idea moves through requirements, build, deployment and access",
-        "Eine Idee durchläuft Anforderungen, Bau, Bereitstellung und Zugriff",
+        "Eine Idee durchläuft Anforderungen, Umsetzung, Bereitstellung und Zugriff",
       )}>
         <div class="overview-flow__line" aria-hidden="true"></div>
         <ol>

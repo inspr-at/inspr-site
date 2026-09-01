@@ -79,6 +79,7 @@ test("Overview is discoverable from the full site and returns deliberately to it
   assert.match(overview, /primaryAction=\{\{ label: copy\("Full site", "Website"\), href: fullSiteUrl \}\}/);
   assert.match(overview, /Explore the full site/);
   assert.match(overview, /Ganze Website ansehen/);
+  assert.match(overview, /current: true/);
 });
 
 test("Shared header controls use one vertical alignment contract", async () => {
@@ -91,6 +92,7 @@ test("Shared header controls use one vertical alignment contract", async () => {
   assert.match(header, /primaryAction\?: \{ label: string; href: string \}/);
   assert.match(header, /class="header-action"/);
   assert.match(header, /class="mobile-navigation__primary"/);
+  assert.match(header, /aria-current=\{item\.current \? "page" : undefined\}/);
   assert.match(styles, /\.site-nav \{[\s\S]*?min-height: 2\.65rem;[\s\S]*?align-items: center;/);
   assert.match(styles, /\.site-nav a,[\s\S]*?\.quiet-link \{[\s\S]*?display: inline-flex;[\s\S]*?min-height: 2\.65rem;[\s\S]*?align-items: center;/);
   assert.match(styles, /\.language-switch \{[\s\S]*?min-height: 2\.65rem;[\s\S]*?align-items: center;/);

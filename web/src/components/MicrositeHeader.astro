@@ -6,7 +6,7 @@ interface Props {
   category: string;
   logo: string;
   active: "inspr" | "paimos" | "pharos" | "janus";
-  nav: Array<{ label: string; href: string }>;
+  nav: Array<{ label: string; href: string; current?: boolean }>;
   showSignIn?: boolean;
   showProductSwitcher?: boolean;
   primaryAction?: { label: string; href: string };
@@ -70,7 +70,7 @@ const languageChoiceHref = (href: string, choice: "en" | "de") => {
     </a>
 
     <nav class="site-nav" aria-label={labels.primary}>
-      {nav.map((item) => <a href={item.href}>{item.label}</a>)}
+      {nav.map((item) => <a href={item.href} aria-current={item.current ? "page" : undefined}>{item.label}</a>)}
     </nav>
 
     <div class="site-header__actions">
@@ -99,7 +99,7 @@ const languageChoiceHref = (href: string, choice: "en" | "de") => {
       <details class="mobile-navigation" data-mobile-navigation>
         <summary>{labels.sections}</summary>
         <nav class="mobile-navigation__panel" aria-label={labels.mobile}>
-          {nav.map((item) => <a href={item.href}>{item.label}</a>)}
+          {nav.map((item) => <a href={item.href} aria-current={item.current ? "page" : undefined}>{item.label}</a>)}
           {primaryAction && (
             <a class="mobile-navigation__primary" href={primaryAction.href}>
               {primaryAction.label} <span aria-hidden="true">→</span>

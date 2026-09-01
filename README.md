@@ -5,7 +5,7 @@
 This repository powers the bilingual INSPR site family:
 
 - [www.inspr.at](https://www.inspr.at) - the INSPR idea and product map;
-- `aithema.inspr.at` - the planned Aithema product host, pending edge routing and DNS;
+- [aithema.inspr.at](https://aithema.inspr.at) - the Aithema requirements product page;
 - [start.augmentoring.com](https://start.augmentoring.com) - the hosted Aithema requirements preview;
 - [paimos.inspr.at](https://paimos.inspr.at) - shared project context for people and AI agents;
 - [pharos.inspr.at](https://pharos.inspr.at) - clear fleet operations;

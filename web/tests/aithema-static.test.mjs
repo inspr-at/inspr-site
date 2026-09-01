@@ -104,6 +104,8 @@ test("documentation and test discovery include the Aithema microsite", async () 
   const page = await webFile("src/components/AithemaProductPage.astro");
 
   assert.match(rootReadme, /product page is live at `aithema\.inspr\.at`/i);
+  assert.match(rootReadme, /\[aithema\.inspr\.at\]\(https:\/\/aithema\.inspr\.at\) - the Aithema requirements product page/i);
+  assert.doesNotMatch(rootReadme, /planned Aithema product host/i);
   assert.match(rootReadme, /working public preview[\s\S]*start\.augmentoring\.com/);
   assert.match(webReadme, /`\/aithema\/` \| `aithema\.inspr\.at`/);
   assert.match(webReadme, /preview itself is not built by this repository/);

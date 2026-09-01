@@ -1989,11 +1989,17 @@
   }
 
   .table-wrap {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
     overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    contain: inline-size;
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
     background: var(--surface);
     box-shadow: var(--shadow-sm);
+    -webkit-overflow-scrolling: touch;
   }
 
   .integration-filters {

@@ -6,6 +6,8 @@
 .env.local
 .machinekey/
 node_modules/
+web/playwright-report/
+web/test-results/
 *.log
 auth/inspr-auth
 /sites/

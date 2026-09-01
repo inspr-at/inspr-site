@@ -64,6 +64,79 @@ test("Overview presents the human-approved product path truthfully in both langu
   assert.match(component, /Aithemas Modul ist geplant\./);
 });
 
+test("Overview path cards preview the matching approved loops on deliberate interaction", async () => {
+  const [component, heroLoop, styles] = await Promise.all([
+    source("components/OverviewPage.astro"),
+    source("components/HeroLoop.astro"),
+    source("styles/overview.css"),
+  ]);
+
+  const products = ["aithema", "paimos", "pharos", "janus"];
+  for (const slug of products) {
+    assert.match(
+      component,
+      new RegExp(`import ${slug}Hero from "\\.\\.\\/assets\\/products\\/${slug}\\/hero\\.png"`),
+    );
+    assert.match(
+      component,
+      new RegExp(`import ${slug}HeroLoop from "\\.\\.\\/assets\\/products\\/${slug}\\/hero-loop\\.mp4"`),
+    );
+    assert.match(
+      component,
+      new RegExp(`id: "${slug}" as const,[\\s\\S]*?hero: ${slug}Hero,[\\s\\S]*?video: ${slug}HeroLoop`),
+    );
+  }
+
+  assert.match(component, /<a[\s\S]*?class="overview-step"[\s\S]*?href=\{step\.href\}[\s\S]*?data-product=\{step\.id\}[\s\S]*?data-hero-loop-interaction/);
+  assert.doesNotMatch(component, /<h3[^>]*><a/);
+  assert.match(component, /aria-labelledby=\{`overview-step-\$\{step\.id\}-title`\}/);
+  assert.match(component, /aria-describedby=\{`overview-step-\$\{step\.id\}-role overview-step-\$\{step\.id\}-body overview-step-\$\{step\.id\}-approval`\}/);
+  assert.match(component, /<HeroLoop[\s\S]*?id=\{step\.id\}[\s\S]*?activation="hover"[\s\S]*?showControl=\{false\}[\s\S]*?loading="lazy"/);
+  assert.match(heroLoop, /preload=\{activation === "autoplay" \? "metadata" : "none"\}/);
+  assert.match(heroLoop, /interactionRoot\.addEventListener\("pointerenter"/);
+  assert.match(heroLoop, /interactionRoot\.addEventListener\("pointerleave"/);
+  assert.match(heroLoop, /interactionRoot\.addEventListener\("focusin"/);
+  assert.match(heroLoop, /interactionRoot\.addEventListener\("focusout"/);
+  assert.match(heroLoop, /event\.pointerType === "touch"/);
+  assert.match(heroLoop, /window\.matchMedia\("\(hover: none\), \(pointer: coarse\)"\)/);
+  assert.match(heroLoop, /!coarsePointer\.matches/);
+  assert.match(heroLoop, /document\.addEventListener\("keydown"/);
+  assert.match(heroLoop, /event\.key !== "Escape"/);
+  assert.match(heroLoop, /interactionDismissed = true/);
+  assert.match(heroLoop, /video\.currentTime = 0/);
+  assert.match(heroLoop, /toggleAttribute\("data-hero-loop-active", interactionActive\(\)\)/);
+  assert.match(styles, /\.overview-step__preview \{[\s\S]*?position: absolute;[\s\S]*?opacity: 0;[\s\S]*?pointer-events: none;/);
+  assert.doesNotMatch(styles, /\.overview-step__preview::after/);
+  assert.match(styles, /\.overview-step\[data-product="pharos"\] :is\(\.hero-loop__poster, \.hero-loop__video\) \{\s*object-position: left center;/);
+  assert.match(styles, /\.overview-step__content > \* \{\s*position: relative;\s*z-index: 1;/);
+  assert.match(styles, /\.overview-step__approval \{[\s\S]*?position: absolute;[\s\S]*?right: 1\.2rem;[\s\S]*?left: 1\.2rem;/);
+  assert.doesNotMatch(styles, /\.overview-step__content\s*\{[^}]*min-height:/);
+  assert.match(styles, /\.overview-step \{[\s\S]*?cursor: pointer;[\s\S]*?text-decoration: none;/);
+  assert.match(styles, /\.overview-step\[data-hero-loop-active\] h3 \{[\s\S]*?color: white;[\s\S]*?text-shadow: 0 1px 5px/);
+  assert.match(styles, /\.overview-step\[data-hero-loop-active\] \.overview-step__top img \{[\s\S]*?filter: brightness\(0\) invert\(1\);[\s\S]*?opacity: 0\.5;/);
+  assert.match(component, /class="overview-control__step" data-control-step=\{step\.id\} aria-hidden="true"/);
+  assert.match(component, /class="overview-control__number">\{step\.number\}/);
+  assert.match(component, /class="overview-control__approval">[\s\S]*?user-round-check[\s\S]*?\{step\.approval\}/);
+  assert.match(styles, /\.overview-path:has\(\.overview-step\[data-hero-loop-active\]\) \.overview-control__default/);
+  assert.match(styles, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.overview-step__preview,[\s\S]*?transition: none;/);
+  assert.match(
+    component,
+    /sizes="\(min-width: 90rem\) 17\.5rem, \(min-width: 72rem\) calc\(20\.5vw - 1\.5rem\), \(min-width: 56rem\) calc\(\(100vw - 12rem\) \/ 4\), \(min-width: 40rem\) calc\(\(100vw - 7\.5rem\) \/ 2\), calc\(100vw - 5\.5rem\)"/,
+  );
+});
+
+test("Overview path intro stays on one line only at approved wide desktop widths", async () => {
+  const styles = await source("styles/overview.css");
+
+  assert.match(
+    styles,
+    /@media \(min-width: 90rem\) \{[\s\S]*?\.overview-path__header \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\) max-content;[\s\S]*?\.overview-path__header > p \{[\s\S]*?white-space: nowrap;/,
+  );
+  const responsiveStyles = styles.slice(styles.indexOf("@media (max-width: 56rem)"));
+  assert.match(responsiveStyles, /\.overview-path__header \{[\s\S]*?grid-template-columns: 1fr;/);
+  assert.doesNotMatch(responsiveStyles, /white-space: nowrap/);
+});
+
 test("Overview is discoverable from the full site and returns deliberately to it", async () => {
   const [overview, homepage, footer, urls] = await Promise.all([
     source("components/OverviewPage.astro"),

@@ -67,7 +67,7 @@ const labels = locale === "de"
     muted
     loop
     playsinline
-    preload="metadata"
+    preload={activation === "autoplay" ? "metadata" : "none"}
     poster={poster.src}
     aria-hidden="true"
     tabindex="-1"
@@ -101,6 +101,7 @@ const labels = locale === "de"
 
 <script>
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const coarsePointer = window.matchMedia("(hover: none), (pointer: coarse)");
 
   document.querySelectorAll<HTMLElement>("[data-hero-loop]").forEach((loop) => {
     if (loop.dataset.heroLoopReady === "true") return;
@@ -114,7 +115,10 @@ const labels = locale === "de"
     let userPaused = false;
     let inView = true;
     const hoverOnly = loop.dataset.activation === "hover";
-    let hoverActive = !hoverOnly;
+    const interactionRoot = loop.closest<HTMLElement>("[data-hero-loop-interaction]") ?? loop;
+    let pointerActive = !hoverOnly;
+    let focusActive = false;
+    let interactionDismissed = false;
 
     const syncControl = () => {
       if (!control || !label) return;
@@ -131,12 +135,33 @@ const labels = locale === "de"
       loop.toggleAttribute("data-user-paused", userPaused);
     };
 
+    const interactionRequested = () => !hoverOnly || pointerActive || focusActive;
+    const interactionActive = () => interactionRequested() && !interactionDismissed;
+
+    const clearDismissalWhenIdle = () => {
+      if (!pointerActive && !focusActive) interactionDismissed = false;
+    };
+
+    const resetVideo = () => {
+      if (video.readyState > 0 && video.currentTime !== 0) video.currentTime = 0;
+    };
+
     const shouldPlay = () =>
-      !reducedMotion.matches && !userPaused && inView && hoverActive && !document.hidden;
+      !reducedMotion.matches
+      && (!hoverOnly || !coarsePointer.matches)
+      && !userPaused
+      && inView
+      && interactionActive()
+      && !document.hidden;
 
     const applyPlayback = () => {
+      if (hoverOnly) {
+        interactionRoot.toggleAttribute("data-hero-loop-active", interactionActive());
+      }
+
       if (!shouldPlay()) {
         video.pause();
+        if (hoverOnly && (!interactionActive() || reducedMotion.matches || coarsePointer.matches)) resetVideo();
         return;
       }
 
@@ -158,17 +183,35 @@ const labels = locale === "de"
     });
 
     if (hoverOnly) {
-      loop.addEventListener("pointerenter", (event) => {
+      interactionRoot.addEventListener("pointerenter", (event) => {
         if (event.pointerType === "touch") return;
-        hoverActive = true;
-        if (video.readyState > 0) video.currentTime = 0;
+        pointerActive = true;
+        interactionDismissed = false;
+        resetVideo();
         applyPlayback();
       });
-      loop.addEventListener("pointerleave", (event) => {
+      interactionRoot.addEventListener("pointerleave", (event) => {
         if (event.pointerType === "touch") return;
-        hoverActive = false;
+        pointerActive = false;
+        clearDismissalWhenIdle();
         applyPlayback();
-        if (video.readyState > 0) video.currentTime = 0;
+      });
+      interactionRoot.addEventListener("focusin", () => {
+        focusActive = true;
+        interactionDismissed = false;
+        resetVideo();
+        applyPlayback();
+      });
+      interactionRoot.addEventListener("focusout", (event) => {
+        if (event.relatedTarget instanceof Node && interactionRoot.contains(event.relatedTarget)) return;
+        focusActive = false;
+        clearDismissalWhenIdle();
+        applyPlayback();
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape" || !interactionActive()) return;
+        interactionDismissed = true;
+        applyPlayback();
       });
     }
 
@@ -182,6 +225,7 @@ const labels = locale === "de"
     observer.observe(loop);
 
     reducedMotion.addEventListener("change", applyPlayback);
+    coarsePointer.addEventListener("change", applyPlayback);
     document.addEventListener("visibilitychange", applyPlayback);
     syncControl();
     applyPlayback();

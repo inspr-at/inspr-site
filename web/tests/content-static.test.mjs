@@ -312,7 +312,8 @@ test("all four hero loops preserve the static poster and motion controls", async
   assert.match(productPage, /heroLoop: janusHeroLoop/);
   assert.match(productPage, /<HeroLoop[\s\S]*?id=\{content\.slug\}[\s\S]*?poster=\{assets\.hero\}[\s\S]*?video=\{assets\.heroLoop\}/);
 
-  for (const attribute of ["autoplay", "muted", "loop", "playsinline"]) {
+  assert.match(heroLoop, /autoplay=\{activation === "autoplay"\}/);
+  for (const attribute of ["muted", "loop", "playsinline"]) {
     assert.match(heroLoop, new RegExp(`\\n\\s+${attribute}\\n`));
   }
   assert.match(heroLoop, /preload="metadata"/);

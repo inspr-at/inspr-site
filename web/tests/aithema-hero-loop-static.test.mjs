@@ -31,3 +31,19 @@ test("Aithema uses its approved still as the accessible hero-loop fallback", asy
   assert.ok(media.size >= 250 * 1024 && media.size <= 3 * 1024 * 1024);
   assert.equal(mediaDigest, "2aa8bf68d4020070a8081b5041ebce0054034c5571887f39a1ad431fe0173e39");
 });
+
+test("Aithema previews its loop only while its INSPR product visual is hovered", async () => {
+  const umbrella = await webFile("src/pages/index.astro");
+  const heroLoop = await webFile("src/components/HeroLoop.astro");
+
+  assert.match(umbrella, /import aithemaHeroLoop from "\.\.\/assets\/products\/aithema\/hero-loop\.mp4"/);
+  assert.match(umbrella, /video: aithemaHeroLoop/);
+  assert.match(
+    umbrella,
+    /<HeroLoop[\s\S]*?id="aithema"[\s\S]*?activation="hover"[\s\S]*?showControl=\{false\}[\s\S]*?loading="lazy"/,
+  );
+  assert.match(heroLoop, /autoplay=\{activation === "autoplay"\}/);
+  assert.match(heroLoop, /loop\.addEventListener\("pointerenter"/);
+  assert.match(heroLoop, /loop\.addEventListener\("pointerleave"/);
+  assert.match(heroLoop, /data-activation="hover"\]\[data-video-playing="true"\]/);
+});

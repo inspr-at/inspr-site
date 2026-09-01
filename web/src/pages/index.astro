@@ -21,6 +21,7 @@ import pharosLogo from "../assets/products/pharos/mark.svg";
 import janusHero from "../assets/products/janus/hero.png";
 import janusLogo from "../assets/products/janus/logo.svg";
 import aithemaHero from "../assets/products/aithema/hero.png";
+import aithemaHeroLoop from "../assets/products/aithema/hero-loop.mp4";
 import aithemaLogo from "../assets/products/aithema/logo.svg";
 import zitadelLogo from "../assets/brands/zitadel-logo-solo-dark-icon.svg";
 
@@ -50,6 +51,7 @@ const products = [
     href: siteUrls.aithema,
     logo: aithemaLogo,
     hero: aithemaHero,
+    video: aithemaHeroLoop,
     alt: copy(
       "Open conversational threads becoming one structured and reviewable proposal",
       "Offene Gesprächsfäden werden zu einem strukturierten und prüfbaren Vorschlag",
@@ -73,6 +75,7 @@ const products = [
     href: siteUrls.paimos,
     logo: paimosLogo,
     hero: paimosHero,
+    video: null,
     alt: copy(
       "A shared project agora where people and agents work around the same project context",
       "Ein gemeinsamer Projektraum, in dem Menschen und Agenten mit demselben Kontext arbeiten",
@@ -96,6 +99,7 @@ const products = [
     href: siteUrls.pharos,
     logo: pharosLogo,
     hero: pharosHero,
+    video: null,
     alt: copy(
       "A lighthouse overlooking a calm network of connected fleet nodes",
       "Ein Leuchtturm über einem ruhigen Netz verbundener Server",
@@ -119,6 +123,7 @@ const products = [
     href: siteUrls.janus,
     logo: janusLogo,
     hero: janusHero,
+    video: null,
     alt: copy(
       "A transparent governance gateway mediating approved access between systems",
       "Ein transparentes Governance-Gateway vermittelt freigegebenen Zugriff zwischen Systemen",
@@ -476,14 +481,28 @@ const productFlowSteps = [
           >
             <article class:list={["product-story", { "product-story--reverse": index % 2 === 0 }]}>
               <span class="product-story__visual">
-                <Image
-                  src={product.hero}
-                  alt={product.alt}
-                  widths={[560, 800, 1120]}
-                  sizes="(min-width: 60rem) 48vw, 100vw"
-                  quality={82}
-                  loading="lazy"
-                />
+                {product.video ? (
+                  <HeroLoop
+                    id="aithema"
+                    poster={product.hero}
+                    video={product.video}
+                    alt={product.alt}
+                    sizes="(min-width: 60rem) 48vw, 100vw"
+                    locale={locale}
+                    activation="hover"
+                    showControl={false}
+                    loading="lazy"
+                  />
+                ) : (
+                  <Image
+                    src={product.hero}
+                    alt={product.alt}
+                    widths={[560, 800, 1120]}
+                    sizes="(min-width: 60rem) 48vw, 100vw"
+                    quality={82}
+                    loading="lazy"
+                  />
+                )}
               </span>
               <div class="product-story__copy">
                 <div class="product-story__identity">
@@ -941,6 +960,7 @@ const productFlowSteps = [
 
   .product-story__visual {
     display: block;
+    aspect-ratio: 16 / 9;
     overflow: hidden;
     border: 1px solid rgb(255 255 255 / 0.82);
     border-radius: clamp(1.4rem, 2.4vw, 2.5rem);
@@ -956,7 +976,8 @@ const productFlowSteps = [
     box-shadow: 0 2rem 4.5rem rgb(35 64 68 / 0.19);
   }
 
-  .product-story__visual :global(img) {
+  .product-story__visual :global(img),
+  .product-story__visual :global(video) {
     display: block;
     width: 100%;
     aspect-ratio: 16 / 9;
@@ -965,7 +986,9 @@ const productFlowSteps = [
   }
 
   .product-story-link:hover .product-story__visual :global(img),
-  .product-story-link:focus-visible .product-story__visual :global(img) {
+  .product-story-link:hover .product-story__visual :global(video),
+  .product-story-link:focus-visible .product-story__visual :global(img),
+  .product-story-link:focus-visible .product-story__visual :global(video) {
     transform: scale(1.018);
   }
 

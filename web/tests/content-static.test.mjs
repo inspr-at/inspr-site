@@ -270,6 +270,15 @@ test("all four microsites render claim visuals and accessible workflow controls"
   }
 });
 
+test("integration matrices expose a caption and scoped headers", async () => {
+  const productPage = await source("components/ProductPage.astro");
+
+  assert.match(productPage, /<caption class="visually-hidden">\{labels\.integrationTableAria\}<\/caption>/);
+  assert.equal((productPage.match(/<th scope="col">/g) ?? []).length, 3);
+  assert.match(productPage, /<th scope="row">\{item\.name\}<\/th>/);
+  assert.match(productPage, /class="table-wrap" role="region" tabindex="0" aria-label=\{labels\.integrationTableAria\}/);
+});
+
 test("each product problem section uses a distinct explanatory visual", async () => {
   const productPage = await source("components/ProductPage.astro");
   const problemVisual = await source("components/FractureAtlas.astro");

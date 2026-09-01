@@ -309,16 +309,26 @@
   list-style: none;
 }
 
+.overview-step-item {
+  position: relative;
+  min-width: 0;
+}
+
 .overview-step {
   --step-accent: #075e5b;
   position: relative;
+  display: block;
   isolation: isolate;
+  height: 100%;
   min-width: 0;
   min-height: 16.75rem;
   padding: 1.2rem;
+  color: inherit;
   border: 1px solid color-mix(in srgb, var(--step-accent) 25%, transparent);
   border-radius: 1.2rem;
   background: color-mix(in srgb, var(--step-accent) 5%, var(--overview-paper));
+  cursor: pointer;
+  text-decoration: none;
 }
 
 .overview-step__preview {
@@ -333,28 +343,25 @@
   transition: opacity 220ms ease;
 }
 
-.overview-step__preview::after {
-  position: absolute;
-  inset: 0;
-  content: "";
-  background: linear-gradient(180deg, rgb(5 25 34 / 0.12), rgb(5 25 34 / 0.7));
-}
-
 .overview-step__content > * {
   position: relative;
   z-index: 1;
 }
 
-.overview-step:nth-child(2) {
+.overview-step-item:nth-child(2) .overview-step {
   --step-accent: #075e5b;
 }
 
-.overview-step:nth-child(3) {
+.overview-step-item:nth-child(3) .overview-step {
   --step-accent: #8d5705;
 }
 
-.overview-step:nth-child(4) {
+.overview-step-item:nth-child(4) .overview-step {
   --step-accent: #055b59;
+}
+
+.overview-step[data-product="pharos"] :is(.hero-loop__poster, .hero-loop__video) {
+  object-position: left center;
 }
 
 .overview-step__top {
@@ -372,6 +379,7 @@
   width: 2.9rem;
   height: 2.9rem;
   object-fit: contain;
+  transition: filter 180ms ease, opacity 180ms ease;
 }
 
 .overview-step__role {
@@ -393,13 +401,14 @@
   line-height: 1;
 }
 
-.overview-step h3 a {
+.overview-step__name {
   text-decoration-color: color-mix(in srgb, var(--step-accent) 38%, transparent);
+  text-decoration-line: underline;
   text-decoration-thickness: 0.055em;
   text-underline-offset: 0.2em;
 }
 
-.overview-step h3 a span {
+.overview-step__arrow {
   display: inline-block;
   margin-left: 0.12em;
   color: var(--step-accent);
@@ -409,33 +418,45 @@
   transform: translateY(-0.32em);
 }
 
-.overview-step h3 a:hover,
-.overview-step h3 a:focus-visible {
+.overview-step:hover .overview-step__name,
+.overview-step:focus-visible .overview-step__name {
   text-decoration-color: var(--step-accent);
+}
+
+.overview-step:focus-visible {
+  outline: 3px solid var(--step-accent);
+  outline-offset: 0.2rem;
 }
 
 .overview-step[data-hero-loop-active] .overview-step__preview {
   opacity: 1;
 }
 
-.overview-step[data-hero-loop-active] :is(.overview-step__top, .overview-step__role, .overview-step__body, .overview-step__approval) {
+.overview-step[data-hero-loop-active] :is(.overview-step__number, .overview-step__role, .overview-step__body, .overview-step__approval) {
   opacity: 0;
 }
 
-.overview-step[data-hero-loop-active] h3 a {
+.overview-step[data-hero-loop-active] h3 {
   color: white;
-  text-decoration: none;
   text-shadow: 0 1px 5px rgb(3 20 30 / 0.72);
 }
 
-.overview-step[data-hero-loop-active] h3 a span {
+.overview-step[data-hero-loop-active] .overview-step__name {
+  text-decoration: none;
+}
+
+.overview-step[data-hero-loop-active] .overview-step__arrow {
   color: white;
 }
 
-.overview-step[data-hero-loop-active] h3 a:focus-visible {
-  border-radius: 0.12em;
+.overview-step[data-hero-loop-active] .overview-step__top img {
+  filter: brightness(0) invert(1);
+  opacity: 0.5;
+}
+
+.overview-step[data-hero-loop-active]:focus-visible {
   outline: 3px solid white;
-  outline-offset: 0.16em;
+  outline-offset: 0.2rem;
 }
 
 .overview-step__body {
@@ -487,15 +508,74 @@
 
 .overview-control {
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.8rem;
-  align-items: center;
   margin: 1.15rem clamp(1.25rem, 3vw, 3rem) 0;
   padding: 0.9rem 1rem;
   color: var(--overview-soft);
   border-radius: 1rem;
   background: linear-gradient(90deg, rgb(20 123 120 / 0.07), rgb(218 156 44 / 0.06));
   font-size: 0.8rem;
+}
+
+.overview-control__default,
+.overview-control__step {
+  grid-area: 1 / 1;
+  margin: 0;
+  transition: opacity 140ms ease, visibility 140ms ease;
+}
+
+.overview-control__default {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.overview-control__step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.8rem 1rem;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.overview-control__number,
+.overview-control__copy strong {
+  color: var(--overview-teal);
+  font-family: var(--font-mono);
+  font-size: 0.69rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.overview-control__copy,
+.overview-control__copy > span {
+  display: block;
+}
+
+.overview-control__copy > span {
+  margin-top: 0.12rem;
+}
+
+.overview-control__approval {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.55rem;
+  align-items: center;
+  color: var(--overview-ink);
+}
+
+.overview-path:has(.overview-step[data-hero-loop-active]) .overview-control__default {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.overview-path:has(.overview-step[data-product="aithema"][data-hero-loop-active]) .overview-control__step[data-control-step="aithema"],
+.overview-path:has(.overview-step[data-product="paimos"][data-hero-loop-active]) .overview-control__step[data-control-step="paimos"],
+.overview-path:has(.overview-step[data-product="pharos"][data-hero-loop-active]) .overview-control__step[data-control-step="pharos"],
+.overview-path:has(.overview-step[data-product="janus"][data-hero-loop-active]) .overview-control__step[data-control-step="janus"] {
+  opacity: 1;
+  visibility: visible;
 }
 
 .overview-control svg,
@@ -684,6 +764,14 @@
     min-height: 17rem;
   }
 
+  .overview-control__step {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .overview-control__approval {
+    grid-column: 2;
+  }
+
   .overview-next {
     grid-template-columns: 1fr;
   }
@@ -777,7 +865,10 @@
 @media (prefers-reduced-motion: reduce) {
   .overview-button,
   .overview-button span,
-  .overview-step__preview {
+  .overview-step__preview,
+  .overview-step__top img,
+  .overview-control__default,
+  .overview-control__step {
     transition: none;
   }
 }

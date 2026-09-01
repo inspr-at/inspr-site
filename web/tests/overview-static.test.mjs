@@ -87,7 +87,10 @@ test("Overview path cards preview the matching approved loops on deliberate inte
     );
   }
 
-  assert.match(component, /class="overview-step" data-hero-loop-interaction/);
+  assert.match(component, /<a[\s\S]*?class="overview-step"[\s\S]*?href=\{step\.href\}[\s\S]*?data-product=\{step\.id\}[\s\S]*?data-hero-loop-interaction/);
+  assert.doesNotMatch(component, /<h3[^>]*><a/);
+  assert.match(component, /aria-labelledby=\{`overview-step-\$\{step\.id\}-title`\}/);
+  assert.match(component, /aria-describedby=\{`overview-step-\$\{step\.id\}-role overview-step-\$\{step\.id\}-body overview-step-\$\{step\.id\}-approval`\}/);
   assert.match(component, /<HeroLoop[\s\S]*?id=\{step\.id\}[\s\S]*?activation="hover"[\s\S]*?showControl=\{false\}[\s\S]*?loading="lazy"/);
   assert.match(heroLoop, /preload=\{activation === "autoplay" \? "metadata" : "none"\}/);
   assert.match(heroLoop, /interactionRoot\.addEventListener\("pointerenter"/);
@@ -103,11 +106,19 @@ test("Overview path cards preview the matching approved loops on deliberate inte
   assert.match(heroLoop, /video\.currentTime = 0/);
   assert.match(heroLoop, /toggleAttribute\("data-hero-loop-active", interactionActive\(\)\)/);
   assert.match(styles, /\.overview-step__preview \{[\s\S]*?position: absolute;[\s\S]*?opacity: 0;[\s\S]*?pointer-events: none;/);
+  assert.doesNotMatch(styles, /\.overview-step__preview::after/);
+  assert.match(styles, /\.overview-step\[data-product="pharos"\] :is\(\.hero-loop__poster, \.hero-loop__video\) \{\s*object-position: left center;/);
   assert.match(styles, /\.overview-step__content > \* \{\s*position: relative;\s*z-index: 1;/);
   assert.match(styles, /\.overview-step__approval \{[\s\S]*?position: absolute;[\s\S]*?right: 1\.2rem;[\s\S]*?left: 1\.2rem;/);
   assert.doesNotMatch(styles, /\.overview-step__content\s*\{[^}]*min-height:/);
-  assert.match(styles, /\.overview-step\[data-hero-loop-active\] h3 a \{[\s\S]*?color: white;[\s\S]*?text-decoration: none;[\s\S]*?text-shadow: 0 1px 5px/);
-  assert.match(styles, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.overview-step__preview \{[\s\S]*?transition: none;/);
+  assert.match(styles, /\.overview-step \{[\s\S]*?cursor: pointer;[\s\S]*?text-decoration: none;/);
+  assert.match(styles, /\.overview-step\[data-hero-loop-active\] h3 \{[\s\S]*?color: white;[\s\S]*?text-shadow: 0 1px 5px/);
+  assert.match(styles, /\.overview-step\[data-hero-loop-active\] \.overview-step__top img \{[\s\S]*?filter: brightness\(0\) invert\(1\);[\s\S]*?opacity: 0\.5;/);
+  assert.match(component, /class="overview-control__step" data-control-step=\{step\.id\} aria-hidden="true"/);
+  assert.match(component, /class="overview-control__number">\{step\.number\}/);
+  assert.match(component, /class="overview-control__approval">[\s\S]*?user-round-check[\s\S]*?\{step\.approval\}/);
+  assert.match(styles, /\.overview-path:has\(\.overview-step\[data-hero-loop-active\]\) \.overview-control__default/);
+  assert.match(styles, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.overview-step__preview,[\s\S]*?transition: none;/);
   assert.match(
     component,
     /sizes="\(min-width: 90rem\) 17\.5rem, \(min-width: 72rem\) calc\(20\.5vw - 1\.5rem\), \(min-width: 56rem\) calc\(\(100vw - 12rem\) \/ 4\), \(min-width: 40rem\) calc\(\(100vw - 7\.5rem\) \/ 2\), calc\(100vw - 5\.5rem\)"/,

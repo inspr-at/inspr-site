@@ -13,10 +13,11 @@ This repository powers the bilingual INSPR site family:
 - [v1.inspr.at](https://v1.inspr.at) - the frozen pre-relaunch archive.
 
 Aithema (pronounced **AI-Thema**) is the first product in the family sequence
-and owns requirements. Its product page is live at `aithema.inspr.at`. The working public preview
-remains at [start.augmentoring.com](https://start.augmentoring.com). A reusable
-open-source Aithema template or module is planned; neither a product repository
-nor a product license is claimed before that source exists.
+and owns requirements. Its product page is live at `aithema.inspr.at`. The
+working public preview remains at
+[start.augmentoring.com](https://start.augmentoring.com). A reusable open-source
+Aithema template or module is planned; neither a product repository nor a
+product license is claimed before that source exists.
 
 The product sites are intentionally lightweight. INSPR and its products are
 open work by [Markus Barta](https://github.com/markus-barta). The sites explain
@@ -295,7 +296,9 @@ bootstrap token. The checked `.env.example` contains placeholders only.
 
 ## Product sources
 
-- **Aithema** - product page target: `aithema.inspr.at` (pending edge routing and DNS); reusable open-source template or module planned; public preview at [start.augmentoring.com](https://start.augmentoring.com)
+- **Aithema** - product page: [aithema.inspr.at](https://aithema.inspr.at);
+  reusable open-source template or module planned; public preview at
+  [start.augmentoring.com](https://start.augmentoring.com)
 - [Paimos](https://github.com/inspr-at/paimos)
 - [Pharos](https://github.com/inspr-at/pharos)
 - [Janus](https://github.com/inspr-at/janus)

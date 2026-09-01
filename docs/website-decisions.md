@@ -431,10 +431,10 @@ decision must remove this explicit preview exemption and add real inspectable
 evidence.
 
 The application repository owns Caddy host routing and static release content,
-not the csb1 Traefik runtime. `NIX-408` must add and apply the edge route and DNS
-for `aithema.inspr.at` before deployment. Until then the deploy probe fails
-closed and restores the previous release rather than publishing a partially
-reachable family.
+not the csb1 Traefik runtime. `NIX-408` added and applied the edge route and DNS
+for `aithema.inspr.at` before its first deployment. The live deploy probe remains
+fail-closed and restores the previous release rather than publishing a
+partially reachable family.
 
 ---
 

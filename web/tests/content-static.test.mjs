@@ -400,6 +400,50 @@ test("Paimos public evidence keeps release and capture provenance honest", async
   assert.equal(captureCheck.status, 0, captureCheck.stderr || captureCheck.stdout);
 });
 
+test("Paimos Agent Intercom keeps durable delivery separate from owned-session control", async () => {
+  const content = await source("content/paimos.ts");
+  const productPage = await source("components/ProductPage.astro");
+  const intercom = await source("components/AgentIntercom.astro");
+  const intercomContent = content.match(
+    /agentIntercom: \{([\s\S]*?)\n  \},\n  featureSections:/,
+  )?.[1] ?? "";
+
+  assert.match(productPage, /import AgentIntercom from "\.\/AgentIntercom\.astro"/);
+  assert.match(productPage, /content\.agentIntercom[\s\S]*?href: "#agent-intercom"/);
+  assert.match(productPage, /content\.agentIntercom && <AgentIntercom content=\{content\.agentIntercom\} \/>/);
+
+  assert.match(intercomContent, /title: "Reach work in motion without hiding the boundary\."/);
+  assert.match(intercomContent, /The ledger records the message first/);
+  assert.match(intercomContent, /A vendor session identifier alone never grants that authority/);
+  assert.match(intercomContent, /control: "Tell"/);
+  assert.match(intercomContent, /control: "Status"/);
+  assert.match(intercomContent, /control: "Steer"/);
+  assert.match(intercomContent, /control: "Interrupt"/);
+  assert.match(intercomContent, /control: "Stop"/);
+  assert.match(intercomContent, /Claude and Grok can use a configured simple handoff, never a steer claim/);
+  assert.match(intercomContent, /never reports the queue fallback as steer/);
+  assert.match(intercomContent, /Simple delivery requires a distinct registered target and matching listener/);
+  assert.match(intercomContent, /durable publication needs reporting integration/);
+  assert.match(intercomContent, /former sessions remain visible as ownership lost and control fails closed/);
+  assert.match(intercomContent, /Recovery starts a fresh managed child and registers a fresh target/);
+  assert.match(intercomContent, /href: docsUrl\("AGENT_INTERCOM\.md"\)/);
+  assert.match(intercomContent, /href: docsUrl\("AGENT_MESSAGE_SECURITY\.md"\)/);
+
+  assert.doesNotMatch(intercomContent, /(?:\/Users\/|\/home\/|127\.0\.0\.1|localhost|\.env\b)/);
+  assert.doesNotMatch(intercomContent, /(?:session_[A-Za-z0-9_-]+|cse_[A-Za-z0-9_-]+|[0-9a-f]{8}-[0-9a-f-]{27,})/i);
+
+  assert.match(intercom, /id="agent-intercom"/);
+  assert.match(intercom, /aria-labelledby="agent-intercom-title"/);
+  assert.match(intercom, /<table>/);
+  assert.match(intercom, /<caption class="visually-hidden">/);
+  assert.match(intercom, /<th scope="col">/);
+  assert.match(intercom, /<th scope="row">/);
+  assert.match(intercom, /tabindex="0" aria-label="Agent Intercom control support matrix"/);
+  assert.match(intercom, /@media \(max-width: 52rem\)/);
+  assert.match(intercom, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.doesNotMatch(intercom, /<script/);
+});
+
 test("Paimos product loops stay lazy, bounded and inside the PhotoSwipe gallery", async () => {
   const surface = await source("components/PaimosProductSurface.astro");
   const manifest = JSON.parse(

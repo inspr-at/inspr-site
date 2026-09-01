@@ -60,6 +60,13 @@ web/src/content/pharos.ts
 web/src/content/janus.ts
 ```
 
+The Paimos content model also owns the public Agent Intercom explanation. Its
+control matrix must stay aligned with the shipped Paimos Agent Intercom guide:
+durable message delivery is broader than live control, while status, native
+steer, interrupt and stop depend on an explicitly owned session. Unsupported
+unmanaged Claude or Grok steer must remain a simple handoff with an explicit
+fallback, never a steer claim.
+
 The product-specific visual layer remains code-native: Lucide SVG symbols,
 accessible workflow explorers, responsive Astro images and self-hosted fonts.
 Generated editorial artwork supports a concrete claim; it never replaces
@@ -98,6 +105,8 @@ The content tests protect:
 - exact `AGPL-3.0-only` product license claims; and
 - per-host robots and sitemap output;
 - workflow icons, evidence signals and source references;
+- the Agent Intercom owned-session boundary, control matrix, secure handoff
+  rules and fail-closed recovery claims;
 - the four claim-supporting image assets;
 - the preserved INSPR product constellation; and
 - every `icon` and `group` in `src/content/*.ts` resolving in `ContextIcon`

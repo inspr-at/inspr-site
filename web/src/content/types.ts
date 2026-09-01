@@ -35,6 +35,42 @@ export type IntegrationItem = {
   description: string;
 };
 
+export type AgentIntercomControl = {
+  control: string;
+  intent: string;
+  simpleInbox: AgentIntercomAvailability;
+  managedCodex: AgentIntercomAvailability;
+  managedClaude: AgentIntercomAvailability;
+  unmanaged: AgentIntercomAvailability;
+};
+
+export type AgentIntercomAvailability = {
+  state: "supported" | "conditional" | "unavailable";
+  label: string;
+};
+
+export type AgentIntercomContent = {
+  eyebrow: string;
+  title: string;
+  lead: string;
+  boundary: string;
+  flow: Array<{
+    label: string;
+    title: string;
+    body: string;
+    icon: string;
+  }>;
+  controls: AgentIntercomControl[];
+  unmanagedCodexNote: string;
+  security: CardItem[];
+  recovery: {
+    title: string;
+    body: string;
+    meta: string;
+  };
+  links: LinkItem[];
+};
+
 export type ProductContent = {
   slug: "paimos" | "pharos" | "janus";
   name: string;
@@ -95,6 +131,7 @@ export type ProductContent = {
     steps: StepItem[];
     closing?: string;
   };
+  agentIntercom?: AgentIntercomContent;
   featureSections: FeatureSection[];
   audiences: {
     eyebrow: string;

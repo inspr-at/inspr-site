@@ -5,6 +5,7 @@ import MicrositeFooter from "./MicrositeFooter.astro";
 import ServiceRibbon from "./ServiceRibbon.astro";
 import ContextIcon from "./ContextIcon.astro";
 import PaimosProductSurface from "./PaimosProductSurface.astro";
+import AgentIntercom from "./AgentIntercom.astro";
 import WorkflowExplorer from "./WorkflowExplorer.astro";
 import InspectableRail from "./InspectableRail.astro";
 import FractureAtlas from "./FractureAtlas.astro";
@@ -117,7 +118,9 @@ const architectureIcons = {
 const ogImage = new URL(assets.hero.src, content.canonicalUrl).href;
 const nav = [
   { label: "Why", href: "#why" },
-  { label: "Model", href: "#model" },
+  content.agentIntercom
+    ? { label: "Intercom", href: "#agent-intercom" }
+    : { label: "Model", href: "#model" },
   { label: "Capabilities", href: "#capabilities" },
   { label: "Architecture", href: "#architecture" },
   { label: "Trust", href: "#trust" },
@@ -345,6 +348,8 @@ const featurePresentations: Record<string, FeaturePresentation> = {
     />
 
     {content.slug === "paimos" && <PaimosProductSurface />}
+
+    {content.agentIntercom && <AgentIntercom content={content.agentIntercom} />}
 
     <div id="capabilities">
       {content.featureSections.map((feature, index) => {

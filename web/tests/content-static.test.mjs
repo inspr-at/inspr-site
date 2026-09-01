@@ -505,11 +505,11 @@ test("Aithema joins the product family at its public visitor home", async () => 
   const urls = await source("content/urls.ts");
   const footer = await source("components/MicrositeFooter.astro");
 
-  assert.match(urls, /aithema: "https:\/\/start\.augmentoring\.com"/);
+  assert.match(urls, /aithema: "https:\/\/aithema\.inspr\.at"/);
+  assert.match(urls, /aithemaPreview: "https:\/\/start\.augmentoring\.com"/);
   assert.match(urls, /aithema: "Requirements"/);
   assert.match(urls, /author: "https:\/\/github\.com\/markus-barta"/);
   assert.match(urls, /\{ label: "Aithema", role: productTaxonomy\.aithema, href: siteUrls\.aithema \}/);
-  assert.doesNotMatch(urls, /aithema\.inspr\.at/);
   assert.match(footer, /Open-source repositories: AGPL-3\.0-only/);
   assert.match(footer, /href=\{siteUrls\.author\}/);
   assert.match(footer, />Markus Barta<\/a> · INSPR/);

@@ -2,9 +2,13 @@ import { readFile } from "node:fs/promises";
 
 const pages = [
   { name: "www", path: new URL("../dist/index.html", import.meta.url), minimum: 9 },
-  { name: "paimos", path: new URL("../dist/paimos/index.html", import.meta.url), minimum: 15 },
-  { name: "pharos", path: new URL("../dist/pharos/index.html", import.meta.url), minimum: 15 },
-  { name: "janus", path: new URL("../dist/janus/index.html", import.meta.url), minimum: 13 },
+  // Aithema is a hosted preview, not yet an inspectable FOSS product. Its
+  // explicit zero-rail contract prevents invented source or architecture
+  // evidence while still putting every visible section under this audit.
+  { name: "aithema", path: new URL("../dist/aithema/index.html", import.meta.url), minimum: 11, expectedRails: 0 },
+  { name: "paimos", path: new URL("../dist/paimos/index.html", import.meta.url), minimum: 15, expectedRails: 2 },
+  { name: "pharos", path: new URL("../dist/pharos/index.html", import.meta.url), minimum: 15, expectedRails: 2 },
+  { name: "janus", path: new URL("../dist/janus/index.html", import.meta.url), minimum: 13, expectedRails: 2 },
 ];
 
 for (const page of pages) {
@@ -27,10 +31,10 @@ for (const page of pages) {
     throw new Error(`${page.name}: visible pattern budget exceeded: ${repeated.map(([pattern, count]) => `${pattern}=${count}`).join(", ")}`);
   }
 
-  if (page.name !== "www") {
+  if (Number.isInteger(page.expectedRails)) {
     const rails = (html.match(/class="inspectable-rail(?:\s|\")/g) ?? []).length;
-    if (rails !== 2) {
-      throw new Error(`${page.name}: expected exactly two inspectable rails, found ${rails}`);
+    if (rails !== page.expectedRails) {
+      throw new Error(`${page.name}: expected exactly ${page.expectedRails} inspectable rails, found ${rails}`);
     }
   }
 

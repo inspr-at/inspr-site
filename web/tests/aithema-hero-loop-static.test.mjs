@@ -45,5 +45,6 @@ test("Aithema previews its loop only while its INSPR product visual is hovered",
   assert.match(heroLoop, /autoplay=\{activation === "autoplay"\}/);
   assert.match(heroLoop, /loop\.addEventListener\("pointerenter"/);
   assert.match(heroLoop, /loop\.addEventListener\("pointerleave"/);
+  assert.match(heroLoop, /event\.pointerType === "touch"/);
   assert.match(heroLoop, /data-activation="hover"\]\[data-video-playing="true"\]/);
 });

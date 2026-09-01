@@ -100,6 +100,8 @@ test("documentation and test discovery include the Aithema microsite", async () 
   const rootReadme = await rootFile("README.md");
   const webReadme = await webFile("README.md");
   const packageJson = await webFile("package.json");
+  const sectionAudit = await webFile("scripts/audit-section-patterns.mjs");
+  const page = await webFile("src/components/AithemaProductPage.astro");
 
   assert.match(rootReadme, /`aithema\.inspr\.at`[^\n]*planned[^\n]*pending edge routing and DNS/i);
   assert.doesNotMatch(rootReadme, /\[aithema\.inspr\.at\]\(https:\/\/aithema\.inspr\.at\)/);
@@ -107,4 +109,6 @@ test("documentation and test discovery include the Aithema microsite", async () 
   assert.match(webReadme, /`\/aithema\/` \| `aithema\.inspr\.at` \(target; edge routing and DNS pending\)/);
   assert.match(webReadme, /preview itself is not built by this repository/);
   assert.match(packageJson, /node --test tests\/\*-static\.test\.mjs/);
+  assert.match(sectionAudit, /name: "aithema"[\s\S]*minimum: 11, expectedRails: 0/);
+  assert.match(page, /<section\s+class="proof-console page-shell"[\s\S]*data-section-pattern="proof-strip"/);
 });

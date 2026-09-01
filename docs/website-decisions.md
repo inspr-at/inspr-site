@@ -326,7 +326,7 @@ paimos PAI-695.
 
 **Date:** 2026-08-31
 **Ticket:** INSPR-328
-**Status:** Local implementation; production validation pending
+**Status:** Committed; production release governed by D-016
 
 INSPR and its products are open work by **Markus Barta**. Shared site footers
 link that authorship to `github.com/markus-barta`. Augmentoring is the
@@ -361,7 +361,7 @@ visual standing and structural rhythm as the established family.
 
 **Date:** 2026-09-01
 **Ticket:** INSPR-329
-**Status:** Local comparison; owner selection pending
+**Status:** Owner selection committed; superseded by D-016
 
 The public product flow follows one fixed order:
 
@@ -381,12 +381,57 @@ the operator keeps the requirements, source, data, infrastructure, permissions
 and evidence. “Inspiration is the only limit” remains the INSPR idea; the tools
 carry the difficult parts.
 
-The canonical local candidate is served at `/`. A second copy candidate,
-written by Claude Fable 5 in Ultracode mode, is served at `/v2/`. Both routes
-render the same Astro homepage component, assets and layout; the variant helper
-selects copy only. This keeps hero geometry, product order and responsive
-behavior out of the editorial comparison. Fable wording that implied current
-Janus user management, a self-hosted Aithema service or present open-source
-status for Aithema was corrected to the established maturity boundary.
+During local comparison, the first candidate was served at `/` and the Claude
+Fable 5 Ultracode candidate at `/v2/`. Both routes rendered the same Astro
+component, assets and layout so the decision stayed editorial. Fable wording
+that implied current Janus user management, a self-hosted Aithema service or
+present open-source status for Aithema was corrected to the established
+maturity boundary.
 
-Neither candidate is approved for production until Markus selects the copy.
+On 2026-09-01 Markus selected the Fable candidate. D-016 records the production
+routes and the final owner decisions.
+
+---
+
+## D-016 — Bilingual family release and provisional Aithema motion
+
+**Date:** 2026-09-01
+**Tickets:** INSPR-330, INSPR-331, INSPR-332, INSPR-333, INSPR-335
+**Status:** Owner-approved for production after NIX-408 and live validation
+
+The selected Fable wording is the canonical homepage at `/`. `/de/` carries
+the complete German edition, and `/v2/` is a compatibility route to the same
+current English homepage. Only `/v1` and `/v1/*` redirect to the frozen archive
+at `v1.inspr.at`; `/v2/` must never cross that archive boundary. Browser
+language chooses the first supported language until a visitor explicitly
+chooses DE or EN, after which local storage preserves that choice.
+
+The ordered family path is **Aithema, Paimos, Pharos, Janus**. Aithema owns
+requirements and links its current hosted preview without claiming a source
+repository or license. Its reusable open-source module remains planned. The
+two-screen `/eli10/` route explains the same human-approved path in the most
+compact form. Copyright and source authorship belong to Markus Barta;
+Augmentoring remains the professional-services path around the products.
+
+Markus viewed both Seedance 2.5 candidates and selected attempt 1 as the
+provisional Aithema hero even though the delegated automated taste review did
+not approve it. The selected H.264 stream is preserved and only losslessly
+remuxed for fast-start delivery. The Aithema microsite autoplays it with the
+same pause, visibility and reduced-motion controls as the established product
+heroes. On the INSPR homepage, the Aithema graphic alone starts the loop on a
+non-touch hover and returns to the exact approved poster when the pointer
+leaves; touch and reduced-motion presentations remain static.
+
+Aithema participates in the section-pattern audit, but deliberately requires
+zero inspectable rails while it is only a hosted preview. Adding source,
+release, integration or architecture rails before the FOSS module exists would
+invent evidence. The audit still requires all eleven visible Aithema sections
+to declare a bounded presentation pattern. When the module ships, a new
+decision must remove this explicit preview exemption and add real inspectable
+evidence.
+
+The application repository owns Caddy host routing and static release content,
+not the csb1 Traefik runtime. `NIX-408` must add and apply the edge route and DNS
+for `aithema.inspr.at` before deployment. Until then the deploy probe fails
+closed and restores the previous release rather than publishing a partially
+reachable family.

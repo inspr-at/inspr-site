@@ -158,12 +158,14 @@ const labels = locale === "de"
     });
 
     if (hoverOnly) {
-      loop.addEventListener("pointerenter", () => {
+      loop.addEventListener("pointerenter", (event) => {
+        if (event.pointerType === "touch") return;
         hoverActive = true;
         if (video.readyState > 0) video.currentTime = 0;
         applyPlayback();
       });
-      loop.addEventListener("pointerleave", () => {
+      loop.addEventListener("pointerleave", (event) => {
+        if (event.pointerType === "touch") return;
         hoverActive = false;
         applyPlayback();
         if (video.readyState > 0) video.currentTime = 0;

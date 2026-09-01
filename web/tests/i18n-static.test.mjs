@@ -4,7 +4,9 @@ import test from "node:test";
 import vm from "node:vm";
 
 const webRoot = new URL("../", import.meta.url);
+const rootUrl = new URL("../../", import.meta.url);
 const source = (relativePath) => readFile(new URL(`src/${relativePath}`, webRoot), "utf8");
+const rootFile = (relativePath) => readFile(new URL(relativePath, rootUrl), "utf8");
 
 async function runLocalePreference({
   currentLocale = "en",
@@ -105,6 +107,11 @@ test("homepage locale routes expose static metadata and an accessible switch", a
   const layout = await source("layouts/MicrositeLayout.astro");
   const header = await source("components/MicrositeHeader.astro");
   const styles = await source("styles/microsites.css");
+  const caddy = await rootFile("Caddyfile");
+  const legacyEditions = caddy.slice(
+    caddy.indexOf("@legacy_editions"),
+    caddy.indexOf("# Defence in depth"),
+  );
 
   assert.match(germanRoute, /<Home locale="de" \/>/);
   assert.match(compatibilityRoute, /<Home locale="en" \/>/);
@@ -124,6 +131,8 @@ test("homepage locale routes expose static metadata and an accessible switch", a
   assert.match(header, /data-language-choice="de"/);
   assert.match(header, /data-language-choice="en"/);
   assert.match(styles, /\.language-switch a:focus-visible/);
+  assert.match(legacyEditions, /path \/v1 \/v1\/\*/);
+  assert.doesNotMatch(legacyEditions, /\/v2/);
 });
 
 test("German homepage copy is complete across editorial and interactive surfaces", async () => {

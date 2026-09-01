@@ -471,12 +471,15 @@ required_documents=(
   "overview/index.html"
   "de/ueberblick/index.html"
   "paimos/index.html"
+  "paimos/de/index.html"
   "pharos/index.html"
+  "pharos/de/index.html"
   "janus/index.html"
+  "janus/de/index.html"
   "release.json"
 )
 if [ -d "$ROOT/web/src/pages/aithema" ]; then
-  required_documents+=("aithema/index.html")
+  required_documents+=("aithema/index.html" "aithema/de/index.html")
 fi
 for document in "${required_documents[@]}"; do
   [ -f "$ROOT/web/dist/$document" ] || die "missing build output: web/dist/$document"
@@ -576,8 +579,11 @@ fi
 remote_ssh "set -eu
   test -f '$REMOTE_INCOMING/index.html'
   test -f '$REMOTE_INCOMING/paimos/index.html'
+  test -f '$REMOTE_INCOMING/paimos/de/index.html'
   test -f '$REMOTE_INCOMING/pharos/index.html'
+  test -f '$REMOTE_INCOMING/pharos/de/index.html'
   test -f '$REMOTE_INCOMING/janus/index.html'
+  test -f '$REMOTE_INCOMING/janus/de/index.html'
   test -n \"\$(find '$REMOTE_INCOMING/_astro' -maxdepth 1 -type f -name '*.css' -print -quit)\"
   mv '$REMOTE_INCOMING' '$REMOTE_RELEASE'"
 RELEASE_SEALED=1
@@ -678,9 +684,13 @@ else
   probe_page "INSPR overview" "https://www.inspr.at/overview/" "From an idea to something that" "text/html"
   probe_page "INSPR German overview" "https://www.inspr.at/de/ueberblick/" "Von einer Idee zu etwas" "text/html"
   probe_page "Aithema microsite" "https://aithema.inspr.at/" "Requirements you approve before work begins." "text/html" "$RELEASE_ID"
+  probe_page "Aithema German microsite" "https://aithema.inspr.at/de/" "Anforderungen, die Sie vor Arbeitsbeginn freigeben." "text/html" "$RELEASE_ID"
   probe_page "Paimos microsite" "https://paimos.inspr.at/" "One shared project picture." "text/html" "$RELEASE_ID"
+  probe_page "Paimos German microsite" "https://paimos.inspr.at/de/" "Ein gemeinsames Projektbild." "text/html" "$RELEASE_ID"
   probe_page "Pharos microsite" "https://pharos.inspr.at/" "Fleet truth before action." "text/html" "$RELEASE_ID"
+  probe_page "Pharos German microsite" "https://pharos.inspr.at/de/" "Flottenwahrheit vor Aktion." "text/html" "$RELEASE_ID"
   probe_page "Janus microsite" "https://janus.inspr.at/" "Use secrets. Keep values hidden." "text/html" "$RELEASE_ID"
+  probe_page "Janus German microsite" "https://janus.inspr.at/de/" "Geheimnisse nutzen. Werte verbergen." "text/html" "$RELEASE_ID"
   probe_page "v1 archive" "https://v1.inspr.at/" "Upstream of any substrate" "text/html"
   probe_page "shared product asset" "https://paimos.inspr.at$shared_asset_path" "" "text/css"
   probe_redirect "legacy edition redirect" "https://www.inspr.at/v1/" "301,302,307,308" "https://v1.inspr.at/v1/" "1"

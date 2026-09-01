@@ -17,31 +17,143 @@ import aithemaLogo from "../assets/products/aithema/logo.svg";
 
 interface Props {
   content: PreviewProductContent;
+  locale?: "en" | "de";
 }
 
 const { content } = Astro.props;
+const locale: "en" | "de" = Astro.props.locale === "de" ? "de" : "en";
+
+// Shared product-host locale contract: English at the root, German at /de/.
+const englishUrl = siteUrls.aithema;
+const germanUrl = `${englishUrl}/de/`;
+
+const labels = locale === "de"
+  ? {
+      navWhy: "Warum",
+      navPath: "Weg",
+      navCapabilities: "Funktionen",
+      navLimits: "Grenzen",
+      navPreview: "Vorschau",
+      primary: "Hauptnavigation",
+      sections: "Bereiche",
+      mobile: "Navigation für Mobilgeräte",
+      products: "Produkte",
+      opensInNewTab: "öffnet in einem neuen Tab",
+      languages: "Sprache wählen",
+      german: "Deutsch",
+      english: "Englisch",
+      proofAria: "Produktmerkmale",
+      proofLabel: "Aktueller Stand",
+      workflowAlt: "Das Aithema-Anforderungsprisma markiert den Weg vom Input zur geprüften Entscheidung",
+      usePreview: "Gehostete Vorschau nutzen",
+      faqEyebrow: "Praktische Fragen",
+      faqTitle: "Bevor Sie es verwenden.",
+      path: "Professioneller Weg",
+      servicesCta: "Augmentoring-Services ansehen",
+      familyDescription: "Teil von INSPR, der Produktfamilie für Menschen und KI-Agenten.",
+      productsAria: "INSPR-Produkte",
+      family: "Produktfamilie",
+      availabilityAria: "Aithema-Verfügbarkeit",
+      availability: "Verfügbarkeit",
+      hostedPreview: "Gehostete Vorschau",
+      modulePlanned: "Wiederverwendbares Open-Source-Modul geplant",
+      operateAria: "Services und Identität",
+      operate: "Betrieb",
+      services: "Professionelle Services",
+      identity: "ZITADEL-Identität",
+      legal: "Impressum",
+      privacy: "Datenschutz",
+      inspectable: "Gebaut, um prüfbar zu bleiben.",
+      releaseAria: "Website-Release",
+      package: "Paket",
+      release: "Release",
+      deployed: "Ausgerollt",
+      localBuild: "Lokaler Build",
+    }
+  : {
+      navWhy: "Why",
+      navPath: "Path",
+      navCapabilities: "Capabilities",
+      navLimits: "Limits",
+      navPreview: "Preview",
+      primary: "Primary navigation",
+      sections: "Sections",
+      mobile: "Mobile navigation",
+      products: "Products",
+      opensInNewTab: "opens in a new tab",
+      languages: "Choose language",
+      german: "German",
+      english: "English",
+      proofAria: "Product characteristics",
+      proofLabel: "Current posture",
+      workflowAlt: "The Aithema Requirement Prism marking the path from input to a reviewed decision",
+      usePreview: "Use the hosted preview",
+      faqEyebrow: "Practical questions",
+      faqTitle: "Before you use it.",
+      path: "Professional path",
+      servicesCta: "Explore Augmentoring services",
+      familyDescription: "Part of INSPR, the technology umbrella for people and AI agents.",
+      productsAria: "INSPR products",
+      family: "Product family",
+      availabilityAria: "Aithema availability",
+      availability: "Availability",
+      hostedPreview: "Hosted preview",
+      modulePlanned: "Reusable open-source module planned",
+      operateAria: "Services and identity",
+      operate: "Operate",
+      services: "Professional services",
+      identity: "ZITADEL identity",
+      legal: "Legal notice",
+      privacy: "Privacy",
+      inspectable: "Built to stay inspectable.",
+      releaseAria: "Site release",
+      package: "Package",
+      release: "Release",
+      deployed: "Deployed",
+      localBuild: "Local build",
+    };
+
 const nav = [
-  { label: "Why", href: "#why" },
-  { label: "Path", href: "#model" },
-  { label: "Capabilities", href: "#capabilities" },
-  { label: "Limits", href: "#limits" },
-  { label: "Preview", href: content.previewUrl, external: true },
+  { label: labels.navWhy, href: "#why" },
+  { label: labels.navPath, href: "#model" },
+  { label: labels.navCapabilities, href: "#capabilities" },
+  { label: labels.navLimits, href: "#limits" },
+  { label: labels.navPreview, href: content.previewUrl, external: true },
 ];
+
+// Same host-relative choice links MicrositeHeader renders; the shared
+// locale-preference script persists the click on any [data-language-choice].
+const languageChoiceHref = (href: string, choice: "en" | "de") => {
+  const url = new URL(href, siteUrls.aithema);
+  url.searchParams.set("lang", choice);
+  return `${url.pathname}${url.search}${url.hash}`;
+};
+
+// Cross-host navigation keeps the reader's language: every product host
+// serves its German edition at /de/, and ?lang=de records the choice on the
+// destination origin (localStorage does not cross hosts).
+const productHref = (href: string) =>
+  locale === "de" ? `${href}/de/?lang=de` : href;
+
 const ogImage = new URL(aithemaHero.src, content.canonicalUrl).href;
 const year = new Date().getUTCFullYear();
 const deployedAtLabel = releaseMetadata.deployedAt
-  ? `${new Intl.DateTimeFormat("en-GB", {
+  ? `${new Intl.DateTimeFormat(locale === "de" ? "de-AT" : "en-GB", {
       dateStyle: "medium",
       timeStyle: "short",
       timeZone: "UTC",
     }).format(new Date(releaseMetadata.deployedAt))} UTC`
-  : "Local build";
+  : labels.localBuild;
 ---
 
 <MicrositeLayout
   title={content.seo.title}
   description={content.seo.description}
   canonical={content.canonicalUrl}
+  locale={locale}
+  alternateEnglish={englishUrl}
+  alternateGerman={germanUrl}
+  detectLocale={locale === "en"}
   ogImage={ogImage}
   ogImageAlt={content.hero.alt}
   favicon={aithemaLogo.src}
@@ -57,7 +169,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
         </span>
       </a>
 
-      <nav class="site-nav" aria-label="Primary navigation">
+      <nav class="site-nav" aria-label={labels.primary}>
         {nav.map((item) => (
           <a
             href={item.href}
@@ -70,9 +182,28 @@ const deployedAtLabel = releaseMetadata.deployedAt
       </nav>
 
       <div class="site-header__actions">
+        <nav class="language-switch" aria-label={labels.languages}>
+          <a
+            href={languageChoiceHref("/de/", "de")}
+            lang="de"
+            hreflang="de"
+            aria-label={labels.german}
+            aria-current={locale === "de" ? "page" : undefined}
+            data-language-choice="de"
+          >DE</a>
+          <span aria-hidden="true">|</span>
+          <a
+            href={languageChoiceHref("/", "en")}
+            lang="en"
+            hreflang="en"
+            aria-label={labels.english}
+            aria-current={locale === "en" ? "page" : undefined}
+            data-language-choice="en"
+          >EN</a>
+        </nav>
         <details class="mobile-navigation" data-mobile-navigation>
-          <summary>Sections</summary>
-          <nav class="mobile-navigation__panel" aria-label="Mobile navigation">
+          <summary>{labels.sections}</summary>
+          <nav class="mobile-navigation__panel" aria-label={labels.mobile}>
             {nav.map((item) => (
               <a
                 href={item.href}
@@ -85,14 +216,14 @@ const deployedAtLabel = releaseMetadata.deployedAt
           </nav>
         </details>
         <details class="product-switcher">
-          <summary>Products</summary>
+          <summary>{labels.products}</summary>
           <div class="product-switcher__panel">
             {productLinks.map((item) => (
               <a
-                href={item.href}
+                href={productHref(item.href)}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label={`${item.label}, opens in a new tab`}
+                aria-label={`${item.label}, ${labels.opensInNewTab}`}
                 aria-current={item.label === "Aithema" ? "page" : undefined}
               >
                 {item.label}
@@ -105,7 +236,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
   </header>
 
   <main id="main-content">
-    <ServiceRibbon text={content.serviceIntro} />
+    <ServiceRibbon text={content.serviceIntro} locale={locale} />
 
     <section
       class="product-hero page-shell"
@@ -135,17 +266,18 @@ const deployedAtLabel = releaseMetadata.deployedAt
           video={aithemaHeroLoop}
           alt={content.hero.alt}
           sizes="(min-width: 64rem) 55vw, 100vw"
+          locale={locale}
         />
       </figure>
     </section>
 
     <section
       class="proof-console page-shell"
-      aria-label="Product characteristics"
+      aria-label={labels.proofAria}
       data-section-pattern="proof-strip"
     >
       <div class="proof-console__label" aria-hidden="true">
-        <span>Current posture</span>
+        <span>{labels.proofLabel}</span>
         <strong>{String(content.proof.length).padStart(2, "0")}</strong>
       </div>
       <ol class="proof-strip">
@@ -177,6 +309,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
         image={aithemaHero}
         alt={content.problem.visualAlt}
         caption={content.problem.visualCaption}
+        locale={locale}
       />
     </section>
 
@@ -187,10 +320,11 @@ const deployedAtLabel = releaseMetadata.deployedAt
       lead={content.model.lead}
       steps={content.model.steps}
       image={aithemaLogo}
-      alt="The Aithema Requirement Prism marking the path from input to a reviewed decision"
+      alt={labels.workflowAlt}
       closing={content.model.closing}
       tone="ink"
       pattern="guided-workflow"
+      locale={locale}
     />
 
     <div id="capabilities">
@@ -211,6 +345,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
             items={feature.items}
             variant={index % 2 === 0 ? "ledger" : "sequence"}
             label={feature.eyebrow}
+            locale={locale}
           />
         </section>
       ))}
@@ -226,7 +361,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
         <h2 id="audience-title">{content.audiences.title}</h2>
         <p class="section-lead">{content.audiences.lead}</p>
       </header>
-      <AudiencePaths id="aithema-audiences" items={content.audiences.items} />
+      <AudiencePaths id="aithema-audiences" items={content.audiences.items} locale={locale} />
     </section>
 
     <section
@@ -241,7 +376,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
           <h2 id="limits-title">{content.limits.title}</h2>
           <p class="section-lead">{content.limits.lead}</p>
         </header>
-        <ConstraintRegister items={content.limits.items} />
+        <ConstraintRegister items={content.limits.items} locale={locale} />
       </div>
     </section>
 
@@ -263,7 +398,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
           target="_blank"
           rel="noopener noreferrer"
         >
-          Use the hosted preview <span aria-hidden="true">↗</span>
+          {labels.usePreview} <span aria-hidden="true">↗</span>
         </a>
       </div>
     </section>
@@ -274,8 +409,8 @@ const deployedAtLabel = releaseMetadata.deployedAt
       data-section-pattern="faq-accordion"
     >
       <header class="section-intro">
-        <p class="eyebrow">Practical questions</p>
-        <h2 id="faq-title">Before you use it.</h2>
+        <p class="eyebrow">{labels.faqEyebrow}</p>
+        <h2 id="faq-title">{labels.faqTitle}</h2>
       </header>
       <div class="faq-list">
         {content.faq.map((item) => (
@@ -295,7 +430,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
       data-section-pattern="professional-cta"
     >
       <div>
-        <p class="eyebrow">Professional path</p>
+        <p class="eyebrow">{labels.path}</p>
         <h2 id="footer-cta-title">{content.finalCta.title}</h2>
         <p>{content.finalCta.body}</p>
       </div>
@@ -305,52 +440,52 @@ const deployedAtLabel = releaseMetadata.deployedAt
         target="_blank"
         rel="noopener noreferrer"
       >
-        Explore Augmentoring services <span aria-hidden="true">↗</span>
+        {labels.servicesCta} <span aria-hidden="true">↗</span>
       </a>
     </section>
 
     <div class="site-footer__grid page-shell">
       <div class="site-footer__brand">
         <strong>{content.name}</strong>
-        <p>Part of INSPR, the technology umbrella for people and AI agents.</p>
+        <p>{labels.familyDescription}</p>
       </div>
 
-      <nav aria-label="INSPR products">
-        <p class="footer-label">Product family</p>
+      <nav aria-label={labels.productsAria}>
+        <p class="footer-label">{labels.family}</p>
         {productLinks.map((item) => (
           <a
-            href={item.href}
+            href={productHref(item.href)}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`${item.label}, opens in a new tab`}
+            aria-label={`${item.label}, ${labels.opensInNewTab}`}
           >
             {item.label}
           </a>
         ))}
       </nav>
 
-      <nav aria-label="Aithema availability">
-        <p class="footer-label">Availability</p>
+      <nav aria-label={labels.availabilityAria}>
+        <p class="footer-label">{labels.availability}</p>
         <a href={content.previewUrl} target="_blank" rel="noopener noreferrer">
-          Hosted preview <span aria-hidden="true">↗</span>
+          {labels.hostedPreview} <span aria-hidden="true">↗</span>
         </a>
-        <small>Reusable open-source module planned</small>
+        <small>{labels.modulePlanned}</small>
       </nav>
 
-      <nav aria-label="Services and identity">
-        <p class="footer-label">Operate</p>
+      <nav aria-label={labels.operateAria}>
+        <p class="footer-label">{labels.operate}</p>
         <a href={siteUrls.business} target="_blank" rel="noopener noreferrer">
-          Professional services <span aria-hidden="true">↗</span>
+          {labels.services} <span aria-hidden="true">↗</span>
         </a>
         <a href={siteUrls.identity} target="_blank" rel="noopener noreferrer">
-          ZITADEL identity <span aria-hidden="true">↗</span>
+          {labels.identity} <span aria-hidden="true">↗</span>
         </a>
         <a href="mailto:hello@inspr.at">hello@inspr.at</a>
         <a href={siteUrls.imprint} target="_blank" rel="noopener noreferrer">
-          Legal notice <span aria-hidden="true">↗</span>
+          {labels.legal} <span aria-hidden="true">↗</span>
         </a>
         <a href={siteUrls.privacy} target="_blank" rel="noopener noreferrer">
-          Privacy <span aria-hidden="true">↗</span>
+          {labels.privacy} <span aria-hidden="true">↗</span>
         </a>
       </nav>
     </div>
@@ -360,28 +495,28 @@ const deployedAtLabel = releaseMetadata.deployedAt
         <span>
           © {year} <a href={siteUrls.author} target="_blank" rel="me noopener noreferrer">Markus Barta</a> · INSPR
         </span>
-        <span>Built to stay inspectable.</span>
+        <span>{labels.inspectable}</span>
       </p>
 
       <dl
         class="site-footer__release"
-        aria-label="Site release"
+        aria-label={labels.releaseAria}
         data-release-id={releaseMetadata.releaseId}
       >
         <div>
           <dt>Site</dt>
-          <dd title={`Package ${releaseMetadata.packageName}`}>v{releaseMetadata.version}</dd>
+          <dd title={`${labels.package} ${releaseMetadata.packageName}`}>v{releaseMetadata.version}</dd>
         </div>
         <div>
           <dt>Git</dt>
           <dd><code>{releaseMetadata.gitLabel}</code></dd>
         </div>
         <div>
-          <dt>Release</dt>
+          <dt>{labels.release}</dt>
           <dd><code>{releaseMetadata.releaseId}</code></dd>
         </div>
         <div>
-          <dt>Deployed</dt>
+          <dt>{labels.deployed}</dt>
           <dd>
             {releaseMetadata.deployedAt
               ? <time datetime={releaseMetadata.deployedAt}>{deployedAtLabel}</time>

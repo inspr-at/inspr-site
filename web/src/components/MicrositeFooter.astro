@@ -23,6 +23,11 @@ const {
 } = Astro.props;
 
 const year = new Date().getUTCFullYear();
+
+// Product hosts serve their German edition at /de/; ?lang=de records the
+// choice on the destination origin (localStorage does not cross hosts).
+const productHref = (href: string) =>
+  locale === "de" ? `${href}/de/?lang=de` : href;
 const deployedAtLabel = releaseMetadata.deployedAt
   ? `${new Intl.DateTimeFormat(locale === "de" ? "de-AT" : "en-GB", {
       dateStyle: "medium",
@@ -101,7 +106,7 @@ const labels = locale === "de"
     <nav aria-label={labels.productsAria}>
       <p class="footer-label">{labels.family}</p>
       <a href={locale === "de" ? siteUrls.overviewGerman : siteUrls.overview}>{labels.overview}</a>
-      {productLinks.map((item) => <a href={item.href} target="_blank" rel="noopener noreferrer" aria-label={`${item.label}, ${labels.opensInNewTab}`}>{item.label}</a>)}
+      {productLinks.map((item) => <a href={productHref(item.href)} target="_blank" rel="noopener noreferrer" aria-label={`${item.label}, ${labels.opensInNewTab}`}>{item.label}</a>)}
     </nav>
 
     <nav aria-label={labels.sourceAria}>

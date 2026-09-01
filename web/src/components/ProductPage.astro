@@ -14,6 +14,7 @@ import ConstraintRegister from "./ConstraintRegister.astro";
 import ProvenanceReceipt from "./ProvenanceReceipt.astro";
 import HeroLoop from "./HeroLoop.astro";
 import type { ProductContent } from "../content/types";
+import { siteUrls } from "../content/urls";
 
 import paimosHero from "../assets/products/paimos/hero.png";
 import paimosHeroLoop from "../assets/products/paimos/hero-loop.mp4";
@@ -33,9 +34,91 @@ import janusProblem from "../assets/products/janus/problem-boundary.png";
 
 interface Props {
   content: ProductContent;
+  locale?: "en" | "de";
 }
 
 const { content } = Astro.props;
+const locale: "en" | "de" = Astro.props.locale === "de" ? "de" : "en";
+
+// The shared DE/EN locale contract: English lives at the product-host root,
+// German at /de/. Both alternates derive from the canonical host so hreflang
+// stays correct regardless of which edition is being rendered.
+const englishUrl = siteUrls[content.slug];
+const germanUrl = `${englishUrl}/de/`;
+
+// UI chrome that does not belong to the content model. Section anchors stay
+// identical across locales so the language switch preserves deep links.
+const labels = locale === "de"
+  ? {
+      navWhy: "Warum",
+      navModel: "Modell",
+      navCapabilities: "Funktionen",
+      navArchitecture: "Architektur",
+      navTrust: "Vertrauen",
+      navSource: "Quellcode",
+      viewSource: "Quellcode ansehen",
+      proofAria: "Produktmerkmale",
+      proofLabel: "Betriebsprofil",
+      specsEli10: "Einfach erklärt",
+      specsFlipAll: "Alle umdrehen",
+      specsUnflipAll: "Alle zurückdrehen",
+      specsShuffle: "Eckdaten-Raster mischen",
+      capabilityRailLabel: "Das Fähigkeitssystem nachverfolgen",
+      capabilityRailSignal: "Ausgewählte Fähigkeit",
+      trustRailLabel: "Jede durchgesetzte Grenze prüfen",
+      trustRailSignal: "Grenznachweis",
+      architectureFlowAria: "Architekturfluss",
+      architecturePlanesAria: "Zwei-Ebenen-Architektur mit wertfreier Nachweis-Rückgabe",
+      policyPlane: "Richtlinien- und Aufsichtsebene",
+      executionPlane: "Verwahr- und Ausführungsebene",
+      executionPlaneNote: "Geheimnismaterial existiert nur innerhalb dieses freigegebenen Ausführungspfads.",
+      planeReturn: "Kehrt ohne den Geheimniswert zur Aufsicht zurück",
+      integrationFilterAria: "Integrationen nach Reifegrad filtern",
+      integrationAll: "Alle",
+      integrationShown: "angezeigt",
+      integrationSwipe: "Wischen Sie für Details",
+      integrationTableAria: "Integrationsmatrix",
+      integrationColumn: "Integration",
+      statusColumn: "Status",
+      descriptionColumn: "Was sie leistet",
+      faqEyebrow: "Praktische Fragen",
+      faqTitle: "Bevor Sie es einführen.",
+    }
+  : {
+      navWhy: "Why",
+      navModel: "Model",
+      navCapabilities: "Capabilities",
+      navArchitecture: "Architecture",
+      navTrust: "Trust",
+      navSource: "Source",
+      viewSource: "View the source",
+      proofAria: "Product characteristics",
+      proofLabel: "Operating posture",
+      specsEli10: "ELI10 mode",
+      specsFlipAll: "Flip all",
+      specsUnflipAll: "Unflip all",
+      specsShuffle: "Shuffle the specs grid",
+      capabilityRailLabel: "Trace the capability system",
+      capabilityRailSignal: "Selected capability",
+      trustRailLabel: "Inspect each enforced boundary",
+      trustRailSignal: "Boundary evidence",
+      architectureFlowAria: "Architecture flow",
+      architecturePlanesAria: "Two-plane architecture with value-free evidence return",
+      policyPlane: "Policy and oversight plane",
+      executionPlane: "Custody and execution plane",
+      executionPlaneNote: "Secret material exists only inside this approved execution path.",
+      planeReturn: "Returns to oversight without the secret value",
+      integrationFilterAria: "Filter integrations by maturity",
+      integrationAll: "All",
+      integrationShown: "shown",
+      integrationSwipe: "Swipe to inspect details",
+      integrationTableAria: "Integration matrix",
+      integrationColumn: "Integration",
+      statusColumn: "Status",
+      descriptionColumn: "What it does",
+      faqEyebrow: "Practical questions",
+      faqTitle: "Before you adopt it.",
+    };
 
 // Cache-buster for the public/ scripts: unlike _astro assets they are not
 // content-hashed, and their 5-minute edge cache once served a stale script
@@ -116,12 +199,12 @@ const architectureIcons = {
 
 const ogImage = new URL(assets.hero.src, content.canonicalUrl).href;
 const nav = [
-  { label: "Why", href: "#why" },
-  { label: "Model", href: "#model" },
-  { label: "Capabilities", href: "#capabilities" },
-  { label: "Architecture", href: "#architecture" },
-  { label: "Trust", href: "#trust" },
-  { label: "Source", href: "#open-source" },
+  { label: labels.navWhy, href: "#why" },
+  { label: labels.navModel, href: "#model" },
+  { label: labels.navCapabilities, href: "#capabilities" },
+  { label: labels.navArchitecture, href: "#architecture" },
+  { label: labels.navTrust, href: "#trust" },
+  { label: labels.navSource, href: "#open-source" },
 ];
 const integrationStatuses = [...new Set(content.integrations.items.map((item) => item.status))];
 type FeaturePresentation =
@@ -151,6 +234,10 @@ const featurePresentations: Record<string, FeaturePresentation> = {
   title={content.seo.title}
   description={content.seo.description}
   canonical={content.canonicalUrl}
+  locale={locale}
+  alternateEnglish={englishUrl}
+  alternateGerman={germanUrl}
+  detectLocale={locale === "en"}
   ogImage={ogImage}
   ogImageAlt={content.hero.alt}
   favicon={assets.logo.src}
@@ -162,10 +249,12 @@ const featurePresentations: Record<string, FeaturePresentation> = {
     logo={assets.logo.src}
     active={content.slug}
     nav={nav}
+    locale={locale}
+    languageLinks={{ en: "/", de: "/de/" }}
   />
 
   <main id="main-content">
-    <ServiceRibbon text={content.serviceIntro} />
+    <ServiceRibbon text={content.serviceIntro} locale={locale} />
 
     <section
       class="product-hero page-shell"
@@ -181,7 +270,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
             {content.hero.primaryLabel} <span aria-hidden="true">↓</span>
           </a>
           <a class="button button--ghost" href={content.repositoryUrl} target="_blank" rel="noopener noreferrer">
-            View the source <span aria-hidden="true">↗</span>
+            {labels.viewSource} <span aria-hidden="true">↗</span>
           </a>
         </div>
       </div>
@@ -193,17 +282,18 @@ const featurePresentations: Record<string, FeaturePresentation> = {
           video={assets.heroLoop}
           alt={content.hero.alt}
           sizes="(min-width: 64rem) 55vw, 100vw"
+          locale={locale}
         />
       </figure>
     </section>
 
     <div
       class="proof-console page-shell"
-      aria-label="Product characteristics"
+      aria-label={labels.proofAria}
       data-section-pattern="proof-strip"
     >
       <div class="proof-console__label" aria-hidden="true">
-        <span>Operating posture</span>
+        <span>{labels.proofLabel}</span>
         <strong>{String(content.proof.length).padStart(2, "0")}</strong>
       </div>
       <ol class="proof-strip">
@@ -243,16 +333,23 @@ const featurePresentations: Record<string, FeaturePresentation> = {
 
         <div class="specs__controls">
           <button type="button" class="specs__control" data-specs-eli10 aria-pressed="false">
-            ELI10 mode
+            {labels.specsEli10}
           </button>
-          <button type="button" class="specs__control" data-specs-flip-all aria-pressed="false">
-            Flip all
+          <button
+            type="button"
+            class="specs__control"
+            data-specs-flip-all
+            data-label-flip={labels.specsFlipAll}
+            data-label-unflip={labels.specsUnflipAll}
+            aria-pressed="false"
+          >
+            {labels.specsFlipAll}
           </button>
           <button
             type="button"
             class="specs__control specs__control--shuffle"
             data-specs-shuffle
-            aria-label="Shuffle the specs grid"
+            aria-label={labels.specsShuffle}
           >
             ⤨
           </button>
@@ -328,6 +425,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
         image={assets.problem}
         alt={content.problem.visualAlt}
         caption={content.problem.visualCaption}
+        locale={locale}
       />
     </section>
 
@@ -342,9 +440,10 @@ const featurePresentations: Record<string, FeaturePresentation> = {
       closing={content.model.closing}
       tone="ink"
       pattern="guided-workflow"
+      locale={locale}
     />
 
-    {content.slug === "paimos" && <PaimosProductSurface />}
+    {content.slug === "paimos" && <PaimosProductSurface locale={locale} />}
 
     <div id="capabilities">
       {content.featureSections.map((feature, index) => {
@@ -365,8 +464,9 @@ const featurePresentations: Record<string, FeaturePresentation> = {
               <InspectableRail
                 id={`${content.slug}-${feature.id}`}
                 items={feature.items}
-                label="Trace the capability system"
-                signalLabel="Selected capability"
+                label={labels.capabilityRailLabel}
+                signalLabel={labels.capabilityRailSignal}
+                locale={locale}
               />
             ) : (
               <FeatureExperience
@@ -374,6 +474,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
                 items={feature.items}
                 variant={presentation}
                 label={feature.eyebrow}
+                locale={locale}
               />
             )}
           </section>
@@ -391,7 +492,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
         <h2 id="audience-title">{content.audiences.title}</h2>
         <p class="section-lead">{content.audiences.lead}</p>
       </header>
-      <AudiencePaths id={`${content.slug}-audiences`} items={content.audiences.items} />
+      <AudiencePaths id={`${content.slug}-audiences`} items={content.audiences.items} locale={locale} />
     </section>
 
     <section
@@ -409,12 +510,12 @@ const featurePresentations: Record<string, FeaturePresentation> = {
         </div>
         <div
           class:list={["architecture__diagram", { "architecture__diagram--planes": content.slug === "janus" }]}
-          aria-label={content.slug === "janus" ? "Two-plane architecture with value-free evidence return" : "Architecture flow"}
+          aria-label={content.slug === "janus" ? labels.architecturePlanesAria : labels.architectureFlowAria}
         >
           {content.slug === "janus" ? (
             <>
               <div class="architecture__plane architecture__plane--policy">
-                <p>Policy and oversight plane</p>
+                <p>{labels.policyPlane}</p>
                 {content.architecture.flow.slice(0, 5).map((item, index) => (
                   <div class="architecture__node">
                     <span class="architecture__node-index">{String(index + 1).padStart(2, "0")}</span>
@@ -426,7 +527,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
                 ))}
               </div>
               <div class="architecture__plane architecture__plane--execution">
-                <p>Custody and execution plane</p>
+                <p>{labels.executionPlane}</p>
                 {content.architecture.flow.slice(5, 7).map((item, index) => {
                   const flowIndex = index + 5;
                   return (
@@ -440,7 +541,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
                   );
                 })}
                 <p class="architecture__plane-note">
-                  Secret material exists only inside this approved execution path.
+                  {labels.executionPlaneNote}
                 </p>
               </div>
               <div class="architecture__node architecture__return">
@@ -449,7 +550,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
                   <ContextIcon name={architectureIcons[7] ?? "circle-dot"} size={23} strokeWidth={2} />
                 </span>
                 <strong>{content.architecture.flow[7]}</strong>
-                <small>Returns to oversight without the secret value</small>
+                <small>{labels.planeReturn}</small>
               </div>
             </>
           ) : (
@@ -489,9 +590,10 @@ const featurePresentations: Record<string, FeaturePresentation> = {
         <InspectableRail
           id={`${content.slug}-trust`}
           items={content.trust.items}
-          label="Inspect each enforced boundary"
-          signalLabel="Boundary evidence"
+          label={labels.trustRailLabel}
+          signalLabel={labels.trustRailSignal}
           tone="ink"
+          locale={locale}
         />
       </div>
     </section>
@@ -507,22 +609,26 @@ const featurePresentations: Record<string, FeaturePresentation> = {
         <h2 id="integrations-title">{content.integrations.title}</h2>
         <p class="section-lead">{content.integrations.lead}</p>
       </header>
-      <div class="integration-filters" role="group" aria-label="Filter integrations by maturity">
-        <button type="button" aria-pressed="true" data-integration-filter="all">All</button>
+      <div class="integration-filters" role="group" aria-label={labels.integrationFilterAria}>
+        <button type="button" aria-pressed="true" data-integration-filter="all">{labels.integrationAll}</button>
         {integrationStatuses.map((status) => (
           <button type="button" aria-pressed="false" data-integration-filter={status}>
             {status}
           </button>
         ))}
-        <span class="integration-filters__count" aria-live="polite">
-          {content.integrations.items.length} shown
+        <span
+          class="integration-filters__count"
+          aria-live="polite"
+          data-count-label={labels.integrationShown}
+        >
+          {content.integrations.items.length} {labels.integrationShown}
         </span>
       </div>
-      <p class="table-scroll-hint" aria-hidden="true">Swipe to inspect details <span>→</span></p>
-      <div class="table-wrap" tabindex="0" aria-label="Integration matrix">
+      <p class="table-scroll-hint" aria-hidden="true">{labels.integrationSwipe} <span>→</span></p>
+      <div class="table-wrap" tabindex="0" aria-label={labels.integrationTableAria}>
         <table>
           <thead>
-            <tr><th>Integration</th><th>Status</th><th>What it does</th></tr>
+            <tr><th>{labels.integrationColumn}</th><th>{labels.statusColumn}</th><th>{labels.descriptionColumn}</th></tr>
           </thead>
           <tbody>
             {content.integrations.items.map((item) => (
@@ -549,7 +655,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
           <h2 id="limits-title">{content.limits.title}</h2>
           <p class="section-lead">{content.limits.lead}</p>
         </header>
-        <ConstraintRegister items={content.limits.items} />
+        <ConstraintRegister items={content.limits.items} locale={locale} />
       </div>
     </section>
 
@@ -564,7 +670,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
         <h2 id="source-title">{content.openSource.title}</h2>
         <p class="section-lead">{content.openSource.body}</p>
       </div>
-      <ProvenanceReceipt links={content.openSource.links} />
+      <ProvenanceReceipt links={content.openSource.links} locale={locale} />
     </section>
 
     <section
@@ -573,8 +679,8 @@ const featurePresentations: Record<string, FeaturePresentation> = {
       data-section-pattern="faq-accordion"
     >
       <header class="section-intro">
-        <p class="eyebrow">Practical questions</p>
-        <h2 id="faq-title">Before you adopt it.</h2>
+        <p class="eyebrow">{labels.faqEyebrow}</p>
+        <h2 id="faq-title">{labels.faqTitle}</h2>
       </header>
       <div class="faq-list">
         {content.faq.map((item) => (
@@ -594,6 +700,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
     licenseUrl={content.license.url}
     ctaTitle={content.finalCta.title}
     ctaBody={content.finalCta.body}
+    locale={locale}
   />
 </MicrositeLayout>
 
@@ -608,6 +715,8 @@ const featurePresentations: Record<string, FeaturePresentation> = {
       const rows = [...root.querySelectorAll<HTMLTableRowElement>("[data-integration-row]")];
       const count = root.querySelector<HTMLElement>(".integration-filters__count");
 
+      const countLabel = count?.dataset.countLabel ?? "shown";
+
       filters.forEach((filter) => {
         filter.addEventListener("click", () => {
           const selected = filter.dataset.integrationFilter ?? "all";
@@ -619,7 +728,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
             row.hidden = selected !== "all" && row.dataset.integrationRow !== selected;
             if (!row.hidden) visible += 1;
           });
-          if (count) count.textContent = `${visible} shown`;
+          if (count) count.textContent = `${visible} ${countLabel}`;
         });
       });
     });

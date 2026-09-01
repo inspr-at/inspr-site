@@ -13,9 +13,13 @@ one Astro application.
 | `/de/ueberblick/` | `www.inspr.at` concise German overview |
 | `/eli10/` | 308 compatibility redirect to `/overview/` |
 | `/aithema/` | `aithema.inspr.at` |
+| `/aithema/de/` | `aithema.inspr.at/de/` German edition |
 | `/paimos/` | `paimos.inspr.at` |
+| `/paimos/de/` | `paimos.inspr.at/de/` German edition |
 | `/pharos/` | `pharos.inspr.at` |
+| `/pharos/de/` | `pharos.inspr.at/de/` German edition |
 | `/janus/` | `janus.inspr.at` |
+| `/janus/de/` | `janus.inspr.at/de/` German edition |
 
 The Aithema page links to the working hosted preview at
 `start.augmentoring.com`; the preview itself is not built by this repository.
@@ -51,6 +55,16 @@ footers and the manifest identify the exact immutable release transaction.
 `src/components/ProductPage.astro` renders the released product pages from the
 typed objects in `src/content/`. Keep product facts grounded in the
 corresponding source repository and keep current limits visible.
+
+Each product microsite is bilingual. The German editions render through the
+same components from `src/content/de/*.ts` at `/{product}/de/`; English stays
+at the host root and both editions publish canonical, `hreflang` (`en`, `de`,
+`x-default`) and matching `og:locale` metadata. The shared
+`public/scripts/locale-preference.js` applies browser-language detection only
+on the English root before an explicit choice; the DE | EN header switch
+persists the choice per host and preserves section hash and query. When a
+product claim changes, update both language files together; the content tests
+enforce structural parity and the no-em-dash rule for German copy too.
 
 Aithema uses the preview-specific `PreviewProductContent` model and
 `AithemaProductPage.astro`. That surface intentionally has no repository,

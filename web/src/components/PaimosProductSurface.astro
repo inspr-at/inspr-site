@@ -11,9 +11,67 @@ import loopIssueWorkbench from "../assets/products/paimos/loop-issue-workbench.m
 import loopSearchNavigate from "../assets/products/paimos/loop-search-navigate.mp4";
 import captureManifest from "../assets/products/paimos/capture-manifest.json";
 
+interface Props {
+  locale?: "en" | "de";
+}
+
+const locale: "en" | "de" = Astro.props.locale === "de" ? "de" : "en";
+const copy = (english: string, german: string) => locale === "de" ? german : english;
+
 // This version describes the captured pixels, not the currently deployed
 // application. Keep it unchanged until the images themselves are regenerated.
 const captureRelease = `v${captureManifest.release}`;
+
+// Provenance suffix for every gallery caption. The captured product UI is
+// English in both editions; only the editorial framing is localized.
+const provenanceCaption = copy(
+  `Demo workspace, Paimos ${captureRelease}.`,
+  `Demo-Arbeitsbereich, Paimos ${captureRelease}.`,
+);
+
+// German product copy stays free of em dashes; the English separator is the
+// established caption style and remains unchanged.
+const captionSeparator = copy(" — ", ": ");
+
+const labels = locale === "de"
+  ? {
+      eyebrow: "Im Produkt",
+      title: "Ein echtes Ticket. Kontext inklusive.",
+      lead:
+        "Diese Paimos-Ticketwerkbank stammt aus einem synthetisch befüllten Demo-Build. Wählen Sie eine Markierung, um zu sehen, wie Absicht, Befugnis und abgerufenes Wissen auf einer Arbeitsfläche zusammentreffen, oder öffnen Sie die weiteren Ansichten unten.",
+      frameAlt:
+        "Paimos-Ticketwerkbank mit synthetischen Daten, Ausführungskontrollen, anwendbarem Wissen und Aktivitätsnachweisen",
+      figcaption: `Demo-Arbeitsbereich, Paimos ${captureRelease}: synthetisch befüllte Demo-Daten.`,
+      marker: "Markierung",
+      markerInspect: "prüfen",
+      annotationsAria: "Screenshot-Anmerkungen",
+      inspectImplementation: "Die Implementierung prüfen",
+      pause: "Pausieren",
+      resume: "Fortsetzen",
+      pauseLabel: "Automatischen Ablauf pausieren",
+      resumeLabel: "Automatischen Ablauf fortsetzen",
+      viewsAria: "Weitere Produktansichten",
+      videoFallbackAria: "Paimos-Produktdemo",
+    }
+  : {
+      eyebrow: "Inside the product",
+      title: "A real issue. Context attached.",
+      lead:
+        "This Paimos issue workbench is captured from a seeded demo build with synthetic data. Select a marker to inspect how intent, authority and retrieved knowledge meet in one work surface — or open the other views below.",
+      frameAlt:
+        "Paimos issue workbench with synthetic data, execution controls, applicable memory and activity evidence",
+      figcaption: `Demo workspace, Paimos ${captureRelease} — seeded synthetic data.`,
+      marker: "Marker",
+      markerInspect: "Inspect",
+      annotationsAria: "Screenshot annotations",
+      inspectImplementation: "Inspect the implementation",
+      pause: "Pause",
+      resume: "Resume",
+      pauseLabel: "Pause automatic progression",
+      resumeLabel: "Resume automatic progression",
+      viewsAria: "More product views",
+      videoFallbackAria: "Paimos product demo",
+    };
 
 // More views of the same demo workspace; each opens in a lightbox dialog.
 // Ordered deliberately: the AI-era surfaces lead, the classic ceremony
@@ -22,39 +80,67 @@ const imageViews = [
   {
     id: "voice-intake",
     image: uiVoiceIntake,
-    title: "Voice intake",
-    caption:
+    title: copy("Voice intake", "Spracheingabe"),
+    caption: copy(
       "Talk through an idea; the spec, the impact on existing work, and the ticket assemble as you speak.",
-    alt: "Paimos voice intake workbench: a live specification beside impact analysis, an understanding check and a ticket preview",
+      "Sprechen Sie eine Idee durch; Spezifikation, Auswirkungen auf bestehende Arbeit und das Ticket entstehen beim Reden.",
+    ),
+    alt: copy(
+      "Paimos voice intake workbench: a live specification beside impact analysis, an understanding check and a ticket preview",
+      "Paimos-Spracheingabe: eine live entstehende Spezifikation neben Auswirkungsanalyse, Verständnisprüfung und Ticket-Vorschau",
+    ),
   },
   {
     id: "search",
     image: uiSearch,
-    title: "Search everything",
-    caption: "Live results across every project as you type — keyboard-first, jump straight to the work.",
-    alt: "Paimos global search overlay showing live cross-project results with keyboard shortcuts",
+    title: copy("Search everything", "Alles durchsuchen"),
+    caption: copy(
+      "Live results across every project as you type — keyboard-first, jump straight to the work.",
+      "Live-Ergebnisse über alle Projekte beim Tippen: tastaturzentriert, direkt hinein in die Arbeit.",
+    ),
+    alt: copy(
+      "Paimos global search overlay showing live cross-project results with keyboard shortcuts",
+      "Globale Paimos-Suche mit projektübergreifenden Live-Ergebnissen und Tastaturkürzeln",
+    ),
   },
   {
     id: "agent-mode",
     image: uiAgentMode,
     title: "Agent Mode",
-    caption:
+    caption: copy(
       "Supervise active deliveries from one calm view with project scope, contextual commands and explicit detail controls.",
-    alt: "Paimos Agent Mode showing synthetic active deliveries, a project picker, contextual command hints and calm delivery cards",
+      "Begleiten Sie aktive Lieferungen aus einer ruhigen Ansicht, mit Projektumfang, kontextbezogenen Befehlen und expliziten Detailkontrollen.",
+    ),
+    alt: copy(
+      "Paimos Agent Mode showing synthetic active deliveries, a project picker, contextual command hints and calm delivery cards",
+      "Paimos Agent Mode mit synthetischen aktiven Lieferungen, Projektauswahl, kontextbezogenen Befehlshinweisen und ruhigen Lieferkarten",
+    ),
   },
   {
     id: "issues",
     image: uiIssues,
-    title: "Issues",
-    caption: "The classic backlog — saved views, filters, undo — for teams that live in lists.",
-    alt: "Paimos issues list showing the demo backlog with type, status and action columns",
+    title: copy("Issues", "Tickets"),
+    caption: copy(
+      "The classic backlog — saved views, filters, undo — for teams that live in lists.",
+      "Das klassische Backlog mit gespeicherten Ansichten, Filtern und Undo, für Teams, die in Listen leben.",
+    ),
+    alt: copy(
+      "Paimos issues list showing the demo backlog with type, status and action columns",
+      "Paimos-Ticketliste mit dem Demo-Backlog samt Typ-, Status- und Aktionsspalten",
+    ),
   },
   {
     id: "board",
     image: uiBoard,
-    title: "Sprint board",
-    caption: "Sprints, fully supported — for the teams that still run them. No judgement.",
-    alt: "Paimos sprint board showing a demo sprint with done, in-progress and backlog tickets",
+    title: copy("Sprint board", "Sprint-Board"),
+    caption: copy(
+      "Sprints, fully supported — for the teams that still run them. No judgement.",
+      "Sprints, voll unterstützt, für die Teams, die sie weiter fahren. Ganz ohne Urteil.",
+    ),
+    alt: copy(
+      "Paimos sprint board showing a demo sprint with done, in-progress and backlog tickets",
+      "Paimos-Sprint-Board mit einem Demo-Sprint aus erledigten, laufenden und offenen Tickets",
+    ),
   },
 ];
 
@@ -85,17 +171,29 @@ const videoViews = await Promise.all(
       id: "issue-workbench-flow",
       video: loopIssueWorkbench,
       image: productSurface,
-      title: "Issue to execution",
-      caption: "Open a real ticket and bring its execution boundary into view.",
-      alt: "Play a short seeded Paimos flow from issue context to the implementation controls",
+      title: copy("Issue to execution", "Vom Ticket zur Ausführung"),
+      caption: copy(
+        "Open a real ticket and bring its execution boundary into view.",
+        "Öffnen Sie ein echtes Ticket und holen Sie seine Ausführungsgrenze ins Bild.",
+      ),
+      alt: copy(
+        "Play a short seeded Paimos flow from issue context to the implementation controls",
+        "Kurzen synthetischen Paimos-Ablauf vom Ticketkontext zu den Umsetzungskontrollen abspielen",
+      ),
     },
     {
       id: "search-navigate-flow",
       video: loopSearchNavigate,
       image: uiSearch,
-      title: "Search to context",
-      caption: "Search across projects, choose the result, and land on the work itself.",
-      alt: "Play a short seeded Paimos flow that searches across projects and opens the selected issue",
+      title: copy("Search to context", "Von der Suche zum Kontext"),
+      caption: copy(
+        "Search across projects, choose the result, and land on the work itself.",
+        "Suchen Sie über Projekte hinweg, wählen Sie das Ergebnis und landen Sie direkt bei der Arbeit.",
+      ),
+      alt: copy(
+        "Play a short seeded Paimos flow that searches across projects and opens the selected issue",
+        "Kurzen synthetischen Paimos-Ablauf abspielen, der über Projekte hinweg sucht und das gewählte Ticket öffnet",
+      ),
     },
   ].map(async (view) => {
     const poster = await getImage({
@@ -119,53 +217,73 @@ const galleryViews = [...videoViews, ...fullViews];
 
 const details = [
   {
-    label: "Issue context",
-    title: "The issue stays the unit of intent.",
-    body:
+    label: copy("Issue context", "Ticketkontext"),
+    title: copy(
+      "The issue stays the unit of intent.",
+      "Das Ticket bleibt die Einheit der Absicht.",
+    ),
+    body: copy(
       "Type, state, priority and project membership remain visible while agent work is prepared. The run starts from a real work item, not a detached chat.",
+      "Typ, Status, Priorität und Projektzugehörigkeit bleiben sichtbar, während Agentenarbeit vorbereitet wird. Der Lauf startet aus einem echten Arbeitselement, nicht aus einem losgelösten Chat.",
+    ),
     icon: "folder-kanban",
     href: "https://github.com/inspr-at/paimos/blob/main/docs/AI_CONTROL_PLANE_UX.md",
   },
   {
-    label: "Execution boundary",
-    title: "Authority is chosen before work starts.",
-    body:
+    label: copy("Execution boundary", "Ausführungsgrenze"),
+    title: copy(
+      "Authority is chosen before work starts.",
+      "Die Befugnis wird vor Arbeitsbeginn gewählt.",
+    ),
+    body: copy(
       "The selected runner and deployment mode define what may happen. Draft providers can prepare work; trusted runners can edit and test; deployment remains separately deliberate.",
+      "Der gewählte Runner und der Deployment-Modus bestimmen, was passieren darf. Entwurfsanbieter können Arbeit vorbereiten; vertrauenswürdige Runner dürfen bearbeiten und testen; die Bereitstellung bleibt eine separate bewusste Entscheidung.",
+    ),
     icon: "shield-check",
     href: "https://github.com/inspr-at/paimos/blob/main/docs/IMPLEMENT_THIS_PROVIDERS.md",
   },
   {
-    label: "Retrieved knowledge",
-    title: "Applicable memory returns with provenance.",
-    body:
+    label: copy("Retrieved knowledge", "Abgerufenes Wissen"),
+    title: copy(
+      "Applicable memory returns with provenance.",
+      "Anwendbares Wissen kommt mit Provenienz zurück.",
+    ),
+    body: copy(
       "Project knowledge, issue links and file anchors can be attached to the task. Agents receive relevant context without turning every run into a manual prompt-engineering exercise.",
+      "Projektwissen, Ticket-Verknüpfungen und Datei-Anker lassen sich an die Aufgabe heften. Agenten erhalten relevanten Kontext, ohne dass jeder Lauf zur manuellen Prompt-Bastelei wird.",
+    ),
     icon: "book-open-check",
     href: "https://github.com/inspr-at/paimos/blob/main/docs/agent-retrieval.md",
   },
 ];
+
+const hotspotLabel = (index: number, label: string) =>
+  locale === "de"
+    ? `${labels.marker} ${index + 1}: ${label} ${labels.markerInspect}`
+    : `${labels.marker} ${index + 1}: ${labels.markerInspect} ${label}`;
 ---
 
 <section
   class="product-surface section page-shell"
   aria-labelledby="surface-title"
   data-product-surface
+  data-pause-label={labels.pause}
+  data-resume-label={labels.resume}
+  data-pause-accessible-label={labels.pauseLabel}
+  data-resume-accessible-label={labels.resumeLabel}
   data-section-pattern="annotated-product-surface"
 >
   <header class="section-intro section-intro--wide">
-    <p class="eyebrow">Inside the product</p>
-    <h2 id="surface-title">A real issue. Context attached.</h2>
-    <p class="section-lead">
-      This Paimos issue workbench is captured from a seeded demo build with
-      synthetic data. Select a marker to inspect how intent, authority and
-      retrieved knowledge meet in one work surface — or open the other views below.
-    </p>
+    <p class="eyebrow">{labels.eyebrow}</p>
+    <h2 id="surface-title">{labels.title}</h2>
+    <p class="section-lead">{labels.lead}</p>
   </header>
 
   <div class="product-surface__grid">
     <figure class="product-surface__frame">
       <Image
         src={productSurface}
-        alt="Paimos issue workbench with synthetic data, execution controls, applicable memory and activity evidence"
+        alt={labels.frameAlt}
         widths={[720, 1080, 1440]}
         sizes="(min-width: 64rem) 68vw, 100vw"
         quality={86}
@@ -175,7 +293,7 @@ const details = [
         <button
           type="button"
           class:list={["product-surface__hotspot", `product-surface__hotspot--${index + 1}`]}
-          aria-label={`Marker ${index + 1}: Inspect ${detail.label}`}
+          aria-label={hotspotLabel(index, detail.label)}
           aria-pressed={index === 0 ? "true" : "false"}
           aria-controls={`surface-panel-${index}`}
           data-surface-trigger={index}
@@ -183,11 +301,11 @@ const details = [
           <span>{index + 1}</span>
         </button>
       ))}
-      <figcaption>Demo workspace, Paimos {captureRelease} — seeded synthetic data.</figcaption>
+      <figcaption>{labels.figcaption}</figcaption>
     </figure>
 
     <div class="product-surface__details">
-      <div class="product-surface__nav" role="tablist" aria-label="Screenshot annotations">
+      <div class="product-surface__nav" role="tablist" aria-label={labels.annotationsAria}>
         {details.map((detail, index) => (
           <button
             type="button"
@@ -211,13 +329,13 @@ const details = [
         <button
           class="product-surface__toggle"
           type="button"
-          aria-label="Pause automatic progression"
+          aria-label={labels.pauseLabel}
           aria-pressed="false"
-          title="Pause automatic progression"
+          title={labels.pauseLabel}
           data-surface-toggle
         >
           <span aria-hidden="true"><i></i><i></i></span>
-          <b data-surface-toggle-label>Pause</b>
+          <b data-surface-toggle-label>{labels.pause}</b>
         </button>
       </div>
 
@@ -230,11 +348,11 @@ const details = [
             hidden={index !== 0}
             data-surface-panel={index}
           >
-            <p class="card-meta">Marker {String(index + 1).padStart(2, "0")}</p>
+            <p class="card-meta">{labels.marker} {String(index + 1).padStart(2, "0")}</p>
             <h3>{detail.title}</h3>
             <p>{detail.body}</p>
             <a href={detail.href} target="_blank" rel="noopener noreferrer">
-              Inspect the implementation <span aria-hidden="true">↗</span>
+              {labels.inspectImplementation} <span aria-hidden="true">↗</span>
             </a>
           </div>
         ))}
@@ -242,7 +360,7 @@ const details = [
     </div>
   </div>
 
-  <div class="product-surface__views" aria-label="More product views">
+  <div class="product-surface__views" aria-label={labels.viewsAria}>
     {galleryViews.map((view) => (
       <a
         class:list={[
@@ -258,7 +376,7 @@ const details = [
         data-video-src={view.kind === "video" ? view.fullSrc : undefined}
         data-video-poster={view.kind === "video" ? view.posterSrc : undefined}
         data-video-label={view.kind === "video" ? view.alt : undefined}
-        data-caption={`${view.title} — ${view.caption} Demo workspace, Paimos ${captureRelease}.`}
+        data-caption={`${view.title}${captionSeparator}${view.caption} ${provenanceCaption}`}
       >
         <span class="product-surface__view-thumb">
           <Image
@@ -424,10 +542,12 @@ const details = [
 
       const updateToggle = () => {
         if (!toggle) return;
-        const action = userPaused ? "Resume" : "Pause";
+        const action = userPaused
+          ? root.dataset.resumeLabel ?? "Resume"
+          : root.dataset.pauseLabel ?? "Pause";
         const accessibleLabel = userPaused
-          ? "Resume automatic progression"
-          : "Pause automatic progression";
+          ? root.dataset.resumeAccessibleLabel ?? "Resume automatic progression"
+          : root.dataset.pauseAccessibleLabel ?? "Pause automatic progression";
         toggle.disabled = reducedMotion.matches;
         toggle.setAttribute("aria-pressed", String(userPaused));
         toggle.setAttribute("aria-label", accessibleLabel);

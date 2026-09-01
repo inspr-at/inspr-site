@@ -14,6 +14,7 @@ async function runLocalePreference({
   languages = ["en"],
   storedLocale = null,
   search = "",
+  hash = "",
   storageThrows = false,
 } = {}) {
   const code = await readFile(new URL("public/scripts/locale-preference.js", webRoot), "utf8");
@@ -37,12 +38,14 @@ async function runLocalePreference({
       return links;
     },
   };
+  const pathname = currentLocale === "de" ? "/de/" : "/";
   const window = {
     document,
     location: {
-      pathname: currentLocale === "de" ? "/de/" : "/",
+      pathname,
       search,
-      hash: "",
+      hash,
+      href: `https://product.test${pathname}${search}${hash}`,
       replace(target) {
         replacedWith = target;
       },
@@ -73,22 +76,30 @@ async function runLocalePreference({
     HTMLScriptElement,
     navigator: { language: languages[0], languages },
     String,
+    URL,
     URLSearchParams,
     window,
   });
 
-  const addLanguageLink = (choice) => {
+  const addLanguageLink = (choice, href = null) => {
     const handlers = {};
+    const attributes = { href };
     const link = {
       addEventListener(event, callback) {
         handlers[event] = callback;
       },
       getAttribute(name) {
-        return name === "data-language-choice" ? choice : null;
+        if (name === "data-language-choice") return choice;
+        return attributes[name] ?? null;
+      },
+      setAttribute(name, value) {
+        attributes[name] = value;
       },
     };
     links.push(link);
-    return () => handlers.click?.();
+    const click = () => handlers.click?.();
+    click.link = link;
+    return click;
   };
 
   return {
@@ -109,6 +120,7 @@ async function runLocalePreference({
         HTMLScriptElement,
         navigator: { language: languages[0], languages },
         String,
+        URL,
         URLSearchParams,
         window,
       });
@@ -215,6 +227,30 @@ test("an explicit language choice persists and overrides browser language", asyn
   manual.rerunDomReady();
   clickGerman();
   assert.equal(manual.storage.get("inspr-language"), "de");
+});
+
+test("automatic locale redirect preserves the current query and hash", async () => {
+  const run = await runLocalePreference({
+    languages: ["de-AT"],
+    search: "?ref=mail",
+    hash: "#model",
+  });
+  assert.equal(run.replacedWith, "/de/?ref=mail#model");
+});
+
+test("a language switch click carries the section hash and query to the alternate locale", async () => {
+  const run = await runLocalePreference({
+    currentLocale: "en",
+    detectLocale: false,
+    languages: ["en"],
+    search: "?ref=mail",
+    hash: "#trust",
+  });
+  const clickGerman = run.addLanguageLink("de", "/de/?lang=de");
+  run.rerunDomReady();
+  clickGerman();
+  assert.equal(run.storage.get("inspr-language"), "de");
+  assert.equal(clickGerman.link.getAttribute("href"), "/de/?lang=de&ref=mail#trust");
 });
 
 test("an explicit language arrival works when localStorage is unavailable", async () => {

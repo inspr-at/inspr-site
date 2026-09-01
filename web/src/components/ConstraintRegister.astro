@@ -1,17 +1,21 @@
 ---
 interface Props {
   items: string[];
+  locale?: "en" | "de";
 }
 
-const { items } = Astro.props;
+const { items, locale = "en" } = Astro.props;
+const labels = locale === "de"
+  ? { list: "Deklarierte Produktgrenzen", item: "Deklarierte Grenze" }
+  : { list: "Declared product boundaries", item: "Declared boundary" };
 ---
 
-<ol class="constraint-register" aria-label="Declared product boundaries">
+<ol class="constraint-register" aria-label={labels.list}>
   {items.map((item, index) => (
     <li>
       <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
       <div>
-        <small>Declared boundary</small>
+        <small>{labels.item}</small>
         <p>{item}</p>
       </div>
     </li>

@@ -57,6 +57,12 @@ const languageChoiceHref = (href: string, choice: "en" | "de") => {
   url.searchParams.set("lang", choice);
   return isAbsolute ? url.toString() : `${url.pathname}${url.search}${url.hash}`;
 };
+
+// Cross-host navigation keeps the reader's language: every product host
+// serves its German edition at /de/, and ?lang=de records the choice on the
+// destination origin (localStorage does not cross hosts).
+const productHref = (href: string) =>
+  locale === "de" ? `${href}/de/?lang=de` : href;
 ---
 
 <header class="site-header">
@@ -118,7 +124,7 @@ const languageChoiceHref = (href: string, choice: "en" | "de") => {
           <div class="product-switcher__panel">
             {productLinks.map((item) => (
               <a
-                href={item.href}
+                href={productHref(item.href)}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`${item.label}, ${labels.opensInNewTab}`}

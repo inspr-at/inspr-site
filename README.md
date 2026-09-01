@@ -2,22 +2,31 @@
 
 **One idea, four products, one human-approved path.**
 
+Read the complete story in [English](https://www.inspr.at/) or
+[German](https://www.inspr.at/de/). For the concise path, open the
+[English Overview](https://www.inspr.at/overview/) or the
+[German Überblick](https://www.inspr.at/de/ueberblick/).
+
 This repository powers the bilingual INSPR site family:
 
 - [www.inspr.at](https://www.inspr.at) - the INSPR idea and product map;
-- [aithema.inspr.at](https://aithema.inspr.at) - the Aithema requirements product page;
-- [start.augmentoring.com](https://start.augmentoring.com) - the hosted Aithema requirements preview;
-- [paimos.inspr.at](https://paimos.inspr.at) - shared project context for people and AI agents;
-- [pharos.inspr.at](https://pharos.inspr.at) - clear fleet operations;
-- [janus.inspr.at](https://janus.inspr.at) - policy-bound secret use;
+- [aithema.inspr.at](https://aithema.inspr.at) - requirements a person reviews
+  before work begins ([Deutsch](https://aithema.inspr.at/de/));
+- [paimos.inspr.at](https://paimos.inspr.at) - project context and
+  specifications for people and AI agents ([Deutsch](https://paimos.inspr.at/de/));
+- [pharos.inspr.at](https://pharos.inspr.at) - server selection, backup evidence
+  and guarded production deployment ([Deutsch](https://pharos.inspr.at/de/));
+- [janus.inspr.at](https://janus.inspr.at) - permits, approved secret-backed use
+  and access rotation ([Deutsch](https://janus.inspr.at/de/));
 - [v1.inspr.at](https://v1.inspr.at) - the frozen pre-relaunch archive.
 
 Aithema (pronounced **AI-Thema**) is the first product in the family sequence
 and owns requirements. Its product page is live at `aithema.inspr.at`. The
-working public preview remains at
-[start.augmentoring.com](https://start.augmentoring.com). A reusable open-source
-Aithema template or module is planned; neither a product repository nor a
-product license is claimed before that source exists.
+working public preview is hosted separately at
+[start.augmentoring.com](https://start.augmentoring.com) and is not built by
+this repository. A reusable open-source Aithema template or module is planned;
+neither a product repository nor a product license is claimed before that
+source exists.
 
 The product sites are intentionally lightweight. INSPR and its products are
 open work by [Markus Barta](https://github.com/markus-barta). The sites explain
@@ -316,6 +325,8 @@ product page links to its source, project license, official AGPL text, and
 professional services.
 
 ## License
+
+Copyright © 2026 [Markus Barta](https://github.com/markus-barta).
 
 The original work in this repository is licensed under
 [`AGPL-3.0-only`](LICENSE). Third-party software, fonts, archived materials,

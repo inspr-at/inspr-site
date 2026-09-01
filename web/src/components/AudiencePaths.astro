@@ -5,13 +5,15 @@ import type { CardItem } from "../content/types";
 interface Props {
   id: string;
   items: CardItem[];
+  locale?: "en" | "de";
 }
 
-const { id, items } = Astro.props;
+const { id, items, locale = "en" } = Astro.props;
 const icons = ["user-round-check", "workflow", "server", "shield-check", "waypoints"];
+const listLabel = locale === "de" ? "Betriebsperspektiven" : "Operating perspectives";
 ---
 
-<ol class="audience-paths" aria-label="Operating perspectives">
+<ol class="audience-paths" aria-label={listLabel}>
   {items.map((item, index) => (
     <li>
       <article tabindex="0" aria-labelledby={`${id}-audience-${index}`}>

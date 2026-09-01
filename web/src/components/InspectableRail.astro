@@ -8,9 +8,13 @@ interface Props {
   label: string;
   signalLabel: string;
   tone?: "paper" | "ink";
+  locale?: "en" | "de";
 }
 
-const { id, items, label, signalLabel, tone = "paper" } = Astro.props;
+const { id, items, label, signalLabel, tone = "paper", locale = "en" } = Astro.props;
+const labels = locale === "de"
+  ? { evidence: "Betriebssignal" }
+  : { evidence: "Operational signal" };
 const fallbackIcons = [
   "circle-dot",
   "waypoints",
@@ -114,7 +118,7 @@ const fallbackIcons = [
                 {
                   item.meta && (
                     <p class="inspectable-rail__evidence">
-                      <strong>Operational signal</strong>
+                      <strong>{labels.evidence}</strong>
                       <span>{item.meta}</span>
                     </p>
                   )

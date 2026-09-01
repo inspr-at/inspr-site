@@ -387,8 +387,11 @@ test("Paimos public evidence keeps release and capture provenance honest", async
   assert.match(surface, /import uiAgentMode from .*ui-agent-mode\.png/);
   assert.match(surface, /title: "Agent Mode"/);
   assert.match(surface, /const captureRelease = `v\$\{captureManifest\.release\}`;/);
-  assert.match(surface, /<figcaption>Demo workspace, Paimos \{captureRelease\}/);
+  assert.match(surface, /figcaption: `Demo workspace, Paimos \$\{captureRelease\} — seeded synthetic data\.`/);
+  assert.match(surface, /figcaption: `Demo-Arbeitsbereich, Paimos \$\{captureRelease\}: synthetisch befüllte Demo-Daten\.`/);
+  assert.match(surface, /<figcaption>\{labels\.figcaption\}<\/figcaption>/);
   assert.match(surface, /Demo workspace, Paimos \$\{captureRelease\}/);
+  assert.match(surface, /Demo-Arbeitsbereich, Paimos \$\{captureRelease\}/);
   assert.doesNotMatch(surface, /current build/);
   assert.match(surface, /seeded synthetic data/);
   assert.match(content, /runner-declared before\/after commit range beside the outcome/);
@@ -615,7 +618,7 @@ test("interactive explorers use one five-second, pause-only lifecycle", async ()
     );
     assert.match(component, /AbortController/, `${name} must clean up its interaction listeners`);
     assert.match(component, /animation\.cancel\(\)/, `${name} must release finished animations`);
-    assert.match(component, name === "workflow" ? /pause: "Pause"/ : />Pause</, `${name} exposes a pause label before interaction`);
+    assert.match(component, /pause: "Pause"/, `${name} exposes a pause label before interaction`);
     assert.doesNotMatch(component, /Play sequence/, `${name} must not expose a play control`);
     assert.match(
       component,
@@ -846,9 +849,9 @@ test("direct SSH deployment overrides preserve one pinned host identity", async 
       join(fixtureRoot, "web", "dist", "_astro"),
       join(fixtureRoot, "web", "dist", "overview"),
       join(fixtureRoot, "web", "dist", "de", "ueberblick"),
-      join(fixtureRoot, "web", "dist", "paimos"),
-      join(fixtureRoot, "web", "dist", "pharos"),
-      join(fixtureRoot, "web", "dist", "janus"),
+      join(fixtureRoot, "web", "dist", "paimos", "de"),
+      join(fixtureRoot, "web", "dist", "pharos", "de"),
+      join(fixtureRoot, "web", "dist", "janus", "de"),
     ];
     await Promise.all(
       fixtureDirectories.map((directory) => mkdir(directory, { recursive: true })),
@@ -868,8 +871,11 @@ test("direct SSH deployment overrides preserve one pinned host identity", async 
       writeFile(join(fixtureRoot, "web", "dist", "overview", "index.html"), "fixture overview\n"),
       writeFile(join(fixtureRoot, "web", "dist", "de", "ueberblick", "index.html"), "fixture german overview\n"),
       writeFile(join(fixtureRoot, "web", "dist", "paimos", "index.html"), "fixture paimos\n"),
+      writeFile(join(fixtureRoot, "web", "dist", "paimos", "de", "index.html"), "fixture german paimos\n"),
       writeFile(join(fixtureRoot, "web", "dist", "pharos", "index.html"), "fixture pharos\n"),
+      writeFile(join(fixtureRoot, "web", "dist", "pharos", "de", "index.html"), "fixture german pharos\n"),
       writeFile(join(fixtureRoot, "web", "dist", "janus", "index.html"), "fixture janus\n"),
+      writeFile(join(fixtureRoot, "web", "dist", "janus", "de", "index.html"), "fixture german janus\n"),
       writeFile(join(fixtureRoot, "web", "dist", "_astro", "fixture.css"), "body{}\n"),
       writeFile(
         join(fixtureRoot, "web", "dist", "release.json"),

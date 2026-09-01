@@ -69,6 +69,25 @@
         const choice = link.getAttribute("data-language-choice");
         if (choice !== "en" && choice !== "de") return;
         writePreference(choice);
+        // Carry the reader's place across the switch: keep the current
+        // section hash and any non-language query parameters on the way to
+        // the alternate locale. The static link cannot know them at render
+        // time, so they are merged at click time.
+        try {
+          const target = new URL(link.getAttribute("href"), window.location.href);
+          const current = new URLSearchParams(window.location.search);
+          current.delete("lang");
+          current.forEach((value, key) => {
+            if (!target.searchParams.has(key)) target.searchParams.append(key, value);
+          });
+          const hash = window.location.hash;
+          link.setAttribute(
+            "href",
+            `${target.pathname}${target.search}${hash || target.hash}`,
+          );
+        } catch {
+          // A degraded environment still navigates through the plain link.
+        }
       });
     });
   }, { once: true });

@@ -10,13 +10,15 @@ interface Props {
   image: ImageMetadata;
   alt: string;
   caption: string;
+  locale?: "en" | "de";
 }
 
-const { id, items, image, alt, caption } = Astro.props;
+const { id, items, image, alt, caption, locale = "en" } = Astro.props;
 const fallbackIcons = ["unplug", "eye-off", "file-warning", "database-zap"];
+const mapLabel = locale === "de" ? "Problemkarte" : "Problem map";
 ---
 
-<div class="fracture-atlas" aria-label="Problem map">
+<div class="fracture-atlas" aria-label={mapLabel}>
   <figure class="fracture-atlas__field">
     <Image
       src={image}

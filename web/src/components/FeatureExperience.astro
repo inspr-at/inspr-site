@@ -14,9 +14,13 @@ interface Props {
   items: CardItem[];
   variant: FeatureVariant;
   label: string;
+  locale?: "en" | "de";
 }
 
-const { id, items, variant, label } = Astro.props;
+const { id, items, variant, label, locale = "en" } = Astro.props;
+const hubNote = locale === "de"
+  ? "ein gemeinsames Betriebsbild"
+  : "one shared operating picture";
 const fallbackIcons = ["circle-dot", "waypoints", "layers-3", "shield-check", "workflow"];
 ---
 
@@ -28,7 +32,7 @@ const fallbackIcons = ["circle-dot", "waypoints", "layers-3", "shield-check", "w
     <div class="feature-experience__hub" aria-hidden="true">
       <span>{String(items.length).padStart(2, "0")}</span>
       <strong>{label}</strong>
-      <small>one shared operating picture</small>
+      <small>{hubNote}</small>
     </div>
   )}
 

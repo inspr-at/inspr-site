@@ -41,6 +41,9 @@ deploy.sh             immutable release upload, promotion, rollback and probes
 
 One Astro build produces the bilingual umbrella, `/overview/` and
 `/de/ueberblick/`, plus `/aithema`, `/paimos`, `/pharos`, and `/janus`.
+Every product microsite is bilingual: English at the host root and German
+under `/de/` (for example `paimos.inspr.at/de/`), with a persisted DE | EN
+switch and browser-language detection only before an explicit choice.
 `/eli10/` remains only as a redirect to the neutral Overview name. Caddy
 selects the right directory by hostname. Hashed Astro assets
 live in an append-only shared pool so cached HTML remains valid across atomic
@@ -88,6 +91,10 @@ web/src/content/paimos.ts
 web/src/content/pharos.ts
 web/src/content/janus.ts
 ```
+
+The German product editions live in `web/src/content/de/` with the same
+typed structure; a claim changed in one language must be mirrored in the
+other, and the static content tests enforce structural parity.
 
 The product-specific visual layer remains code-native: Lucide SVG symbols,
 accessible workflow explorers, responsive Astro images and self-hosted fonts.

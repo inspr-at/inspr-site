@@ -4,17 +4,31 @@ import type { LinkItem } from "../content/types";
 
 interface Props {
   links: LinkItem[];
+  locale?: "en" | "de";
 }
 
-const { links } = Astro.props;
+const { links, locale = "en" } = Astro.props;
 const icons = ["git-branch", "package-check", "scale", "shield-check", "file-check-2"];
+const labels = locale === "de"
+  ? {
+      header: "INSPR / QUELLENBELEG",
+      routes: "prüfbare Wege",
+      note: "Nichts auf diesem Beleg braucht ein Verkaufsgespräch, um überprüft zu werden.",
+      evidence: "Nachweis",
+    }
+  : {
+      header: "INSPR / SOURCE RECEIPT",
+      routes: "inspectable routes",
+      note: "Nothing in this receipt requires a sales conversation to verify.",
+      evidence: "Evidence",
+    };
 ---
 
 <div class="provenance-receipt">
   <div class="provenance-receipt__header">
-    <span>INSPR / SOURCE RECEIPT</span>
-    <strong>{String(links.length).padStart(2, "0")} inspectable routes</strong>
-    <small>Nothing in this receipt requires a sales conversation to verify.</small>
+    <span>{labels.header}</span>
+    <strong>{String(links.length).padStart(2, "0")} {labels.routes}</strong>
+    <small>{labels.note}</small>
   </div>
   <ol>
     {links.map((link, index) => (
@@ -28,7 +42,7 @@ const icons = ["git-branch", "package-check", "scale", "shield-check", "file-che
             <ContextIcon name={icons[index % icons.length]} size={21} strokeWidth={2} />
           </span>
           <span>
-            <small>Evidence {String(index + 1).padStart(2, "0")}</small>
+            <small>{labels.evidence} {String(index + 1).padStart(2, "0")}</small>
             <strong>{link.label}</strong>
           </span>
           <i aria-hidden="true">{link.external === false ? "→" : "↗"}</i>

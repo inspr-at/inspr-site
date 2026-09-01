@@ -25,7 +25,10 @@
     if (!flipAllBtn) return;
     const on = allPinned();
     flipAllBtn.setAttribute("aria-pressed", String(on));
-    flipAllBtn.textContent = on ? "Unflip all" : "Flip all";
+    // Labels come from the page so the shared script stays locale-neutral.
+    flipAllBtn.textContent = on
+      ? flipAllBtn.dataset.labelUnflip || "Unflip all"
+      : flipAllBtn.dataset.labelFlip || "Flip all";
   };
 
   const toggleTile = (flip) => {

@@ -5,7 +5,7 @@
 This repository powers the English-language INSPR site family:
 
 - [www.inspr.at](https://www.inspr.at) - the INSPR idea and product map;
-- [aithema.inspr.at](https://aithema.inspr.at) - Aithema requirements and its current maturity boundary;
+- `aithema.inspr.at` - the planned Aithema product host, pending edge routing and DNS;
 - [start.augmentoring.com](https://start.augmentoring.com) - the hosted Aithema requirements preview;
 - [paimos.inspr.at](https://paimos.inspr.at) - shared project context for people and AI agents;
 - [pharos.inspr.at](https://pharos.inspr.at) - clear fleet operations;
@@ -13,8 +13,8 @@ This repository powers the English-language INSPR site family:
 - [v1.inspr.at](https://v1.inspr.at) - the frozen pre-relaunch archive.
 
 Aithema (pronounced **AI-Thema**) is the first product in the family sequence
-and owns requirements. Its product page is at
-[aithema.inspr.at](https://aithema.inspr.at), while the working public preview
+and owns requirements. Its product page targets `aithema.inspr.at`; edge
+routing and DNS remain launch prerequisites. The working public preview
 remains at [start.augmentoring.com](https://start.augmentoring.com). A reusable
 open-source Aithema template or module is planned; neither a product repository
 nor a product license is claimed before that source exists.
@@ -218,7 +218,7 @@ bootstrap token. The checked `.env.example` contains placeholders only.
 
 ## Product sources
 
-- **Aithema** - [product page](https://aithema.inspr.at); reusable open-source template or module planned; public preview at [start.augmentoring.com](https://start.augmentoring.com)
+- **Aithema** - product page target: `aithema.inspr.at` (pending edge routing and DNS); reusable open-source template or module planned; public preview at [start.augmentoring.com](https://start.augmentoring.com)
 - [Paimos](https://github.com/inspr-at/paimos)
 - [Pharos](https://github.com/inspr-at/pharos)
 - [Janus](https://github.com/inspr-at/janus)

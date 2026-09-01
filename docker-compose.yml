@@ -3,7 +3,7 @@
 # Three logical groups:
 #
 #   1. inspr-www    - Caddy serving one current Astro build for www.inspr.at
-#                     and the four product subdomains, plus the frozen v1
+#                     and the three product subdomains, plus the frozen v1
 #                     archive at v1.inspr.at. Catches everything on the apex
 #                     EXCEPT auth paths (diverted by Traefik via priority).
 #
@@ -52,12 +52,6 @@ services:
       - traefik.http.routers.inspr-www.middlewares=cloudflarewarp@file
       - traefik.http.routers.inspr-www.service=inspr-sites
 
-      - traefik.http.routers.inspr-aithema.rule=Host(`aithema.inspr.at`)
-      - traefik.http.routers.inspr-aithema.tls=true
-      - traefik.http.routers.inspr-aithema.tls.certresolver=default
-      - traefik.http.routers.inspr-aithema.middlewares=cloudflarewarp@file
-      - traefik.http.routers.inspr-aithema.service=inspr-sites
-
       - traefik.http.routers.inspr-paimos.rule=Host(`paimos.inspr.at`)
       - traefik.http.routers.inspr-paimos.tls=true
       - traefik.http.routers.inspr-paimos.tls.certresolver=default
@@ -85,7 +79,7 @@ services:
       # Catch first-time plain-HTTP visits before HSTS can apply. One router is
       # sufficient because redirectScheme preserves the requested hostname,
       # path and query string for every public site in this deployment.
-      - traefik.http.routers.inspr-sites-http.rule=Host(`inspr.at`) || Host(`www.inspr.at`) || Host(`aithema.inspr.at`) || Host(`paimos.inspr.at`) || Host(`pharos.inspr.at`) || Host(`janus.inspr.at`) || Host(`v1.inspr.at`)
+      - traefik.http.routers.inspr-sites-http.rule=Host(`inspr.at`) || Host(`www.inspr.at`) || Host(`paimos.inspr.at`) || Host(`pharos.inspr.at`) || Host(`janus.inspr.at`) || Host(`v1.inspr.at`)
       - traefik.http.routers.inspr-sites-http.entrypoints=web
       - traefik.http.routers.inspr-sites-http.middlewares=inspr-sites-https@docker
       - traefik.http.routers.inspr-sites-http.service=inspr-sites

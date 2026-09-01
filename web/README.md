@@ -5,10 +5,10 @@ one Astro application.
 
 ## Routes
 
-| Route | Production host |
+| Route | Production host or target |
 | --- | --- |
 | `/` | `www.inspr.at` |
-| `/aithema/` | `aithema.inspr.at` |
+| `/aithema/` | `aithema.inspr.at` (target; edge routing and DNS pending) |
 | `/paimos/` | `paimos.inspr.at` |
 | `/pharos/` | `pharos.inspr.at` |
 | `/janus/` | `janus.inspr.at` |
@@ -64,9 +64,10 @@ The umbrella and products are authored by
 [Markus Barta](https://github.com/markus-barta). Augmentoring is the
 professional-services path that uses and supports them; it is not presented as
 their owner. The canonical product sequence is **Aithema, Paimos, Pharos,
-Janus**. Aithema currently links to its hosted preview at
-`start.augmentoring.com` from its own product page at `aithema.inspr.at`; its
-reusable template or module is planned for an open-source release.
+Janus**. The Aithema page links to its hosted preview at
+`start.augmentoring.com`; `aithema.inspr.at` remains the product-host target
+until edge routing and DNS are in place. Its reusable template or module is
+planned for an open-source release.
 
 ## License
 

@@ -69,7 +69,7 @@ test("Aithema uses the approved hero and native Requirement Prism", async () => 
   assert.ok((logo.match(/<(?:path|rect)\b/g) ?? []).length <= 6);
 });
 
-test("Aithema publishes host-specific discovery and edge routing", async () => {
+test("Aithema publishes host-specific discovery and Caddy routing without crossing the runtime boundary", async () => {
   const robots = await webFile("public/aithema/robots.txt");
   const sitemap = await webFile("public/aithema/sitemap.xml");
   const caddy = await rootFile("Caddyfile");
@@ -80,9 +80,8 @@ test("Aithema publishes host-specific discovery and edge routing", async () => {
   assert.match(caddy, /@aithema host aithema\.inspr\.at/);
   assert.match(caddy, /root \* \/srv\/releases\/current\/aithema/);
   assert.match(caddy, /host www\.inspr\.at aithema\.inspr\.at paimos\.inspr\.at/);
-  assert.match(compose, /inspr-aithema\.rule=Host\(`aithema\.inspr\.at`\)/);
-  assert.match(compose, /inspr-aithema\.tls\.certresolver=default/);
-  assert.match(compose, /Host\(`www\.inspr\.at`\) \|\| Host\(`aithema\.inspr\.at`\)/);
+  assert.doesNotMatch(compose, /inspr-aithema/);
+  assert.doesNotMatch(compose, /Host\(`aithema\.inspr\.at`\)/);
 });
 
 test("deployment gates require and probe Aithema while using the current umbrella copy", async () => {
@@ -102,9 +101,10 @@ test("documentation and test discovery include the Aithema microsite", async () 
   const webReadme = await webFile("README.md");
   const packageJson = await webFile("package.json");
 
-  assert.match(rootReadme, /\[aithema\.inspr\.at\]\(https:\/\/aithema\.inspr\.at\)/);
+  assert.match(rootReadme, /`aithema\.inspr\.at`[^\n]*planned[^\n]*pending edge routing and DNS/i);
+  assert.doesNotMatch(rootReadme, /\[aithema\.inspr\.at\]\(https:\/\/aithema\.inspr\.at\)/);
   assert.match(rootReadme, /working public preview[\s\S]*start\.augmentoring\.com/);
-  assert.match(webReadme, /`\/aithema\/` \| `aithema\.inspr\.at`/);
+  assert.match(webReadme, /`\/aithema\/` \| `aithema\.inspr\.at` \(target; edge routing and DNS pending\)/);
   assert.match(webReadme, /preview itself is not built by this repository/);
   assert.match(packageJson, /node --test tests\/\*-static\.test\.mjs/);
 });

@@ -118,6 +118,7 @@ const labels = locale === "de"
     const interactionRoot = loop.closest<HTMLElement>("[data-hero-loop-interaction]") ?? loop;
     let pointerActive = !hoverOnly;
     let focusActive = false;
+    let interactionDismissed = false;
 
     const syncControl = () => {
       if (!control || !label) return;
@@ -134,7 +135,12 @@ const labels = locale === "de"
       loop.toggleAttribute("data-user-paused", userPaused);
     };
 
-    const interactionActive = () => !hoverOnly || pointerActive || focusActive;
+    const interactionRequested = () => !hoverOnly || pointerActive || focusActive;
+    const interactionActive = () => interactionRequested() && !interactionDismissed;
+
+    const clearDismissalWhenIdle = () => {
+      if (!pointerActive && !focusActive) interactionDismissed = false;
+    };
 
     const resetVideo = () => {
       if (video.readyState > 0 && video.currentTime !== 0) video.currentTime = 0;
@@ -180,22 +186,31 @@ const labels = locale === "de"
       interactionRoot.addEventListener("pointerenter", (event) => {
         if (event.pointerType === "touch") return;
         pointerActive = true;
+        interactionDismissed = false;
         resetVideo();
         applyPlayback();
       });
       interactionRoot.addEventListener("pointerleave", (event) => {
         if (event.pointerType === "touch") return;
         pointerActive = false;
+        clearDismissalWhenIdle();
         applyPlayback();
       });
       interactionRoot.addEventListener("focusin", () => {
         focusActive = true;
+        interactionDismissed = false;
         resetVideo();
         applyPlayback();
       });
       interactionRoot.addEventListener("focusout", (event) => {
         if (event.relatedTarget instanceof Node && interactionRoot.contains(event.relatedTarget)) return;
         focusActive = false;
+        clearDismissalWhenIdle();
+        applyPlayback();
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape" || !interactionActive()) return;
+        interactionDismissed = true;
         applyPlayback();
       });
     }

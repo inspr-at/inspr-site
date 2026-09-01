@@ -97,11 +97,21 @@ test("Overview path cards preview the matching approved loops on deliberate inte
   assert.match(heroLoop, /event\.pointerType === "touch"/);
   assert.match(heroLoop, /window\.matchMedia\("\(hover: none\), \(pointer: coarse\)"\)/);
   assert.match(heroLoop, /!coarsePointer\.matches/);
+  assert.match(heroLoop, /document\.addEventListener\("keydown"/);
+  assert.match(heroLoop, /event\.key !== "Escape"/);
+  assert.match(heroLoop, /interactionDismissed = true/);
   assert.match(heroLoop, /video\.currentTime = 0/);
   assert.match(heroLoop, /toggleAttribute\("data-hero-loop-active", interactionActive\(\)\)/);
   assert.match(styles, /\.overview-step__preview \{[\s\S]*?position: absolute;[\s\S]*?opacity: 0;[\s\S]*?pointer-events: none;/);
+  assert.match(styles, /\.overview-step__content > \* \{\s*position: relative;\s*z-index: 1;/);
+  assert.match(styles, /\.overview-step__approval \{[\s\S]*?position: absolute;[\s\S]*?right: 1\.2rem;[\s\S]*?left: 1\.2rem;/);
+  assert.doesNotMatch(styles, /\.overview-step__content\s*\{[^}]*min-height:/);
   assert.match(styles, /\.overview-step\[data-hero-loop-active\] h3 a \{[\s\S]*?color: white;[\s\S]*?text-decoration: none;[\s\S]*?text-shadow: 0 1px 5px/);
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.overview-step__preview \{[\s\S]*?transition: none;/);
+  assert.match(
+    component,
+    /sizes="\(min-width: 90rem\) 17\.5rem, \(min-width: 72rem\) calc\(20\.5vw - 1\.5rem\), \(min-width: 56rem\) calc\(\(100vw - 12rem\) \/ 4\), \(min-width: 40rem\) calc\(\(100vw - 7\.5rem\) \/ 2\), calc\(100vw - 5\.5rem\)"/,
+  );
 });
 
 test("Overview path intro stays on one line only at approved wide desktop widths", async () => {

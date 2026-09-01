@@ -516,7 +516,7 @@ const productFlowSteps = [
                 <p>{product.body}</p>
                 <p class="product-story__detail">{product.detail}</p>
                 <span class="text-link" id={`product-${product.name.toLowerCase()}-link`}>
-                  {copy("Explore", "Ansehen")} {product.name} <span aria-hidden="true">→</span>
+                  {locale === "de" ? `${product.name} ansehen` : `Explore ${product.name}`} <span aria-hidden="true">→</span>
                   <span class="visually-hidden"> ({copy("opens in a new tab", "öffnet in einem neuen Tab")})</span>
                 </span>
               </div>

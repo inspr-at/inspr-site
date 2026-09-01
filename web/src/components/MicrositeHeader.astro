@@ -46,6 +46,13 @@ const labels = locale === "de"
       german: "German",
       english: "English",
     };
+
+const languageChoiceHref = (href: string, choice: "en" | "de") => {
+  const isAbsolute = /^https?:\/\//.test(href);
+  const url = new URL(href, siteUrls.inspr);
+  url.searchParams.set("lang", choice);
+  return isAbsolute ? url.toString() : `${url.pathname}${url.search}${url.hash}`;
+};
 ---
 
 <header class="site-header">
@@ -67,7 +74,7 @@ const labels = locale === "de"
       {languageLinks && (
         <nav class="language-switch" aria-label={labels.languages}>
           <a
-            href={languageLinks.de}
+            href={languageChoiceHref(languageLinks.de, "de")}
             lang="de"
             hreflang="de"
             aria-label={labels.german}
@@ -76,7 +83,7 @@ const labels = locale === "de"
           >DE</a>
           <span aria-hidden="true">|</span>
           <a
-            href={languageLinks.en}
+            href={languageChoiceHref(languageLinks.en, "en")}
             lang="en"
             hreflang="en"
             aria-label={labels.english}

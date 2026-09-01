@@ -13,11 +13,14 @@ async function runLocalePreference({
   detectLocale = true,
   languages = ["en"],
   storedLocale = null,
+  search = "",
+  storageThrows = false,
 } = {}) {
   const code = await readFile(new URL("public/scripts/locale-preference.js", webRoot), "utf8");
   const storage = new Map(storedLocale ? [["inspr-language", storedLocale]] : []);
   const links = [];
   let replacedWith = null;
+  let historyReplacement = null;
 
   class HTMLScriptElement {}
   const currentScript = new HTMLScriptElement();
@@ -37,7 +40,8 @@ async function runLocalePreference({
   const window = {
     document,
     location: {
-      search: "",
+      pathname: currentLocale === "de" ? "/de/" : "/",
+      search,
       hash: "",
       replace(target) {
         replacedWith = target;
@@ -45,10 +49,17 @@ async function runLocalePreference({
     },
     localStorage: {
       getItem(key) {
+        if (storageThrows) throw new Error("storage unavailable");
         return storage.get(key) ?? null;
       },
       setItem(key, value) {
+        if (storageThrows) throw new Error("storage unavailable");
         storage.set(key, value);
+      },
+    },
+    history: {
+      replaceState(_state, _title, target) {
+        historyReplacement = target;
       },
     },
     addEventListener(event, callback) {
@@ -62,6 +73,7 @@ async function runLocalePreference({
     HTMLScriptElement,
     navigator: { language: languages[0], languages },
     String,
+    URLSearchParams,
     window,
   });
 
@@ -83,6 +95,9 @@ async function runLocalePreference({
     get replacedWith() {
       return replacedWith;
     },
+    get historyReplacement() {
+      return historyReplacement;
+    },
     storage,
     addLanguageLink,
     rerunDomReady() {
@@ -94,6 +109,7 @@ async function runLocalePreference({
         HTMLScriptElement,
         navigator: { language: languages[0], languages },
         String,
+        URLSearchParams,
         window,
       });
     },
@@ -130,6 +146,7 @@ test("homepage locale routes expose static metadata and an accessible switch", a
   assert.match(header, /aria-current=\{locale === "en" \? "page"/);
   assert.match(header, /data-language-choice="de"/);
   assert.match(header, /data-language-choice="en"/);
+  assert.match(header, /url\.searchParams\.set\("lang", choice\)/);
   assert.match(styles, /\.language-switch a:focus-visible/);
   assert.match(legacyEditions, /path \/v1 \/v1\/\*/);
   assert.doesNotMatch(legacyEditions, /\/v2/);
@@ -170,6 +187,7 @@ test("German homepage copy is complete across editorial and interactive surfaces
 
   const products = homepage.slice(homepage.indexOf("const products = ["), homepage.indexOf("const proofPoints"));
   assert.doesNotMatch(products, /—/);
+  assert.match(homepage, /locale === "de" \? `\$\{product\.name\} ansehen` : `Explore \$\{product\.name\}`/);
 });
 
 test("browser preference selects German only when it precedes English", async () => {
@@ -197,6 +215,19 @@ test("an explicit language choice persists and overrides browser language", asyn
   manual.rerunDomReady();
   clickGerman();
   assert.equal(manual.storage.get("inspr-language"), "de");
+});
+
+test("an explicit language arrival works when localStorage is unavailable", async () => {
+  const manualEnglish = await runLocalePreference({
+    currentLocale: "en",
+    detectLocale: true,
+    languages: ["de-AT", "en"],
+    search: "?lang=en",
+    storageThrows: true,
+  });
+
+  assert.equal(manualEnglish.replacedWith, null);
+  assert.equal(manualEnglish.historyReplacement, null);
 });
 
 test("locale preference uses localStorage without cookies or inline CSP drift", async () => {

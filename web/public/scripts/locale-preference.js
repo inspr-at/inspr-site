@@ -19,6 +19,20 @@
     }
   };
 
+  const writePreference = (choice) => {
+    try {
+      window.localStorage.setItem(storageKey, choice);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const query = new URLSearchParams(window.location.search);
+  const queryLocale = query.get("lang");
+  const arrivalPreference = queryLocale === "en" || queryLocale === "de" ? queryLocale : null;
+  const arrivalWasStored = arrivalPreference ? writePreference(arrivalPreference) : false;
+
   const firstSupportedBrowserLocale = () => {
     const languages = Array.isArray(navigator.languages) && navigator.languages.length > 0
       ? navigator.languages
@@ -31,7 +45,7 @@
     return "en";
   };
 
-  const explicitPreference = readPreference();
+  const explicitPreference = arrivalPreference || readPreference();
   const preferredLocale = explicitPreference
     || (shouldDetect ? firstSupportedBrowserLocale() : currentLocale);
 
@@ -42,16 +56,19 @@
     return;
   }
 
+  if (arrivalPreference && arrivalWasStored) {
+    query.delete("lang");
+    const cleanSearch = query.toString();
+    const cleanUrl = `${window.location.pathname}${cleanSearch ? `?${cleanSearch}` : ""}${window.location.hash}`;
+    window.history.replaceState(null, "", cleanUrl);
+  }
+
   window.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll("[data-language-choice]").forEach((link) => {
       link.addEventListener("click", () => {
         const choice = link.getAttribute("data-language-choice");
         if (choice !== "en" && choice !== "de") return;
-        try {
-          window.localStorage.setItem(storageKey, choice);
-        } catch {
-          // The link still changes language when storage is unavailable.
-        }
+        writePreference(choice);
       });
     });
   }, { once: true });

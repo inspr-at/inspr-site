@@ -360,7 +360,7 @@ const hotspotLabel = (index: number, label: string) =>
     </div>
   </div>
 
-  <div class="product-surface__views" aria-label={labels.viewsAria}>
+  <div class="product-surface__views" role="group" aria-label={labels.viewsAria}>
     {galleryViews.map((view) => (
       <a
         class:list={[

@@ -18,7 +18,7 @@ const fallbackIcons = ["unplug", "eye-off", "file-warning", "database-zap"];
 const mapLabel = locale === "de" ? "Problemkarte" : "Problem map";
 ---
 
-<div class="fracture-atlas" aria-label={mapLabel}>
+<div class="fracture-atlas" role="group" aria-label={mapLabel}>
   <figure class="fracture-atlas__field">
     <Image
       src={image}

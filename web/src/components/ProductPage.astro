@@ -289,6 +289,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
 
     <div
       class="proof-console page-shell"
+      role="group"
       aria-label={labels.proofAria}
       data-section-pattern="proof-strip"
     >
@@ -510,6 +511,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
         </div>
         <div
           class:list={["architecture__diagram", { "architecture__diagram--planes": content.slug === "janus" }]}
+          role="group"
           aria-label={content.slug === "janus" ? labels.architecturePlanesAria : labels.architectureFlowAria}
         >
           {content.slug === "janus" ? (
@@ -625,10 +627,15 @@ const featurePresentations: Record<string, FeaturePresentation> = {
         </span>
       </div>
       <p class="table-scroll-hint" aria-hidden="true">{labels.integrationSwipe} <span>→</span></p>
-      <div class="table-wrap" tabindex="0" aria-label={labels.integrationTableAria}>
+      <div class="table-wrap" role="region" tabindex="0" aria-label={labels.integrationTableAria}>
         <table>
+          <caption class="visually-hidden">{labels.integrationTableAria}</caption>
           <thead>
-            <tr><th>{labels.integrationColumn}</th><th>{labels.statusColumn}</th><th>{labels.descriptionColumn}</th></tr>
+            <tr>
+              <th scope="col">{labels.integrationColumn}</th>
+              <th scope="col">{labels.statusColumn}</th>
+              <th scope="col">{labels.descriptionColumn}</th>
+            </tr>
           </thead>
           <tbody>
             {content.integrations.items.map((item) => (

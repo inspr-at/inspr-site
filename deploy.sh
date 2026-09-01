@@ -468,6 +468,8 @@ python3 "$ROOT/web/scripts/verify-csp.py"
 # 3. Confirm the one-build/five-site output contract.
 required_documents=(
   "index.html"
+  "overview/index.html"
+  "de/ueberblick/index.html"
   "paimos/index.html"
   "pharos/index.html"
   "janus/index.html"
@@ -673,6 +675,8 @@ if [ "${SKIP_PROBE:-}" = "1" ]; then
 else
   say "probing live host routing"
   probe_page "INSPR umbrella" "https://www.inspr.at/" "Inspiration is the only limit." "text/html" "$RELEASE_ID"
+  probe_page "INSPR overview" "https://www.inspr.at/overview/" "From an idea to something that" "text/html"
+  probe_page "INSPR German overview" "https://www.inspr.at/de/ueberblick/" "Von einer Idee zu etwas" "text/html"
   probe_page "Aithema microsite" "https://aithema.inspr.at/" "Requirements you approve before work begins." "text/html" "$RELEASE_ID"
   probe_page "Paimos microsite" "https://paimos.inspr.at/" "One shared project picture." "text/html" "$RELEASE_ID"
   probe_page "Pharos microsite" "https://pharos.inspr.at/" "Fleet truth before action." "text/html" "$RELEASE_ID"
@@ -680,6 +684,7 @@ else
   probe_page "v1 archive" "https://v1.inspr.at/" "Upstream of any substrate" "text/html"
   probe_page "shared product asset" "https://paimos.inspr.at$shared_asset_path" "" "text/css"
   probe_redirect "legacy edition redirect" "https://www.inspr.at/v1/" "301,302,307,308" "https://v1.inspr.at/v1/" "1"
+  probe_redirect "legacy ELI10 redirect" "https://www.inspr.at/eli10/" "301,302,307,308" "https://www.inspr.at/overview/" "1"
   probe_redirect "apex canonical redirect" "https://inspr.at/" "301,302,307,308" "https://www.inspr.at/" "1"
   probe_page "identity entry route" "https://inspr.at/enter" "inspr.at" "text/html"
   probe_redirect "identity login route" "https://inspr.at/login" "302" "https://auth.inspr.at/" "1"

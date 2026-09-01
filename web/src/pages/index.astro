@@ -38,6 +38,7 @@ const canonicalUrl = locale === "de" ? germanUrl : englishUrl;
 const ogImage = new URL(insprHero.src, englishUrl).href;
 
 const nav = [
+  { label: copy("Overview", "Überblick"), href: locale === "de" ? siteUrls.overviewGerman : siteUrls.overview },
   { label: copy("Idea", "Idee"), href: "#idea" },
   { label: copy("Products", "Produkte"), href: "#products" },
   { label: copy("Principles", "Prinzipien"), href: "#principles" },

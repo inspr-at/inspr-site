@@ -38,6 +38,7 @@ const labels = locale === "de"
       familyDescription: "Teil von INSPR, der Produktfamilie für Menschen und KI-Agenten.",
       productsAria: "INSPR-Produkte",
       family: "Produktfamilie",
+      overview: "Überblick",
       opensInNewTab: "öffnet in einem neuen Tab",
       sourceAria: "Quellcode und Lizenz",
       source: "Quellcode",
@@ -60,6 +61,7 @@ const labels = locale === "de"
       familyDescription: "Part of INSPR, the technology umbrella for people and AI agents.",
       productsAria: "INSPR products",
       family: "Product family",
+      overview: "Overview",
       opensInNewTab: "opens in a new tab",
       sourceAria: "Source and license",
       source: "Source",
@@ -98,6 +100,7 @@ const labels = locale === "de"
 
     <nav aria-label={labels.productsAria}>
       <p class="footer-label">{labels.family}</p>
+      <a href={locale === "de" ? siteUrls.overviewGerman : siteUrls.overview}>{labels.overview}</a>
       {productLinks.map((item) => <a href={item.href} target="_blank" rel="noopener noreferrer" aria-label={`${item.label}, ${labels.opensInNewTab}`}>{item.label}</a>)}
     </nav>
 

@@ -103,10 +103,14 @@ test("documentation and test discovery include the Aithema microsite", async () 
   const sectionAudit = await webFile("scripts/audit-section-patterns.mjs");
   const page = await webFile("src/components/AithemaProductPage.astro");
 
-  assert.match(rootReadme, /`aithema\.inspr\.at`[^\n]*planned[^\n]*pending edge routing and DNS/i);
-  assert.doesNotMatch(rootReadme, /\[aithema\.inspr\.at\]\(https:\/\/aithema\.inspr\.at\)/);
+  assert.match(rootReadme, /product page is live at `aithema\.inspr\.at`/i);
+  assert.match(rootReadme, /\[aithema\.inspr\.at\]\(https:\/\/aithema\.inspr\.at\) - the Aithema requirements product page/i);
+  assert.doesNotMatch(rootReadme, /planned Aithema product host/i);
+  assert.doesNotMatch(rootReadme, /pending edge routing/i);
   assert.match(rootReadme, /working public preview[\s\S]*start\.augmentoring\.com/);
-  assert.match(webReadme, /`\/aithema\/` \| `aithema\.inspr\.at` \(target; edge routing and DNS pending\)/);
+  assert.match(webReadme, /`\/aithema\/` \| `aithema\.inspr\.at`/);
+  assert.match(webReadme, /product page is live at[\s\S]*`aithema\.inspr\.at`/i);
+  assert.doesNotMatch(webReadme, /edge routing and DNS are in place/i);
   assert.match(webReadme, /preview itself is not built by this repository/);
   assert.match(packageJson, /node --test tests\/\*-static\.test\.mjs/);
   assert.match(sectionAudit, /name: "aithema"[\s\S]*minimum: 11, expectedRails: 0/);

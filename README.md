@@ -2,10 +2,10 @@
 
 **One idea, four products, one human-approved path.**
 
-This repository powers the English-language INSPR site family:
+This repository powers the bilingual INSPR site family:
 
 - [www.inspr.at](https://www.inspr.at) - the INSPR idea and product map;
-- `aithema.inspr.at` - the planned Aithema product host, pending edge routing and DNS;
+- [aithema.inspr.at](https://aithema.inspr.at) - the Aithema requirements product page;
 - [start.augmentoring.com](https://start.augmentoring.com) - the hosted Aithema requirements preview;
 - [paimos.inspr.at](https://paimos.inspr.at) - shared project context for people and AI agents;
 - [pharos.inspr.at](https://pharos.inspr.at) - clear fleet operations;
@@ -13,11 +13,11 @@ This repository powers the English-language INSPR site family:
 - [v1.inspr.at](https://v1.inspr.at) - the frozen pre-relaunch archive.
 
 Aithema (pronounced **AI-Thema**) is the first product in the family sequence
-and owns requirements. Its product page targets `aithema.inspr.at`; edge
-routing and DNS remain launch prerequisites. The working public preview
-remains at [start.augmentoring.com](https://start.augmentoring.com). A reusable
-open-source Aithema template or module is planned; neither a product repository
-nor a product license is claimed before that source exists.
+and owns requirements. Its product page is live at `aithema.inspr.at`. The
+working public preview remains at
+[start.augmentoring.com](https://start.augmentoring.com). A reusable open-source
+Aithema template or module is planned; neither a product repository nor a
+product license is claimed before that source exists.
 
 The product sites are intentionally lightweight. INSPR and its products are
 open work by [Markus Barta](https://github.com/markus-barta). The sites explain
@@ -39,8 +39,10 @@ deploy.sh             immutable release upload, promotion, rollback and probes
 .github/workflows/    ci.yml: the pull-request gate (tests, type-check, build, audit)
 ```
 
-One Astro build produces the umbrella page plus `/aithema`, `/paimos`,
-`/pharos`, and `/janus`. Caddy selects the right directory by hostname. Hashed Astro assets
+One Astro build produces the bilingual umbrella, `/overview/` and
+`/de/ueberblick/`, plus `/aithema`, `/paimos`, `/pharos`, and `/janus`.
+`/eli10/` remains only as a redirect to the neutral Overview name. Caddy
+selects the right directory by hostname. Hashed Astro assets
 live in an append-only shared pool so cached HTML remains valid across atomic
 release switches.
 
@@ -294,7 +296,9 @@ bootstrap token. The checked `.env.example` contains placeholders only.
 
 ## Product sources
 
-- **Aithema** - product page target: `aithema.inspr.at` (pending edge routing and DNS); reusable open-source template or module planned; public preview at [start.augmentoring.com](https://start.augmentoring.com)
+- **Aithema** - product page: [aithema.inspr.at](https://aithema.inspr.at);
+  reusable open-source template or module planned; public preview at
+  [start.augmentoring.com](https://start.augmentoring.com)
 - [Paimos](https://github.com/inspr-at/paimos)
 - [Pharos](https://github.com/inspr-at/pharos)
 - [Janus](https://github.com/inspr-at/janus)

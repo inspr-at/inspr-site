@@ -328,6 +328,7 @@
 
   .site-nav {
     display: flex;
+    min-height: 2.65rem;
     align-items: center;
     justify-content: center;
     gap: clamp(0.85rem, 2vw, 1.8rem);
@@ -336,7 +337,11 @@
 
   .site-nav a,
   .quiet-link {
+    display: inline-flex;
+    min-height: 2.65rem;
+    align-items: center;
     color: var(--ink-soft);
+    line-height: 1;
     text-decoration: none;
     transition: color 160ms ease;
   }
@@ -354,22 +359,38 @@
     font-size: 0.84rem;
   }
 
+  .site-header__actions > * {
+    align-self: center;
+  }
+
   .language-switch {
     display: inline-flex;
+    min-height: 2.65rem;
     align-items: center;
     gap: 0.28rem;
     color: var(--ink-faint);
     font-family: var(--font-mono);
     font-size: 0.63rem;
     letter-spacing: 0.08em;
+    line-height: 1;
   }
 
   .language-switch a {
+    display: inline-grid;
+    min-height: 2.65rem;
+    place-items: center;
     padding: 0.28rem 0.12rem;
     color: inherit;
     border-radius: 0.25rem;
     text-decoration: none;
     transition: color 160ms ease;
+  }
+
+  .language-switch > span {
+    display: inline-grid;
+    min-height: 2.65rem;
+    place-items: center;
+    line-height: 1;
   }
 
   .language-switch a:hover,
@@ -397,7 +418,8 @@
   }
 
   .mobile-navigation summary,
-  .product-switcher summary {
+  .product-switcher summary,
+  .header-action {
     display: flex;
     align-items: center;
     gap: 0.55rem;
@@ -410,6 +432,10 @@
     font-weight: 700;
     list-style: none;
     transition: background 160ms ease, transform 160ms ease;
+  }
+
+  .header-action {
+    text-decoration: none;
   }
 
   .mobile-navigation summary::-webkit-details-marker,
@@ -434,7 +460,9 @@
   }
 
   .mobile-navigation summary:hover,
-  .product-switcher summary:hover {
+  .product-switcher summary:hover,
+  .header-action:hover,
+  .header-action:focus-visible {
     background: var(--accent-strong);
     transform: translateY(-1px);
   }
@@ -458,6 +486,16 @@
     padding: 0.65rem 0.8rem;
     border-radius: 0.6rem;
     text-decoration: none;
+  }
+
+  .mobile-navigation__panel .mobile-navigation__primary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.25rem;
+    color: white;
+    background: var(--night);
+    font-weight: 700;
   }
 
   .mobile-navigation__panel a:hover,
@@ -2704,6 +2742,10 @@
     display: block;
   }
 
+  .header-action {
+    display: none;
+  }
+
   .product-hero {
     grid-template-columns: 1fr;
     min-height: auto;
@@ -2908,7 +2950,8 @@
   }
 
   .mobile-navigation summary,
-  .product-switcher summary {
+  .product-switcher summary,
+  .header-action {
     min-height: 2.5rem;
     padding-inline: 0.8rem;
     font-size: 0.75rem;

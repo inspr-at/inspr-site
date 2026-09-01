@@ -8,7 +8,11 @@ one Astro application.
 | Route | Production host or target |
 | --- | --- |
 | `/` | `www.inspr.at` |
-| `/aithema/` | `aithema.inspr.at` (target; edge routing and DNS pending) |
+| `/de/` | `www.inspr.at` German edition |
+| `/overview/` | `www.inspr.at` concise English overview |
+| `/de/ueberblick/` | `www.inspr.at` concise German overview |
+| `/eli10/` | 308 compatibility redirect to `/overview/` |
+| `/aithema/` | `aithema.inspr.at` |
 | `/paimos/` | `paimos.inspr.at` |
 | `/pharos/` | `pharos.inspr.at` |
 | `/janus/` | `janus.inspr.at` |
@@ -74,9 +78,9 @@ The umbrella and products are authored by
 professional-services path that uses and supports them; it is not presented as
 their owner. The canonical product sequence is **Aithema, Paimos, Pharos,
 Janus**. The Aithema page links to its hosted preview at
-`start.augmentoring.com`; `aithema.inspr.at` remains the product-host target
-until edge routing and DNS are in place. Its reusable template or module is
-planned for an open-source release.
+`start.augmentoring.com`, while its product page is live at
+`aithema.inspr.at`. Its reusable template or module is planned for an
+open-source release.
 
 ## License
 

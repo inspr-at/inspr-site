@@ -70,6 +70,15 @@
 	}
 	redir @legacy_editions https://v1.inspr.at{uri} 308
 
+	# The simple explanation graduated from the internal ELI10 name to the
+	# neutral public Overview. Keep old bookmarks useful without publishing the
+	# patronising label as a second canonical page.
+	@legacy_overview {
+		host www.inspr.at
+		path /eli10 /eli10/ /eli10/*
+	}
+	redir @legacy_overview https://www.inspr.at/overview/ 308
+
 	# Defence in depth. Traefik normally performs this redirect before Caddy;
 	# the higher-priority inspr-auth router still owns /enter, /login, /welcome
 	# and /logout on the apex.

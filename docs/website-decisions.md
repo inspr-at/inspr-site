@@ -431,10 +431,10 @@ decision must remove this explicit preview exemption and add real inspectable
 evidence.
 
 The application repository owns Caddy host routing and static release content,
-not the csb1 Traefik runtime. `NIX-408` must add and apply the edge route and DNS
-for `aithema.inspr.at` before deployment. Until then the deploy probe fails
-closed and restores the previous release rather than publishing a partially
-reachable family.
+not the csb1 Traefik runtime. `NIX-408` added and applied the edge route and DNS
+for `aithema.inspr.at` before its first deployment. The live deploy probe remains
+fail-closed and restores the previous release rather than publishing a
+partially reachable family.
 
 ---
 
@@ -460,3 +460,33 @@ probes and rollback remain fail-closed.
 **Why:** comparing two non-canonical snapshots blocked a valid static release
 after the canonical runtime had already been activated. Keeping the two gates
 independent makes each one test the source it actually owns.
+
+---
+
+## D-018 — The simple explanation is a bilingual Overview
+
+**Date:** 2026-09-01
+**Ticket:** INSPR-337
+**Status:** Implemented, pending live release
+
+The compact explanation is named **Overview** in English and **Überblick** in
+German. The public routes are `/overview/` and `/de/ueberblick/`; `/eli10/`
+is no longer a public label and redirects permanently to the English Overview,
+whose existing language preference logic can continue to the German route.
+
+The Overview is for capable adults who want a calm first orientation, not a
+simplified page that labels its reader. It remains close to two desktop
+screens but now carries enough context to stand on its own: the core promise,
+four ownership guarantees, the Aithema → Paimos → Pharos → Janus path, one
+truthful sentence and one human approval for each product, and a deliberate
+transition into the full site. The full site links back from its header and
+shared footer.
+
+The shared header treats navigation, sign-in, the locale switch and the final
+pill as controls on one center line. Text links therefore receive the same
+minimum control height and flex centering as the menu pills instead of relying
+on font baselines that only appeared aligned at some widths.
+
+Two ImageGen concept passes informed the hierarchy and warmth. The shipped
+page recreates the chosen structure in Astro and CSS with the official product
+SVGs; the generated mockups are review material, not production assets.

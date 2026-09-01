@@ -141,7 +141,7 @@ cheap when we get to it.
 ```
 inspr-at/
   Caddyfile          (host routing and security headers)
-  docker-compose.yml (runtime boundary)
+  docker-compose.yml (pre-adoption reference; never deployed)
   deploy.sh          (transactional release entry point)
   site/              (frozen pre-relaunch archive for v1.inspr.at)
   web/               Astro source
@@ -194,8 +194,8 @@ Pipeline:
 4. Publish new content-addressed Astro assets into the append-only
    `releases/assets/` pool before switching HTML. Existing asset names are never
    overwritten, so cached pages and retained releases keep their dependencies.
-5. Stage and validate changed Caddy or Compose configuration. Snapshot the
-   currently active configuration for automatic rollback before promoting it.
+5. Stage and validate a changed Caddy configuration. Snapshot the currently
+   active Caddyfile for automatic rollback before promoting it.
 6. Atomically switch `releases/current` to the sealed build. Validate Caddy and
    the umbrella page inside the container, then probe all public hostnames,
    security headers, redirects, identity routes and a shared product asset.
@@ -435,3 +435,28 @@ not the csb1 Traefik runtime. `NIX-408` must add and apply the edge route and DN
 for `aithema.inspr.at` before deployment. Until then the deploy probe fails
 closed and restores the previous release rather than publishing a partially
 reachable family.
+
+---
+
+## D-017 — Static release and runtime configuration are independent gates
+
+**Date:** 2026-09-01
+**Ticket:** INSPR-336
+**Status:** Committed
+
+The csb1 container runtime has one source: nixcfg's
+`hosts/csb1/docker/compose-spec.nix`. The tracked `docker-compose.yml` and the
+file historically left in the remote site directory are pre-adoption
+snapshots. Neither is runtime evidence, and their byte equality is not a
+deployment gate.
+
+`deploy.sh` therefore never reads, uploads or applies either historical
+Compose file. Runtime changes are reviewed, evaluated and activated through
+nixcfg. The site repository independently owns the immutable static release
+and bind-mounted Caddyfile: clean source identity, local audits,
+checksum-verified upload, Caddy validation, atomic promotion, mandatory public
+probes and rollback remain fail-closed.
+
+**Why:** comparing two non-canonical snapshots blocked a valid static release
+after the canonical runtime had already been activated. Keeping the two gates
+independent makes each one test the source it actually owns.

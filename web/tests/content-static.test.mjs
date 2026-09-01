@@ -170,7 +170,9 @@ test("apex and identity edge routes enforce HTTPS and HSTS", async () => {
   // reconcile them through the legacy compose project. It may only promote
   // the bind-mounted Caddyfile and restart the stateless edge to re-bind it.
   assert.doesNotMatch(deploy, /docker compose/);
-  assert.match(deploy, /docker-compose\.yml differs from the host copy/);
+  assert.doesNotMatch(deploy, /LOCAL_COMPOSE_HASH|REMOTE_COMPOSE_HASH/);
+  assert.doesNotMatch(deploy, /remote_hash\s+"docker-compose\.yml"/);
+  assert.doesNotMatch(deploy, /\$ROOT\/docker-compose\.yml/);
   assert.match(deploy, /docker restart inspr-www/);
   assert.match(deploy, /automatic web edge rollback needs operator attention/);
 });
@@ -850,7 +852,12 @@ test("direct SSH deployment overrides preserve one pinned host identity", async 
     await Promise.all([
       writeFile(join(fixtureRoot, "deploy.sh"), deploy),
       writeFile(join(fixtureRoot, "Caddyfile"), "fixture caddy configuration\n"),
-      writeFile(join(fixtureRoot, "docker-compose.yml"), "services: {}\n"),
+      // Deliberately differs from the historical remote hash below. Static
+      // release transport must not inspect or reconcile either snapshot.
+      writeFile(
+        join(fixtureRoot, "docker-compose.yml"),
+        "services:\n  legacy-local:\n    image: local-only\n",
+      ),
       writeFile(join(fixtureRoot, "site", "index.html"), "fixture archive\n"),
       writeFile(join(fixtureRoot, "web", "dist", "index.html"), "fixture umbrella\n"),
       writeFile(join(fixtureRoot, "web", "dist", "paimos", "index.html"), "fixture paimos\n"),
@@ -871,10 +878,12 @@ test("direct SSH deployment overrides preserve one pinned host identity", async 
       ),
     ]);
 
-    // The fake host holds the same docker-compose.yml reference copy as the
-    // fixture (deploy.sh refuses to run otherwise) and no Caddyfile hash, so
-    // the Caddyfile promotion path (scp + validate + restart) is exercised.
-    const composeHash = createHash("sha256").update("services: {}\n").digest("hex");
+    // The fake host advertises a deliberately divergent historical Compose
+    // hash if queried. The deploy must ignore it while still exercising the
+    // Caddyfile promotion path (scp + validate + restart).
+    const remoteComposeHash = createHash("sha256")
+      .update("services:\n  legacy-remote:\n    image: remote-only\n")
+      .digest("hex");
     const loggingTransport = (name, respond = "cat >/dev/null") => `#!/bin/sh
 printf '%s' '${name}' >> "$TRANSPORT_LOG"
 for argument in "$@"; do
@@ -885,7 +894,7 @@ ${respond}
 `;
     const sshResponder = `command=$(cat)
 case "$command" in
-  *sha256sum*docker-compose.yml*) printf '%s\\n' '${composeHash}' ;;
+  *docker-compose.yml*) printf '%s\\n' '${remoteComposeHash}'; exit 97 ;;
 esac`;
     for (const transport of ["ssh", "scp", "rsync"]) {
       const executable = join(fakeBin, transport);

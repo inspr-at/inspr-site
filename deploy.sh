@@ -11,9 +11,9 @@
 # Runtime ownership: the inspr-www container (with inspr-auth, zitadel and
 # zitadel-postgres) is declared in nixcfg hosts/csb1/docker/compose-spec.nix
 # since OPS-136. deploy.sh writes release content and the bind-mounted
-# Caddyfile only; it never applies docker-compose.yml to the host. A changed
-# Caddyfile restarts the stateless inspr-www container so the fresh bind
-# mount is picked up.
+# Caddyfile only; it never reads, uploads or applies docker-compose.yml. A
+# changed Caddyfile restarts the stateless inspr-www container so the fresh
+# bind mount is picked up.
 #
 # The current Astro build contains the umbrella page plus /aithema, /paimos,
 # /pharos and /janus. Caddy maps each product hostname to its folder and serves
@@ -532,17 +532,6 @@ if ! remote_ssh "test -f '$REMOTE_DIR/site/index.html'"; then
   die "remote v1 archive is missing; refusing to create an empty archive mount"
 fi
 ok "remote v1 archive present"
-
-# The container definitions are owned by nixcfg (hosts/csb1/docker/
-# compose-spec.nix, OPS-136). A docker-compose.yml change in this repository
-# is documentation and must never reach the host through deploy.sh; refuse
-# before anything is written so no orphaned build is left behind.
-LOCAL_COMPOSE_HASH=$(shasum -a 256 "$ROOT/docker-compose.yml" | awk '{print $1}')
-REMOTE_COMPOSE_HASH=$(remote_hash "docker-compose.yml")
-if [ "$LOCAL_COMPOSE_HASH" != "$REMOTE_COMPOSE_HASH" ]; then
-  die "docker-compose.yml differs from the host copy; container definitions live in nixcfg (OPS-136) and are not deployed by this script"
-fi
-ok "docker-compose.yml matches the host reference copy (not deployed from here)"
 
 # A non-symlink `current` is an unknown layout and must never be overwritten.
 remote_ssh "set -eu

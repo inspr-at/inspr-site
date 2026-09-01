@@ -146,10 +146,10 @@ The containers themselves (`inspr-www`, `inspr-auth`, `zitadel`,
 `zitadel-postgres`) have been declared in nixcfg
 (`hosts/csb1/docker/compose-spec.nix`, compose project `csb1`) since OPS-136
 on 2026-08-04. `docker-compose.yml` in this repository is the pre-adoption
-definition, kept byte-identical to the host's reference copy: `deploy.sh`
-never applies it and refuses to run when the two drift. Images, routing
-labels and volumes change in nixcfg; release content and the bind-mounted
-`Caddyfile` change here.
+definition and is not a runtime source. `deploy.sh` never reads, uploads or
+applies that historical file; drift from any historical host copy is
+irrelevant to a static release. Images, routing labels and volumes change only
+in nixcfg; release content and the bind-mounted `Caddyfile` change here.
 
 The deployment script:
 

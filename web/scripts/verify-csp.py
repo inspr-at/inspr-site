@@ -1,24 +1,29 @@
 #!/usr/bin/env python3
-"""Verify every inline <script> across all built and archived pages has its
-SHA-256 hash pinned in Caddyfile's CSP `script-src` directive.
+"""Verify CSP pins exactly match inline scripts in built and archived pages.
 
 Walks web/dist/**/*.html and the frozen site/**/*.html archive, computes
 hashes for every inline <script> (skipping external src= scripts), and asserts
-each one appears in the Caddyfile. Exit non-zero on any drift; prints the
-missing hashes for paste-in.
+each one appears in the Caddyfile. Exit non-zero for missing or stale pins.
 
 Run before any deploy that touches Base.astro, JSON-LD content, or any
 inlined script body.
 """
 from __future__ import annotations
 
+import argparse
 import base64
 import hashlib
 import pathlib
 import re
 import sys
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
+DEFAULT_ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--root", type=pathlib.Path, default=DEFAULT_ROOT)
+args = parser.parse_args()
+
+ROOT = args.root.resolve()
 DIST = ROOT / "web" / "dist"
 ARCHIVE = ROOT / "site"
 CADDYFILE = ROOT / "Caddyfile"
@@ -64,8 +69,7 @@ for html_path in html_paths:
         found.setdefault(token, []).append(f"{rel}  {kind}  {len(body)}B")
 
 if not found:
-    print("WARN: no inline scripts found in dist", file=sys.stderr)
-    sys.exit(0)
+    print("INFO: no inline scripts found", file=sys.stderr)
 
 for token, occurrences in sorted(found.items()):
     if token in pinned:
@@ -83,12 +87,13 @@ if problems:
     print("Add the following to script-src in Caddyfile:", file=sys.stderr)
     for p in problems:
         print(f"  '{p}'", file=sys.stderr)
-    sys.exit(1)
-
-# Also report any hashes pinned in Caddyfile that no longer appear in any
-# inline script — safe to remove.
-pinned_unused = [p for p in pinned if p not in found]
+# A stale pin broadens script-src without serving any page and is therefore
+# security drift, including when no inline scripts exist at all.
+pinned_unused = sorted(p for p in pinned if p not in found)
 if pinned_unused:
-    print("\nNote: pinned hashes no longer used (can be removed):", file=sys.stderr)
+    print("\nFAIL: pinned hashes no longer used:", file=sys.stderr)
     for p in pinned_unused:
         print(f"  {p}", file=sys.stderr)
+
+if problems or pinned_unused:
+    sys.exit(1)

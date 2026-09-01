@@ -210,23 +210,24 @@ to `auto`; the audience-line scroll-driven axis morph short-circuits via
 
 ## 8 · CSP posture
 
-Pinned in [`Caddyfile.v1`](../Caddyfile.v1). Highlights:
+Defined in [`Caddyfile`](../Caddyfile). Highlights:
 
 ```
 default-src 'self';
 style-src 'self' 'unsafe-inline';   # Astro emits scoped <style> blocks
 img-src 'self' data:;
 font-src 'self';
-script-src 'self' 'sha256-...';     # only the inline JSON-LD payload
+script-src 'self' 'sha256-...';     # same-origin JS + frozen archive only
 frame-ancestors 'none';
 base-uri 'self';
 form-action 'self';
 ```
 
-The single inline `<script type="application/ld+json">` is allowed via a
-SHA-256 hash, not `'unsafe-inline'`. `web/scripts/verify-csp.py`
-recomputes that hash and exits non-zero if it drifts from what's pinned
-in Caddyfile.v1 — run as part of pre-deploy.
+Current pages have no inline JavaScript. Their release-keyed files are covered
+by `'self'`. Four SHA-256 hashes, never `'unsafe-inline'`, preserve the frozen
+archive's theme bootstrap and JSON-LD payloads. `web/scripts/verify-csp.py`
+recomputes the exact set and exits non-zero for missing or stale pins as part
+of every production build.
 
 ---
 

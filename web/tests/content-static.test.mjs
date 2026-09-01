@@ -102,6 +102,33 @@ test("microsites keep an accessible mobile section menu", async () => {
   assert.match(styles, /@media \(max-width: 72rem\)[\s\S]*?\.mobile-navigation \{\s*display: block;/);
 });
 
+test("the CSP verifier rejects stale pins even when no inline scripts exist", async () => {
+  const fixture = await mkdtemp(join(tmpdir(), "inspr-csp-"));
+
+  try {
+    await mkdir(join(fixture, "web", "dist"), { recursive: true });
+    await mkdir(join(fixture, "site"), { recursive: true });
+    await writeFile(join(fixture, "web", "dist", "index.html"), "<!doctype html><title>Current</title>");
+    await writeFile(join(fixture, "site", "index.html"), "<!doctype html><title>Archive</title>");
+    await writeFile(
+      join(fixture, "Caddyfile"),
+      "header Content-Security-Policy \"script-src 'self' 'sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='\"\n",
+    );
+
+    const result = spawnSync(
+      "python3",
+      [fileURLToPath(new URL("../scripts/verify-csp.py", import.meta.url)), "--root", fixture],
+      { encoding: "utf8" },
+    );
+
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /INFO: no inline scripts found/);
+    assert.match(result.stderr, /FAIL: pinned hashes no longer used/);
+  } finally {
+    await rm(fixture, { recursive: true, force: true });
+  }
+});
+
 test("the shared Pharos mark is the canonical low-complexity SVG", async () => {
   const mark = await source("assets/products/pharos/mark.svg");
 

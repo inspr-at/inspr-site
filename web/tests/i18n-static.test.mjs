@@ -291,5 +291,10 @@ test("locale preference uses localStorage without cookies and stays external und
   assert.match(caddy, /frame-ancestors 'none'/);
   assert.match(caddy, /base-uri 'self'/);
   assert.match(caddy, /form-action 'self'/);
+  assert.equal(
+    (caddy.match(/sha256-[A-Za-z0-9+/=]+/g) ?? []).length,
+    4,
+    "CSP must retain only the four frozen-archive script pins",
+  );
   assert.match(astroConfig, /assetsInlineLimit: 0/);
 });

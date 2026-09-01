@@ -46,18 +46,18 @@ one. No section is operator-only.
 - **Stack:** Astro 5 SSG. Source lives in `web/`; build output goes to
   `web/dist/` and is promoted as an immutable release under D-008. It is never
   copied into the frozen `site/` archive.
-- **JS posture:** `script-src 'self'` (relaxed from current `'none'`). Used
-  only for cross-document View Transitions and one tasteful hero island.
-  Everything else works with JS off — including all motion (scroll-driven
-  CSS animations, View Transitions, `@property` typed transitions).
+- **JS posture:** current pages use only same-origin external modules and a
+  release-keyed locale bootstrap under `script-src 'self'`. Four SHA-256 pins
+  remain solely for the frozen archive's inline theme and JSON-LD scripts.
+  The CSP verifier rejects both missing and stale pins.
 - **No external CDN at runtime.** Fonts self-hosted via `@fontsource[-variable]`,
   inlined into the build. No Google Fonts hotlink, no analytics CDN.
 
 **Why:** Astro 5 is the strongest static-content framework in 2026 — best
 output, partial hydration when needed, native View Transitions support, and
-honest perf out of the box. `script-src 'self'` is the smallest CSP
-relaxation that still admits the modern motion vocabulary; it remains
-strictly defensive.
+honest perf out of the box. `script-src 'self'` admits the small progressive
+enhancements without an external runtime; exact archive hashes keep the
+legacy surface available without broadening current-page execution.
 
 ---
 

@@ -18,7 +18,6 @@ import {
   createReleaseMetadata,
   releaseManifest,
 } from "../release-metadata.mjs";
-import "./i18n-static.test.mjs";
 
 const sourceUrl = new URL("../src/", import.meta.url);
 

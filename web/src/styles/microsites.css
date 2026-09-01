@@ -377,6 +377,7 @@
 
   .language-switch a {
     display: inline-grid;
+    min-width: 1.5rem;
     min-height: 2.65rem;
     place-items: center;
     padding: 0.28rem 0.12rem;
@@ -3101,6 +3102,20 @@
 
   .site-footer__release {
     justify-content: start;
+  }
+}
+
+@media (max-width: 27rem) {
+  .site-brand span {
+    display: none;
+  }
+}
+
+@media (max-width: 21rem) {
+  .mobile-navigation summary,
+  .product-switcher summary {
+    gap: 0.35rem;
+    padding-inline: 0.5rem;
   }
 }
 

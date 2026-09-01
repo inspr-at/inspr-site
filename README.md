@@ -46,6 +46,27 @@ release switches.
 
 ## Local development
 
+The repository keeps the Higgsfield CLI isolated under
+`tools/higgsfield-cli/` and pins it through npm. The devenv shell provisions
+Node/npm, installs that lockfile with `npm clean-install` when required, and
+adds the local CLI to `PATH` without a global npm install:
+
+```bash
+direnv allow
+devenv shell -- higgsfield --version
+```
+
+Higgsfield's current generation API uses interactive OAuth. Authenticate once
+from the prepared shell when needed:
+
+```bash
+higgsfield auth login
+```
+
+OAuth credentials remain in the user's local Higgsfield configuration and are
+never sourced by this repository or committed. Devenv does not source an API
+key or any other credential file.
+
 The frontend requires Node.js 22.12 or newer.
 
 ```bash

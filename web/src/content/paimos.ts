@@ -463,6 +463,196 @@ export const paimosContent = {
     closing:
       "Agent runtimes can change. The durable project context, permissions and evidence remain in Paimos.",
   },
+  agentIntercom: {
+    eyebrow: "Agent Intercom",
+    title: "Reach work in motion without hiding the boundary.",
+    lead:
+      "Agent Intercom gives project agents a durable way to hand off findings and, when Paimos owns the live agent session, a narrow way to supervise it. The ledger records the message first; the receiver's registered target and current capability decide what happens next.",
+    boundary:
+      "Paimos may report or control only a fresh Codex or Claude child it started and still owns. A vendor session identifier alone never grants that authority.",
+    flow: [
+      {
+        label: "01 · Record",
+        title: "Commit one message",
+        body:
+          "The project ledger records the authenticated sender, registered receiver, requested level and optional issue link before delivery begins.",
+        icon: "database",
+      },
+      {
+        label: "02 · Gate",
+        title: "Apply policy first",
+        body:
+          "Sender allowlists, action holds, hop, rate, size and secret checks run before an eligible body receives its untrusted-data frame.",
+        icon: "shield-check",
+      },
+      {
+        label: "03 · Bind",
+        title: "Resolve the receiver",
+        body:
+          "A receiver-owned target selects the supported adapter and caps the requested level. Paimos never infers a session from a person's name.",
+        icon: "route",
+      },
+      {
+        label: "04 · Prove",
+        title: "Record the effect",
+        body:
+          "The cursor advances only after handoff. Requested and effective levels, typed fallback reasons and correlation evidence keep the result honest.",
+        icon: "file-check-2",
+      },
+    ],
+    controls: [
+      {
+        control: "Tell",
+        intent: "Durable handoff",
+        simpleInbox: {
+          state: "supported",
+          label: "Project-scoped message, delivery record and durable cursor.",
+        },
+        managedCodex: {
+          state: "conditional",
+          label: "Simple delivery requires a distinct registered target and matching listener.",
+        },
+        managedClaude: {
+          state: "conditional",
+          label: "Simple delivery requires a distinct registered target and matching listener.",
+        },
+        unmanaged: {
+          state: "conditional",
+          label: "Simple delivery only when the receiver registered a supported target.",
+        },
+      },
+      {
+        control: "Status",
+        intent: "Observe session state",
+        simpleInbox: {
+          state: "unavailable",
+          label: "The ledger shows message delivery, not a vendor process state.",
+        },
+        managedCodex: {
+          state: "supported",
+          label: "Available locally from the session owner; durable publication needs reporting integration.",
+        },
+        managedClaude: {
+          state: "supported",
+          label: "Available locally from the session owner; durable publication needs reporting integration.",
+        },
+        unmanaged: {
+          state: "unavailable",
+          label: "A resume, channel or webhook target does not grant process status.",
+        },
+      },
+      {
+        control: "Steer",
+        intent: "Change the active turn",
+        simpleInbox: {
+          state: "conditional",
+          label: "The ledger can preserve steer intent, but the receiver caps authority.",
+        },
+        managedCodex: {
+          state: "supported",
+          label: "Targets the exact live, owned Codex turn and records correlation evidence.",
+        },
+        managedClaude: {
+          state: "supported",
+          label: "Streams input to the exact live, owned Agent SDK Query and records correlation evidence.",
+        },
+        unmanaged: {
+          state: "unavailable",
+          label: "Claude and Grok can use a configured simple handoff, never a steer claim.",
+        },
+      },
+      {
+        control: "Interrupt",
+        intent: "End the current turn",
+        simpleInbox: {
+          state: "unavailable",
+          label: "Free-text delivery does not become a control command.",
+        },
+        managedCodex: {
+          state: "supported",
+          label: "Interrupts the exact current owned turn while preserving the session.",
+        },
+        managedClaude: {
+          state: "supported",
+          label: "Interrupts the exact current owned Query while preserving the session.",
+        },
+        unmanaged: {
+          state: "unavailable",
+          label: "No owned live handle means no interrupt authority.",
+        },
+      },
+      {
+        control: "Stop",
+        intent: "End the owned session",
+        simpleInbox: {
+          state: "unavailable",
+          label: "A message cannot terminate a receiver process.",
+        },
+        managedCodex: {
+          state: "supported",
+          label: "Terminates and reaps the exact daemon-owned child process group.",
+        },
+        managedClaude: {
+          state: "supported",
+          label: "Terminates and reaps the exact daemon-owned child process group.",
+        },
+        unmanaged: {
+          state: "unavailable",
+          label: "External sessions stay outside Paimos process ownership.",
+        },
+      },
+    ],
+    unmanagedCodexNote:
+      "A receiver-owned unmanaged Codex target may opt into the documented external steer adapter. That narrow adapter can fall back to a simple queued turn with an explicit reason, but it never grants Paimos interrupt or stop ownership and never reports the queue fallback as steer.",
+    security: [
+      {
+        title: "Identity is attributed, not pasted",
+        icon: "user-round-check",
+        body:
+          "The authenticated request supplies the sender. The receiver must be registered, and its allowlist is checked before any delivery is runnable.",
+        meta: "Target registration never bypasses sender policy",
+      },
+      {
+        title: "Bodies stay untrusted",
+        icon: "shield-check",
+        body:
+          "The server frames delivered text as external data. A message cannot grant consent, change configuration, approve an action or promote its own delivery level.",
+        meta: "Typed action requests remain held for a human",
+      },
+      {
+        title: "Capability belongs to the receiver",
+        icon: "lock-keyhole",
+        body:
+          "A steer request is only intent. The registered target, adapter capability and live ownership state decide whether a native control can run.",
+        meta: "No invented vendor command and no authority from an ID alone",
+      },
+      {
+        title: "Evidence is scoped and content-free",
+        icon: "git-branch",
+        body:
+          "Message, delivery and correlation identifiers connect the durable row to its exact handoff without copying message bodies, credentials or private target details into control evidence.",
+        meta: "Project and Paimos-instance boundaries remain explicit",
+      },
+    ],
+    recovery: {
+      title: "Durable delivery survives; process ownership does not.",
+      body:
+        "If a delivery worker is unavailable, an eligible message stays pending for retry. If the local session owner restarts, its former sessions remain visible as ownership lost and control fails closed. Recovery starts a fresh managed child and registers a fresh target; Paimos never reconstructs authority from a stale vendor session identifier.",
+      meta: "No stale target becomes a live control handle after restart.",
+    },
+    links: [
+      {
+        label: "Agent Intercom guide",
+        href: docsUrl("AGENT_INTERCOM.md"),
+        external: true,
+      },
+      {
+        label: "Message security contract",
+        href: docsUrl("AGENT_MESSAGE_SECURITY.md"),
+        external: true,
+      },
+    ],
+  },
   featureSections: [
     {
       id: "structured-work",

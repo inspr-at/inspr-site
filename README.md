@@ -5,18 +5,19 @@
 This repository powers the English-language INSPR site family:
 
 - [www.inspr.at](https://www.inspr.at) - the INSPR idea and product map;
-- [start.augmentoring.com](https://start.augmentoring.com) - the current Aithema requirements preview;
+- [aithema.inspr.at](https://aithema.inspr.at) - Aithema requirements and its current maturity boundary;
+- [start.augmentoring.com](https://start.augmentoring.com) - the hosted Aithema requirements preview;
 - [paimos.inspr.at](https://paimos.inspr.at) - shared project context for people and AI agents;
 - [pharos.inspr.at](https://pharos.inspr.at) - clear fleet operations;
 - [janus.inspr.at](https://janus.inspr.at) - policy-bound secret use;
 - [v1.inspr.at](https://v1.inspr.at) - the frozen pre-relaunch archive.
 
 Aithema (pronounced **AI-Thema**) is the first product in the family sequence
-and owns requirements. Its current public preview is at
-[start.augmentoring.com](https://start.augmentoring.com). This
-repository links to that visitor experience from the shared product navigation;
-it does not build or host it. A reusable open-source Aithema template or module
-is planned; the hosted visitor experience is the public path in the meantime.
+and owns requirements. Its product page is at
+[aithema.inspr.at](https://aithema.inspr.at), while the working public preview
+remains at [start.augmentoring.com](https://start.augmentoring.com). A reusable
+open-source Aithema template or module is planned; neither a product repository
+nor a product license is claimed before that source exists.
 
 The product sites are intentionally lightweight. INSPR and its products are
 open work by [Markus Barta](https://github.com/markus-barta). The sites explain
@@ -29,7 +30,7 @@ products rather than their owner.
 ## Repository map
 
 ```text
-web/                  Astro source for all four current sites
+web/                  Astro source for the umbrella and four product sites
 site/                 frozen pre-relaunch archive served at v1.inspr.at
 auth/                 small Go OIDC session and signup bridge
 Caddyfile             host routing, cache policy and security headers
@@ -38,8 +39,8 @@ deploy.sh             immutable release upload, promotion, rollback and probes
 .github/workflows/    ci.yml: the pull-request gate (tests, type-check, build, audit)
 ```
 
-One Astro build produces the umbrella page plus `/paimos`, `/pharos`, and
-`/janus`. Caddy selects the right directory by hostname. Hashed Astro assets
+One Astro build produces the umbrella page plus `/aithema`, `/paimos`,
+`/pharos`, and `/janus`. Caddy selects the right directory by hostname. Hashed Astro assets
 live in an append-only shared pool so cached HTML remains valid across atomic
 release switches.
 
@@ -59,6 +60,7 @@ Product pages share one layout and typed content model. Most copy changes
 belong in:
 
 ```text
+web/src/content/aithema.ts
 web/src/content/paimos.ts
 web/src/content/pharos.ts
 web/src/content/janus.ts
@@ -216,7 +218,7 @@ bootstrap token. The checked `.env.example` contains placeholders only.
 
 ## Product sources
 
-- **Aithema** - reusable open-source template or module planned; public preview at [start.augmentoring.com](https://start.augmentoring.com)
+- **Aithema** - [product page](https://aithema.inspr.at); reusable open-source template or module planned; public preview at [start.augmentoring.com](https://start.augmentoring.com)
 - [Paimos](https://github.com/inspr-at/paimos)
 - [Pharos](https://github.com/inspr-at/pharos)
 - [Janus](https://github.com/inspr-at/janus)

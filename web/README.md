@@ -8,10 +8,13 @@ one Astro application.
 | Route | Production host |
 | --- | --- |
 | `/` | `www.inspr.at` |
-| external | `start.augmentoring.com` (Aithema preview) |
+| `/aithema/` | `aithema.inspr.at` |
 | `/paimos/` | `paimos.inspr.at` |
 | `/pharos/` | `pharos.inspr.at` |
 | `/janus/` | `janus.inspr.at` |
+
+The Aithema page links to the working hosted preview at
+`start.augmentoring.com`; the preview itself is not built by this repository.
 
 Caddy performs the host-to-directory mapping in production. The local Astro
 server exposes the same pages by path.
@@ -36,14 +39,19 @@ The build is static and writes to `dist/`.
 `npm run build` also writes `dist/release.json` from the centralized release
 metadata helper. Direct local builds render a truthful `local build` footer.
 `deploy.sh` injects the non-secret `INSPR_GIT_SHA`, `INSPR_GIT_DIRTY`,
-`INSPR_RELEASE_ID` and `INSPR_DEPLOYED_AT` values so all four production
+`INSPR_RELEASE_ID` and `INSPR_DEPLOYED_AT` values so all five production
 footers and the manifest identify the exact immutable release transaction.
 
 ## Content model
 
-`src/components/ProductPage.astro` renders all product pages from the typed
-objects in `src/content/`. Keep product facts grounded in the corresponding
-source repository and keep current limits visible.
+`src/components/ProductPage.astro` renders the released product pages from the
+typed objects in `src/content/`. Keep product facts grounded in the
+corresponding source repository and keep current limits visible.
+
+Aithema uses the preview-specific `PreviewProductContent` model and
+`AithemaProductPage.astro`. That surface intentionally has no repository,
+license, release, integration or architecture claims until inspectable product
+source exists.
 
 Cross-site URLs live in `src/content/urls.ts`. The professional-services URL
 is configurable through `PUBLIC_BUSINESS_URL`; do not hardcode its current
@@ -57,8 +65,8 @@ The umbrella and products are authored by
 professional-services path that uses and supports them; it is not presented as
 their owner. The canonical product sequence is **Aithema, Paimos, Pharos,
 Janus**. Aithema currently links to its hosted preview at
-`start.augmentoring.com`; its reusable template or module is planned for an
-open-source release.
+`start.augmentoring.com` from its own product page at `aithema.inspr.at`; its
+reusable template or module is planned for an open-source release.
 
 ## License
 

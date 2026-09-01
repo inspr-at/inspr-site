@@ -1,0 +1,410 @@
+---
+import { Image } from "astro:assets";
+import MicrositeLayout from "../layouts/MicrositeLayout.astro";
+import ServiceRibbon from "./ServiceRibbon.astro";
+import FractureAtlas from "./FractureAtlas.astro";
+import WorkflowExplorer from "./WorkflowExplorer.astro";
+import FeatureExperience from "./FeatureExperience.astro";
+import AudiencePaths from "./AudiencePaths.astro";
+import ConstraintRegister from "./ConstraintRegister.astro";
+import type { PreviewProductContent } from "../content/types";
+import { productLinks, siteUrls } from "../content/urls";
+import { releaseMetadata } from "../../release-metadata.mjs";
+
+import aithemaHero from "../assets/products/aithema/hero.png";
+import aithemaLogo from "../assets/products/aithema/logo.svg";
+
+interface Props {
+  content: PreviewProductContent;
+}
+
+const { content } = Astro.props;
+const nav = [
+  { label: "Why", href: "#why" },
+  { label: "Path", href: "#model" },
+  { label: "Capabilities", href: "#capabilities" },
+  { label: "Limits", href: "#limits" },
+  { label: "Preview", href: content.previewUrl, external: true },
+];
+const ogImage = new URL(aithemaHero.src, content.canonicalUrl).href;
+const year = new Date().getUTCFullYear();
+const deployedAtLabel = releaseMetadata.deployedAt
+  ? `${new Intl.DateTimeFormat("en-GB", {
+      dateStyle: "medium",
+      timeStyle: "short",
+      timeZone: "UTC",
+    }).format(new Date(releaseMetadata.deployedAt))} UTC`
+  : "Local build";
+---
+
+<MicrositeLayout
+  title={content.seo.title}
+  description={content.seo.description}
+  canonical={content.canonicalUrl}
+  ogImage={ogImage}
+  ogImageAlt={content.hero.alt}
+  favicon={aithemaLogo.src}
+  theme="inspr"
+>
+  <header class="site-header">
+    <div class="site-header__bar page-shell">
+      <a class="site-brand" href={content.canonicalUrl}>
+        <img src={aithemaLogo.src} alt="" width="48" height="48" />
+        <span>
+          <strong>{content.name}</strong>
+          <small>{content.category}</small>
+        </span>
+      </a>
+
+      <nav class="site-nav" aria-label="Primary navigation">
+        {nav.map((item) => (
+          <a
+            href={item.href}
+            target={item.external ? "_blank" : undefined}
+            rel={item.external ? "noopener noreferrer" : undefined}
+          >
+            {item.label}
+          </a>
+        ))}
+      </nav>
+
+      <div class="site-header__actions">
+        <details class="mobile-navigation" data-mobile-navigation>
+          <summary>Sections</summary>
+          <nav class="mobile-navigation__panel" aria-label="Mobile navigation">
+            {nav.map((item) => (
+              <a
+                href={item.href}
+                target={item.external ? "_blank" : undefined}
+                rel={item.external ? "noopener noreferrer" : undefined}
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
+        </details>
+        <details class="product-switcher">
+          <summary>Products</summary>
+          <div class="product-switcher__panel">
+            {productLinks.map((item) => (
+              <a
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${item.label}, opens in a new tab`}
+                aria-current={item.label === "Aithema" ? "page" : undefined}
+              >
+                {item.label}
+              </a>
+            ))}
+          </div>
+        </details>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <ServiceRibbon text={content.serviceIntro} />
+
+    <section
+      class="product-hero page-shell"
+      aria-labelledby="hero-title"
+      data-section-pattern="editorial-hero"
+    >
+      <div class="product-hero__copy">
+        <p class="eyebrow">{content.hero.eyebrow}</p>
+        <h1 id="hero-title">{content.hero.title}</h1>
+        <p class="hero-lead">{content.hero.lead}</p>
+        <div class="button-row">
+          <a
+            class="button"
+            href={content.previewUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {content.hero.primaryLabel} <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </div>
+
+      <figure class="product-hero__visual">
+        <Image
+          src={aithemaHero}
+          alt={content.hero.alt}
+          widths={[720, 960, 1280, 1600]}
+          sizes="(min-width: 64rem) 55vw, 100vw"
+          quality={84}
+          loading="eager"
+          fetchpriority="high"
+        />
+      </figure>
+    </section>
+
+    <div
+      class="proof-console page-shell"
+      aria-label="Product characteristics"
+      data-section-pattern="proof-strip"
+    >
+      <div class="proof-console__label" aria-hidden="true">
+        <span>Current posture</span>
+        <strong>{String(content.proof.length).padStart(2, "0")}</strong>
+      </div>
+      <ol class="proof-strip">
+        {content.proof.map((item, index) => (
+          <li>
+            <span class="proof-strip__index" aria-hidden="true">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+
+    <section
+      class="section page-shell"
+      id="why"
+      aria-labelledby="problem-title"
+      data-section-pattern="fracture-atlas"
+    >
+      <header class="section-intro">
+        <p class="eyebrow">{content.problem.eyebrow}</p>
+        <h2 id="problem-title">{content.problem.title}</h2>
+        <p class="section-lead">{content.problem.lead}</p>
+      </header>
+      <FractureAtlas
+        id="aithema-problem"
+        items={content.problem.items}
+        image={aithemaHero}
+        alt={content.problem.visualAlt}
+        caption={content.problem.visualCaption}
+      />
+    </section>
+
+    <WorkflowExplorer
+      id="model"
+      eyebrow={content.model.eyebrow}
+      title={content.model.title}
+      lead={content.model.lead}
+      steps={content.model.steps}
+      image={aithemaLogo}
+      alt="The Aithema Requirement Prism marking the path from input to a reviewed decision"
+      closing={content.model.closing}
+      tone="ink"
+      pattern="guided-workflow"
+    />
+
+    <div id="capabilities">
+      {content.featureSections.map((feature, index) => (
+        <section
+          class:list={["section", "page-shell", { "section--tint": index % 2 === 1 }]}
+          id={`feature-${feature.id}`}
+          aria-labelledby={`${feature.id}-title`}
+          data-section-pattern={index % 2 === 0 ? "feature-ledger" : "feature-sequence"}
+        >
+          <header class="section-intro">
+            <p class="eyebrow">{feature.eyebrow}</p>
+            <h2 id={`${feature.id}-title`}>{feature.title}</h2>
+            <p class="section-lead">{feature.lead}</p>
+          </header>
+          <FeatureExperience
+            id={`aithema-${feature.id}`}
+            items={feature.items}
+            variant={index % 2 === 0 ? "ledger" : "sequence"}
+            label={feature.eyebrow}
+          />
+        </section>
+      ))}
+    </div>
+
+    <section
+      class="section page-shell"
+      aria-labelledby="audience-title"
+      data-section-pattern="audience-paths"
+    >
+      <header class="section-intro">
+        <p class="eyebrow">{content.audiences.eyebrow}</p>
+        <h2 id="audience-title">{content.audiences.title}</h2>
+        <p class="section-lead">{content.audiences.lead}</p>
+      </header>
+      <AudiencePaths id="aithema-audiences" items={content.audiences.items} />
+    </section>
+
+    <section
+      class="section section--tint"
+      id="limits"
+      aria-labelledby="limits-title"
+      data-section-pattern="constraint-register"
+    >
+      <div class="page-shell limits-grid">
+        <header class="section-intro">
+          <p class="eyebrow">{content.limits.eyebrow}</p>
+          <h2 id="limits-title">{content.limits.title}</h2>
+          <p class="section-lead">{content.limits.lead}</p>
+        </header>
+        <ConstraintRegister items={content.limits.items} />
+      </div>
+    </section>
+
+    <section
+      class="section page-shell open-source"
+      id="release-path"
+      aria-labelledby="release-path-title"
+      data-section-pattern="preview-release-path"
+    >
+      <div>
+        <p class="eyebrow">{content.releasePath.eyebrow}</p>
+        <h2 id="release-path-title">{content.releasePath.title}</h2>
+        <p class="section-lead">{content.releasePath.body}</p>
+      </div>
+      <div>
+        <a
+          class="button"
+          href={content.previewUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Use the hosted preview <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+    </section>
+
+    <section
+      class="section page-shell faq"
+      aria-labelledby="faq-title"
+      data-section-pattern="faq-accordion"
+    >
+      <header class="section-intro">
+        <p class="eyebrow">Practical questions</p>
+        <h2 id="faq-title">Before you use it.</h2>
+      </header>
+      <div class="faq-list">
+        {content.faq.map((item) => (
+          <details>
+            <summary>{item.question}</summary>
+            <p>{item.answer}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <section
+      class="footer-cta page-shell"
+      aria-labelledby="footer-cta-title"
+      data-section-pattern="professional-cta"
+    >
+      <div>
+        <p class="eyebrow">Professional path</p>
+        <h2 id="footer-cta-title">{content.finalCta.title}</h2>
+        <p>{content.finalCta.body}</p>
+      </div>
+      <a
+        class="button button--light"
+        href={siteUrls.business}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Explore Augmentoring services <span aria-hidden="true">↗</span>
+      </a>
+    </section>
+
+    <div class="site-footer__grid page-shell">
+      <div class="site-footer__brand">
+        <strong>{content.name}</strong>
+        <p>Part of INSPR, the technology umbrella for people and AI agents.</p>
+      </div>
+
+      <nav aria-label="INSPR products">
+        <p class="footer-label">Product family</p>
+        {productLinks.map((item) => (
+          <a
+            href={item.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${item.label}, opens in a new tab`}
+          >
+            {item.label}
+          </a>
+        ))}
+      </nav>
+
+      <nav aria-label="Aithema availability">
+        <p class="footer-label">Availability</p>
+        <a href={content.previewUrl} target="_blank" rel="noopener noreferrer">
+          Hosted preview <span aria-hidden="true">↗</span>
+        </a>
+        <small>Reusable open-source module planned</small>
+      </nav>
+
+      <nav aria-label="Services and identity">
+        <p class="footer-label">Operate</p>
+        <a href={siteUrls.business} target="_blank" rel="noopener noreferrer">
+          Professional services <span aria-hidden="true">↗</span>
+        </a>
+        <a href={siteUrls.identity} target="_blank" rel="noopener noreferrer">
+          ZITADEL identity <span aria-hidden="true">↗</span>
+        </a>
+        <a href="mailto:hello@inspr.at">hello@inspr.at</a>
+        <a href={siteUrls.imprint} target="_blank" rel="noopener noreferrer">
+          Legal notice <span aria-hidden="true">↗</span>
+        </a>
+        <a href={siteUrls.privacy} target="_blank" rel="noopener noreferrer">
+          Privacy <span aria-hidden="true">↗</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="site-footer__legal page-shell">
+      <p class="site-footer__legal-copy">
+        <span>
+          © {year} <a href={siteUrls.author} target="_blank" rel="me noopener noreferrer">Markus Barta</a> · INSPR
+        </span>
+        <span>Built to stay inspectable.</span>
+      </p>
+
+      <dl
+        class="site-footer__release"
+        aria-label="Site release"
+        data-release-id={releaseMetadata.releaseId}
+      >
+        <div>
+          <dt>Site</dt>
+          <dd title={`Package ${releaseMetadata.packageName}`}>v{releaseMetadata.version}</dd>
+        </div>
+        <div>
+          <dt>Git</dt>
+          <dd><code>{releaseMetadata.gitLabel}</code></dd>
+        </div>
+        <div>
+          <dt>Release</dt>
+          <dd><code>{releaseMetadata.releaseId}</code></dd>
+        </div>
+        <div>
+          <dt>Deployed</dt>
+          <dd>
+            {releaseMetadata.deployedAt
+              ? <time datetime={releaseMetadata.deployedAt}>{deployedAtLabel}</time>
+              : deployedAtLabel}
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </footer>
+</MicrositeLayout>
+
+<script>
+  document
+    .querySelectorAll<HTMLDetailsElement>("[data-mobile-navigation]")
+    .forEach((menu) => {
+      menu.querySelectorAll("a").forEach((link) => {
+        link.addEventListener("click", () => menu.removeAttribute("open"));
+      });
+      menu.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape" || !menu.open) return;
+        menu.removeAttribute("open");
+        menu.querySelector<HTMLElement>("summary")?.focus();
+      });
+    });
+</script>

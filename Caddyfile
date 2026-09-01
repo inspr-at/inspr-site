@@ -79,7 +79,7 @@
 	# Publish hashed assets before HTML is switched and retain old hashes for
 	# clients with cached documents. Stable public files follow `current`.
 	@current_hashed {
-		host www.inspr.at paimos.inspr.at pharos.inspr.at janus.inspr.at
+		host www.inspr.at aithema.inspr.at paimos.inspr.at pharos.inspr.at janus.inspr.at
 		path /_astro/*
 	}
 	handle @current_hashed {
@@ -88,11 +88,18 @@
 	}
 
 	@current_public {
-		host www.inspr.at paimos.inspr.at pharos.inspr.at janus.inspr.at
+		host www.inspr.at aithema.inspr.at paimos.inspr.at pharos.inspr.at janus.inspr.at
 		path /favicon.svg /favicon.ico /og.jpg /scripts/*
 	}
 	handle @current_public {
 		root * /srv/releases/current
+		file_server
+	}
+
+	@aithema host aithema.inspr.at
+	handle @aithema {
+		root * /srv/releases/current/aithema
+		try_files {path} {path}.html {path}/index.html
 		file_server
 	}
 

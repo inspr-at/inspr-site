@@ -143,3 +143,71 @@ export type ProductContent = {
     body: string;
   };
 };
+
+/**
+ * Product content for a working hosted preview whose reusable source release
+ * has not shipped yet. Keeping this separate from ProductContent prevents a
+ * preview from inheriting repository, license, release, integration or
+ * architecture claims that only make sense for released products.
+ */
+export type PreviewProductContent = {
+  slug: "aithema";
+  name: string;
+  category: string;
+  canonicalUrl: string;
+  previewUrl: string;
+  seo: {
+    title: string;
+    description: string;
+  };
+  hero: {
+    eyebrow: string;
+    title: string;
+    lead: string;
+    alt: string;
+    primaryLabel: string;
+  };
+  serviceIntro: string;
+  proof: string[];
+  problem: {
+    eyebrow: string;
+    title: string;
+    lead: string;
+    visualAlt: string;
+    visualCaption: string;
+    items: CardItem[];
+  };
+  model: {
+    eyebrow: string;
+    title: string;
+    lead: string;
+    steps: StepItem[];
+    closing?: string;
+  };
+  featureSections: FeatureSection[];
+  audiences: {
+    eyebrow: string;
+    title: string;
+    lead: string;
+    items: CardItem[];
+  };
+  limits: {
+    eyebrow: string;
+    title: string;
+    lead: string;
+    items: string[];
+  };
+  releasePath: {
+    eyebrow: string;
+    title: string;
+    body: string;
+  };
+  faq: Array<{
+    question: string;
+    answer: string;
+  }>;
+  finalCta: {
+    title: string;
+    body: string;
+  };
+};

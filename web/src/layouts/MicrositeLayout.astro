@@ -14,6 +14,10 @@ interface Props {
   title: string;
   description: string;
   canonical: string;
+  locale?: "en" | "de";
+  alternateEnglish?: string;
+  alternateGerman?: string;
+  detectLocale?: boolean;
   ogImage: string;
   ogImageAlt: string;
   favicon: string;
@@ -24,15 +28,21 @@ const {
   title,
   description,
   canonical,
+  locale = "en",
+  alternateEnglish,
+  alternateGerman,
+  detectLocale = false,
   ogImage,
   ogImageAlt,
   favicon,
   theme,
 } = Astro.props;
+
+const scriptVersion = process.env.INSPR_RELEASE_ID ?? "dev";
 ---
 
 <!doctype html>
-<html lang="en" data-product={theme}>
+<html lang={locale} data-product={theme}>
   <head>
     <meta charset="utf-8" />
     <meta
@@ -42,12 +52,17 @@ const {
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    {alternateEnglish && <link rel="alternate" hreflang="en" href={alternateEnglish} />}
+    {alternateGerman && <link rel="alternate" hreflang="de" href={alternateGerman} />}
+    {alternateEnglish && <link rel="alternate" hreflang="x-default" href={alternateEnglish} />}
     <meta name="theme-color" content="#f8f5ef" />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={locale === "de" ? "de_AT" : "en_GB"} />
+    <meta property="og:locale:alternate" content={locale === "de" ? "en_GB" : "de_AT"} />
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:alt" content={ogImageAlt} />
     <meta name="twitter:card" content="summary_large_image" />
@@ -57,9 +72,19 @@ const {
 
     <link rel="icon" type="image/svg+xml" href={favicon} />
     <meta name="generator" content={Astro.generator} />
+    {alternateEnglish && alternateGerman && (
+      <script
+        is:inline
+        src={`/scripts/locale-preference.js?v=${scriptVersion}`}
+        data-current-locale={locale}
+        data-english-path={new URL(alternateEnglish).pathname}
+        data-german-path={new URL(alternateGerman).pathname}
+        data-detect-locale={detectLocale ? "true" : "false"}
+      ></script>
+    )}
   </head>
   <body>
-    <a class="skip-link" href="#main-content">Skip to content</a>
+    <a class="skip-link" href="#main-content">{locale === "de" ? "Zum Inhalt" : "Skip to content"}</a>
     <slot />
   </body>
 </html>

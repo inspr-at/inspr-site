@@ -96,7 +96,8 @@ test("microsites keep an accessible mobile section menu", async () => {
   const styles = await source("styles/microsites.css");
 
   assert.match(header, /<details class="mobile-navigation" data-mobile-navigation>/);
-  assert.match(header, /aria-label="Mobile navigation"/);
+  assert.match(header, /mobile: "Mobile navigation"/);
+  assert.match(header, /aria-label=\{labels\.mobile\}/);
   assert.match(header, /event\.key !== "Escape"/);
   assert.match(styles, /@media \(max-width: 72rem\)[\s\S]*?\.mobile-navigation \{\s*display: block;/);
 });
@@ -248,7 +249,7 @@ test("all four microsites render claim visuals and accessible workflow controls"
   assert.match(workflow, /aria-selected/);
   assert.match(workflow, /prefers-reduced-motion: reduce/);
   assert.match(workflow, /IntersectionObserver/);
-  assert.match(umbrella, /title="Continuity is the advantage\."/);
+  assert.match(umbrella, /The work moves\. You decide when\./);
 
   const assets = [
     "assets/products/inspr/continuity.png",
@@ -321,7 +322,8 @@ test("all four hero loops preserve the static poster and motion controls", async
   assert.match(productPage, /heroLoop: janusHeroLoop/);
   assert.match(productPage, /<HeroLoop[\s\S]*?id=\{content\.slug\}[\s\S]*?poster=\{assets\.hero\}[\s\S]*?video=\{assets\.heroLoop\}/);
 
-  for (const attribute of ["autoplay", "muted", "loop", "playsinline"]) {
+  assert.match(heroLoop, /autoplay=\{activation === "autoplay"\}/);
+  for (const attribute of ["muted", "loop", "playsinline"]) {
     assert.match(heroLoop, new RegExp(`\\n\\s+${attribute}\\n`));
   }
   assert.match(heroLoop, /preload="metadata"/);
@@ -464,7 +466,7 @@ test("the July 18 editorial product showcase remains accessible", async () => {
   const productEnd = umbrella.indexOf('<section\n      class="identity-utility');
   const showcase = umbrella.slice(productStart, productEnd);
 
-  assert.match(umbrella, /Four focused products\. One coherent way of working\./);
+  assert.match(umbrella, /Four tools, each with one clear job\./);
   assert.ok(productStart >= 0 && productEnd > productStart);
   assert.match(showcase, /data-section-pattern="editorial-product-stories"/);
   assert.match(showcase, /class="product-showcase"/);
@@ -478,48 +480,67 @@ test("the July 18 editorial product showcase remains accessible", async () => {
   assert.match(umbrella, /\.product-story-link:focus-visible/);
   assert.doesNotMatch(showcase, /ProductConstellation|product-constellation/);
   assert.doesNotMatch(showcase, /<a class="product-story__visual"/);
-  assert.match(showcase, /class="aithema-story"/);
-  assert.match(showcase, /href=\{siteUrls\.aithema\}/);
-  assert.match(showcase, /<h3>Aithema<\/h3>/);
-  assert.match(showcase, /<div class="aithema-story__copy">/);
+  assert.match(umbrella, /name: "Aithema"/);
+  assert.match(umbrella, /href: siteUrls\.aithema/);
+  assert.match(umbrella, /logo: aithemaLogo/);
+  assert.match(umbrella, /hero: aithemaHero/);
   assert.match(showcase, /<p class="product-story__detail">/);
-  assert.match(showcase, /conversational intake and\s+qualification service/);
-  assert.match(showcase, /not an open-source product repository/);
-  assert.match(showcase, /finally a concrete service proposal/);
-  assert.match(
-    showcase,
-    /<span class="text-link" id="product-aithema-link">\s+Explore Aithema <span aria-hidden="true">→<\/span>\s+<span class="visually-hidden"> \(opens in a new tab\)<\/span>\s+<\/span>/,
-  );
-  assert.match(showcase, /AI-Thema/);
-  assert.match(showcase, /start\.augmentoring\.com/);
-  assert.equal(showcase.match(/>Requirements</g)?.length, 1);
+  assert.match(umbrella, /Speak, type or add files; Aithema drafts the requirements\./);
+  assert.match(umbrella, /a reusable open-source module is planned/);
+  assert.match(umbrella, /start\.augmentoring\.com/);
+  assert.match(umbrella, /Conversation · requirements · Continue/);
+  assert.match(showcase, /index % 2 === 0/);
+});
+
+test("the INSPR product flow stays ordered, human-approved and ownership-led", async () => {
+  const umbrella = await source("pages/index.astro");
+  const flowStart = umbrella.indexOf("const productFlowSteps = [");
+  const flowEnd = umbrella.indexOf("];", flowStart);
+  const flow = umbrella.slice(flowStart, flowEnd);
+
+  assert.ok(flowStart >= 0 && flowEnd > flowStart);
+  const orderedSteps = [...flow.matchAll(/title: copy\("(Aithema|Paimos|Pharos|Janus) ·/g)]
+    .map((match) => match[1]);
+  assert.deepEqual(orderedSteps, ["Aithema", "Paimos", "Pharos", "Janus"]);
+  assert.match(flow, /The requirements wait for your Continue\./);
+  assert.match(flow, /Staging waits for your review\./);
+  assert.match(flow, /Production waits for your approval\./);
+  assert.match(flow, /Access changes wait for your approval\./);
+  assert.match(flow, /Broader permissions, users, roles and ZITADEL integration are planned for later\./);
+  assert.doesNotMatch(flow, /title: "(?:Intent|Context|Bounded action|Evidence)"/);
+  assert.match(umbrella, /Inspiration is the only limit\./);
+  assert.match(umbrella, /At the end, everything is yours: the requirements, the source, the infrastructure, the permissions and the evidence behind every decision\./);
 });
 
 test("Aithema joins the product family at its public visitor home", async () => {
   const urls = await source("content/urls.ts");
   const footer = await source("components/MicrositeFooter.astro");
 
-  assert.match(urls, /aithema: "https:\/\/start\.augmentoring\.com"/);
+  assert.match(urls, /aithema: "https:\/\/aithema\.inspr\.at"/);
+  assert.match(urls, /aithemaPreview: "https:\/\/start\.augmentoring\.com"/);
   assert.match(urls, /aithema: "Requirements"/);
+  assert.match(urls, /author: "https:\/\/github\.com\/markus-barta"/);
   assert.match(urls, /\{ label: "Aithema", role: productTaxonomy\.aithema, href: siteUrls\.aithema \}/);
-  assert.doesNotMatch(urls, /aithema\.inspr\.at/);
   assert.match(footer, /Open-source repositories: AGPL-3\.0-only/);
+  assert.match(footer, /href=\{siteUrls\.author\}/);
+  assert.match(footer, />Markus Barta<\/a> · INSPR/);
+  assert.doesNotMatch(footer, /© \{year\} Augmentoring GmbH/);
   assert.doesNotMatch(footer, /All software projects: AGPL-3\.0-only/);
+
+  const aithema = urls.indexOf('{ label: "Aithema"');
+  const paimos = urls.indexOf('{ label: "Paimos"');
+  const pharos = urls.indexOf('{ label: "Pharos"');
+  const janus = urls.indexOf('{ label: "Janus"');
+  assert.ok(aithema < paimos && paimos < pharos && pharos < janus);
 });
 
-test("the self-hosting answer separates open repositories from the hosted Aithema service", async () => {
+test("the self-hosting answer separates today's open repositories from Aithema's planned release", async () => {
   const umbrella = await source("pages/index.astro");
-  const answer = umbrella.match(
-    /<summary>Can we run the products ourselves\?<\/summary>([\s\S]*?)<\/details>/,
-  )?.[1] ?? "";
 
-  assert.match(answer, /Paimos, Pharos and Janus/);
-  assert.match(answer, /open-source repositories and licenses/);
-  assert.match(answer, /run them yourself/);
-  assert.match(answer, /Aithema is Augmentoring's hosted\s+public service/);
-  assert.match(answer, /not an open-source repository or a\s+self-hosting offer/);
-  assert.doesNotMatch(answer, /(?:all|every) product/i);
-  assert.doesNotMatch(answer, /^\s*<p>\s*Yes\./);
+  assert.match(umbrella, /Paimos, Pharos and Janus, yes: they are open source and built to self-host/);
+  assert.match(umbrella, /Aithema's reusable module is planned/);
+  assert.match(umbrella, /public preview at start\.augmentoring\.com/);
+  assert.doesNotMatch(umbrella, /(?:all|every) product is open source/i);
 });
 
 test("Aithema metadata names requirements alongside the three established domains", async () => {
@@ -527,70 +548,47 @@ test("Aithema metadata names requirements alongside the three established domain
 
   assert.match(
     umbrella,
-    /description="INSPR is a technology umbrella that keeps requirements, project context, fleet state, secret governance and operating doctrine coherent for people and AI agents\."/,
+    /Aithema shapes requirements, Paimos gives agents a project, Pharos deploys with a verified backup, Janus governs access\. A person approves every handoff\./,
   );
   assert.match(
     umbrella,
-    /ogImageAlt="The INSPR requirements, project, fleet and governance constellation around a shared operating core"/,
+    /"The four INSPR products connected from requirements to governed operation"/,
   );
 });
 
-test("the Aithema wordmark stays inside its card at responsive review widths", async () => {
+test("the local v2 route remains a compatibility alias for the chosen Fable copy", async () => {
   const umbrella = await source("pages/index.astro");
-  const tokens = await source("styles/tokens.css");
-  const microsites = await source("styles/microsites.css");
-  const identityRule = umbrella.match(/\.aithema-story__identity \{([\s\S]*?)\n  \}/)?.[1] ?? "";
-  const wordmarkRule = umbrella.match(/\.aithema-story__identity strong \{([\s\S]*?)\n  \}/)?.[1] ?? "";
-  const fontClamp = wordmarkRule.match(
-    /font-size: clamp\(([\d.]+)rem, ([\d.]+)cqi, ([\d.]+)rem\)/,
-  );
-  const gutterClamp = tokens.match(
-    /--gutter:\s*clamp\(([\d.]+)rem,\s*([\d.]+)cqi,\s*([\d.]+)rem\)/,
-  );
+  const v2 = await source("pages/v2/index.astro");
 
-  assert.match(identityRule, /container-type: inline-size/);
-  assert.match(wordmarkRule, /max-inline-size: 100%/);
-  assert.match(wordmarkRule, /overflow-wrap: anywhere/);
-  assert.match(
-    wordmarkRule,
-    /font-variation-settings: "opsz" 90, "wght" 420, "SOFT" 12, "WONK" 0/,
-  );
-  assert.match(microsites, /--gutter:\s*clamp\(1\.25rem, 4cqi, 3rem\)/);
-  assert.match(
-    umbrella,
-    /@media \(max-width: 60rem\) \{\s+\.aithema-story \{\s+grid-template-columns: 1fr;/,
-  );
-  assert.ok(fontClamp, "Aithema wordmark needs a rem/cqi/rem clamp");
-  assert.ok(gutterClamp, "the shipped gutter must remain a rem/cqi/rem clamp");
-  assert.deepEqual(gutterClamp.slice(1), ["1.25", "4", "3"]);
+  assert.match(v2, /import Home from "\.\.\/index\.astro"/);
+  assert.match(v2, /<Home locale="en" \/>/);
+  assert.doesNotMatch(umbrella, /Astro\.props\.edition/);
+  assert.match(umbrella, /Give agents a project, not a prompt\./);
+  assert.match(umbrella, /Pick the server\. Prove the backup\. Then deploy\./);
+  assert.match(umbrella, /The work moves\. You decide when\./);
+  assert.match(umbrella, /Built so you can say no\./);
+  assert.match(umbrella, /Broader permissions, users, roles and ZITADEL integration are planned for later\./);
+  assert.match(umbrella, /Aithema's reusable module is planned to join them\./);
+  assert.doesNotMatch(umbrella, /Janus enforces which people/);
+});
 
-  const [, minimumRem, fluidCqi, maximumRem] = fontClamp.map(Number);
-  const [, gutterMinimumRem, gutterFluidCqi, gutterMaximumRem] = gutterClamp.map(Number);
-  const clamp = (minimum, value, maximum) => Math.min(maximum, Math.max(minimum, value));
-  const fallbackAdvanceEm = 1;
+test("Aithema uses the shared product story with a real vector logo and right-side visual", async () => {
+  const umbrella = await source("pages/index.astro");
+  const logo = await source("assets/products/aithema/logo.svg");
 
-  for (const viewport of [900, 961, 1200, 1440]) {
-    const gutter = clamp(
-      gutterMinimumRem * 16,
-      viewport * (gutterFluidCqi / 100),
-      gutterMaximumRem * 16,
-    );
-    const shell = Math.min(viewport - 2 * gutter, 88 * 16);
-    const gap = clamp(2 * 16, viewport * 0.06, 6.5 * 16);
-    const visual = viewport <= 60 * 16
-      ? shell
-      : (shell - gap) * (0.72 / (0.72 + 1.28));
-    const padding = clamp(2 * 16, viewport * 0.05, 4 * 16);
-    const content = visual - 2 * padding;
-    const fontSize = clamp(minimumRem * 16, content * (fluidCqi / 100), maximumRem * 16);
-    const fallbackWordmark = "Aithema".length * fallbackAdvanceEm * fontSize;
-
-    assert.ok(content > 0, `${viewport}px must leave a positive wordmark content box`);
-    assert.ok(
-      fallbackWordmark <= content,
-      `${viewport}px must contain Aithema even at a conservative 1em fallback advance`,
-    );
-  }
+  assert.match(umbrella, /import aithemaHero from "\.\.\/assets\/products\/aithema\/hero\.png"/);
+  assert.match(umbrella, /import aithemaLogo from "\.\.\/assets\/products\/aithema\/logo\.svg"/);
+  assert.match(umbrella, /class:list=\{\["product-story", \{ "product-story--reverse": index % 2 === 0 \}\]\}/);
+  assert.match(umbrella, /\.product-story \{[\s\S]*?grid-template-columns: minmax\(0, 1\.15fr\) minmax\(19rem, 0\.85fr\);/);
+  assert.match(umbrella, /\.product-story--reverse \{\s+grid-template-columns: minmax\(19rem, 0\.85fr\) minmax\(0, 1\.15fr\);/);
+  assert.match(umbrella, /\.product-story--reverse \.product-story__visual \{\s+order: 2;/);
+  assert.match(umbrella, /\.product-story__visual \{[\s\S]*?border: 1px solid rgb\(255 255 255 \/ 0\.82\);[\s\S]*?border-radius: clamp\(1\.4rem, 2\.4vw, 2\.5rem\);/);
+  const orderedNames = [...umbrella.matchAll(/\n\s+name: "(Aithema|Paimos|Pharos|Janus)",/g)]
+    .map((match) => match[1]);
+  assert.deepEqual(orderedNames, ["Aithema", "Paimos", "Pharos", "Janus"]);
+  assert.match(logo, /viewBox="0 0 1254 1254"/);
+  assert.match(logo, /<title id="aithema-title">Aithema<\/title>/);
+  assert.doesNotMatch(logo, /<(?:image|text)\b/);
 });
 
 test("interactive explorers use one five-second, pause-only lifecycle", async () => {
@@ -612,7 +610,7 @@ test("interactive explorers use one five-second, pause-only lifecycle", async ()
     );
     assert.match(component, /AbortController/, `${name} must clean up its interaction listeners`);
     assert.match(component, /animation\.cancel\(\)/, `${name} must release finished animations`);
-    assert.match(component, />Pause</, `${name} exposes a pause label before interaction`);
+    assert.match(component, name === "workflow" ? /pause: "Pause"/ : />Pause</, `${name} exposes a pause label before interaction`);
     assert.doesNotMatch(component, /Play sequence/, `${name} must not expose a play control`);
     assert.match(
       component,
@@ -737,12 +735,13 @@ test("one validated release identity is visible across the site family", async (
 
   const footer = await source("components/MicrositeFooter.astro");
   assert.match(footer, /import \{ releaseMetadata \}/);
-  assert.match(footer, /aria-label="Site release"/);
+  assert.match(footer, /releaseAria: "Site release"/);
+  assert.match(footer, /aria-label=\{labels\.releaseAria\}/);
   assert.match(footer, /data-release-id=\{releaseMetadata\.releaseId\}/);
   assert.match(footer, /<dt>Site<\/dt>/);
   assert.match(footer, /<dt>Git<\/dt>/);
-  assert.match(footer, /<dt>Release<\/dt>/);
-  assert.match(footer, /<dt>Deployed<\/dt>/);
+  assert.match(footer, /release: "Release"/);
+  assert.match(footer, /deployed: "Deployed"/);
 
   const manifestWriter = await readFile(
     new URL("../scripts/write-release-manifest.mjs", import.meta.url),

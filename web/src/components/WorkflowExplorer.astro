@@ -15,6 +15,7 @@ interface Props {
   closing?: string;
   tone?: "light" | "ink";
   pattern?: string;
+  locale?: "en" | "de";
 }
 
 const {
@@ -28,7 +29,30 @@ const {
   closing,
   tone = "ink",
   pattern = "guided-workflow",
+  locale = "en",
 } = Astro.props;
+
+const labels = locale === "de"
+  ? {
+      caption: "Folgen Sie der aktiven Markierung. Jede Etappe verweist auf einen Punkt im System.",
+      stages: "Etappen",
+      pause: "Pausieren",
+      resume: "Fortsetzen",
+      pauseLabel: "Automatischen Ablauf pausieren",
+      resumeLabel: "Automatischen Ablauf fortsetzen",
+      stage: "Etappe",
+      result: "Ergebnis",
+    }
+  : {
+      caption: "Follow the active marker. Each stage maps to a point in the system.",
+      stages: "stages",
+      pause: "Pause",
+      resume: "Resume",
+      pauseLabel: "Pause automatic progression",
+      resumeLabel: "Resume automatic progression",
+      stage: "Stage",
+      result: "Result",
+    };
 ---
 
 <section
@@ -38,6 +62,10 @@ const {
   data-workflow-explorer
   data-section-pattern={pattern}
   data-active-stage="0"
+  data-pause-label={labels.pause}
+  data-resume-label={labels.resume}
+  data-pause-accessible-label={labels.pauseLabel}
+  data-resume-accessible-label={labels.resumeLabel}
   style={`--workflow-count: ${steps.length}; --workflow-ratio: 0;`}
 >
   <div class="workflow__shell page-shell">
@@ -72,11 +100,11 @@ const {
             </span>
           ))}
         </div>
-        <figcaption>Follow the active marker. Each stage maps to a point in the system.</figcaption>
+        <figcaption>{labels.caption}</figcaption>
       </figure>
 
       <div class="workflow__control">
-        <div class="workflow__tabs" role="tablist" aria-label={`${title} stages`}>
+        <div class="workflow__tabs" role="tablist" aria-label={`${title} ${labels.stages}`}>
           {steps.map((step, index) => (
             <button
               class="workflow__tab"
@@ -104,13 +132,13 @@ const {
           <button
             class="workflow__toggle"
             type="button"
-            aria-label="Pause automatic progression"
+            aria-label={labels.pauseLabel}
             aria-pressed="false"
-            title="Pause automatic progression"
+            title={labels.pauseLabel}
             data-workflow-toggle
           >
             <span class="workflow__toggle-state" aria-hidden="true"><i></i><i></i></span>
-            <span data-workflow-toggle-label>Pause</span>
+            <span data-workflow-toggle-label>{labels.pause}</span>
           </button>
         </div>
 
@@ -124,13 +152,13 @@ const {
               hidden={index !== 0}
               data-workflow-panel={index}
             >
-              <p class="workflow__step">Stage {step.number}</p>
+              <p class="workflow__step">{labels.stage} {step.number}</p>
               <h3>{step.title}</h3>
               <p>{step.body}</p>
               {step.signal && (
                 <p class="workflow__evidence">
                   <span aria-hidden="true"></span>
-                  <strong>Result</strong>
+                  <strong>{labels.result}</strong>
                   {step.signal}
                 </p>
               )}
@@ -191,10 +219,12 @@ const {
 
       const updateToggle = () => {
         if (!toggle) return;
-        const action = userPaused ? "Resume" : "Pause";
+        const action = userPaused
+          ? root.dataset.resumeLabel ?? "Resume"
+          : root.dataset.pauseLabel ?? "Pause";
         const accessibleLabel = userPaused
-          ? "Resume automatic progression"
-          : "Pause automatic progression";
+          ? root.dataset.resumeAccessibleLabel ?? "Resume automatic progression"
+          : root.dataset.pauseAccessibleLabel ?? "Pause automatic progression";
         toggle.disabled = reducedMotion.matches;
         toggle.setAttribute("aria-pressed", String(userPaused));
         toggle.setAttribute("aria-label", accessibleLabel);

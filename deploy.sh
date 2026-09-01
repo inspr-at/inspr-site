@@ -15,8 +15,8 @@
 # Caddyfile restarts the stateless inspr-www container so the fresh bind
 # mount is picked up.
 #
-# The current Astro build contains the umbrella page plus /paimos, /pharos
-# and /janus. Caddy maps each product hostname to its folder and serves
+# The current Astro build contains the umbrella page plus /aithema, /paimos,
+# /pharos and /janus. Caddy maps each product hostname to its folder and serves
 # content-addressed /_astro files from the append-only shared asset pool.
 #
 # Env vars:
@@ -465,7 +465,7 @@ fi
 say "verifying CSP hashes"
 python3 "$ROOT/web/scripts/verify-csp.py"
 
-# 3. Confirm the one-build/four-site output contract.
+# 3. Confirm the one-build/five-site output contract.
 required_documents=(
   "index.html"
   "paimos/index.html"
@@ -473,6 +473,9 @@ required_documents=(
   "janus/index.html"
   "release.json"
 )
+if [ -d "$ROOT/web/src/pages/aithema" ]; then
+  required_documents+=("aithema/index.html")
+fi
 for document in "${required_documents[@]}"; do
   [ -f "$ROOT/web/dist/$document" ] || die "missing build output: web/dist/$document"
 done
@@ -574,6 +577,11 @@ ASSET_DELTA=$(rsync -rzcn --itemize-changes -e "$RSYNC_SSH" \
   "$ROOT/web/dist/_astro/" "$HOST:$REMOTE_RELEASE_ROOT/assets/_astro/")
 [ -z "$ASSET_DELTA" ] || die "shared asset checksum verification failed"
 
+if [ -d "$ROOT/web/src/pages/aithema" ]; then
+  remote_ssh "test -f '$REMOTE_INCOMING/aithema/index.html'" || \
+    die "uploaded release is missing Aithema"
+fi
+
 remote_ssh "set -eu
   test -f '$REMOTE_INCOMING/index.html'
   test -f '$REMOTE_INCOMING/paimos/index.html'
@@ -658,7 +666,8 @@ remote_ssh "set -eu
   docker exec inspr-www caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null
   attempt=0
   while [ \"\$attempt\" -lt 20 ]; do
-    if docker exec inspr-www wget -qO- --header='Host: www.inspr.at' http://127.0.0.1/ | grep -Fq 'Ideas should outlive'; then
+    if docker exec inspr-www wget -qO- --header='Host: www.inspr.at' http://127.0.0.1/ | grep -Fq 'Inspiration is the only limit.' &&
+       docker exec inspr-www wget -qO- --header='Host: aithema.inspr.at' http://127.0.0.1/ | grep -Fq 'Requirements you approve before work begins.'; then
       exit 0
     fi
     attempt=\$((attempt + 1))
@@ -674,7 +683,8 @@ if [ "${SKIP_PROBE:-}" = "1" ]; then
   ok "probes skipped (SKIP_PROBE=1)"
 else
   say "probing live host routing"
-  probe_page "INSPR umbrella" "https://www.inspr.at/" "Ideas should outlive" "text/html" "$RELEASE_ID"
+  probe_page "INSPR umbrella" "https://www.inspr.at/" "Inspiration is the only limit." "text/html" "$RELEASE_ID"
+  probe_page "Aithema microsite" "https://aithema.inspr.at/" "Requirements you approve before work begins." "text/html" "$RELEASE_ID"
   probe_page "Paimos microsite" "https://paimos.inspr.at/" "One shared project picture." "text/html" "$RELEASE_ID"
   probe_page "Pharos microsite" "https://pharos.inspr.at/" "Fleet truth before action." "text/html" "$RELEASE_ID"
   probe_page "Janus microsite" "https://janus.inspr.at/" "Use secrets. Keep values hidden." "text/html" "$RELEASE_ID"
@@ -687,6 +697,7 @@ else
   probe_redirect "identity service HTTPS" "https://auth.inspr.at/" "302" "/ui/login" "1"
   probe_redirect "apex HTTP upgrade" "http://inspr.at/" "301,302,307,308" "https://inspr.at/"
   probe_redirect "www HTTP upgrade" "http://www.inspr.at/" "301,302,307,308" "https://www.inspr.at/"
+  probe_redirect "Aithema HTTP upgrade" "http://aithema.inspr.at/" "301,302,307,308" "https://aithema.inspr.at/"
   probe_redirect "Paimos HTTP upgrade" "http://paimos.inspr.at/" "301,302,307,308" "https://paimos.inspr.at/"
   probe_redirect "Pharos HTTP upgrade" "http://pharos.inspr.at/" "301,302,307,308" "https://pharos.inspr.at/"
   probe_redirect "Janus HTTP upgrade" "http://janus.inspr.at/" "301,302,307,308" "https://janus.inspr.at/"

@@ -1,0 +1,9 @@
+{
+  "name": "@inspr/higgsfield-cli-tooling",
+  "private": true,
+  "description": "Repository-local Higgsfield CLI pin for INSPR artwork generation.",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@higgsfield/cli": "1.1.23"
+  }
+}

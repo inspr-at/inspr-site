@@ -3,17 +3,52 @@ import { Image } from "astro:assets";
 import type { ImageMetadata } from "astro";
 
 interface Props {
-  id: "inspr" | "paimos" | "pharos" | "janus";
+  id: "inspr" | "aithema" | "paimos" | "pharos" | "janus";
   poster: ImageMetadata;
   video: string;
   alt: string;
   sizes: string;
+  locale?: "en" | "de";
+  activation?: "autoplay" | "hover";
+  showControl?: boolean;
+  loading?: "eager" | "lazy";
 }
 
-const { id, poster, video, alt, sizes } = Astro.props;
+const {
+  id,
+  poster,
+  video,
+  alt,
+  sizes,
+  locale = "en",
+  activation = "autoplay",
+  showControl = true,
+  loading = "eager",
+} = Astro.props;
+const labels = locale === "de"
+  ? {
+      pause: "Pausieren",
+      resume: "Fortsetzen",
+      pauseAccessible: "Hero-Animation pausieren",
+      resumeAccessible: "Hero-Animation fortsetzen",
+    }
+  : {
+      pause: "Pause",
+      resume: "Resume",
+      pauseAccessible: "Pause hero animation",
+      resumeAccessible: "Resume hero animation",
+    };
 ---
 
-<div class="hero-loop" data-hero-loop={id}>
+<div
+  class="hero-loop"
+  data-hero-loop={id}
+  data-pause-label={labels.pause}
+  data-resume-label={labels.resume}
+  data-pause-accessible-label={labels.pauseAccessible}
+  data-resume-accessible-label={labels.resumeAccessible}
+  data-activation={activation}
+>
   <Image
     class="hero-loop__poster"
     src={poster}
@@ -21,14 +56,14 @@ const { id, poster, video, alt, sizes } = Astro.props;
     widths={[720, 960, 1280, 1600]}
     sizes={sizes}
     quality={84}
-    loading="eager"
-    fetchpriority="high"
+    loading={loading}
+    fetchpriority={loading === "eager" ? "high" : "auto"}
   />
 
   <video
     class="hero-loop__video"
     data-hero-video={id}
-    autoplay
+    autoplay={activation === "autoplay"}
     muted
     loop
     playsinline
@@ -44,22 +79,24 @@ const { id, poster, video, alt, sizes } = Astro.props;
     />
   </video>
 
-  <button
-    class="hero-loop__control"
-    type="button"
-    aria-pressed="false"
-    aria-label="Pause hero animation"
-    title="Pause hero animation"
-  >
-    <svg class="hero-loop__pause" viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="6.5" y="5" width="3.5" height="14" rx="1"></rect>
-      <rect x="14" y="5" width="3.5" height="14" rx="1"></rect>
-    </svg>
-    <svg class="hero-loop__play" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M8 5.8a1 1 0 0 1 1.52-.85l10 6.2a1 1 0 0 1 0 1.7l-10 6.2A1 1 0 0 1 8 18.2V5.8Z"></path>
-    </svg>
-    <span>Pause</span>
-  </button>
+  {showControl && (
+    <button
+      class="hero-loop__control"
+      type="button"
+      aria-pressed="false"
+      aria-label={labels.pauseAccessible}
+      title={labels.pauseAccessible}
+    >
+      <svg class="hero-loop__pause" viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="6.5" y="5" width="3.5" height="14" rx="1"></rect>
+        <rect x="14" y="5" width="3.5" height="14" rx="1"></rect>
+      </svg>
+      <svg class="hero-loop__play" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M8 5.8a1 1 0 0 1 1.52-.85l10 6.2a1 1 0 0 1 0 1.7l-10 6.2A1 1 0 0 1 8 18.2V5.8Z"></path>
+      </svg>
+      <span>{labels.pause}</span>
+    </button>
+  )}
 </div>
 
 <script>
@@ -72,16 +109,21 @@ const { id, poster, video, alt, sizes } = Astro.props;
     const video = loop.querySelector<HTMLVideoElement>("[data-hero-video]");
     const control = loop.querySelector<HTMLButtonElement>(".hero-loop__control");
     const label = control?.querySelector<HTMLElement>("span");
-    if (!video || !control || !label) return;
+    if (!video) return;
 
     let userPaused = false;
     let inView = true;
+    const hoverOnly = loop.dataset.activation === "hover";
+    let hoverActive = !hoverOnly;
 
     const syncControl = () => {
-      const action = userPaused ? "Resume" : "Pause";
+      if (!control || !label) return;
+      const action = userPaused
+        ? loop.dataset.resumeLabel ?? "Resume"
+        : loop.dataset.pauseLabel ?? "Pause";
       const accessibleName = userPaused
-        ? "Resume hero animation"
-        : "Pause hero animation";
+        ? loop.dataset.resumeAccessibleLabel ?? "Resume hero animation"
+        : loop.dataset.pauseAccessibleLabel ?? "Pause hero animation";
       control.ariaPressed = String(userPaused);
       control.setAttribute("aria-label", accessibleName);
       control.title = accessibleName;
@@ -90,7 +132,7 @@ const { id, poster, video, alt, sizes } = Astro.props;
     };
 
     const shouldPlay = () =>
-      !reducedMotion.matches && !userPaused && inView && !document.hidden;
+      !reducedMotion.matches && !userPaused && inView && hoverActive && !document.hidden;
 
     const applyPlayback = () => {
       if (!shouldPlay()) {
@@ -109,11 +151,26 @@ const { id, poster, video, alt, sizes } = Astro.props;
     });
     video.addEventListener("pause", () => loop.removeAttribute("data-video-playing"));
 
-    control.addEventListener("click", () => {
+    control?.addEventListener("click", () => {
       userPaused = !userPaused;
       syncControl();
       applyPlayback();
     });
+
+    if (hoverOnly) {
+      loop.addEventListener("pointerenter", (event) => {
+        if (event.pointerType === "touch") return;
+        hoverActive = true;
+        if (video.readyState > 0) video.currentTime = 0;
+        applyPlayback();
+      });
+      loop.addEventListener("pointerleave", (event) => {
+        if (event.pointerType === "touch") return;
+        hoverActive = false;
+        applyPlayback();
+        if (video.readyState > 0) video.currentTime = 0;
+      });
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -161,7 +218,8 @@ const { id, poster, video, alt, sizes } = Astro.props;
     transition: opacity 380ms ease, transform 1.3s var(--ease, ease);
   }
 
-  .hero-loop[data-video-ready="true"] .hero-loop__video {
+  .hero-loop[data-activation="autoplay"][data-video-ready="true"] .hero-loop__video,
+  .hero-loop[data-activation="hover"][data-video-playing="true"] .hero-loop__video {
     opacity: 1;
   }
 

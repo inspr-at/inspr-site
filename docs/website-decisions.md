@@ -319,3 +319,119 @@ Paimos vX.Y.Z"). The annotated workbench capture has a framing contract
 (TASKS heading at top, 1600x1000@2x) that the three hotspot positions are
 tuned to; re-measure when the capture changes. Refresh pipeline:
 paimos PAI-695.
+
+---
+
+## D-014 — Product authorship, Aithema boundary and visual family
+
+**Date:** 2026-08-31
+**Ticket:** INSPR-328
+**Status:** Committed; production release governed by D-016
+
+INSPR and its products are open work by **Markus Barta**. Shared site footers
+link that authorship to `github.com/markus-barta`. Augmentoring is the
+professional-services organization that uses, deploys and supports the
+products; it is not their author or owner.
+
+Aithema is the first product in the family sequence and owns the
+**Requirements** responsibility. Its
+public preview remains at `start.augmentoring.com` while a reusable template or
+module is prepared for an open-source release. Until then, the umbrella links
+to that real visitor path without claiming that the hosted service is already a
+self-hostable repository.
+
+The canonical product sequence is **Aithema, Paimos, Pharos, Janus** everywhere
+the family is presented in order. Product rows still alternate visual and copy
+columns while preserving the established sides: Aithema's copy is on the left
+and hero on the right, Paimos's hero is on the left, Pharos's hero is on the
+right, and Janus's hero is on the left. The grid reverses its column fractions
+with the content order so all four hero frames remain the same size, with the
+same rounded corners and one-pixel border. Aithema's native SVG mark is the
+**Requirement Prism**: diffuse teal and gold input surrounds a
+transparent aperture and resolves into one precise navy decision object. The
+existing INSPR umbrella hero and its motion loop remain unchanged.
+
+**Why:** authorship, commercial support and product ownership are separate
+facts. The site should make all three legible while giving Aithema the same
+visual standing and structural rhythm as the established family.
+
+---
+
+## D-015 — Human-approved product flow and local copy comparison
+
+**Date:** 2026-09-01
+**Ticket:** INSPR-329
+**Status:** Owner selection committed; superseded by D-016
+
+The public product flow follows one fixed order:
+
+1. **Aithema · Requirements** — conversation and files become requirements;
+   the human reviews them and chooses whether to continue.
+2. **Paimos · Build** — approved requirements become a project and specs;
+   agents build with that context and the human reviews the staged result.
+3. **Pharos · Deploy** — the human selects the server, verifies backup evidence
+   and approves the production deploy.
+4. **Janus · Enforce** — approved permits govern what may act and access can be
+   rotated without revealing secrets. Broader permissions, users, roles and
+   ZITADEL integration remain later features.
+
+The homepage must state the two ideas around that flow without turning them
+into slogans repeated in every section: a human decides at every handoff, and
+the operator keeps the requirements, source, data, infrastructure, permissions
+and evidence. “Inspiration is the only limit” remains the INSPR idea; the tools
+carry the difficult parts.
+
+During local comparison, the first candidate was served at `/` and the Claude
+Fable 5 Ultracode candidate at `/v2/`. Both routes rendered the same Astro
+component, assets and layout so the decision stayed editorial. Fable wording
+that implied current Janus user management, a self-hosted Aithema service or
+present open-source status for Aithema was corrected to the established
+maturity boundary.
+
+On 2026-09-01 Markus selected the Fable candidate. D-016 records the production
+routes and the final owner decisions.
+
+---
+
+## D-016 — Bilingual family release and provisional Aithema motion
+
+**Date:** 2026-09-01
+**Tickets:** INSPR-330, INSPR-331, INSPR-332, INSPR-333, INSPR-335
+**Status:** Owner-approved for production after NIX-408 and live validation
+
+The selected Fable wording is the canonical homepage at `/`. `/de/` carries
+the complete German edition, and `/v2/` is a compatibility route to the same
+current English homepage. Only `/v1` and `/v1/*` redirect to the frozen archive
+at `v1.inspr.at`; `/v2/` must never cross that archive boundary. Browser
+language chooses the first supported language until a visitor explicitly
+chooses DE or EN, after which local storage preserves that choice.
+
+The ordered family path is **Aithema, Paimos, Pharos, Janus**. Aithema owns
+requirements and links its current hosted preview without claiming a source
+repository or license. Its reusable open-source module remains planned. The
+two-screen `/eli10/` route explains the same human-approved path in the most
+compact form. Copyright and source authorship belong to Markus Barta;
+Augmentoring remains the professional-services path around the products.
+
+Markus viewed both Seedance 2.5 candidates and selected attempt 1 as the
+provisional Aithema hero even though the delegated automated taste review did
+not approve it. The selected H.264 stream is preserved and only losslessly
+remuxed for fast-start delivery. The Aithema microsite autoplays it with the
+same pause, visibility and reduced-motion controls as the established product
+heroes. On the INSPR homepage, the Aithema graphic alone starts the loop on a
+non-touch hover and returns to the exact approved poster when the pointer
+leaves; touch and reduced-motion presentations remain static.
+
+Aithema participates in the section-pattern audit, but deliberately requires
+zero inspectable rails while it is only a hosted preview. Adding source,
+release, integration or architecture rails before the FOSS module exists would
+invent evidence. The audit still requires all eleven visible Aithema sections
+to declare a bounded presentation pattern. When the module ships, a new
+decision must remove this explicit preview exemption and add real inspectable
+evidence.
+
+The application repository owns Caddy host routing and static release content,
+not the csb1 Traefik runtime. `NIX-408` must add and apply the edge route and DNS
+for `aithema.inspr.at` before deployment. Until then the deploy probe fails
+closed and restores the previous release rather than publishing a partially
+reachable family.

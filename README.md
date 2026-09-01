@@ -1,31 +1,36 @@
 # INSPR Sites
 
-**One umbrella, four focused products, one coherent public surface.**
+**One idea, four products, one human-approved path.**
 
 This repository powers the English-language INSPR site family:
 
 - [www.inspr.at](https://www.inspr.at) - the INSPR idea and product map;
+- `aithema.inspr.at` - the planned Aithema product host, pending edge routing and DNS;
+- [start.augmentoring.com](https://start.augmentoring.com) - the hosted Aithema requirements preview;
 - [paimos.inspr.at](https://paimos.inspr.at) - shared project context for people and AI agents;
 - [pharos.inspr.at](https://pharos.inspr.at) - clear fleet operations;
 - [janus.inspr.at](https://janus.inspr.at) - policy-bound secret use;
 - [v1.inspr.at](https://v1.inspr.at) - the frozen pre-relaunch archive.
 
-The fourth product is **Aithema** (pronounced **AI-Thema**), the requirements
-product at [start.augmentoring.com](https://start.augmentoring.com). This
-repository links to that visitor experience from the shared product navigation;
-it does not build or host it.
+Aithema (pronounced **AI-Thema**) is the first product in the family sequence
+and owns requirements. Its product page targets `aithema.inspr.at`; edge
+routing and DNS remain launch prerequisites. The working public preview
+remains at [start.augmentoring.com](https://start.augmentoring.com). A reusable
+open-source Aithema template or module is planned; neither a product repository
+nor a product license is claimed before that source exists.
 
-The product sites are intentionally lightweight. They explain what the current
-software does, where its boundaries are, how to inspect the source, and where
-professional Augmentoring services fit without turning the open products into a
-dark-pattern funnel.
+The product sites are intentionally lightweight. INSPR and its products are
+open work by [Markus Barta](https://github.com/markus-barta). The sites explain
+what the current software does, where its boundaries are, how to inspect the
+source, and where Augmentoring's professional services fit as a user of the
+products rather than their owner.
 
 [![License](https://img.shields.io/badge/license-AGPL--3.0--only-0b8178)](LICENSE)
 
 ## Repository map
 
 ```text
-web/                  Astro source for all four current sites
+web/                  Astro source for the umbrella and four product sites
 site/                 frozen pre-relaunch archive served at v1.inspr.at
 auth/                 small Go OIDC session and signup bridge
 Caddyfile             host routing, cache policy and security headers
@@ -34,12 +39,33 @@ deploy.sh             immutable release upload, promotion, rollback and probes
 .github/workflows/    ci.yml: the pull-request gate (tests, type-check, build, audit)
 ```
 
-One Astro build produces the umbrella page plus `/paimos`, `/pharos`, and
-`/janus`. Caddy selects the right directory by hostname. Hashed Astro assets
+One Astro build produces the umbrella page plus `/aithema`, `/paimos`,
+`/pharos`, and `/janus`. Caddy selects the right directory by hostname. Hashed Astro assets
 live in an append-only shared pool so cached HTML remains valid across atomic
 release switches.
 
 ## Local development
+
+The repository keeps the Higgsfield CLI isolated under
+`tools/higgsfield-cli/` and pins it through npm. The devenv shell provisions
+Node/npm, installs that lockfile with `npm clean-install` when required, and
+adds the local CLI to `PATH` without a global npm install:
+
+```bash
+direnv allow
+devenv shell -- higgsfield --version
+```
+
+Higgsfield's current generation API uses interactive OAuth. Authenticate once
+from the prepared shell when needed:
+
+```bash
+higgsfield auth login
+```
+
+OAuth credentials remain in the user's local Higgsfield configuration and are
+never sourced by this repository or committed. Devenv does not source an API
+key or any other credential file.
 
 The frontend requires Node.js 22.12 or newer.
 
@@ -55,6 +81,7 @@ Product pages share one layout and typed content model. Most copy changes
 belong in:
 
 ```text
+web/src/content/aithema.ts
 web/src/content/paimos.ts
 web/src/content/pharos.ts
 web/src/content/janus.ts
@@ -99,7 +126,7 @@ The content tests protect:
 - per-host robots and sitemap output;
 - workflow icons, evidence signals and source references;
 - the four claim-supporting image assets;
-- the preserved INSPR product constellation; and
+- the preserved INSPR product flow; and
 - every `icon` and `group` in `src/content/*.ts` resolving in `ContextIcon`
   and the tile type, so an unknown name fails the suite instead of degrading
   silently in the rendered page.
@@ -267,6 +294,7 @@ bootstrap token. The checked `.env.example` contains placeholders only.
 
 ## Product sources
 
+- **Aithema** - product page target: `aithema.inspr.at` (pending edge routing and DNS); reusable open-source template or module planned; public preview at [start.augmentoring.com](https://start.augmentoring.com)
 - [Paimos](https://github.com/inspr-at/paimos)
 - [Pharos](https://github.com/inspr-at/pharos)
 - [Janus](https://github.com/inspr-at/janus)

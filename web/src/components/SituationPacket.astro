@@ -1,5 +1,11 @@
 ---
-const signals = [
+interface Props {
+  locale?: "en" | "de";
+}
+
+const { locale = "en" } = Astro.props;
+
+const englishSignals = [
   {
     key: "goal",
     label: "Goal",
@@ -50,21 +56,94 @@ const signals = [
   },
 ];
 
+const germanSignals = [
+  {
+    key: "goal",
+    label: "Ziel",
+    question: "Was wollen wir erreichen?",
+    explanation:
+      "Benennen Sie das Ergebnis, die verantwortliche Person und die Regeln, die gelten müssen. So arbeiten alle auf dasselbe Ziel hin, statt eine vage Anfrage unterschiedlich auszulegen.",
+    example:
+      "Revision 8f42 der checkout-api ohne Unterbrechung aktiver Sitzungen veröffentlichen. Der Betrieb verantwortet das Ergebnis.",
+    missing: "Menschen und Agenten können auf unterschiedliche Ergebnisse hinarbeiten.",
+    clear: "Jeder nächste Schritt lässt sich an einem gemeinsamen Ergebnis prüfen.",
+    icon: "target",
+  },
+  {
+    key: "reality",
+    label: "Ist-Zustand",
+    question: "Was gilt gerade tatsächlich?",
+    explanation:
+      "Nehmen Sie die aktuelle Revision, den Zustand des Dienstes und laufende Arbeiten in die Übergabe auf. Der Plan beginnt bei beobachteten Fakten, nicht bei Erinnerungen.",
+    example:
+      "Revision 7fc1 ist aktiv, die Zustandsprüfungen sind grün und eine Datenbankmigration läuft bereits.",
+    missing: "Ein sinnvoller Plan kann trotzdem auf die Situation von gestern reagieren.",
+    clear: "Die nächste Aktion berücksichtigt, was gerade wirklich geschieht.",
+    icon: "pulse",
+  },
+  {
+    key: "permission",
+    label: "Berechtigung",
+    question: "Was darf diese Aufgabe tun?",
+    explanation:
+      "Geben Sie der Aufgabe nur die kleinste nützliche Berechtigung und halten Sie fest, wo sie stoppen muss. Nützliche Autonomie braucht keinen breiten, dauerhaften Zugriff.",
+    example:
+      "Der Lauf darf die checkout-api nach Freigabe neu starten. Er darf keine geheimen Werte lesen und keinen anderen Dienst verändern.",
+    missing: "Menschen müssen die Arbeit blockieren oder mehr Zugriff gewähren als nötig.",
+    clear: "Die Aufgabe kann sich innerhalb einer sichtbaren Grenze selbstständig bewegen.",
+    icon: "shield",
+  },
+  {
+    key: "proof",
+    label: "Nachweis",
+    question: "Woran erkennen wir, dass es funktioniert hat?",
+    explanation:
+      "Legen Sie fest, welche Nachweise zurückkommen müssen, bevor die Arbeit abgeschlossen ist. Die nächste Person erhält einen brauchbaren Beleg statt einer bloßen Erfolgsmeldung.",
+    example:
+      "Ausgelieferte Revision, Ergebnis der Zustandsprüfung, prüfende Person und Folgeentscheidung zurückgeben, ohne geheimes Material aufzuzeichnen.",
+    missing: "Die nächste Übergabe beginnt wieder mit dem Rekonstruieren der Situation.",
+    clear: "Das Ergebnis ist prüfbar und bereit für die nächste Entscheidung.",
+    icon: "check",
+  },
+];
+
+const signals = locale === "de" ? germanSignals : englishSignals;
+const labels = locale === "de"
+  ? {
+      before: "Bevor die Arbeit beginnt",
+      title: "Vier Fragen verhindern vermeidbares Rätselraten.",
+      intro: "Wählen Sie eine Frage. Sie sehen, was eine gute Übergabe enthält und warum das in der Praxis zählt.",
+      tablist: "Vier Fragen für eine verlässliche Übergabe",
+      example: "Eine konkrete Übergabe",
+      why: "Warum das zählt",
+      without: "Ohne",
+      with: "Mit",
+      takeaway: "Klare Übergaben lassen Menschen und Agenten weiterarbeiten, ohne die Situation neu aufzubauen.",
+    }
+  : {
+      before: "Before work starts",
+      title: "Four questions prevent avoidable guesswork.",
+      intro: "Choose a question to see what good handoff information looks like and why it matters in practice.",
+      tablist: "Four questions for a reliable handoff",
+      example: "One concrete handoff",
+      why: "Why it matters",
+      without: "Without",
+      with: "With",
+      takeaway: "Clear handoffs let people and agents continue without rebuilding the situation.",
+    };
+
 const firstSignal = signals[0];
 ---
 
 <div class="situation-packet" data-situation-packet>
   <div class="situation-packet__intro">
-    <p class="situation-packet__label">Before work starts</p>
-    <h3>Four questions prevent avoidable guesswork.</h3>
-    <p>
-      Choose a question to see what good handoff information looks like and why it
-      matters in practice.
-    </p>
+    <p class="situation-packet__label">{labels.before}</p>
+    <h3>{labels.title}</h3>
+    <p>{labels.intro}</p>
   </div>
 
   <div class="handoff-guide">
-    <div class="handoff-tabs" role="tablist" aria-label="Four questions for a reliable handoff">
+    <div class="handoff-tabs" role="tablist" aria-label={labels.tablist}>
       {signals.map((signal, index) => (
         <button
           class:list={["handoff-tab", { "is-active": index === 0 }]}
@@ -119,24 +198,24 @@ const firstSignal = signals[0];
         <p class="handoff-panel__lead" data-handoff-explanation>{firstSignal.explanation}</p>
 
         <div class="handoff-example">
-          <span>One concrete handoff</span>
+          <span>{labels.example}</span>
           <p data-handoff-example>{firstSignal.example}</p>
         </div>
       </div>
 
       <div class="handoff-impact" aria-live="polite">
-        <p class="handoff-impact__label">Why it matters</p>
+        <p class="handoff-impact__label">{labels.why}</p>
         <div class="handoff-impact__row handoff-impact__row--missing">
-          <span aria-hidden="true">Without</span>
+          <span aria-hidden="true">{labels.without}</span>
           <p data-handoff-missing>{firstSignal.missing}</p>
         </div>
         <div class="handoff-impact__arrow" aria-hidden="true">↓</div>
         <div class="handoff-impact__row handoff-impact__row--clear">
-          <span aria-hidden="true">With</span>
+          <span aria-hidden="true">{labels.with}</span>
           <p data-handoff-clear>{firstSignal.clear}</p>
         </div>
         <p class="handoff-impact__takeaway">
-          Clear handoffs let people and agents continue without rebuilding the situation.
+          {labels.takeaway}
         </p>
       </div>
     </div>

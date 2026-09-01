@@ -11,7 +11,7 @@
     "build": "npm run captures:check && astro build && node scripts/write-release-manifest.mjs && node scripts/audit-hero-loops.mjs && python3 scripts/verify-csp.py && node scripts/audit-section-patterns.mjs",
     "preview": "astro preview",
     "astro": "astro",
-    "test:content": "node --test tests/content-static.test.mjs",
+    "test:content": "node --test tests/*-static.test.mjs",
     "check": "astro check",
     "captures:check": "node scripts/sync-paimos-captures.mjs --check"
   },

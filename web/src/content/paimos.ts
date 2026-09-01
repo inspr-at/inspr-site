@@ -554,7 +554,7 @@ export const paimosContent = {
         },
         managedClaude: {
           state: "supported",
-          label: "Streams input to and interrupts the exact live, owned Agent SDK Query.",
+          label: "Streams input to the exact live, owned Agent SDK Query and records correlation evidence.",
         },
         unmanaged: {
           state: "unavailable",

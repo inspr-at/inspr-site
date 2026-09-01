@@ -20,6 +20,7 @@ import {
 } from "../release-metadata.mjs";
 
 const sourceUrl = new URL("../src/", import.meta.url);
+const webRoot = fileURLToPath(new URL("..", import.meta.url));
 
 const products = [
   {
@@ -44,6 +45,83 @@ const products = [
 
 async function source(relativePath) {
   return readFile(new URL(relativePath, sourceUrl), "utf8");
+}
+
+function renderedText(markup) {
+  return markup
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&#x([0-9a-f]+);/gi, (_, value) => String.fromCodePoint(Number.parseInt(value, 16)))
+    .replace(/&#([0-9]+);/g, (_, value) => String.fromCodePoint(Number.parseInt(value, 10)))
+    .replace(/&quot;/g, '"')
+    .replace(/&(?:apos|#39);/g, "'")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function attribute(attributes, name) {
+  return attributes.match(new RegExp(`(?:^|\\s)${name}="([^"]*)"`))?.[1] ?? "";
+}
+
+function renderedSection(html, id) {
+  const marker = html.indexOf(`id="${id}"`);
+  assert.ok(marker >= 0, `rendered section #${id} must exist`);
+  const start = html.lastIndexOf("<section", marker);
+  const end = html.indexOf("</section>", marker);
+  assert.ok(start >= 0 && end > marker, `rendered section #${id} must be complete`);
+  return html.slice(start, end + "</section>".length);
+}
+
+function parseIntercomMatrix(section) {
+  const table = section.match(/<table\b[^>]*>([\s\S]*?)<\/table>/)?.[1] ?? "";
+  assert.ok(table, "rendered Agent Intercom table must exist");
+
+  const columns = [...table.matchAll(/<th\b([^>]*)>([\s\S]*?)<\/th>/g)]
+    .filter((match) => attribute(match[1], "scope") === "col" && attribute(match[1], "data-column"))
+    .map((match) => ({
+      key: attribute(match[1], "data-column"),
+      label: renderedText(match[2].match(/<strong\b[^>]*>([\s\S]*?)<\/strong>/)?.[1] ?? ""),
+      detail: renderedText(match[2].match(/<span\b[^>]*>([\s\S]*?)<\/span>/)?.[1] ?? ""),
+    }));
+
+  const rows = {};
+  for (const rowMatch of table.matchAll(/<tr\b([^>]*)>([\s\S]*?)<\/tr>/g)) {
+    const controlKey = attribute(rowMatch[1], "data-control");
+    if (!controlKey) continue;
+    const rowHeader = rowMatch[2].match(/<th\b([^>]*)>([\s\S]*?)<\/th>/);
+    assert.ok(rowHeader && attribute(rowHeader[1], "scope") === "row");
+    const title = renderedText(rowHeader[2].match(/<strong\b[^>]*>([\s\S]*?)<\/strong>/)?.[1] ?? "");
+    const visibleIntent = renderedText(rowHeader[2].match(/<span\b[^>]*>([\s\S]*?)<\/span>/)?.[1] ?? "");
+    const declaredIntent = attribute(rowHeader[1], "data-intent");
+    assert.equal(visibleIntent, declaredIntent, `${title} intent must render from its declared association`);
+
+    const cells = {};
+    for (const cellMatch of rowMatch[2].matchAll(/<td\b([^>]*)>([\s\S]*?)<\/td>/g)) {
+      const column = attribute(cellMatch[1], "data-column");
+      const paragraph = cellMatch[2].match(/<p\b[^>]*>([\s\S]*?)<\/p>/);
+      assert.ok(column && paragraph, `${title} must render a labelled cell for every column`);
+      const statusMarkup = cellMatch[2].slice(0, paragraph.index);
+      cells[column] = {
+        state: attribute(cellMatch[1], "data-state"),
+        status: renderedText(statusMarkup),
+        label: renderedText(paragraph[1]),
+      };
+    }
+    rows[controlKey] = { title, intent: declaredIntent, cells };
+  }
+
+  return { columns, rows };
+}
+
+function renderedLinks(section) {
+  return [...section.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/g)].map((match) => ({
+    label: renderedText(match[2]),
+    href: attribute(match[1], "href"),
+    target: attribute(match[1], "target"),
+    rel: attribute(match[1], "rel"),
+  }));
 }
 
 function relativeLuminance(hex) {
@@ -401,47 +479,235 @@ test("Paimos public evidence keeps release and capture provenance honest", async
 });
 
 test("Paimos Agent Intercom keeps durable delivery separate from owned-session control", async () => {
-  const content = await source("content/paimos.ts");
   const productPage = await source("components/ProductPage.astro");
   const intercom = await source("components/AgentIntercom.astro");
-  const intercomContent = content.match(
-    /agentIntercom: \{([\s\S]*?)\n  \},\n  featureSections:/,
-  )?.[1] ?? "";
 
   assert.match(productPage, /import AgentIntercom from "\.\/AgentIntercom\.astro"/);
   assert.match(productPage, /content\.agentIntercom[\s\S]*?href: "#agent-intercom"/);
   assert.match(productPage, /content\.agentIntercom && <AgentIntercom content=\{content\.agentIntercom\} \/>/);
 
-  assert.match(intercomContent, /title: "Reach work in motion without hiding the boundary\."/);
-  assert.match(intercomContent, /The ledger records the message first/);
-  assert.match(intercomContent, /A vendor session identifier alone never grants that authority/);
-  assert.match(intercomContent, /control: "Tell"/);
-  assert.match(intercomContent, /control: "Status"/);
-  assert.match(intercomContent, /control: "Steer"/);
-  assert.match(intercomContent, /control: "Interrupt"/);
-  assert.match(intercomContent, /control: "Stop"/);
-  assert.match(intercomContent, /Claude and Grok can use a configured simple handoff, never a steer claim/);
-  assert.match(intercomContent, /never reports the queue fallback as steer/);
-  assert.match(intercomContent, /Simple delivery requires a distinct registered target and matching listener/);
-  assert.match(intercomContent, /durable publication needs reporting integration/);
-  assert.match(intercomContent, /former sessions remain visible as ownership lost and control fails closed/);
-  assert.match(intercomContent, /Recovery starts a fresh managed child and registers a fresh target/);
-  assert.match(intercomContent, /href: docsUrl\("AGENT_INTERCOM\.md"\)/);
-  assert.match(intercomContent, /href: docsUrl\("AGENT_MESSAGE_SECURITY\.md"\)/);
-
-  assert.doesNotMatch(intercomContent, /(?:\/Users\/|\/home\/|127\.0\.0\.1|localhost|\.env\b)/);
-  assert.doesNotMatch(intercomContent, /(?:session_[A-Za-z0-9_-]+|cse_[A-Za-z0-9_-]+|[0-9a-f]{8}-[0-9a-f-]{27,})/i);
-
   assert.match(intercom, /id="agent-intercom"/);
   assert.match(intercom, /aria-labelledby="agent-intercom-title"/);
   assert.match(intercom, /<table>/);
   assert.match(intercom, /<caption class="visually-hidden">/);
-  assert.match(intercom, /<th scope="col">/);
-  assert.match(intercom, /<th scope="row">/);
   assert.match(intercom, /tabindex="0" aria-label="Agent Intercom control support matrix"/);
   assert.match(intercom, /@media \(max-width: 52rem\)/);
   assert.match(intercom, /@media \(prefers-reduced-motion: reduce\)/);
   assert.doesNotMatch(intercom, /<script/);
+
+  const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+  const render = spawnSync(npmCommand, ["run", "astro", "--", "build"], {
+    cwd: webRoot,
+    encoding: "utf8",
+    env: { ...process.env, NO_COLOR: "1" },
+    maxBuffer: 10 * 1024 * 1024,
+  });
+  assert.equal(render.status, 0, render.stderr || render.stdout);
+
+  const html = await readFile(new URL("../dist/paimos/index.html", import.meta.url), "utf8");
+  const section = renderedSection(html, "agent-intercom");
+  const matrix = parseIntercomMatrix(section);
+  const pageIds = [...html.matchAll(/\sid="([^"]+)"/g)].map((match) => match[1]);
+  const duplicateIds = [...new Set(pageIds.filter((id, index) => pageIds.indexOf(id) !== index))];
+  const sectionAttributes = section.match(/^<section\b([^>]*)>/)?.[1] ?? "";
+  const sectionLabel = attribute(sectionAttributes, "aria-labelledby");
+  const headingLevels = [...section.matchAll(/<h([1-6])\b/g)].map((match) => Number(match[1]));
+
+  assert.deepEqual(duplicateIds, []);
+  assert.equal(sectionLabel, "agent-intercom-title");
+  assert.match(section, new RegExp(`id="${sectionLabel}"`));
+  assert.equal(headingLevels[0], 2);
+  assert.ok(headingLevels.slice(1).every((level) => level === 3));
+
+  assert.deepEqual(matrix, {
+    columns: [
+      { key: "simpleInbox", label: "Simple inbox", detail: "Registered receiver" },
+      { key: "managedCodex", label: "Managed Codex", detail: "Owned live child" },
+      { key: "managedClaude", label: "Managed Claude", detail: "Owned live Query" },
+      { key: "unmanaged", label: "Unmanaged Claude / Grok", detail: "External session" },
+    ],
+    rows: {
+      tell: {
+        title: "Tell",
+        intent: "Durable handoff",
+        cells: {
+          simpleInbox: {
+            state: "supported",
+            status: "Supported",
+            label: "Project-scoped message, delivery record and durable cursor.",
+          },
+          managedCodex: {
+            state: "conditional",
+            status: "Conditional",
+            label: "Simple delivery requires a distinct registered target and matching listener.",
+          },
+          managedClaude: {
+            state: "conditional",
+            status: "Conditional",
+            label: "Simple delivery requires a distinct registered target and matching listener.",
+          },
+          unmanaged: {
+            state: "conditional",
+            status: "Conditional",
+            label: "Simple delivery only when the receiver registered a supported target.",
+          },
+        },
+      },
+      status: {
+        title: "Status",
+        intent: "Observe session state",
+        cells: {
+          simpleInbox: {
+            state: "unavailable",
+            status: "Unavailable",
+            label: "The ledger shows message delivery, not a vendor process state.",
+          },
+          managedCodex: {
+            state: "supported",
+            status: "Supported",
+            label: "Available locally from the session owner; durable publication needs reporting integration.",
+          },
+          managedClaude: {
+            state: "supported",
+            status: "Supported",
+            label: "Available locally from the session owner; durable publication needs reporting integration.",
+          },
+          unmanaged: {
+            state: "unavailable",
+            status: "Unavailable",
+            label: "A resume, channel or webhook target does not grant process status.",
+          },
+        },
+      },
+      steer: {
+        title: "Steer",
+        intent: "Change the active turn",
+        cells: {
+          simpleInbox: {
+            state: "conditional",
+            status: "Conditional",
+            label: "The ledger can preserve steer intent, but the receiver caps authority.",
+          },
+          managedCodex: {
+            state: "supported",
+            status: "Supported",
+            label: "Targets the exact live, owned Codex turn and records correlation evidence.",
+          },
+          managedClaude: {
+            state: "supported",
+            status: "Supported",
+            label: "Streams input to the exact live, owned Agent SDK Query and records correlation evidence.",
+          },
+          unmanaged: {
+            state: "unavailable",
+            status: "Unavailable",
+            label: "Claude and Grok can use a configured simple handoff, never a steer claim.",
+          },
+        },
+      },
+      interrupt: {
+        title: "Interrupt",
+        intent: "End the current turn",
+        cells: {
+          simpleInbox: {
+            state: "unavailable",
+            status: "Unavailable",
+            label: "Free-text delivery does not become a control command.",
+          },
+          managedCodex: {
+            state: "supported",
+            status: "Supported",
+            label: "Interrupts the exact current owned turn while preserving the session.",
+          },
+          managedClaude: {
+            state: "supported",
+            status: "Supported",
+            label: "Interrupts the exact current owned Query while preserving the session.",
+          },
+          unmanaged: {
+            state: "unavailable",
+            status: "Unavailable",
+            label: "No owned live handle means no interrupt authority.",
+          },
+        },
+      },
+      stop: {
+        title: "Stop",
+        intent: "End the owned session",
+        cells: {
+          simpleInbox: {
+            state: "unavailable",
+            status: "Unavailable",
+            label: "A message cannot terminate a receiver process.",
+          },
+          managedCodex: {
+            state: "supported",
+            status: "Supported",
+            label: "Terminates and reaps the exact daemon-owned child process group.",
+          },
+          managedClaude: {
+            state: "supported",
+            status: "Supported",
+            label: "Terminates and reaps the exact daemon-owned child process group.",
+          },
+          unmanaged: {
+            state: "unavailable",
+            status: "Unavailable",
+            label: "External sessions stay outside Paimos process ownership.",
+          },
+        },
+      },
+    },
+  });
+
+  assert.deepEqual(renderedLinks(section), [
+    {
+      label: "Agent Intercom guide ↗",
+      href: "https://github.com/inspr-at/paimos/blob/main/docs/AGENT_INTERCOM.md",
+      target: "_blank",
+      rel: "noopener noreferrer",
+    },
+    {
+      label: "Message security contract ↗",
+      href: "https://github.com/inspr-at/paimos/blob/main/docs/AGENT_MESSAGE_SECURITY.md",
+      target: "_blank",
+      rel: "noopener noreferrer",
+    },
+  ]);
+
+  const text = renderedText(section);
+  assert.match(text, /The ledger records the message first/);
+  assert.match(text, /A vendor session identifier alone never grants that authority/);
+  assert.match(text, /never reports the queue fallback as steer/);
+  assert.match(text, /former sessions remain visible as ownership lost and control fails closed/);
+  assert.match(text, /Recovery starts a fresh managed child and registers a fresh target/);
+
+  const privacyLeaks = {
+    credentialValue: /\b(?:credential|password|passphrase|secret|authorization|bearer)\b\s*(?:[:=]|is)\s*["']?[A-Za-z0-9._/-]{8,}/i.test(text),
+    tokenOrKeyValue: /\b(?:api[_ -]?key|access[_ -]?token|refresh[_ -]?token|cookie[_ -]?key|private[_ -]?key)\b\s*(?:[:=]|is)\s*["']?[A-Za-z0-9._/-]{8,}/i.test(text),
+    environmentValue: /\b[A-Z][A-Z0-9_]{2,}\s*=\s*[^\s<]{4,}/.test(text),
+    structuredSensitiveBody: /"(?:body|message|text|value|token|key|path|socket|target_ref|session_id|worker_lease|lease_id)"\s*:\s*"[^"]+"/i.test(text),
+    absoluteLocalPath: /(?:\/Users\/|\/home\/|\/run\/|\/var\/|\/tmp\/|[A-Z]:\\)/i.test(text),
+    privateNetwork: /\b(?:localhost|127\.0\.0\.1|(?:10|192\.168)\.[0-9.]+|172\.(?:1[6-9]|2[0-9]|3[01])\.[0-9.]+)|\.(?:internal|local)\b/i.test(text),
+    emailIdentity: /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i.test(text),
+    concreteUuid: /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/i.test(text),
+    sessionReference: /\b(?:session|cse|thread|delivery)[_-][A-Za-z0-9_-]{6,}\b/i.test(text),
+    workerLeaseBody: /\b(?:worker[_-]?lease|lease[_-]?id)\b\s*(?:[:=]|is)\s*[^\s<]{4,}/i.test(text),
+    credentialArtifact: /BEGIN (?:RSA |OPENSSH |EC )?PRIVATE KEY|\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/.test(text),
+  };
+  assert.deepEqual(privacyLeaks, {
+    credentialValue: false,
+    tokenOrKeyValue: false,
+    environmentValue: false,
+    structuredSensitiveBody: false,
+    absoluteLocalPath: false,
+    privateNetwork: false,
+    emailIdentity: false,
+    concreteUuid: false,
+    sessionReference: false,
+    workerLeaseBody: false,
+    credentialArtifact: false,
+  });
 });
 
 test("Paimos product loops stay lazy, bounded and inside the PhotoSwipe gallery", async () => {

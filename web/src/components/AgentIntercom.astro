@@ -99,7 +99,7 @@ const statusLabel = (cell: AgentIntercomAvailability) => ({
             <tr>
               <th scope="col">Control</th>
               {columns.map((column) => (
-                <th scope="col">
+                <th scope="col" data-column={column.key}>
                   <strong>{column.label}</strong>
                   <span>{column.detail}</span>
                 </th>
@@ -108,15 +108,15 @@ const statusLabel = (cell: AgentIntercomAvailability) => ({
           </thead>
           <tbody>
             {content.controls.map((row) => (
-              <tr>
-                <th scope="row">
+              <tr data-control={row.control.toLowerCase()}>
+                <th scope="row" data-intent={row.intent}>
                   <strong>{row.control}</strong>
                   <span>{row.intent}</span>
                 </th>
                 {columns.map((column) => {
                   const cell = row[column.key];
                   return (
-                    <td data-state={cell.state}>
+                    <td data-column={column.key} data-state={cell.state}>
                       <span class="intercom__status">
                         <span aria-hidden="true"></span>
                         {statusLabel(cell)}

@@ -96,7 +96,11 @@ test("Shared header controls use one vertical alignment contract", async () => {
   assert.match(styles, /\.language-switch \{[\s\S]*?min-height: 2\.65rem;[\s\S]*?align-items: center;/);
   assert.match(styles, /\.language-switch a \{[\s\S]*?min-height: 2\.65rem;[\s\S]*?place-items: center;/);
   assert.match(styles, /\.product-switcher summary,[\s\S]*?\.header-action \{[\s\S]*?align-items: center;[\s\S]*?min-height: 2\.65rem;/);
-  assert.match(styles, /@media \(max-width: 72rem\) \{[\s\S]*?\.header-action \{\s*display: none;/);
+  const tabletStyles = styles.slice(
+    styles.indexOf("@media (max-width: 72rem)"),
+    styles.indexOf("@media (max-width: 52rem)"),
+  );
+  assert.match(tabletStyles, /\.header-action \{\s*display: none;/);
 });
 
 test("Overview keeps a bounded, friendly and responsive two-screen structure", async () => {

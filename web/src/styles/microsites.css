@@ -2742,6 +2742,10 @@
     display: block;
   }
 
+  .header-action {
+    display: none;
+  }
+
   .product-hero {
     grid-template-columns: 1fr;
     min-height: auto;
@@ -2951,10 +2955,6 @@
     min-height: 2.5rem;
     padding-inline: 0.8rem;
     font-size: 0.75rem;
-  }
-
-  .header-action {
-    display: none;
   }
 
   .product-hero {

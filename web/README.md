@@ -8,6 +8,7 @@ one Astro application.
 | Route | Production host |
 | --- | --- |
 | `/` | `www.inspr.at` |
+| external | `start.augmentoring.com` (Aithema preview) |
 | `/paimos/` | `paimos.inspr.at` |
 | `/pharos/` | `pharos.inspr.at` |
 | `/janus/` | `janus.inspr.at` |
@@ -50,6 +51,14 @@ hostname in product content.
 
 Artwork in `src/assets/products/` is part of the shared INSPR visual system.
 Prefer optimized Astro image imports over public-directory copies.
+
+The umbrella and products are authored by
+[Markus Barta](https://github.com/markus-barta). Augmentoring is the
+professional-services path that uses and supports them; it is not presented as
+their owner. The canonical product sequence is **Aithema, Paimos, Pharos,
+Janus**. Aithema currently links to its hosted preview at
+`start.augmentoring.com`; its reusable template or module is planned for an
+open-source release.
 
 ## License
 

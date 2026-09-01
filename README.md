@@ -1,24 +1,28 @@
 # INSPR Sites
 
-**One umbrella, four focused products, one coherent public surface.**
+**One idea, four products, one human-approved path.**
 
 This repository powers the English-language INSPR site family:
 
 - [www.inspr.at](https://www.inspr.at) - the INSPR idea and product map;
+- [start.augmentoring.com](https://start.augmentoring.com) - the current Aithema requirements preview;
 - [paimos.inspr.at](https://paimos.inspr.at) - shared project context for people and AI agents;
 - [pharos.inspr.at](https://pharos.inspr.at) - clear fleet operations;
 - [janus.inspr.at](https://janus.inspr.at) - policy-bound secret use;
 - [v1.inspr.at](https://v1.inspr.at) - the frozen pre-relaunch archive.
 
-The fourth product is **Aithema** (pronounced **AI-Thema**), the requirements
-product at [start.augmentoring.com](https://start.augmentoring.com). This
+Aithema (pronounced **AI-Thema**) is the first product in the family sequence
+and owns requirements. Its current public preview is at
+[start.augmentoring.com](https://start.augmentoring.com). This
 repository links to that visitor experience from the shared product navigation;
-it does not build or host it.
+it does not build or host it. A reusable open-source Aithema template or module
+is planned; the hosted visitor experience is the public path in the meantime.
 
-The product sites are intentionally lightweight. They explain what the current
-software does, where its boundaries are, how to inspect the source, and where
-professional Augmentoring services fit without turning the open products into a
-dark-pattern funnel.
+The product sites are intentionally lightweight. INSPR and its products are
+open work by [Markus Barta](https://github.com/markus-barta). The sites explain
+what the current software does, where its boundaries are, how to inspect the
+source, and where Augmentoring's professional services fit as a user of the
+products rather than their owner.
 
 [![License](https://img.shields.io/badge/license-AGPL--3.0--only-0b8178)](LICENSE)
 
@@ -99,7 +103,7 @@ The content tests protect:
 - per-host robots and sitemap output;
 - workflow icons, evidence signals and source references;
 - the four claim-supporting image assets;
-- the preserved INSPR product constellation; and
+- the preserved INSPR product flow; and
 - every `icon` and `group` in `src/content/*.ts` resolving in `ContextIcon`
   and the tile type, so an unknown name fails the suite instead of degrading
   silently in the rendered page.
@@ -212,6 +216,7 @@ bootstrap token. The checked `.env.example` contains placeholders only.
 
 ## Product sources
 
+- **Aithema** - reusable open-source template or module planned; public preview at [start.augmentoring.com](https://start.augmentoring.com)
 - [Paimos](https://github.com/inspr-at/paimos)
 - [Pharos](https://github.com/inspr-at/pharos)
 - [Janus](https://github.com/inspr-at/janus)

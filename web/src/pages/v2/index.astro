@@ -1,32 +1,5 @@
 ---
-import Base from "../../layouts/Base.astro";
-import Toolbar from "../../components/Toolbar.astro";
-import Hero from "../../sections-v2/Hero.astro";
-import Pipeline from "../../sections-v2/Pipeline.astro";
-import Mission from "../../sections-v2/Mission.astro";
-import Pluralism from "../../sections-v2/Pluralism.astro";
-import AgentContract from "../../sections-v2/AgentContract.astro";
-import Artifacts from "../../sections-v2/Artifacts.astro";
-import Audience from "../../sections-v2/Audience.astro";
-import Footer from "../../sections-v2/Footer.astro";
-
-import "../../styles/v2.css";
+import Home from "../index.astro";
 ---
 
-<Base
-  title="INSPR — upstream of any substrate (ed. 02)"
-  description="Edition 02: a tech-affinity reading of the substrate-pluralist mission. Same content, different register."
-  bodyClass="edition-v2"
->
-  <Toolbar edition="v2" />
-  <main id="top">
-    <Hero />
-    <Pipeline />
-    <Mission />
-    <Pluralism />
-    <AgentContract />
-    <Artifacts />
-    <Audience />
-  </main>
-  <Footer />
-</Base>
+<Home edition="fable-v2" />

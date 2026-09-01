@@ -248,3 +248,32 @@ When adding a new token:
 1. Add to `web/src/styles/tokens.css` under both light and dark blocks.
 2. Document in this file under the relevant section.
 3. Verify contrast for any colour token against the surface tokens.
+
+---
+
+## 10 · Product identity and editorial heroes
+
+Each product row combines a native vector mark with one 16:9 editorial hero.
+The canonical sequence is **Aithema, Paimos, Pharos, Janus**. Rows alternate
+image-right and image-left on wide screens: Aithema keeps its copy on the left
+and visual on the right, followed by Paimos left, Pharos right and Janus left.
+The grid column fractions reverse with the content order, so every product hero
+retains the same visual width, 16:9 ratio, rounded corners and one-pixel border.
+On narrow screens every row returns to the same single-column reading order.
+
+Marks must remain real SVG geometry: a declared `viewBox`, accessible title and
+description, no embedded raster image and no text element standing in for a
+wordmark. Aithema's mark uses the **Requirement Prism** concept: teal and gold
+fields represent diffuse input, a transparent diamond is the resolving
+aperture, and the navy diamond is the durable decision object.
+
+Heroes use the shared ivory, glass, marble, teal and restrained gold material
+language, but each depicts the product's actual responsibility. Product heroes
+make one transformation or operating boundary visible. The existing INSPR
+umbrella hero and its matching motion loop are a fixed asset and are not
+replaced as part of product-row artwork changes.
+
+Generated artwork is stored under `web/src/assets/products/<slug>/` and served
+through Astro's image pipeline. It must contain no generated text, logos,
+watermarks or pseudo-interface copy, and its accessible alternative describes
+the claim rather than the rendering style.

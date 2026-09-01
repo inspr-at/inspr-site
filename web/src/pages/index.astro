@@ -20,7 +20,12 @@ import pharosHero from "../assets/products/pharos/hero.png";
 import pharosLogo from "../assets/products/pharos/mark.svg";
 import janusHero from "../assets/products/janus/hero.png";
 import janusLogo from "../assets/products/janus/logo.svg";
+import aithemaHero from "../assets/products/aithema/hero.png";
+import aithemaLogo from "../assets/products/aithema/logo.svg";
 import zitadelLogo from "../assets/brands/zitadel-logo-solo-dark-icon.svg";
+
+const isFableV2 = Astro.props.edition === "fable-v2";
+const copy = (current: string, fable: string) => isFableV2 ? fable : current;
 
 const repositoryUrl = "https://github.com/inspr-at/inspr-site";
 const siteLicenseUrl = `${repositoryUrl}/blob/main/LICENSE`;
@@ -38,16 +43,44 @@ const nav = [
 
 const products = [
   {
+    name: "Aithema",
+    label: productTaxonomy.aithema,
+    href: siteUrls.aithema,
+    logo: aithemaLogo,
+    hero: aithemaHero,
+    alt: "Open conversational threads becoming one structured and reviewable proposal",
+    title: copy(
+      "Turn conversation into approved requirements.",
+      "Start by talking. Finish with requirements.",
+    ),
+    body: copy(
+      "Speak, type or share files. Review the requirements, then decide whether to continue. The public preview is at start.augmentoring.com; the reusable module will follow as open source.",
+      "Speak, type or add files; Aithema drafts the requirements. Read them and choose Continue when they say what you mean. The public preview runs at start.augmentoring.com, and a reusable open-source module is planned.",
+    ),
+    detail: copy(
+      "Requirements · review · continue",
+      "Conversation · requirements · Continue",
+    ),
+  },
+  {
     name: "Paimos",
     label: productTaxonomy.paimos,
     href: siteUrls.paimos,
     logo: paimosLogo,
     hero: paimosHero,
     alt: "A shared project agora where people and agents work around the same project context",
-    title: "Keep people and AI agents in the same project picture.",
-    body:
-      "Paimos brings work, repository context, operating knowledge, execution choices and run evidence into one self-hosted project model.",
-    detail: "Project management · context · evidence",
+    title: copy(
+      "Turn requirements into a project agents can build.",
+      "Give agents a project, not a prompt.",
+    ),
+    body: copy(
+      "Keep the project, specs, repository context, decisions and run evidence together. Review the work before it reaches staging.",
+      "Approved requirements become a project: specs, repository context, decisions and run evidence in one place. Agents build inside it; you review the staged result.",
+    ),
+    detail: copy(
+      "Project · specs · agentic build · stage",
+      "Specs · agent build · staged review",
+    ),
   },
   {
     name: "Pharos",
@@ -56,10 +89,18 @@ const products = [
     logo: pharosLogo,
     hero: pharosHero,
     alt: "A lighthouse overlooking a calm network of connected fleet nodes",
-    title: "See what is running before you change it.",
-    body:
-      "Pharos keeps live observations, declared configuration and requested changes separate across servers, backups and guarded maintenance.",
-    detail: "Fleet state · backup evidence · operations",
+    title: copy(
+      "Choose where it runs. Back up before you deploy.",
+      "Pick the server. Prove the backup. Then deploy.",
+    ),
+    body: copy(
+      "Select the server, verify backup evidence and approve the production deploy.",
+      "You choose where it runs. Pharos verifies a backup before production, and the deploy itself happens only when you approve it.",
+    ),
+    detail: copy(
+      "Target · backup · production deploy",
+      "Server · verified backup · approved deploy",
+    ),
   },
   {
     name: "Janus",
@@ -68,32 +109,52 @@ const products = [
     logo: janusLogo,
     hero: janusHero,
     alt: "A transparent governance gateway mediating approved access between systems",
-    title: "Let work use a secret without revealing it.",
-    body:
-      "Janus turns secret-backed work into an explicit path from reference to permit to reviewed execution, with value-free evidence in return.",
-    detail: "References · permits · approved execution",
+    title: copy(
+      "Enforce who may act. Rotate access safely.",
+      "Decide what may act. Keep secrets unseen.",
+    ),
+    body: copy(
+      "Apply permits and policies without exposing secrets. Broader users, roles and ZITADEL integration come later.",
+      "Janus enforces what may act under an approved permit and rotates access without exposing a secret. Broader permissions, users, roles and ZITADEL integration are planned for later.",
+    ),
+    detail: copy(
+      "Permissions · enforcement · rotation",
+      "Permits · rotation · no exposed secrets",
+    ),
   },
 ];
 
 const proofPoints = [
   {
-    title: "Shared doctrine",
-    definition: "One visible set of operating rules across people, agents and tools.",
-    href: "#principles",
-  },
-  {
-    title: "Declarative where practical",
-    definition: "Record intent and recoverable state before imperative action begins.",
+    title: copy("Human approval", "Human review"),
+    definition: copy(
+      "You decide when work moves forward.",
+      "Work advances only after you approve it.",
+    ),
     href: "#flow",
   },
   {
-    title: "Human and agent ready",
-    definition: "Give both actors the same context, authority and evidence packet.",
-    href: "#idea",
+    title: copy("Full ownership", "Yours to keep"),
+    definition: copy(
+      "Keep your source, data, infrastructure and evidence.",
+      "Source, data, servers and evidence stay with you.",
+    ),
+    href: "#source",
   },
   {
-    title: "Inspectable foundations",
-    definition: "Keep source, licenses and operating assumptions open to review.",
+    title: copy("Hard parts handled", "Difficult parts handled"),
+    definition: copy(
+      "The tools carry context, checks, backups and access.",
+      "Context, checks, backups and access are the tools' job.",
+    ),
+    href: "#flow",
+  },
+  {
+    title: "Open foundations",
+    definition: copy(
+      "Inspect, self-host and change the stack.",
+      "Read the code, run it yourself, change it.",
+    ),
     href: "#source",
   },
 ];
@@ -101,96 +162,146 @@ const proofPoints = [
 const principles = [
   {
     number: "01",
-    title: "Context should travel",
-    body:
-      "Projects, repositories, hosts and operating rules should not have to be reconstructed every time a person or agent starts work.",
-    avoids: "Repeated discovery, stale prompts and work that starts from different realities.",
-    protects: "A shared situation that remains legible as people, agents and tools change.",
+    title: copy("Context should travel", "Context travels with the work"),
+    body: copy(
+      "Keep requirements, specs, code, server state and operating rules with the work.",
+      "Requirements, specs, code, server state and operating rules move together, so no one starts from a blank page.",
+    ),
+    avoids: copy(
+      "Re-explaining the system and sending agents in blind.",
+      "Re-explained systems and agents working blind.",
+    ),
+    protects: copy(
+      "One current picture for people and agents.",
+      "One current picture, shared by people and agents.",
+    ),
   },
   {
     number: "02",
-    title: "Authority should stay visible",
-    body:
-      "A suggestion, a code change and a production action are different capabilities. The system should keep those boundaries explicit.",
-    avoids: "Capability drift, hidden escalation and accidental production authority.",
-    protects: "Reviewable decisions with authority matched to the work being performed.",
+    title: copy("Approval should be explicit", "Approval is a visible act"),
+    body: copy(
+      "Requirements, builds, production deploys and permissions each need a visible decision.",
+      "Requirements, builds, production deploys and permission changes each pass through a decision someone made on purpose.",
+    ),
+    avoids: copy(
+      "Hidden escalation and accidental production authority.",
+      "Quiet escalation and accidental production authority.",
+    ),
+    protects: copy(
+      "A human decision at every handoff.",
+      "A person at every handoff.",
+    ),
   },
   {
     number: "03",
-    title: "State should be recoverable",
-    body:
-      "Declare what can be declared, keep source and evidence, and make the path back to a working system understandable without folklore.",
-    avoids: "Irreversible changes, undocumented state and recovery that depends on memory.",
-    protects: "A tested path back to a known state and evidence for the next decision.",
+    title: copy("Changes should be recoverable", "A way back is part of the change"),
+    body: copy(
+      "Back up before production, record what ran and keep a tested way back.",
+      "Back up before production, record what actually ran and keep a tested path to the previous state.",
+    ),
+    avoids: copy(
+      "Blind deploys and recovery by memory.",
+      "Deploys you cannot reverse and recovery from memory.",
+    ),
+    protects: copy(
+      "Your systems, your evidence and a known rollback.",
+      "Your systems and a known rollback.",
+    ),
   },
 ];
 
-const continuitySteps = [
+const productFlowSteps = [
   {
     number: "01",
-    title: "Intent",
+    title: "Aithema · Requirements",
     visual: { x: 18, y: 61 },
-    body:
-      "Name the outcome before choosing a model, runner or deployment path. The goal remains stable even when the implementation changes.",
-    icon: "route",
-    signal: "A legible outcome with an accountable owner.",
+    body: copy(
+      "Talk through the need, then review the requirements. Continue only when they match what you intend.",
+      "Describe the need in conversation and files. Aithema drafts the requirements; read them and choose Continue when they are right.",
+    ),
+    icon: "mic",
+    signal: copy(
+      "You approve the requirements.",
+      "The requirements wait for your Continue.",
+    ),
     reference: {
-      label: "Inspect the umbrella source",
-      href: "https://github.com/inspr-at/inspr",
+      label: "Open Aithema",
+      href: siteUrls.aithema,
       external: true,
     },
   },
   {
     number: "02",
-    title: "Context",
+    title: "Paimos · Build",
     visual: { x: 38, y: 51 },
-    body:
-      "Bring forward the project, repository, system state and operating rules that matter now, without reconstructing the situation from scratch.",
-    icon: "book-open-check",
-    signal: "Relevant facts travel with the work.",
+    body: copy(
+      "Create the project and specs. Agents build with the right context; you review what reaches staging.",
+      "The approved requirements become a project with specs. Agents build with that context, and the result lands in staging for your review.",
+    ),
+    icon: "folder-kanban",
+    signal: copy(
+      "You approve the staged result.",
+      "Staging waits for your review.",
+    ),
     reference: {
-      label: "Explore shared doctrine",
-      href: "https://github.com/inspr-at/inspr-modules",
+      label: "Open Paimos",
+      href: siteUrls.paimos,
       external: true,
     },
   },
   {
     number: "03",
-    title: "Bounded action",
+    title: "Pharos · Deploy",
     visual: { x: 59, y: 55 },
-    body:
-      "Keep suggestion, code change and production operation as separate capabilities. Each actor receives only the authority the task needs.",
-    icon: "shield-check",
-    signal: "Authority stays explicit at the point of use.",
+    body: copy(
+      "Select the server and verify a backup. Production waits for your approval.",
+      "Select the target server. Pharos verifies a backup first; the production deploy then asks for your approval.",
+    ),
+    icon: "server-cog",
+    signal: copy(
+      "You approve the production deploy.",
+      "Production waits for your approval.",
+    ),
     reference: {
-      label: "See the product boundaries",
-      href: "#products",
-      external: false,
+      label: "Open Pharos",
+      href: siteUrls.pharos,
+      external: true,
     },
   },
   {
     number: "04",
-    title: "Evidence",
+    title: "Janus · Enforce",
     visual: { x: 81, y: 58 },
-    body:
-      "Return what ran, what changed and what was verified to the same operating context, so the next decision starts from evidence instead of folklore.",
-    icon: "file-check-2",
-    signal: "The next action begins with a recoverable record.",
+    body: copy(
+      "Enforce who or what may act, then rotate access without exposing secrets. Broader users, roles and ZITADEL integration come later.",
+      "Enforce what may act under an approved permit and rotate access without exposing secrets. Broader permissions, users, roles and ZITADEL integration are planned for later.",
+    ),
+    icon: "lock-keyhole",
+    signal: copy(
+      "You approve permissions and rotation.",
+      "Access changes wait for your approval.",
+    ),
     reference: {
-      label: "Read the working principles",
-      href: "#principles",
-      external: false,
+      label: "Open Janus",
+      href: siteUrls.janus,
+      external: true,
     },
   },
 ];
 ---
 
 <MicrositeLayout
-  title="INSPR | A technology umbrella for people and AI agents"
-  description="INSPR is a technology umbrella that keeps requirements, project context, fleet state, secret governance and operating doctrine coherent for people and AI agents."
+  title={copy(
+    "INSPR | From idea to operation, with human approval",
+    "INSPR | From idea to running software, with a person at every handoff",
+  )}
+  description={copy(
+    "INSPR takes an idea through requirements, agentic building, safe deployment and enforced access, with human approval and full ownership at every step.",
+    "Aithema shapes requirements, Paimos gives agents a project, Pharos deploys with a verified backup, Janus governs access. A person approves every handoff.",
+  )}
   canonical={canonicalUrl}
   ogImage={ogImage}
-  ogImageAlt="The INSPR requirements, project, fleet and governance constellation around a shared operating core"
+  ogImageAlt="The four INSPR products connected from requirements to governed operation"
   favicon={insprLogo.src}
   theme="inspr"
 >
@@ -205,7 +316,10 @@ const continuitySteps = [
 
   <main id="main-content">
     <ServiceRibbon
-      text="Augmentoring is the professional path for supported INSPR deployments."
+      text={copy(
+        "Professional implementation and support are available through Augmentoring.",
+        "Augmentoring provides professional implementation and support for the INSPR products.",
+      )}
     />
 
     <section
@@ -214,23 +328,27 @@ const continuitySteps = [
       data-section-pattern="editorial-hero"
     >
       <div class="umbrella-hero__copy">
-        <p class="eyebrow">Inspiration is the only limit</p>
-        <h1 id="hero-title">Ideas should outlive the tools that help make them.</h1>
+        <p class="eyebrow">{copy("The INSPR idea", "The idea")}</p>
+        <h1 id="hero-title">Inspiration is the only limit.</h1>
         <p class="umbrella-hero__lead">
-          INSPR is a shared operating layer for people and AI agents. It keeps the
-          context, boundaries and evidence around real work coherent, while each
-          product stays focused on one problem it can solve well.
+          {copy(
+            "Aithema shapes the requirements. Paimos helps agents build. Pharos deploys with backup evidence. Janus enforces access. You approve every handoff and own the result.",
+            "Talk through what you want to build. Aithema writes the requirements, Paimos gives agents the project, Pharos handles deployment and Janus controls access. Every handoff waits for you.",
+          )}
         </p>
         <div class="button-row">
-          <a class="button" href="#products">
-            Meet the products <span aria-hidden="true">↓</span>
+          <a class="button" href="#flow">
+            See the flow <span aria-hidden="true">↓</span>
           </a>
           <a class="button button--ghost" href={repositoryUrl} target="_blank" rel="noopener noreferrer">
-            Explore the source <span aria-hidden="true">↗</span>
+            {copy("Explore the source", "Read the source")} <span aria-hidden="true">↗</span>
           </a>
         </div>
         <p class="umbrella-hero__note">
-          Living infrastructure, built in the open and shaped by daily use.
+          {copy(
+            "The tools handle the hard parts. Your work stays yours.",
+            "The tools carry the difficult parts. The decisions stay with you.",
+          )}
         </p>
       </div>
 
@@ -243,7 +361,10 @@ const continuitySteps = [
           sizes="(min-width: 64rem) 54vw, 100vw"
         />
         <figcaption>
-          One operating idea, expressed through tools with clear responsibilities.
+          {copy(
+            "Four tools. One human-approved path from idea to operation.",
+            "Four tools, one path, a review at every handoff.",
+          )}
         </figcaption>
       </figure>
     </section>
@@ -273,19 +394,21 @@ const continuitySteps = [
     >
       <div class="page-shell umbrella-idea__grid">
         <header>
-          <p class="eyebrow">The simple version</p>
-          <h2 id="idea-title">Spend less time rebuilding the situation.</h2>
+          <p class="eyebrow">{copy("The simple version", "In plain terms")}</p>
+          <h2 id="idea-title">The tools handle the difficult parts.</h2>
         </header>
         <div class="umbrella-idea__copy">
           <p class="section-lead">
-            Useful work depends on more than a good prompt. An agent needs the right
-            project context. An operator needs current system state. Both need to know
-            what authority exists and what actually happened.
+            {copy(
+              "Start with what you want to make. INSPR carries the requirements, project context, deployment safety and access control around it.",
+              "Start from the thing you want to build. The tools carry requirements, project context, deployment safety and access control alongside it.",
+            )}
           </p>
           <p>
-            INSPR treats those conditions as infrastructure. The goal is not one large
-            platform. It is a small set of connected tools and shared rules that make
-            ambitious work easier to start, safer to continue and possible to recover.
+            {copy(
+              "You approve each handoff. Your source, data, infrastructure and evidence stay under your control.",
+              "You approve each step. The requirements, source, infrastructure and evidence remain under your control.",
+            )}
           </p>
         </div>
         <SituationPacket />
@@ -299,11 +422,18 @@ const continuitySteps = [
       data-section-pattern="editorial-product-stories"
     >
       <header class="section-intro section-intro--wide">
-        <p class="eyebrow">The product constellation</p>
-        <h2 id="products-title">Four focused products. One coherent way of working.</h2>
+        <p class="eyebrow">Four products</p>
+        <h2 id="products-title">
+          {copy(
+            "From idea to operation, without giving up control.",
+            "Four tools, each with one clear job.",
+          )}
+        </h2>
         <p class="section-lead">
-          Each product owns a distinct part of the operating picture. Use one where it
-          helps, or connect them without hiding the boundaries between them.
+          {copy(
+            "Use one product or follow the full path. Every handoff is explicit and human-approved.",
+            "Adopt one, or follow the whole path from requirements to enforced access. Between every two steps stands a person who chooses to continue.",
+          )}
         </p>
       </header>
 
@@ -316,7 +446,7 @@ const continuitySteps = [
             rel="noopener noreferrer"
             aria-labelledby={`product-${product.name.toLowerCase()}-link`}
           >
-            <article class:list={["product-story", { "product-story--reverse": index % 2 === 1 }]}>
+            <article class:list={["product-story", { "product-story--reverse": index % 2 === 0 }]}>
               <span class="product-story__visual">
                 <Image
                   src={product.hero}
@@ -347,38 +477,6 @@ const continuitySteps = [
           </a>
         ))}
 
-        <a
-          class="aithema-story"
-          href={siteUrls.aithema}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-labelledby="product-aithema-link"
-        >
-          <span class="aithema-story__identity" aria-hidden="true">
-            <strong>Aithema</strong>
-            <span>AI-Thema</span>
-          </span>
-          <div class="aithema-story__copy">
-            <span class="eyebrow">Requirements</span>
-            <h3>Aithema</h3>
-            <h4>
-              Turn an open conversation into a concrete service proposal.
-            </h4>
-            <p>
-              Aithema (pronounced AI-Thema) is Augmentoring's conversational intake and
-              qualification service, not an open-source product repository. You enter with
-              your role and email, verify through a magic link without being blocked by it,
-              then speak, type or share files. You receive an AI-assisted analysis, a guided
-              discussion and finally a concrete service proposal, with human handoff where
-              automation is not proven. The public service is at start.augmentoring.com.
-            </p>
-            <p class="product-story__detail">Conversation · qualification · service proposal</p>
-            <span class="text-link" id="product-aithema-link">
-              Explore Aithema <span aria-hidden="true">→</span>
-              <span class="visually-hidden"> (opens in a new tab)</span>
-            </span>
-          </div>
-        </a>
       </div>
     </section>
 
@@ -392,11 +490,17 @@ const continuitySteps = [
       </div>
       <div class="identity-utility__copy">
         <p class="eyebrow">Shared utility · third party</p>
-        <h2 id="identity-title">One identity boundary across the tools.</h2>
+        <h2 id="identity-title">
+          {copy(
+            "One sign-in. Product permissions stay explicit.",
+            "Sign in once. Permissions stay with each product.",
+          )}
+        </h2>
         <p>
-          INSPR uses self-hosted ZITADEL as its identity and access layer. ZITADEL is
-          not an INSPR product, but it gives the product family one consistent place for
-          sign-in and role-aware access.
+          {copy(
+            "ZITADEL provides sign-in. Each product still decides what that identity may do. Deeper Janus user and role integration comes later.",
+            "ZITADEL provides the sign-in and nothing more. What a signed-in identity may do is decided inside each product. Deeper Janus user and role integration is planned for later.",
+          )}
         </p>
         <ul class="identity-utility__facts" aria-label="Identity service properties">
           <li>Self-hosted</li>
@@ -416,12 +520,19 @@ const continuitySteps = [
 
     <WorkflowExplorer
       id="flow"
-      eyebrow="From intent to evidence"
-      title="Continuity is the advantage."
-      lead="Models, runtimes and infrastructure can change. The operating context and the record of what happened should remain legible."
-      steps={continuitySteps}
+      eyebrow={copy("Your idea, under your control", "Four steps, four approvals")}
+      title={copy("You decide. The tools handle the hard parts.", "The work moves. You decide when.")}
+      lead={copy(
+        "Approve the requirements, the staged build, the production deploy and access. Each product returns evidence before the next step.",
+        "Requirements, staged build, production deploy, access: four approvals, each backed by evidence the tool puts in front of you.",
+      )}
+      steps={productFlowSteps}
       image={insprContinuity}
-      alt="Four connected white, grey and ice-blue chambers carrying intent, context, bounded action and evidence through a shared operating layer."
+      alt="Four connected chambers carrying work through Aithema, Paimos, Pharos and Janus with a human approval at every handoff."
+      closing={copy(
+        "You own the requirements, source, infrastructure, permissions and evidence.",
+        "At the end, everything is yours: the requirements, the source, the infrastructure, the permissions and the evidence behind every decision.",
+      )}
       tone="light"
       pattern="guided-workflow"
     />
@@ -434,10 +545,14 @@ const continuitySteps = [
     >
       <header class="section-intro">
         <p class="eyebrow">Working principles</p>
-        <h2 id="principles-title">A substrate should remove friction, not judgment.</h2>
+        <h2 id="principles-title">
+          {copy("You remain the decision-maker.", "Built so you can say no.")}
+        </h2>
         <p class="section-lead">
-          INSPR aims to make the repeatable parts dependable so people can spend more
-          attention on design, decisions and the work that still needs imagination.
+          {copy(
+            "The tools prepare context, checks and evidence. You approve requirements, builds, deployments and access.",
+            "Each rule keeps a decision informed, visible and reversible.",
+          )}
         </p>
       </header>
       <PrincipleFieldNotes principles={principles} />
@@ -450,27 +565,29 @@ const continuitySteps = [
       data-section-pattern="source-manifest"
     >
       <div>
-        <p class="eyebrow">Open foundations</p>
-        <h2 id="source-title">Inspect the ideas. Inspect the implementation.</h2>
+        <p class="eyebrow">{copy("Open foundations", "The source")}</p>
+        <h2 id="source-title">
+          {copy("Read the source. Own the stack.", "Read it before you run it.")}
+        </h2>
         <p class="section-lead">
-          INSPR is source-driven. This site and the open-source Paimos, Pharos and
-          Janus repositories use AGPL-3.0-only. Their product pages state actual
-          scope, maturity and limits, so open source does not become a substitute
-          for clarity.
+          {copy(
+            "Paimos, Pharos and Janus are AGPL-3.0-only. Aithema's reusable module is planned as open source. Inspect the limits, run the tools yourself and adapt them to your work.",
+            "Paimos, Pharos and Janus are open-source software by Markus Barta, licensed AGPL-3.0-only. Aithema's reusable module is planned as open source. What is published, you can inspect, run yourself and change.",
+          )}
         </p>
       </div>
       <nav class="source-panel__links" aria-label="INSPR source links">
         <a href={repositoryUrl} target="_blank" rel="noopener noreferrer">
-          <span>INSPR site</span><small>Umbrella and microsite source</small><b aria-hidden="true">↗</b>
+          <span>INSPR site</span><small>{copy("Umbrella and microsite source", "This page and the product microsites")}</small><b aria-hidden="true">↗</b>
         </a>
         <a href={umbrellaRepositoryUrl} target="_blank" rel="noopener noreferrer">
-          <span>INSPR umbrella</span><small>Vision and product constellation</small><b aria-hidden="true">↗</b>
+          <span>INSPR umbrella</span><small>{copy("Vision and product family", "The vision and the product family")}</small><b aria-hidden="true">↗</b>
         </a>
         <a href={modulesUrl} target="_blank" rel="noopener noreferrer">
-          <span>INSPR modules</span><small>Doctrine and shared operating modules</small><b aria-hidden="true">↗</b>
+          <span>INSPR modules</span><small>{copy("Doctrine and shared operating modules", "Shared doctrine and operating modules")}</small><b aria-hidden="true">↗</b>
         </a>
         <a href={siteLicenseUrl} target="_blank" rel="noopener noreferrer">
-          <span>License terms</span><small>Read this site's license</small><b aria-hidden="true">↗</b>
+          <span>License terms</span><small>{copy("Read this site's license", "This site's AGPL-3.0-only license")}</small><b aria-hidden="true">↗</b>
         </a>
       </nav>
     </section>
@@ -488,25 +605,28 @@ const continuitySteps = [
         <details>
           <summary>Is INSPR one product that has to be adopted all at once?</summary>
           <p>
-            No. Paimos, Pharos, Janus and Aithema have separate responsibilities.
-            The shared value is a coherent operating model, not forced bundling.
+            {copy(
+              "No. Aithema, Paimos, Pharos and Janus have separate responsibilities. Use them separately or connect them in order. You keep control at every handoff.",
+              "No. Each product stands on its own: requirements, project context, deployment, access. Adopt the one that solves your current problem; the path is there when you want the rest.",
+            )}
           </p>
         </details>
         <details>
           <summary>Is this only for large infrastructure teams?</summary>
           <p>
-            No. INSPR began with one human and multiple AI agents working across a real
-            fleet. The same principles can help a small engineering team without asking
-            it to imitate an enterprise platform group.
+            {copy(
+              "No. INSPR began with one person, multiple agents and a real fleet. The same path works for a small team.",
+              "No. INSPR began as one person, a handful of AI agents and a real fleet of servers. It is built for that scale and grows with it.",
+            )}
           </p>
         </details>
         <details>
           <summary>Can we run the products ourselves?</summary>
           <p>
-            Paimos, Pharos and Janus have open-source repositories and licenses linked from
-            their product pages, so you can run them yourself. Aithema is Augmentoring's hosted
-            public service at start.augmentoring.com, not an open-source repository or a
-            self-hosting offer.
+            {copy(
+              "Paimos, Pharos and Janus are open source and self-hostable. Aithema's reusable module will follow; its public preview is at start.augmentoring.com.",
+              "Paimos, Pharos and Janus, yes: they are open source and built to self-host. Aithema's reusable module is planned; until it ships, the public preview at start.augmentoring.com is the way in.",
+            )}
           </p>
         </details>
       </div>
@@ -518,8 +638,11 @@ const continuitySteps = [
     repositoryUrl={repositoryUrl}
     licenseName="AGPL-3.0-only"
     licenseUrl={siteLicenseUrl}
-    ctaTitle="Open foundations, operated with professional care."
-    ctaBody="Augmentoring helps teams assess, deploy, integrate and operate the INSPR product family without replacing the open products underneath."
+    ctaTitle={copy("Want help running the open stack?", "Prefer not to run it alone?")}
+    ctaBody={copy(
+      "Augmentoring provides architecture, integration, rollout and operating support around the same products.",
+      "Augmentoring provides architecture, integration, rollout and operating support as a professional service. Paimos, Pharos and Janus remain open source; Aithema's reusable module is planned to join them.",
+    )}
   />
 </MicrositeLayout>
 
@@ -775,6 +898,10 @@ const continuitySteps = [
     order: 2;
   }
 
+  .product-story--reverse {
+    grid-template-columns: minmax(19rem, 0.85fr) minmax(0, 1.15fr);
+  }
+
   .product-story--reverse .product-story__copy {
     order: 1;
   }
@@ -864,99 +991,6 @@ const continuitySteps = [
     font-weight: 700;
     letter-spacing: 0.11em;
     text-transform: uppercase;
-  }
-
-  .aithema-story {
-    display: grid;
-    grid-template-columns: minmax(17rem, 0.72fr) minmax(0, 1.28fr);
-    align-items: center;
-    gap: clamp(2rem, 6vw, 6.5rem);
-    color: inherit;
-    text-decoration: none;
-  }
-
-  .aithema-story:focus-visible {
-    border-radius: 1.5rem;
-    outline: 2px solid var(--accent, #0e7772);
-    outline-offset: 0.8rem;
-  }
-
-  .aithema-story__identity {
-    container-type: inline-size;
-    display: grid;
-    min-height: 19rem;
-    place-content: center;
-    padding: clamp(2rem, 5vw, 4rem);
-    border: 1px solid rgb(255 255 255 / 0.82);
-    border-radius: clamp(1.4rem, 2.4vw, 2.5rem);
-    background:
-      linear-gradient(145deg, rgb(255 255 255 / 0.95), rgb(72 188 185 / 0.16)),
-      var(--paper, #f8f5ef);
-    box-shadow: 0 1.5rem 4rem rgb(35 64 68 / 0.13);
-    text-align: center;
-    transition:
-      transform 420ms cubic-bezier(0.2, 0.75, 0.25, 1),
-      box-shadow 420ms ease;
-  }
-
-  .aithema-story:hover .aithema-story__identity,
-  .aithema-story:focus-visible .aithema-story__identity {
-    transform: translateY(-0.3rem);
-    box-shadow: 0 2rem 4.5rem rgb(35 64 68 / 0.19);
-  }
-
-  .aithema-story__identity span {
-    font-family: var(--font-mono, monospace);
-    text-transform: uppercase;
-  }
-
-  .aithema-story__identity strong {
-    max-inline-size: 100%;
-    margin-block: 0.35rem;
-    font-family: var(--font-display, "Fraunces Variable"), serif;
-    font-size: clamp(1.75rem, 12cqi, 4.75rem);
-    font-variation-settings: "opsz" 90, "wght" 420, "SOFT" 12, "WONK" 0;
-    font-weight: 420;
-    letter-spacing: -0.045em;
-    line-height: 1;
-    overflow-wrap: anywhere;
-  }
-
-  .aithema-story__identity span {
-    color: var(--text-soft, #526269);
-    font-size: 0.68rem;
-    letter-spacing: 0.12em;
-  }
-
-  .aithema-story__copy {
-    display: grid;
-    max-width: 40rem;
-  }
-
-  .aithema-story__copy h3 {
-    margin: 0;
-    font-variation-settings: "opsz" 90, "wght" 420, "SOFT" 12, "WONK" 0;
-    font-size: clamp(2rem, 3vw, 2.8rem);
-    font-weight: 420;
-  }
-
-  .aithema-story__copy h4 {
-    max-width: 18ch;
-    margin-block: 0.45rem 1.25rem;
-    font-family: var(--font-display, "Fraunces Variable"), serif;
-    font-variation-settings: "opsz" 90, "wght" 420, "SOFT" 12, "WONK" 0;
-    font-size: clamp(2rem, 3.25vw, 3.5rem);
-    font-weight: 420;
-    letter-spacing: -0.035em;
-    line-height: 1.05;
-    text-wrap: balance;
-  }
-
-  .aithema-story__copy > p:not(.product-story__detail) {
-    margin: 0;
-    color: var(--text-soft, #526269);
-    font-size: 1.08rem;
-    line-height: 1.7;
   }
 
   .text-link {
@@ -1307,12 +1341,6 @@ const continuitySteps = [
     }
   }
 
-  @media (max-width: 60rem) {
-    .aithema-story {
-      grid-template-columns: 1fr;
-    }
-  }
-
   @media (max-width: 54rem) {
     .umbrella-proof {
       grid-template-columns: repeat(2, 1fr);
@@ -1328,7 +1356,6 @@ const continuitySteps = [
 
     .umbrella-idea__grid,
     .product-story,
-    .aithema-story,
     .operating-flow__inner,
     .source-panel {
       grid-template-columns: 1fr;

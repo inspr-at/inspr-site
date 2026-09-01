@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1254 1254" role="img" aria-labelledby="aithema-title aithema-desc">
+  <title id="aithema-title">Aithema</title>
+  <desc id="aithema-desc">A teal and gold prism surrounding one precise decision object, representing diffuse input becoming a durable requirement.</desc>
+  <defs>
+    <mask id="aithema-prism-aperture" maskUnits="userSpaceOnUse" x="0" y="0" width="1254" height="1254">
+      <rect width="1254" height="1254" fill="#fff"/>
+      <path d="m627 330 297 297-297 297-297-297 297-297Z" fill="#000"/>
+    </mask>
+  </defs>
+  <g mask="url(#aithema-prism-aperture)">
+    <path d="M627 110 110 627l517 517V110Z" fill="#0E6F6C"/>
+    <path d="m627 110 517 517-517 517V110Z" fill="#D69B31"/>
+  </g>
+  <path d="m627 500 127 127-127 127-127-127 127-127Z" fill="#14304B"/>
+</svg>

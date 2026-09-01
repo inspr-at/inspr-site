@@ -2576,6 +2576,17 @@
     margin: 0;
   }
 
+  .site-footer__legal-copy a {
+    color: inherit;
+    text-decoration-color: rgb(255 255 255 / 0.42);
+    text-underline-offset: 0.2em;
+  }
+
+  .site-footer__legal-copy a:hover,
+  .site-footer__legal-copy a:focus-visible {
+    color: white;
+  }
+
   .site-footer__release {
     display: flex;
     flex-wrap: wrap;

@@ -9,13 +9,14 @@ export const siteUrls = {
   aithema: "https://start.augmentoring.com",
   identity: "https://auth.inspr.at",
   signIn: "https://inspr.at/login",
+  author: "https://github.com/markus-barta",
   agpl: "https://www.gnu.org/licenses/agpl-3.0.html",
   imprint: "https://amt.inspr.at/impressum/",
   privacy: "https://amt.inspr.at/datenschutz/",
 } as const;
 
 export const productTaxonomy = {
-  inspr: "Technology umbrella",
+  inspr: "Open product family",
   paimos: "Project context",
   pharos: "Fleet state and backup evidence",
   janus: "Secret governance",
@@ -24,8 +25,8 @@ export const productTaxonomy = {
 
 export const productLinks = [
   { label: "INSPR", role: productTaxonomy.inspr, href: siteUrls.inspr },
+  { label: "Aithema", role: productTaxonomy.aithema, href: siteUrls.aithema },
   { label: "Paimos", role: productTaxonomy.paimos, href: siteUrls.paimos },
   { label: "Pharos", role: productTaxonomy.pharos, href: siteUrls.pharos },
   { label: "Janus", role: productTaxonomy.janus, href: siteUrls.janus },
-  { label: "Aithema", role: productTaxonomy.aithema, href: siteUrls.aithema },
 ] as const;

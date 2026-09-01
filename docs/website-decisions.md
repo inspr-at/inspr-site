@@ -319,3 +319,74 @@ Paimos vX.Y.Z"). The annotated workbench capture has a framing contract
 (TASKS heading at top, 1600x1000@2x) that the three hotspot positions are
 tuned to; re-measure when the capture changes. Refresh pipeline:
 paimos PAI-695.
+
+---
+
+## D-014 — Product authorship, Aithema boundary and visual family
+
+**Date:** 2026-08-31
+**Ticket:** INSPR-328
+**Status:** Local implementation; production validation pending
+
+INSPR and its products are open work by **Markus Barta**. Shared site footers
+link that authorship to `github.com/markus-barta`. Augmentoring is the
+professional-services organization that uses, deploys and supports the
+products; it is not their author or owner.
+
+Aithema is the first product in the family sequence and owns the
+**Requirements** responsibility. Its
+public preview remains at `start.augmentoring.com` while a reusable template or
+module is prepared for an open-source release. Until then, the umbrella links
+to that real visitor path without claiming that the hosted service is already a
+self-hostable repository.
+
+The canonical product sequence is **Aithema, Paimos, Pharos, Janus** everywhere
+the family is presented in order. Product rows still alternate visual and copy
+columns while preserving the established sides: Aithema's copy is on the left
+and hero on the right, Paimos's hero is on the left, Pharos's hero is on the
+right, and Janus's hero is on the left. The grid reverses its column fractions
+with the content order so all four hero frames remain the same size, with the
+same rounded corners and one-pixel border. Aithema's native SVG mark is the
+**Requirement Prism**: diffuse teal and gold input surrounds a
+transparent aperture and resolves into one precise navy decision object. The
+existing INSPR umbrella hero and its motion loop remain unchanged.
+
+**Why:** authorship, commercial support and product ownership are separate
+facts. The site should make all three legible while giving Aithema the same
+visual standing and structural rhythm as the established family.
+
+---
+
+## D-015 — Human-approved product flow and local copy comparison
+
+**Date:** 2026-09-01
+**Ticket:** INSPR-329
+**Status:** Local comparison; owner selection pending
+
+The public product flow follows one fixed order:
+
+1. **Aithema · Requirements** — conversation and files become requirements;
+   the human reviews them and chooses whether to continue.
+2. **Paimos · Build** — approved requirements become a project and specs;
+   agents build with that context and the human reviews the staged result.
+3. **Pharos · Deploy** — the human selects the server, verifies backup evidence
+   and approves the production deploy.
+4. **Janus · Enforce** — approved permits govern what may act and access can be
+   rotated without revealing secrets. Broader permissions, users, roles and
+   ZITADEL integration remain later features.
+
+The homepage must state the two ideas around that flow without turning them
+into slogans repeated in every section: a human decides at every handoff, and
+the operator keeps the requirements, source, data, infrastructure, permissions
+and evidence. “Inspiration is the only limit” remains the INSPR idea; the tools
+carry the difficult parts.
+
+The canonical local candidate is served at `/`. A second copy candidate,
+written by Claude Fable 5 in Ultracode mode, is served at `/v2/`. Both routes
+render the same Astro homepage component, assets and layout; the variant helper
+selects copy only. This keeps hero geometry, product order and responsive
+behavior out of the editorial comparison. Fable wording that implied current
+Janus user management, a self-hosted Aithema service or present open-source
+status for Aithema was corrected to the established maturity boundary.
+
+Neither candidate is approved for production until Markus selects the copy.

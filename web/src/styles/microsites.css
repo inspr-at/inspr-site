@@ -354,6 +354,39 @@
     font-size: 0.84rem;
   }
 
+  .language-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    color: var(--ink-faint);
+    font-family: var(--font-mono);
+    font-size: 0.63rem;
+    letter-spacing: 0.08em;
+  }
+
+  .language-switch a {
+    padding: 0.28rem 0.12rem;
+    color: inherit;
+    border-radius: 0.25rem;
+    text-decoration: none;
+    transition: color 160ms ease;
+  }
+
+  .language-switch a:hover,
+  .language-switch a:focus-visible,
+  .language-switch a[aria-current="page"] {
+    color: var(--accent-strong);
+  }
+
+  .language-switch a[aria-current="page"] {
+    font-weight: 800;
+  }
+
+  .language-switch a:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+    outline-offset: 2px;
+  }
+
   .product-switcher {
     position: relative;
   }
@@ -2849,6 +2882,15 @@
     min-height: 4rem;
     padding: 0.5rem 0.55rem;
     border-radius: 1rem;
+  }
+
+  .site-header__actions {
+    gap: 0.38rem;
+  }
+
+  .language-switch {
+    gap: 0.18rem;
+    font-size: 0.58rem;
   }
 
   .site-brand {

@@ -8,9 +8,44 @@ interface Props {
   active: "inspr" | "paimos" | "pharos" | "janus";
   nav: Array<{ label: string; href: string }>;
   showSignIn?: boolean;
+  locale?: "en" | "de";
+  languageLinks?: { en: string; de: string };
 }
 
-const { name, category, logo, active, nav, showSignIn = false } = Astro.props;
+const {
+  name,
+  category,
+  logo,
+  active,
+  nav,
+  showSignIn = false,
+  locale = "en",
+  languageLinks,
+} = Astro.props;
+
+const labels = locale === "de"
+  ? {
+      primary: "Hauptnavigation",
+      signIn: "Anmelden",
+      sections: "Bereiche",
+      mobile: "Navigation für Mobilgeräte",
+      products: "Produkte",
+      opensInNewTab: "öffnet in einem neuen Tab",
+      languages: "Sprache wählen",
+      german: "Deutsch",
+      english: "Englisch",
+    }
+  : {
+      primary: "Primary navigation",
+      signIn: "Sign in",
+      sections: "Sections",
+      mobile: "Mobile navigation",
+      products: "Products",
+      opensInNewTab: "opens in a new tab",
+      languages: "Choose language",
+      german: "German",
+      english: "English",
+    };
 ---
 
 <header class="site-header">
@@ -23,27 +58,48 @@ const { name, category, logo, active, nav, showSignIn = false } = Astro.props;
       </span>
     </a>
 
-    <nav class="site-nav" aria-label="Primary navigation">
+    <nav class="site-nav" aria-label={labels.primary}>
       {nav.map((item) => <a href={item.href}>{item.label}</a>)}
     </nav>
 
     <div class="site-header__actions">
-      {showSignIn && <a class="quiet-link" href={siteUrls.signIn} target="_blank" rel="noopener noreferrer">Sign in</a>}
+      {showSignIn && <a class="quiet-link" href={siteUrls.signIn} target="_blank" rel="noopener noreferrer">{labels.signIn}</a>}
+      {languageLinks && (
+        <nav class="language-switch" aria-label={labels.languages}>
+          <a
+            href={languageLinks.de}
+            lang="de"
+            hreflang="de"
+            aria-label={labels.german}
+            aria-current={locale === "de" ? "page" : undefined}
+            data-language-choice="de"
+          >DE</a>
+          <span aria-hidden="true">|</span>
+          <a
+            href={languageLinks.en}
+            lang="en"
+            hreflang="en"
+            aria-label={labels.english}
+            aria-current={locale === "en" ? "page" : undefined}
+            data-language-choice="en"
+          >EN</a>
+        </nav>
+      )}
       <details class="mobile-navigation" data-mobile-navigation>
-        <summary>Sections</summary>
-        <nav class="mobile-navigation__panel" aria-label="Mobile navigation">
+        <summary>{labels.sections}</summary>
+        <nav class="mobile-navigation__panel" aria-label={labels.mobile}>
           {nav.map((item) => <a href={item.href}>{item.label}</a>)}
         </nav>
       </details>
       <details class="product-switcher">
-        <summary>Products</summary>
+        <summary>{labels.products}</summary>
         <div class="product-switcher__panel">
           {productLinks.map((item) => (
             <a
               href={item.href}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={`${item.label}, opens in a new tab`}
+              aria-label={`${item.label}, ${labels.opensInNewTab}`}
               aria-current={item.label.toLowerCase() === active ? "page" : undefined}
             >
               {item.label}

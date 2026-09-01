@@ -9,9 +9,13 @@ type Principle = {
 
 interface Props {
   principles: Principle[];
+  locale?: "en" | "de";
 }
 
-const { principles } = Astro.props;
+const { principles, locale = "en" } = Astro.props;
+const labels = locale === "de"
+  ? { avoids: "Vermeidet", protects: "Schützt" }
+  : { avoids: "Avoids", protects: "Protects" };
 ---
 
 <div class="principle-field-notes">
@@ -42,8 +46,8 @@ const { principles } = Astro.props;
       <h3>{principle.title}</h3>
       <span>{principle.body}</span>
       <dl>
-        <div><dt>Avoids</dt><dd>{principle.avoids}</dd></div>
-        <div><dt>Protects</dt><dd>{principle.protects}</dd></div>
+        <div><dt>{labels.avoids}</dt><dd>{principle.avoids}</dd></div>
+        <div><dt>{labels.protects}</dt><dd>{principle.protects}</dd></div>
       </dl>
     </article>
   ))}

@@ -24,136 +24,150 @@ import aithemaHero from "../assets/products/aithema/hero.png";
 import aithemaLogo from "../assets/products/aithema/logo.svg";
 import zitadelLogo from "../assets/brands/zitadel-logo-solo-dark-icon.svg";
 
-const isFableV2 = Astro.props.edition === "fable-v2";
-const copy = (current: string, fable: string) => isFableV2 ? fable : current;
+const locale: "en" | "de" = Astro.props.locale === "de" ? "de" : "en";
+const copy = (english: string, german: string) => locale === "de" ? german : english;
 
 const repositoryUrl = "https://github.com/inspr-at/inspr-site";
 const siteLicenseUrl = `${repositoryUrl}/blob/main/LICENSE`;
 const umbrellaRepositoryUrl = "https://github.com/inspr-at/inspr";
 const modulesUrl = "https://github.com/inspr-at/inspr-modules";
-const canonicalUrl = siteUrls.inspr;
-const ogImage = new URL(insprHero.src, canonicalUrl).href;
+const englishUrl = `${siteUrls.inspr}/`;
+const germanUrl = `${siteUrls.inspr}/de/`;
+const canonicalUrl = locale === "de" ? germanUrl : englishUrl;
+const ogImage = new URL(insprHero.src, englishUrl).href;
 
 const nav = [
-  { label: "Idea", href: "#idea" },
-  { label: "Products", href: "#products" },
-  { label: "Principles", href: "#principles" },
-  { label: "Source", href: "#source" },
+  { label: copy("Idea", "Idee"), href: "#idea" },
+  { label: copy("Products", "Produkte"), href: "#products" },
+  { label: copy("Principles", "Prinzipien"), href: "#principles" },
+  { label: copy("Source", "Quellcode"), href: "#source" },
 ];
 
 const products = [
   {
     name: "Aithema",
-    label: productTaxonomy.aithema,
+    label: copy(productTaxonomy.aithema, "Anforderungen"),
     href: siteUrls.aithema,
     logo: aithemaLogo,
     hero: aithemaHero,
-    alt: "Open conversational threads becoming one structured and reviewable proposal",
+    alt: copy(
+      "Open conversational threads becoming one structured and reviewable proposal",
+      "Offene Gesprächsfäden werden zu einem strukturierten und prüfbaren Vorschlag",
+    ),
     title: copy(
-      "Turn conversation into approved requirements.",
       "Start by talking. Finish with requirements.",
+      "Am Anfang steht ein Gespräch. Am Ende stehen klare Anforderungen.",
     ),
     body: copy(
-      "Speak, type or share files. Review the requirements, then decide whether to continue. The public preview is at start.augmentoring.com; the reusable module will follow as open source.",
       "Speak, type or add files; Aithema drafts the requirements. Read them and choose Continue when they say what you mean. The public preview runs at start.augmentoring.com, and a reusable open-source module is planned.",
+      "Sprechen Sie, schreiben Sie oder fügen Sie Dateien hinzu. Aithema entwirft daraus Anforderungen. Prüfen Sie sie und wählen Sie „Weiter“, sobald sie wirklich passen. Die öffentliche Vorschau läuft auf start.augmentoring.com; ein wiederverwendbares Open-Source-Modul ist geplant.",
     ),
     detail: copy(
-      "Requirements · review · continue",
       "Conversation · requirements · Continue",
+      "Gespräch · Anforderungen · Weiter",
     ),
   },
   {
     name: "Paimos",
-    label: productTaxonomy.paimos,
+    label: copy(productTaxonomy.paimos, "Projektkontext"),
     href: siteUrls.paimos,
     logo: paimosLogo,
     hero: paimosHero,
-    alt: "A shared project agora where people and agents work around the same project context",
+    alt: copy(
+      "A shared project agora where people and agents work around the same project context",
+      "Ein gemeinsamer Projektraum, in dem Menschen und Agenten mit demselben Kontext arbeiten",
+    ),
     title: copy(
-      "Turn requirements into a project agents can build.",
       "Give agents a project, not a prompt.",
+      "Geben Sie Agenten ein Projekt, nicht nur einen Prompt.",
     ),
     body: copy(
-      "Keep the project, specs, repository context, decisions and run evidence together. Review the work before it reaches staging.",
       "Approved requirements become a project: specs, repository context, decisions and run evidence in one place. Agents build inside it; you review the staged result.",
+      "Aus freigegebenen Anforderungen wird ein Projekt: Spezifikationen, Repository-Kontext, Entscheidungen und Laufnachweise an einem Ort. Agenten bauen darin; Sie prüfen das Ergebnis im Staging.",
     ),
     detail: copy(
-      "Project · specs · agentic build · stage",
       "Specs · agent build · staged review",
+      "Spezifikationen · Agenten-Build · Prüfung im Staging",
     ),
   },
   {
     name: "Pharos",
-    label: productTaxonomy.pharos,
+    label: copy(productTaxonomy.pharos, "Serverzustand und Backup-Nachweise"),
     href: siteUrls.pharos,
     logo: pharosLogo,
     hero: pharosHero,
-    alt: "A lighthouse overlooking a calm network of connected fleet nodes",
+    alt: copy(
+      "A lighthouse overlooking a calm network of connected fleet nodes",
+      "Ein Leuchtturm über einem ruhigen Netz verbundener Server",
+    ),
     title: copy(
-      "Choose where it runs. Back up before you deploy.",
       "Pick the server. Prove the backup. Then deploy.",
+      "Server wählen. Backup prüfen. Dann bereitstellen.",
     ),
     body: copy(
-      "Select the server, verify backup evidence and approve the production deploy.",
       "You choose where it runs. Pharos verifies a backup before production, and the deploy itself happens only when you approve it.",
+      "Sie wählen, wo die Anwendung läuft. Pharos prüft vor der Produktion das Backup. Die Bereitstellung beginnt erst mit Ihrer Freigabe.",
     ),
     detail: copy(
-      "Target · backup · production deploy",
       "Server · verified backup · approved deploy",
+      "Server · geprüftes Backup · freigegebene Bereitstellung",
     ),
   },
   {
     name: "Janus",
-    label: productTaxonomy.janus,
+    label: copy(productTaxonomy.janus, "Governance für Geheimnisse"),
     href: siteUrls.janus,
     logo: janusLogo,
     hero: janusHero,
-    alt: "A transparent governance gateway mediating approved access between systems",
+    alt: copy(
+      "A transparent governance gateway mediating approved access between systems",
+      "Ein transparentes Governance-Gateway vermittelt freigegebenen Zugriff zwischen Systemen",
+    ),
     title: copy(
-      "Enforce who may act. Rotate access safely.",
       "Decide what may act. Keep secrets unseen.",
+      "Bestimmen Sie, was handeln darf. Geheimnisse bleiben verborgen.",
     ),
     body: copy(
-      "Apply permits and policies without exposing secrets. Broader users, roles and ZITADEL integration come later.",
       "Janus enforces what may act under an approved permit and rotates access without exposing a secret. Broader permissions, users, roles and ZITADEL integration are planned for later.",
+      "Janus setzt durch, was mit einer freigegebenen Erlaubnis handeln darf, und rotiert Zugriffe, ohne Geheimnisse offenzulegen. Umfassendere Berechtigungen, Benutzer, Rollen und die ZITADEL-Integration sind für später geplant.",
     ),
     detail: copy(
-      "Permissions · enforcement · rotation",
       "Permits · rotation · no exposed secrets",
+      "Erlaubnisse · Rotation · keine offengelegten Geheimnisse",
     ),
   },
 ];
 
 const proofPoints = [
   {
-    title: copy("Human approval", "Human review"),
+    title: copy("Human review", "Menschliche Prüfung"),
     definition: copy(
-      "You decide when work moves forward.",
       "Work advances only after you approve it.",
+      "Die Arbeit geht erst nach Ihrer Freigabe weiter.",
     ),
     href: "#flow",
   },
   {
-    title: copy("Full ownership", "Yours to keep"),
+    title: copy("Yours to keep", "Bleibt in Ihrer Hand"),
     definition: copy(
-      "Keep your source, data, infrastructure and evidence.",
       "Source, data, servers and evidence stay with you.",
+      "Quellcode, Daten, Server und Nachweise bleiben bei Ihnen.",
     ),
     href: "#source",
   },
   {
-    title: copy("Hard parts handled", "Difficult parts handled"),
+    title: copy("Difficult parts handled", "Schwieriges wird erledigt"),
     definition: copy(
-      "The tools carry context, checks, backups and access.",
       "Context, checks, backups and access are the tools' job.",
+      "Kontext, Prüfungen, Backups und Zugriffe übernehmen die Werkzeuge.",
     ),
     href: "#flow",
   },
   {
-    title: "Open foundations",
+    title: copy("Open foundations", "Offene Grundlage"),
     definition: copy(
-      "Inspect, self-host and change the stack.",
       "Read the code, run it yourself, change it.",
+      "Lesen Sie den Code, betreiben Sie ihn selbst und ändern Sie ihn.",
     ),
     href: "#source",
   },
@@ -162,50 +176,50 @@ const proofPoints = [
 const principles = [
   {
     number: "01",
-    title: copy("Context should travel", "Context travels with the work"),
+    title: copy("Context travels with the work", "Kontext reist mit der Arbeit"),
     body: copy(
-      "Keep requirements, specs, code, server state and operating rules with the work.",
       "Requirements, specs, code, server state and operating rules move together, so no one starts from a blank page.",
+      "Anforderungen, Spezifikationen, Code, Serverzustand und Betriebsregeln bleiben zusammen. So beginnt niemand auf einer leeren Seite.",
     ),
     avoids: copy(
-      "Re-explaining the system and sending agents in blind.",
       "Re-explained systems and agents working blind.",
+      "Wiederholte Erklärungen und Agenten im Blindflug.",
     ),
     protects: copy(
-      "One current picture for people and agents.",
       "One current picture, shared by people and agents.",
+      "Ein aktuelles Bild für Menschen und Agenten.",
     ),
   },
   {
     number: "02",
-    title: copy("Approval should be explicit", "Approval is a visible act"),
+    title: copy("Approval is a visible act", "Freigabe ist eine sichtbare Handlung"),
     body: copy(
-      "Requirements, builds, production deploys and permissions each need a visible decision.",
       "Requirements, builds, production deploys and permission changes each pass through a decision someone made on purpose.",
+      "Anforderungen, Builds, Produktionsbereitstellungen und Berechtigungsänderungen durchlaufen jeweils eine bewusste Entscheidung.",
     ),
     avoids: copy(
-      "Hidden escalation and accidental production authority.",
       "Quiet escalation and accidental production authority.",
+      "Stille Eskalation und versehentliche Produktionsrechte.",
     ),
     protects: copy(
-      "A human decision at every handoff.",
       "A person at every handoff.",
+      "Eine Person an jeder Übergabe.",
     ),
   },
   {
     number: "03",
-    title: copy("Changes should be recoverable", "A way back is part of the change"),
+    title: copy("A way back is part of the change", "Der Rückweg gehört zur Änderung"),
     body: copy(
-      "Back up before production, record what ran and keep a tested way back.",
       "Back up before production, record what actually ran and keep a tested path to the previous state.",
+      "Sichern Sie vor der Produktion, halten Sie den tatsächlichen Lauf fest und bewahren Sie einen geprüften Weg zum vorigen Zustand.",
     ),
     avoids: copy(
-      "Blind deploys and recovery by memory.",
       "Deploys you cannot reverse and recovery from memory.",
+      "Nicht umkehrbare Bereitstellungen und Wiederherstellung aus dem Gedächtnis.",
     ),
     protects: copy(
-      "Your systems, your evidence and a known rollback.",
       "Your systems and a known rollback.",
+      "Ihre Systeme und einen bekannten Rollback.",
     ),
   },
 ];
@@ -213,76 +227,76 @@ const principles = [
 const productFlowSteps = [
   {
     number: "01",
-    title: "Aithema · Requirements",
+    title: copy("Aithema · Requirements", "Aithema · Anforderungen"),
     visual: { x: 18, y: 61 },
     body: copy(
-      "Talk through the need, then review the requirements. Continue only when they match what you intend.",
       "Describe the need in conversation and files. Aithema drafts the requirements; read them and choose Continue when they are right.",
+      "Beschreiben Sie den Bedarf im Gespräch und mit Dateien. Aithema entwirft die Anforderungen. Lesen Sie sie und wählen Sie „Weiter“, sobald sie stimmen.",
     ),
     icon: "mic",
     signal: copy(
-      "You approve the requirements.",
       "The requirements wait for your Continue.",
+      "Die Anforderungen warten auf Ihr „Weiter“.",
     ),
     reference: {
-      label: "Open Aithema",
+      label: copy("Open Aithema", "Aithema öffnen"),
       href: siteUrls.aithema,
       external: true,
     },
   },
   {
     number: "02",
-    title: "Paimos · Build",
+    title: copy("Paimos · Build", "Paimos · Bauen"),
     visual: { x: 38, y: 51 },
     body: copy(
-      "Create the project and specs. Agents build with the right context; you review what reaches staging.",
       "The approved requirements become a project with specs. Agents build with that context, and the result lands in staging for your review.",
+      "Aus den freigegebenen Anforderungen wird ein Projekt mit Spezifikationen. Agenten bauen mit diesem Kontext; das Ergebnis landet zur Prüfung im Staging.",
     ),
     icon: "folder-kanban",
     signal: copy(
-      "You approve the staged result.",
       "Staging waits for your review.",
+      "Das Staging wartet auf Ihre Prüfung.",
     ),
     reference: {
-      label: "Open Paimos",
+      label: copy("Open Paimos", "Paimos öffnen"),
       href: siteUrls.paimos,
       external: true,
     },
   },
   {
     number: "03",
-    title: "Pharos · Deploy",
+    title: copy("Pharos · Deploy", "Pharos · Bereitstellen"),
     visual: { x: 59, y: 55 },
     body: copy(
-      "Select the server and verify a backup. Production waits for your approval.",
       "Select the target server. Pharos verifies a backup first; the production deploy then asks for your approval.",
+      "Wählen Sie den Zielserver. Pharos prüft zuerst ein Backup; danach wartet die Produktionsbereitstellung auf Ihre Freigabe.",
     ),
     icon: "server-cog",
     signal: copy(
-      "You approve the production deploy.",
       "Production waits for your approval.",
+      "Die Produktion wartet auf Ihre Freigabe.",
     ),
     reference: {
-      label: "Open Pharos",
+      label: copy("Open Pharos", "Pharos öffnen"),
       href: siteUrls.pharos,
       external: true,
     },
   },
   {
     number: "04",
-    title: "Janus · Enforce",
+    title: copy("Janus · Enforce", "Janus · Durchsetzen"),
     visual: { x: 81, y: 58 },
     body: copy(
-      "Enforce who or what may act, then rotate access without exposing secrets. Broader users, roles and ZITADEL integration come later.",
       "Enforce what may act under an approved permit and rotate access without exposing secrets. Broader permissions, users, roles and ZITADEL integration are planned for later.",
+      "Setzen Sie durch, was mit einer freigegebenen Erlaubnis handeln darf, und rotieren Sie Zugriffe, ohne Geheimnisse offenzulegen. Umfassendere Berechtigungen, Benutzer, Rollen und die ZITADEL-Integration sind für später geplant.",
     ),
     icon: "lock-keyhole",
     signal: copy(
-      "You approve permissions and rotation.",
       "Access changes wait for your approval.",
+      "Zugriffsänderungen warten auf Ihre Freigabe.",
     ),
     reference: {
-      label: "Open Janus",
+      label: copy("Open Janus", "Janus öffnen"),
       href: siteUrls.janus,
       external: true,
     },
@@ -292,33 +306,43 @@ const productFlowSteps = [
 
 <MicrositeLayout
   title={copy(
-    "INSPR | From idea to operation, with human approval",
     "INSPR | From idea to running software, with a person at every handoff",
+    "INSPR | Von der Idee zur laufenden Software, mit Menschen an jeder Übergabe",
   )}
   description={copy(
-    "INSPR takes an idea through requirements, agentic building, safe deployment and enforced access, with human approval and full ownership at every step.",
     "Aithema shapes requirements, Paimos gives agents a project, Pharos deploys with a verified backup, Janus governs access. A person approves every handoff.",
+    "Aithema formt Anforderungen, Paimos gibt Agenten ein Projekt, Pharos stellt mit geprüftem Backup bereit, Janus regelt den Zugriff. Jede Übergabe wird von einem Menschen freigegeben.",
   )}
   canonical={canonicalUrl}
+  locale={locale}
+  alternateEnglish={englishUrl}
+  alternateGerman={germanUrl}
+  detectLocale={locale === "en"}
   ogImage={ogImage}
-  ogImageAlt="The four INSPR products connected from requirements to governed operation"
+  ogImageAlt={copy(
+    "The four INSPR products connected from requirements to governed operation",
+    "Die vier INSPR-Produkte verbinden Anforderungen mit einem kontrollierten Betrieb",
+  )}
   favicon={insprLogo.src}
   theme="inspr"
 >
   <MicrositeHeader
     name="INSPR"
-    category={productTaxonomy.inspr}
+    category={copy(productTaxonomy.inspr, "Offene Produktfamilie")}
     logo={insprLogo.src}
     active="inspr"
     nav={nav}
     showSignIn={true}
+    locale={locale}
+    languageLinks={{ en: "/", de: "/de/" }}
   />
 
   <main id="main-content">
     <ServiceRibbon
+      locale={locale}
       text={copy(
-        "Professional implementation and support are available through Augmentoring.",
         "Augmentoring provides professional implementation and support for the INSPR products.",
+        "Augmentoring bietet professionelle Umsetzung und Unterstützung für die INSPR-Produkte.",
       )}
     />
 
@@ -328,26 +352,26 @@ const productFlowSteps = [
       data-section-pattern="editorial-hero"
     >
       <div class="umbrella-hero__copy">
-        <p class="eyebrow">{copy("The INSPR idea", "The idea")}</p>
-        <h1 id="hero-title">Inspiration is the only limit.</h1>
+        <p class="eyebrow">{copy("The idea", "Die Idee")}</p>
+        <h1 id="hero-title">{copy("Inspiration is the only limit.", "Inspiration ist die einzige Grenze.")}</h1>
         <p class="umbrella-hero__lead">
           {copy(
-            "Aithema shapes the requirements. Paimos helps agents build. Pharos deploys with backup evidence. Janus enforces access. You approve every handoff and own the result.",
             "Talk through what you want to build. Aithema writes the requirements, Paimos gives agents the project, Pharos handles deployment and Janus controls access. Every handoff waits for you.",
+            "Besprechen Sie, was Sie bauen wollen. Aithema schreibt die Anforderungen, Paimos gibt Agenten das Projekt, Pharos übernimmt die Bereitstellung und Janus kontrolliert den Zugriff. Jede Übergabe wartet auf Sie.",
           )}
         </p>
         <div class="button-row">
           <a class="button" href="#flow">
-            See the flow <span aria-hidden="true">↓</span>
+            {copy("See the flow", "Ablauf ansehen")} <span aria-hidden="true">↓</span>
           </a>
           <a class="button button--ghost" href={repositoryUrl} target="_blank" rel="noopener noreferrer">
-            {copy("Explore the source", "Read the source")} <span aria-hidden="true">↗</span>
+            {copy("Read the source", "Quellcode lesen")} <span aria-hidden="true">↗</span>
           </a>
         </div>
         <p class="umbrella-hero__note">
           {copy(
-            "The tools handle the hard parts. Your work stays yours.",
             "The tools carry the difficult parts. The decisions stay with you.",
+            "Die Werkzeuge übernehmen die schwierigen Teile. Die Entscheidungen bleiben bei Ihnen.",
           )}
         </p>
       </div>
@@ -355,15 +379,19 @@ const productFlowSteps = [
       <figure class="umbrella-hero__visual">
         <HeroLoop
           id="inspr"
+          locale={locale}
           poster={insprHero}
           video={insprHeroLoop}
-          alt="A luminous INSPR core connecting requirements, project, fleet and governance tools"
+          alt={copy(
+            "A luminous INSPR core connecting requirements, project, fleet and governance tools",
+            "Ein leuchtender INSPR-Kern verbindet Werkzeuge für Anforderungen, Projekt, Server und Governance",
+          )}
           sizes="(min-width: 64rem) 54vw, 100vw"
         />
         <figcaption>
           {copy(
-            "Four tools. One human-approved path from idea to operation.",
             "Four tools, one path, a review at every handoff.",
+            "Vier Werkzeuge, ein Weg, eine Prüfung an jeder Übergabe.",
           )}
         </figcaption>
       </figure>
@@ -371,7 +399,7 @@ const productFlowSteps = [
 
     <ul
       class="umbrella-proof page-shell"
-      aria-label="INSPR characteristics and definitions"
+      aria-label={copy("INSPR characteristics and definitions", "INSPR-Merkmale und Erklärungen")}
       data-section-pattern="proof-strip"
     >
       {proofPoints.map((point, index) => (
@@ -394,24 +422,24 @@ const productFlowSteps = [
     >
       <div class="page-shell umbrella-idea__grid">
         <header>
-          <p class="eyebrow">{copy("The simple version", "In plain terms")}</p>
-          <h2 id="idea-title">The tools handle the difficult parts.</h2>
+          <p class="eyebrow">{copy("In plain terms", "Einfach gesagt")}</p>
+          <h2 id="idea-title">{copy("The tools handle the difficult parts.", "Die Werkzeuge übernehmen die schwierigen Teile.")}</h2>
         </header>
         <div class="umbrella-idea__copy">
           <p class="section-lead">
             {copy(
-              "Start with what you want to make. INSPR carries the requirements, project context, deployment safety and access control around it.",
               "Start from the thing you want to build. The tools carry requirements, project context, deployment safety and access control alongside it.",
+              "Beginnen Sie mit dem, was Sie bauen wollen. Die Werkzeuge tragen Anforderungen, Projektkontext, sichere Bereitstellung und Zugriffskontrolle mit.",
             )}
           </p>
           <p>
             {copy(
-              "You approve each handoff. Your source, data, infrastructure and evidence stay under your control.",
               "You approve each step. The requirements, source, infrastructure and evidence remain under your control.",
+              "Sie geben jeden Schritt frei. Anforderungen, Quellcode, Infrastruktur und Nachweise bleiben unter Ihrer Kontrolle.",
             )}
           </p>
         </div>
-        <SituationPacket />
+        <SituationPacket locale={locale} />
       </div>
     </section>
 
@@ -422,17 +450,17 @@ const productFlowSteps = [
       data-section-pattern="editorial-product-stories"
     >
       <header class="section-intro section-intro--wide">
-        <p class="eyebrow">Four products</p>
+        <p class="eyebrow">{copy("Four products", "Vier Produkte")}</p>
         <h2 id="products-title">
           {copy(
-            "From idea to operation, without giving up control.",
             "Four tools, each with one clear job.",
+            "Vier Werkzeuge mit je einer klaren Aufgabe.",
           )}
         </h2>
         <p class="section-lead">
           {copy(
-            "Use one product or follow the full path. Every handoff is explicit and human-approved.",
             "Adopt one, or follow the whole path from requirements to enforced access. Between every two steps stands a person who chooses to continue.",
+            "Nutzen Sie eines oder folgen Sie dem ganzen Weg von Anforderungen bis zum geregelten Zugriff. Zwischen zwei Schritten entscheidet immer ein Mensch, ob es weitergeht.",
           )}
         </p>
       </header>
@@ -469,8 +497,8 @@ const productFlowSteps = [
                 <p>{product.body}</p>
                 <p class="product-story__detail">{product.detail}</p>
                 <span class="text-link" id={`product-${product.name.toLowerCase()}-link`}>
-                  Explore {product.name} <span aria-hidden="true">→</span>
-                  <span class="visually-hidden"> (opens in a new tab)</span>
+                  {copy("Explore", "Ansehen")} {product.name} <span aria-hidden="true">→</span>
+                  <span class="visually-hidden"> ({copy("opens in a new tab", "öffnet in einem neuen Tab")})</span>
                 </span>
               </div>
             </article>
@@ -489,49 +517,53 @@ const productFlowSteps = [
         <img src={zitadelLogo.src} alt="ZITADEL logo" width="72" height="72" loading="lazy" />
       </div>
       <div class="identity-utility__copy">
-        <p class="eyebrow">Shared utility · third party</p>
+        <p class="eyebrow">{copy("Shared utility · third party", "Gemeinsamer Dienst · Drittanbieter")}</p>
         <h2 id="identity-title">
           {copy(
-            "One sign-in. Product permissions stay explicit.",
             "Sign in once. Permissions stay with each product.",
+            "Einmal anmelden. Berechtigungen bleiben beim jeweiligen Produkt.",
           )}
         </h2>
         <p>
           {copy(
-            "ZITADEL provides sign-in. Each product still decides what that identity may do. Deeper Janus user and role integration comes later.",
             "ZITADEL provides the sign-in and nothing more. What a signed-in identity may do is decided inside each product. Deeper Janus user and role integration is planned for later.",
+            "ZITADEL übernimmt die Anmeldung und nichts weiter. Was eine angemeldete Identität tun darf, entscheidet jedes Produkt selbst. Eine tiefere Integration von Benutzern und Rollen in Janus ist für später geplant.",
           )}
         </p>
-        <ul class="identity-utility__facts" aria-label="Identity service properties">
-          <li>Self-hosted</li>
+        <ul class="identity-utility__facts" aria-label={copy("Identity service properties", "Eigenschaften des Identitätsdienstes")}>
+          <li>{copy("Self-hosted", "Selbst betrieben")}</li>
           <li>OIDC</li>
-          <li>Role-aware</li>
+          <li>{copy("Role-aware", "Rollenfähig")}</li>
         </ul>
       </div>
       <div class="identity-utility__links">
-        <p>Shared access</p>
-        <a class="button" href={siteUrls.signIn} target="_blank" rel="noopener noreferrer">Sign in</a>
+        <p>{copy("Shared access", "Gemeinsamer Zugang")}</p>
+        <a class="button" href={siteUrls.signIn} target="_blank" rel="noopener noreferrer">{copy("Sign in", "Anmelden")}</a>
         <a class="identity-utility__service" href={siteUrls.identity} target="_blank" rel="noopener noreferrer">
-          Open identity service <span aria-hidden="true">↗</span>
+          {copy("Open identity service", "Identitätsdienst öffnen")} <span aria-hidden="true">↗</span>
         </a>
-        <small>auth.inspr.at · powered by ZITADEL</small>
+        <small>auth.inspr.at · {copy("powered by ZITADEL", "bereitgestellt mit ZITADEL")}</small>
       </div>
     </section>
 
     <WorkflowExplorer
+      locale={locale}
       id="flow"
-      eyebrow={copy("Your idea, under your control", "Four steps, four approvals")}
-      title={copy("You decide. The tools handle the hard parts.", "The work moves. You decide when.")}
+      eyebrow={copy("Four steps, four approvals", "Vier Schritte, vier Freigaben")}
+      title={copy("The work moves. You decide when.", "Die Arbeit kommt voran. Sie bestimmen, wann.")}
       lead={copy(
-        "Approve the requirements, the staged build, the production deploy and access. Each product returns evidence before the next step.",
         "Requirements, staged build, production deploy, access: four approvals, each backed by evidence the tool puts in front of you.",
+        "Anforderungen, Build im Staging, Produktionsbereitstellung, Zugriff: vier Freigaben, jeweils gestützt auf Nachweise des Werkzeugs.",
       )}
       steps={productFlowSteps}
       image={insprContinuity}
-      alt="Four connected chambers carrying work through Aithema, Paimos, Pharos and Janus with a human approval at every handoff."
+      alt={copy(
+        "Four connected chambers carrying work through Aithema, Paimos, Pharos and Janus with a human approval at every handoff.",
+        "Vier verbundene Bereiche führen die Arbeit durch Aithema, Paimos, Pharos und Janus, mit menschlicher Freigabe an jeder Übergabe.",
+      )}
       closing={copy(
-        "You own the requirements, source, infrastructure, permissions and evidence.",
         "At the end, everything is yours: the requirements, the source, the infrastructure, the permissions and the evidence behind every decision.",
+        "Am Ende gehört alles Ihnen: Anforderungen, Quellcode, Infrastruktur, Berechtigungen und die Nachweise hinter jeder Entscheidung.",
       )}
       tone="light"
       pattern="guided-workflow"
@@ -544,18 +576,18 @@ const productFlowSteps = [
       data-section-pattern="editorial-field-notes"
     >
       <header class="section-intro">
-        <p class="eyebrow">Working principles</p>
+        <p class="eyebrow">{copy("Working principles", "Arbeitsprinzipien")}</p>
         <h2 id="principles-title">
-          {copy("You remain the decision-maker.", "Built so you can say no.")}
+          {copy("Built so you can say no.", "So gebaut, dass Sie Nein sagen können.")}
         </h2>
         <p class="section-lead">
           {copy(
-            "The tools prepare context, checks and evidence. You approve requirements, builds, deployments and access.",
             "Each rule keeps a decision informed, visible and reversible.",
+            "Jede Regel hält Entscheidungen informiert, sichtbar und umkehrbar.",
           )}
         </p>
       </header>
-      <PrincipleFieldNotes principles={principles} />
+      <PrincipleFieldNotes principles={principles} locale={locale} />
     </section>
 
     <section
@@ -565,29 +597,29 @@ const productFlowSteps = [
       data-section-pattern="source-manifest"
     >
       <div>
-        <p class="eyebrow">{copy("Open foundations", "The source")}</p>
+        <p class="eyebrow">{copy("The source", "Der Quellcode")}</p>
         <h2 id="source-title">
-          {copy("Read the source. Own the stack.", "Read it before you run it.")}
+          {copy("Read it before you run it.", "Lesen Sie ihn, bevor Sie ihn betreiben.")}
         </h2>
         <p class="section-lead">
           {copy(
-            "Paimos, Pharos and Janus are AGPL-3.0-only. Aithema's reusable module is planned as open source. Inspect the limits, run the tools yourself and adapt them to your work.",
             "Paimos, Pharos and Janus are open-source software by Markus Barta, licensed AGPL-3.0-only. Aithema's reusable module is planned as open source. What is published, you can inspect, run yourself and change.",
+            "Paimos, Pharos und Janus sind Open-Source-Software von Markus Barta unter AGPL-3.0-only. Aithemas wiederverwendbares Modul ist als Open Source geplant. Veröffentlichtes können Sie prüfen, selbst betreiben und verändern.",
           )}
         </p>
       </div>
-      <nav class="source-panel__links" aria-label="INSPR source links">
+      <nav class="source-panel__links" aria-label={copy("INSPR source links", "Links zum INSPR-Quellcode")}>
         <a href={repositoryUrl} target="_blank" rel="noopener noreferrer">
-          <span>INSPR site</span><small>{copy("Umbrella and microsite source", "This page and the product microsites")}</small><b aria-hidden="true">↗</b>
+          <span>{copy("INSPR site", "INSPR-Website")}</span><small>{copy("This page and the product microsites", "Diese Seite und die Produkt-Microsites")}</small><b aria-hidden="true">↗</b>
         </a>
         <a href={umbrellaRepositoryUrl} target="_blank" rel="noopener noreferrer">
-          <span>INSPR umbrella</span><small>{copy("Vision and product family", "The vision and the product family")}</small><b aria-hidden="true">↗</b>
+          <span>{copy("INSPR umbrella", "INSPR-Dach")}</span><small>{copy("The vision and the product family", "Die Vision und die Produktfamilie")}</small><b aria-hidden="true">↗</b>
         </a>
         <a href={modulesUrl} target="_blank" rel="noopener noreferrer">
-          <span>INSPR modules</span><small>{copy("Doctrine and shared operating modules", "Shared doctrine and operating modules")}</small><b aria-hidden="true">↗</b>
+          <span>INSPR modules</span><small>{copy("Shared doctrine and operating modules", "Gemeinsame Doktrin und Betriebsmodule")}</small><b aria-hidden="true">↗</b>
         </a>
         <a href={siteLicenseUrl} target="_blank" rel="noopener noreferrer">
-          <span>License terms</span><small>{copy("Read this site's license", "This site's AGPL-3.0-only license")}</small><b aria-hidden="true">↗</b>
+          <span>{copy("License terms", "Lizenzbedingungen")}</span><small>{copy("This site's AGPL-3.0-only license", "AGPL-3.0-only-Lizenz dieser Website")}</small><b aria-hidden="true">↗</b>
         </a>
       </nav>
     </section>
@@ -598,34 +630,34 @@ const productFlowSteps = [
       data-section-pattern="faq-accordion"
     >
       <header class="section-intro">
-        <p class="eyebrow">A few useful answers</p>
-        <h2 id="faq-title">Where does INSPR fit?</h2>
+        <p class="eyebrow">{copy("A few useful answers", "Ein paar nützliche Antworten")}</p>
+        <h2 id="faq-title">{copy("Where does INSPR fit?", "Wo passt INSPR hinein?")}</h2>
       </header>
       <div class="faq-list">
         <details>
-          <summary>Is INSPR one product that has to be adopted all at once?</summary>
+          <summary>{copy("Is INSPR one product that has to be adopted all at once?", "Ist INSPR ein einziges Produkt, das man komplett einführen muss?")}</summary>
           <p>
             {copy(
-              "No. Aithema, Paimos, Pharos and Janus have separate responsibilities. Use them separately or connect them in order. You keep control at every handoff.",
               "No. Each product stands on its own: requirements, project context, deployment, access. Adopt the one that solves your current problem; the path is there when you want the rest.",
+              "Nein. Jedes Produkt steht für sich: Anforderungen, Projektkontext, Bereitstellung, Zugriff. Beginnen Sie mit dem, das Ihr aktuelles Problem löst. Der ganze Weg ist da, wenn Sie ihn brauchen.",
             )}
           </p>
         </details>
         <details>
-          <summary>Is this only for large infrastructure teams?</summary>
+          <summary>{copy("Is this only for large infrastructure teams?", "Ist das nur für große Infrastrukturteams?")}</summary>
           <p>
             {copy(
-              "No. INSPR began with one person, multiple agents and a real fleet. The same path works for a small team.",
               "No. INSPR began as one person, a handful of AI agents and a real fleet of servers. It is built for that scale and grows with it.",
+              "Nein. INSPR begann mit einer Person, einigen KI-Agenten und einer echten Serverflotte. Dafür ist es gebaut, und von dort kann es mitwachsen.",
             )}
           </p>
         </details>
         <details>
-          <summary>Can we run the products ourselves?</summary>
+          <summary>{copy("Can we run the products ourselves?", "Können wir die Produkte selbst betreiben?")}</summary>
           <p>
             {copy(
-              "Paimos, Pharos and Janus are open source and self-hostable. Aithema's reusable module will follow; its public preview is at start.augmentoring.com.",
               "Paimos, Pharos and Janus, yes: they are open source and built to self-host. Aithema's reusable module is planned; until it ships, the public preview at start.augmentoring.com is the way in.",
+              "Paimos, Pharos und Janus: ja. Sie sind Open Source und für den Eigenbetrieb gebaut. Aithemas wiederverwendbares Modul ist geplant; bis es erscheint, führt der Weg über die öffentliche Vorschau auf start.augmentoring.com.",
             )}
           </p>
         </details>
@@ -638,11 +670,12 @@ const productFlowSteps = [
     repositoryUrl={repositoryUrl}
     licenseName="AGPL-3.0-only"
     licenseUrl={siteLicenseUrl}
-    ctaTitle={copy("Want help running the open stack?", "Prefer not to run it alone?")}
+    ctaTitle={copy("Prefer not to run it alone?", "Möchten Sie den offenen Stack nicht allein betreiben?")}
     ctaBody={copy(
-      "Augmentoring provides architecture, integration, rollout and operating support around the same products.",
       "Augmentoring provides architecture, integration, rollout and operating support as a professional service. Paimos, Pharos and Janus remain open source; Aithema's reusable module is planned to join them.",
+      "Augmentoring bietet Architektur, Integration, Rollout und Betriebsunterstützung als professionelle Dienstleistung. Paimos, Pharos und Janus bleiben Open Source; Aithemas wiederverwendbares Modul soll später dazukommen.",
     )}
+    locale={locale}
   />
 </MicrositeLayout>
 

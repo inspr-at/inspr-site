@@ -8,12 +8,33 @@ interface Props {
   video: string;
   alt: string;
   sizes: string;
+  locale?: "en" | "de";
 }
 
-const { id, poster, video, alt, sizes } = Astro.props;
+const { id, poster, video, alt, sizes, locale = "en" } = Astro.props;
+const labels = locale === "de"
+  ? {
+      pause: "Pausieren",
+      resume: "Fortsetzen",
+      pauseAccessible: "Hero-Animation pausieren",
+      resumeAccessible: "Hero-Animation fortsetzen",
+    }
+  : {
+      pause: "Pause",
+      resume: "Resume",
+      pauseAccessible: "Pause hero animation",
+      resumeAccessible: "Resume hero animation",
+    };
 ---
 
-<div class="hero-loop" data-hero-loop={id}>
+<div
+  class="hero-loop"
+  data-hero-loop={id}
+  data-pause-label={labels.pause}
+  data-resume-label={labels.resume}
+  data-pause-accessible-label={labels.pauseAccessible}
+  data-resume-accessible-label={labels.resumeAccessible}
+>
   <Image
     class="hero-loop__poster"
     src={poster}
@@ -48,8 +69,8 @@ const { id, poster, video, alt, sizes } = Astro.props;
     class="hero-loop__control"
     type="button"
     aria-pressed="false"
-    aria-label="Pause hero animation"
-    title="Pause hero animation"
+    aria-label={labels.pauseAccessible}
+    title={labels.pauseAccessible}
   >
     <svg class="hero-loop__pause" viewBox="0 0 24 24" aria-hidden="true">
       <rect x="6.5" y="5" width="3.5" height="14" rx="1"></rect>
@@ -58,7 +79,7 @@ const { id, poster, video, alt, sizes } = Astro.props;
     <svg class="hero-loop__play" viewBox="0 0 24 24" aria-hidden="true">
       <path d="M8 5.8a1 1 0 0 1 1.52-.85l10 6.2a1 1 0 0 1 0 1.7l-10 6.2A1 1 0 0 1 8 18.2V5.8Z"></path>
     </svg>
-    <span>Pause</span>
+    <span>{labels.pause}</span>
   </button>
 </div>
 
@@ -78,10 +99,12 @@ const { id, poster, video, alt, sizes } = Astro.props;
     let inView = true;
 
     const syncControl = () => {
-      const action = userPaused ? "Resume" : "Pause";
+      const action = userPaused
+        ? loop.dataset.resumeLabel ?? "Resume"
+        : loop.dataset.pauseLabel ?? "Pause";
       const accessibleName = userPaused
-        ? "Resume hero animation"
-        : "Pause hero animation";
+        ? loop.dataset.resumeAccessibleLabel ?? "Resume hero animation"
+        : loop.dataset.pauseAccessibleLabel ?? "Pause hero animation";
       control.ariaPressed = String(userPaused);
       control.setAttribute("aria-label", accessibleName);
       control.title = accessibleName;

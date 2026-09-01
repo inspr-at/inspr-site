@@ -18,6 +18,7 @@ import {
   createReleaseMetadata,
   releaseManifest,
 } from "../release-metadata.mjs";
+import "./i18n-static.test.mjs";
 
 const sourceUrl = new URL("../src/", import.meta.url);
 
@@ -96,7 +97,8 @@ test("microsites keep an accessible mobile section menu", async () => {
   const styles = await source("styles/microsites.css");
 
   assert.match(header, /<details class="mobile-navigation" data-mobile-navigation>/);
-  assert.match(header, /aria-label="Mobile navigation"/);
+  assert.match(header, /mobile: "Mobile navigation"/);
+  assert.match(header, /aria-label=\{labels\.mobile\}/);
   assert.match(header, /event\.key !== "Escape"/);
   assert.match(styles, /@media \(max-width: 72rem\)[\s\S]*?\.mobile-navigation \{\s*display: block;/);
 });
@@ -238,7 +240,7 @@ test("all four microsites render claim visuals and accessible workflow controls"
   assert.match(workflow, /aria-selected/);
   assert.match(workflow, /prefers-reduced-motion: reduce/);
   assert.match(workflow, /IntersectionObserver/);
-  assert.match(umbrella, /You decide\. The tools handle the hard parts\./);
+  assert.match(umbrella, /The work moves\. You decide when\./);
 
   const assets = [
     "assets/products/inspr/continuity.png",
@@ -454,7 +456,7 @@ test("the July 18 editorial product showcase remains accessible", async () => {
   const productEnd = umbrella.indexOf('<section\n      class="identity-utility');
   const showcase = umbrella.slice(productStart, productEnd);
 
-  assert.match(umbrella, /From idea to operation, without giving up control\./);
+  assert.match(umbrella, /Four tools, each with one clear job\./);
   assert.ok(productStart >= 0 && productEnd > productStart);
   assert.match(showcase, /data-section-pattern="editorial-product-stories"/);
   assert.match(showcase, /class="product-showcase"/);
@@ -473,10 +475,10 @@ test("the July 18 editorial product showcase remains accessible", async () => {
   assert.match(umbrella, /logo: aithemaLogo/);
   assert.match(umbrella, /hero: aithemaHero/);
   assert.match(showcase, /<p class="product-story__detail">/);
-  assert.match(umbrella, /Speak, type or share files\./);
-  assert.match(umbrella, /reusable module will follow as open source/);
+  assert.match(umbrella, /Speak, type or add files; Aithema drafts the requirements\./);
+  assert.match(umbrella, /a reusable open-source module is planned/);
   assert.match(umbrella, /start\.augmentoring\.com/);
-  assert.match(umbrella, /Requirements · review · continue/);
+  assert.match(umbrella, /Conversation · requirements · Continue/);
   assert.match(showcase, /index % 2 === 0/);
 });
 
@@ -487,17 +489,17 @@ test("the INSPR product flow stays ordered, human-approved and ownership-led", a
   const flow = umbrella.slice(flowStart, flowEnd);
 
   assert.ok(flowStart >= 0 && flowEnd > flowStart);
-  const orderedSteps = [...flow.matchAll(/title: "(Aithema|Paimos|Pharos|Janus) ·/g)]
+  const orderedSteps = [...flow.matchAll(/title: copy\("(Aithema|Paimos|Pharos|Janus) ·/g)]
     .map((match) => match[1]);
   assert.deepEqual(orderedSteps, ["Aithema", "Paimos", "Pharos", "Janus"]);
-  assert.match(flow, /You approve the requirements\./);
-  assert.match(flow, /You approve the staged result\./);
-  assert.match(flow, /You approve the production deploy\./);
-  assert.match(flow, /You approve permissions and rotation\./);
-  assert.match(flow, /Broader users, roles and ZITADEL integration come later\./);
+  assert.match(flow, /The requirements wait for your Continue\./);
+  assert.match(flow, /Staging waits for your review\./);
+  assert.match(flow, /Production waits for your approval\./);
+  assert.match(flow, /Access changes wait for your approval\./);
+  assert.match(flow, /Broader permissions, users, roles and ZITADEL integration are planned for later\./);
   assert.doesNotMatch(flow, /title: "(?:Intent|Context|Bounded action|Evidence)"/);
   assert.match(umbrella, /Inspiration is the only limit\./);
-  assert.match(umbrella, /You own the requirements, source, infrastructure, permissions and evidence\./);
+  assert.match(umbrella, /At the end, everything is yours: the requirements, the source, the infrastructure, the permissions and the evidence behind every decision\./);
 });
 
 test("Aithema joins the product family at its public visitor home", async () => {
@@ -524,16 +526,11 @@ test("Aithema joins the product family at its public visitor home", async () => 
 
 test("the self-hosting answer separates today's open repositories from Aithema's planned release", async () => {
   const umbrella = await source("pages/index.astro");
-  const answer = umbrella.match(
-    /<summary>Can we run the products ourselves\?<\/summary>([\s\S]*?)<\/details>/,
-  )?.[1] ?? "";
 
-  assert.match(answer, /Paimos, Pharos and Janus/);
-  assert.match(answer, /open source and self-hostable/);
-  assert.match(answer, /Aithema's\s+reusable module will follow/);
-  assert.match(answer, /public preview is at start\.augmentoring\.com/);
-  assert.doesNotMatch(answer, /(?:all|every) product/i);
-  assert.doesNotMatch(answer, /^\s*<p>\s*Yes\./);
+  assert.match(umbrella, /Paimos, Pharos and Janus, yes: they are open source and built to self-host/);
+  assert.match(umbrella, /Aithema's reusable module is planned/);
+  assert.match(umbrella, /public preview at start\.augmentoring\.com/);
+  assert.doesNotMatch(umbrella, /(?:all|every) product is open source/i);
 });
 
 test("Aithema metadata names requirements alongside the three established domains", async () => {
@@ -541,21 +538,21 @@ test("Aithema metadata names requirements alongside the three established domain
 
   assert.match(
     umbrella,
-    /INSPR takes an idea through requirements, agentic building, safe deployment and enforced access, with human approval and full ownership at every step\./,
+    /Aithema shapes requirements, Paimos gives agents a project, Pharos deploys with a verified backup, Janus governs access\. A person approves every handoff\./,
   );
   assert.match(
     umbrella,
-    /ogImageAlt="The four INSPR products connected from requirements to governed operation"/,
+    /"The four INSPR products connected from requirements to governed operation"/,
   );
 });
 
-test("the local v2 route renders Fable's independent copy in the canonical layout", async () => {
+test("the local v2 route remains a compatibility alias for the chosen Fable copy", async () => {
   const umbrella = await source("pages/index.astro");
   const v2 = await source("pages/v2/index.astro");
 
   assert.match(v2, /import Home from "\.\.\/index\.astro"/);
-  assert.match(v2, /<Home edition="fable-v2" \/>/);
-  assert.match(umbrella, /Astro\.props\.edition === "fable-v2"/);
+  assert.match(v2, /<Home locale="en" \/>/);
+  assert.doesNotMatch(umbrella, /Astro\.props\.edition/);
   assert.match(umbrella, /Give agents a project, not a prompt\./);
   assert.match(umbrella, /Pick the server\. Prove the backup\. Then deploy\./);
   assert.match(umbrella, /The work moves\. You decide when\./);
@@ -603,7 +600,7 @@ test("interactive explorers use one five-second, pause-only lifecycle", async ()
     );
     assert.match(component, /AbortController/, `${name} must clean up its interaction listeners`);
     assert.match(component, /animation\.cancel\(\)/, `${name} must release finished animations`);
-    assert.match(component, />Pause</, `${name} exposes a pause label before interaction`);
+    assert.match(component, name === "workflow" ? /pause: "Pause"/ : />Pause</, `${name} exposes a pause label before interaction`);
     assert.doesNotMatch(component, /Play sequence/, `${name} must not expose a play control`);
     assert.match(
       component,
@@ -728,12 +725,13 @@ test("one validated release identity is visible across the site family", async (
 
   const footer = await source("components/MicrositeFooter.astro");
   assert.match(footer, /import \{ releaseMetadata \}/);
-  assert.match(footer, /aria-label="Site release"/);
+  assert.match(footer, /releaseAria: "Site release"/);
+  assert.match(footer, /aria-label=\{labels\.releaseAria\}/);
   assert.match(footer, /data-release-id=\{releaseMetadata\.releaseId\}/);
   assert.match(footer, /<dt>Site<\/dt>/);
   assert.match(footer, /<dt>Git<\/dt>/);
-  assert.match(footer, /<dt>Release<\/dt>/);
-  assert.match(footer, /<dt>Deployed<\/dt>/);
+  assert.match(footer, /release: "Release"/);
+  assert.match(footer, /deployed: "Deployed"/);
 
   const manifestWriter = await readFile(
     new URL("../scripts/write-release-manifest.mjs", import.meta.url),

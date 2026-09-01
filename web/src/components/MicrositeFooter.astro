@@ -9,6 +9,7 @@ interface Props {
   licenseUrl?: string;
   ctaTitle: string;
   ctaBody: string;
+  locale?: "en" | "de";
 }
 
 const {
@@ -18,57 +19,104 @@ const {
   licenseUrl,
   ctaTitle,
   ctaBody,
+  locale = "en",
 } = Astro.props;
 
 const year = new Date().getUTCFullYear();
 const deployedAtLabel = releaseMetadata.deployedAt
-  ? `${new Intl.DateTimeFormat("en-GB", {
+  ? `${new Intl.DateTimeFormat(locale === "de" ? "de-AT" : "en-GB", {
       dateStyle: "medium",
       timeStyle: "short",
       timeZone: "UTC",
     }).format(new Date(releaseMetadata.deployedAt))} UTC`
-  : "Local build";
+  : locale === "de" ? "Lokaler Build" : "Local build";
+
+const labels = locale === "de"
+  ? {
+      path: "Professioneller Weg",
+      servicesCta: "Augmentoring-Services ansehen",
+      familyDescription: "Teil von INSPR, der Produktfamilie für Menschen und KI-Agenten.",
+      productsAria: "INSPR-Produkte",
+      family: "Produktfamilie",
+      opensInNewTab: "öffnet in einem neuen Tab",
+      sourceAria: "Quellcode und Lizenz",
+      source: "Quellcode",
+      repositories: "Open-Source-Repositories: AGPL-3.0-only",
+      operateAria: "Services und Identität",
+      operate: "Betrieb",
+      services: "Professionelle Services",
+      identity: "ZITADEL-Identität",
+      legal: "Impressum",
+      privacy: "Datenschutz",
+      inspectable: "Gebaut, um prüfbar zu bleiben.",
+      releaseAria: "Website-Release",
+      package: "Paket",
+      release: "Release",
+      deployed: "Ausgerollt",
+    }
+  : {
+      path: "Professional path",
+      servicesCta: "Explore Augmentoring services",
+      familyDescription: "Part of INSPR, the technology umbrella for people and AI agents.",
+      productsAria: "INSPR products",
+      family: "Product family",
+      opensInNewTab: "opens in a new tab",
+      sourceAria: "Source and license",
+      source: "Source",
+      repositories: "Open-source repositories: AGPL-3.0-only",
+      operateAria: "Services and identity",
+      operate: "Operate",
+      services: "Professional services",
+      identity: "ZITADEL identity",
+      legal: "Legal notice",
+      privacy: "Privacy",
+      inspectable: "Built to stay inspectable.",
+      releaseAria: "Site release",
+      package: "Package",
+      release: "Release",
+      deployed: "Deployed",
+    };
 ---
 
 <footer class="site-footer">
   <section class="footer-cta page-shell" aria-labelledby="footer-cta-title">
     <div>
-      <p class="eyebrow">Professional path</p>
+      <p class="eyebrow">{labels.path}</p>
       <h2 id="footer-cta-title">{ctaTitle}</h2>
       <p>{ctaBody}</p>
     </div>
     <a class="button button--light" href={siteUrls.business} target="_blank" rel="noopener noreferrer">
-      Explore Augmentoring services <span aria-hidden="true">↗</span>
+      {labels.servicesCta} <span aria-hidden="true">↗</span>
     </a>
   </section>
 
   <div class="site-footer__grid page-shell">
     <div class="site-footer__brand">
       <strong>{name}</strong>
-      <p>Part of INSPR, the technology umbrella for people and AI agents.</p>
+      <p>{labels.familyDescription}</p>
     </div>
 
-    <nav aria-label="INSPR products">
-      <p class="footer-label">Product family</p>
-      {productLinks.map((item) => <a href={item.href} target="_blank" rel="noopener noreferrer" aria-label={`${item.label}, opens in a new tab`}>{item.label}</a>)}
+    <nav aria-label={labels.productsAria}>
+      <p class="footer-label">{labels.family}</p>
+      {productLinks.map((item) => <a href={item.href} target="_blank" rel="noopener noreferrer" aria-label={`${item.label}, ${labels.opensInNewTab}`}>{item.label}</a>)}
     </nav>
 
-    <nav aria-label="Source and license">
-      <p class="footer-label">Source</p>
+    <nav aria-label={labels.sourceAria}>
+      <p class="footer-label">{labels.source}</p>
       <a href={repositoryUrl} target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
       <a href={siteUrls.agpl} target="_blank" rel="noopener noreferrer">
-        Open-source repositories: AGPL-3.0-only
+        {labels.repositories}
         <span aria-hidden="true">↗</span>
       </a>
     </nav>
 
-    <nav aria-label="Services and identity">
-      <p class="footer-label">Operate</p>
-      <a href={siteUrls.business} target="_blank" rel="noopener noreferrer">Professional services <span aria-hidden="true">↗</span></a>
-      <a href={siteUrls.identity} target="_blank" rel="noopener noreferrer">ZITADEL identity <span aria-hidden="true">↗</span></a>
+    <nav aria-label={labels.operateAria}>
+      <p class="footer-label">{labels.operate}</p>
+      <a href={siteUrls.business} target="_blank" rel="noopener noreferrer">{labels.services} <span aria-hidden="true">↗</span></a>
+      <a href={siteUrls.identity} target="_blank" rel="noopener noreferrer">{labels.identity} <span aria-hidden="true">↗</span></a>
       <a href="mailto:hello@inspr.at">hello@inspr.at</a>
-      <a href={siteUrls.imprint} target="_blank" rel="noopener noreferrer">Legal notice <span aria-hidden="true">↗</span></a>
-      <a href={siteUrls.privacy} target="_blank" rel="noopener noreferrer">Privacy <span aria-hidden="true">↗</span></a>
+      <a href={siteUrls.imprint} target="_blank" rel="noopener noreferrer">{labels.legal} <span aria-hidden="true">↗</span></a>
+      <a href={siteUrls.privacy} target="_blank" rel="noopener noreferrer">{labels.privacy} <span aria-hidden="true">↗</span></a>
     </nav>
   </div>
 
@@ -77,28 +125,28 @@ const deployedAtLabel = releaseMetadata.deployedAt
       <span>
         © {year} <a href={siteUrls.author} target="_blank" rel="me noopener noreferrer">Markus Barta</a> · INSPR
       </span>
-      <span>Built to stay inspectable.</span>
+      <span>{labels.inspectable}</span>
     </p>
 
     <dl
       class="site-footer__release"
-      aria-label="Site release"
+      aria-label={labels.releaseAria}
       data-release-id={releaseMetadata.releaseId}
     >
       <div>
         <dt>Site</dt>
-        <dd title={`Package ${releaseMetadata.packageName}`}>v{releaseMetadata.version}</dd>
+        <dd title={`${labels.package} ${releaseMetadata.packageName}`}>v{releaseMetadata.version}</dd>
       </div>
       <div>
         <dt>Git</dt>
         <dd><code>{releaseMetadata.gitLabel}</code></dd>
       </div>
       <div>
-        <dt>Release</dt>
+        <dt>{labels.release}</dt>
         <dd><code>{releaseMetadata.releaseId}</code></dd>
       </div>
       <div>
-        <dt>Deployed</dt>
+        <dt>{labels.deployed}</dt>
         <dd>
           {releaseMetadata.deployedAt
             ? <time datetime={releaseMetadata.deployedAt}>{deployedAtLabel}</time>

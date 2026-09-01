@@ -1,0 +1,276 @@
+---
+import ContextIcon from "./ContextIcon.astro";
+import MicrositeHeader from "./MicrositeHeader.astro";
+import MicrositeLayout from "../layouts/MicrositeLayout.astro";
+import "../styles/overview.css";
+
+import { siteUrls } from "../content/urls";
+import insprHero from "../assets/products/inspr/hero.png";
+import insprLogo from "../assets/products/inspr/logo.svg";
+import aithemaLogo from "../assets/products/aithema/logo.svg";
+import paimosLogo from "../assets/products/paimos/logo.svg";
+import pharosLogo from "../assets/products/pharos/mark.svg";
+import janusLogo from "../assets/products/janus/logo.svg";
+
+interface Props {
+  locale?: "en" | "de";
+}
+
+const locale: "en" | "de" = Astro.props.locale === "de" ? "de" : "en";
+const copy = (english: string, german: string) => locale === "de" ? german : english;
+
+const repositoryUrl = "https://github.com/inspr-at/inspr-site";
+const englishUrl = siteUrls.overview;
+const germanUrl = siteUrls.overviewGerman;
+const canonicalUrl = locale === "de" ? germanUrl : englishUrl;
+const fullSiteUrl = locale === "de" ? `${siteUrls.inspr}/de/` : `${siteUrls.inspr}/`;
+const ogImage = new URL(insprHero.src, siteUrls.inspr).href;
+
+const nav = [
+  { label: copy("Overview", "Überblick"), href: canonicalUrl },
+  { label: copy("Products", "Produkte"), href: `${fullSiteUrl}#products` },
+  { label: copy("Principles", "Prinzipien"), href: `${fullSiteUrl}#principles` },
+  { label: copy("Source", "Quellcode"), href: `${fullSiteUrl}#source` },
+];
+
+const flowNodes = [
+  { label: copy("Idea", "Idee"), logo: insprLogo },
+  { label: copy("Requirements", "Anforderungen"), logo: aithemaLogo },
+  { label: copy("Build", "Bau"), logo: paimosLogo },
+  { label: copy("Deploy", "Bereitstellung"), logo: pharosLogo },
+  { label: copy("Access", "Zugriff"), logo: janusLogo },
+];
+
+const promises = [
+  {
+    icon: "user-round-check",
+    title: copy("Your decisions", "Ihre Entscheidungen"),
+    body: copy("You stay in control from start to finish.", "Sie behalten vom Anfang bis zum Ende die Kontrolle."),
+  },
+  {
+    icon: "git-branch",
+    title: copy("Your source", "Ihr Quellcode"),
+    body: copy("Work starts from source you can inspect.", "Die Arbeit beginnt mit Quellcode, den Sie prüfen können."),
+  },
+  {
+    icon: "database",
+    title: copy("Your data", "Ihre Daten"),
+    body: copy("Your data remains yours, throughout.", "Ihre Daten bleiben durchgehend Ihre Daten."),
+  },
+  {
+    icon: "server",
+    title: copy("Your servers", "Ihre Server"),
+    body: copy("You choose where the result runs.", "Sie bestimmen, wo das Ergebnis läuft."),
+  },
+];
+
+const steps = [
+  {
+    number: "01",
+    name: "Aithema",
+    role: copy("Requirements", "Anforderungen"),
+    logo: aithemaLogo,
+    href: siteUrls.aithema,
+    body: copy(
+      "Conversation and files become clear requirements.",
+      "Gespräche und Dateien werden zu klaren Anforderungen.",
+    ),
+    approval: copy("You approve the requirements.", "Sie geben die Anforderungen frei."),
+  },
+  {
+    number: "02",
+    name: "Paimos",
+    role: copy("Build", "Bau"),
+    logo: paimosLogo,
+    href: siteUrls.paimos,
+    body: copy(
+      "Project and specs guide an agentic build.",
+      "Projekt und Spezifikationen führen den Bau mit Agenten.",
+    ),
+    approval: copy("You approve the staged build.", "Sie geben den Staging-Build frei."),
+  },
+  {
+    number: "03",
+    name: "Pharos",
+    role: copy("Deploy", "Bereitstellung"),
+    logo: pharosLogo,
+    href: siteUrls.pharos,
+    body: copy(
+      "Choose a server, verify its backup and deploy to production.",
+      "Server wählen, Backup prüfen und in Produktion bereitstellen.",
+    ),
+    approval: copy("You approve production.", "Sie geben die Produktion frei."),
+  },
+  {
+    number: "04",
+    name: "Janus",
+    role: copy("Access", "Zugriff"),
+    logo: janusLogo,
+    href: siteUrls.janus,
+    body: copy(
+      "Enforce permits and rotate access safely.",
+      "Freigaben werden durchgesetzt und Zugriffe sicher rotiert.",
+    ),
+    approval: copy("You approve the permit.", "Sie geben die Berechtigung frei."),
+  },
+];
+---
+
+<MicrositeLayout
+  title={copy(
+    "INSPR Overview | From an idea to something that runs",
+    "INSPR Überblick | Von einer Idee zu etwas, das läuft",
+  )}
+  description={copy(
+    "A calm overview of how Aithema, Paimos, Pharos and Janus carry difficult work while a person approves every handoff.",
+    "Ein ruhiger Überblick darüber, wie Aithema, Paimos, Pharos und Janus schwierige Arbeit übernehmen, während jede Übergabe von einem Menschen freigegeben wird.",
+  )}
+  canonical={canonicalUrl}
+  locale={locale}
+  alternateEnglish={englishUrl}
+  alternateGerman={germanUrl}
+  detectLocale={locale === "en"}
+  ogImage={ogImage}
+  ogImageAlt={copy(
+    "The INSPR idea becoming a human-approved path through four products",
+    "Die INSPR-Idee wird zu einem von Menschen freigegebenen Weg durch vier Produkte",
+  )}
+  favicon={insprLogo.src}
+  theme="inspr"
+>
+  <MicrositeHeader
+    name="INSPR"
+    category={copy("Open product family", "Offene Produktfamilie")}
+    logo={insprLogo.src}
+    active="inspr"
+    nav={nav}
+    showSignIn={true}
+    showProductSwitcher={false}
+    primaryAction={{ label: copy("Full site", "Website"), href: fullSiteUrl }}
+    locale={locale}
+    languageLinks={{ en: "/overview/", de: "/de/ueberblick/" }}
+  />
+
+  <main id="main-content" class="overview-main">
+    <section class="overview-hero page-shell" aria-labelledby="overview-title">
+      <div class="overview-hero__copy">
+        <p class="overview-kicker">{copy("A clear starting point", "Ein klarer Einstieg")}</p>
+        <h1 id="overview-title">
+          {copy("From an idea to something that ", "Von einer Idee zu etwas, das ")}
+          <em>{copy("runs.", "läuft.")}</em>
+        </h1>
+        <p class="overview-lede">
+          {copy(
+            "INSPR is an open product family. Its tools carry the difficult work while you choose what moves forward.",
+            "INSPR ist eine offene Produktfamilie. Die Werkzeuge übernehmen die schwierige Arbeit, während Sie entscheiden, was weitergeht.",
+          )}
+        </p>
+        <a class="overview-button" href="#path">
+          {copy("See how it works", "So funktioniert es")} <span aria-hidden="true">↓</span>
+        </a>
+      </div>
+
+      <div class="overview-flow" role="img" aria-label={copy(
+        "An idea moves through requirements, build, deployment and access",
+        "Eine Idee durchläuft Anforderungen, Bau, Bereitstellung und Zugriff",
+      )}>
+        <div class="overview-flow__line" aria-hidden="true"></div>
+        <ol>
+          {flowNodes.map((node, index) => (
+            <li>
+              <span class:list={["overview-flow__node", { "overview-flow__node--idea": index === 0 }]}>
+                <img src={node.logo.src} alt="" width="46" height="46" />
+              </span>
+              <span>{node.label}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <ul class="overview-promises" id="promise" aria-label={copy("What remains yours", "Was bei Ihnen bleibt")}>
+        {promises.map((promise) => (
+          <li>
+            <span class="overview-promise__icon"><ContextIcon name={promise.icon} size={23} strokeWidth={1.65} /></span>
+            <span><strong>{promise.title}</strong><small>{promise.body}</small></span>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="overview-path page-shell" id="path" aria-labelledby="path-title">
+      <header class="overview-path__header">
+        <div>
+          <p class="overview-kicker">{copy("The path", "Der Weg")}</p>
+          <h2 id="path-title">{copy("One path. Four tools. You approve.", "Ein Weg. Vier Werkzeuge. Sie geben frei.")}</h2>
+        </div>
+        <p>{copy(
+          "Each tool does one difficult job, shows you the result and waits.",
+          "Jedes Werkzeug übernimmt eine schwierige Aufgabe, zeigt das Ergebnis und wartet.",
+        )}</p>
+      </header>
+
+      <ol class="overview-steps">
+        {steps.map((step, index) => (
+          <li class="overview-step">
+            <div class="overview-step__top">
+              <span>{step.number}</span>
+              <img src={step.logo.src} alt="" width="54" height="54" />
+            </div>
+            <p class="overview-step__role">{step.role}</p>
+            <h3><a href={step.href}>{step.name}</a></h3>
+            <p class="overview-step__body">{step.body}</p>
+            <p class="overview-step__approval">
+              <ContextIcon name="user-round-check" size={20} strokeWidth={1.75} />
+              <span>{step.approval}</span>
+            </p>
+            {index < steps.length - 1 && (
+              <span class="overview-step__connector" aria-hidden="true">
+                <ContextIcon name="user-round-check" size={18} strokeWidth={1.6} />
+                <small>{copy("You approve", "Sie geben frei")}</small>
+              </span>
+            )}
+          </li>
+        ))}
+      </ol>
+
+      <p class="overview-control">
+        <ContextIcon name="shield-check" size={23} strokeWidth={1.7} />
+        <span>
+          <strong>{copy("You stay in control.", "Sie behalten die Kontrolle.")}</strong>
+          {copy(
+            " Every transition waits for your approval. Nothing moves forward without you.",
+            " Jede Übergabe wartet auf Ihre Freigabe. Ohne Sie geht nichts weiter.",
+          )}
+        </span>
+      </p>
+    </section>
+
+    <section class="overview-next page-shell" aria-labelledby="next-title">
+      <div class="overview-next__copy">
+        <p class="overview-kicker">{copy("Go deeper when you are ready", "Mehr Tiefe, wenn Sie bereit sind")}</p>
+        <h2 id="next-title">{copy("Ready for the details?", "Bereit für die Details?")}</h2>
+        <p>{copy(
+          "Explore the principles, evidence and product pages behind this simple path.",
+          "Entdecken Sie die Prinzipien, Nachweise und Produktseiten hinter diesem einfachen Weg.",
+        )}</p>
+        <div class="overview-next__actions">
+          <a class="overview-button" href={fullSiteUrl}>
+            {copy("Explore the full site", "Ganze Website ansehen")} <span aria-hidden="true">→</span>
+          </a>
+          <a class="overview-text-link" href={repositoryUrl} target="_blank" rel="noopener noreferrer">
+            {copy("Visit the source", "Quellcode ansehen")} <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </div>
+      <div class="overview-threshold" aria-hidden="true">
+        <span class="overview-threshold__line"></span>
+        <span class="overview-threshold__aperture"></span>
+      </div>
+    </section>
+  </main>
+
+  <footer class="overview-footer page-shell">
+    <p>© {new Date().getUTCFullYear()} <a href={siteUrls.author} rel="me">Markus Barta</a> · INSPR</p>
+    <a href={fullSiteUrl}>{copy("Full site", "Ganze Website")} <span aria-hidden="true">→</span></a>
+  </footer>
+</MicrositeLayout>

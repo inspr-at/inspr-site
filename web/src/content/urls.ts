@@ -3,6 +3,8 @@ export const siteUrls = {
     import.meta.env.PUBLIC_BUSINESS_URL?.replace(/\/$/, "") ||
     "https://amt.inspr.at",
   inspr: "https://www.inspr.at",
+  overview: "https://www.inspr.at/overview/",
+  overviewGerman: "https://www.inspr.at/de/ueberblick/",
   paimos: "https://paimos.inspr.at",
   pharos: "https://pharos.inspr.at",
   janus: "https://janus.inspr.at",

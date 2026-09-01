@@ -229,6 +229,9 @@ test("each canonical host publishes its own robots and sitemap pair", async () =
 
   assert.match(rootRobots, /https:\/\/www\.inspr\.at\/sitemap\.xml/);
   assert.match(rootSitemap, /<loc>https:\/\/www\.inspr\.at\/<\/loc>/);
+  assert.match(rootSitemap, /<loc>https:\/\/www\.inspr\.at\/de\/<\/loc>/);
+  assert.match(rootSitemap, /<loc>https:\/\/www\.inspr\.at\/overview\/<\/loc>/);
+  assert.match(rootSitemap, /<loc>https:\/\/www\.inspr\.at\/de\/ueberblick\/<\/loc>/);
 
   for (const { slug, canonical } of products) {
     const robots = await readFile(new URL(`../public/${slug}/robots.txt`, import.meta.url), "utf8");
@@ -841,6 +844,8 @@ test("direct SSH deployment overrides preserve one pinned host identity", async 
       fakeBin,
       join(fixtureRoot, "site"),
       join(fixtureRoot, "web", "dist", "_astro"),
+      join(fixtureRoot, "web", "dist", "overview"),
+      join(fixtureRoot, "web", "dist", "de", "ueberblick"),
       join(fixtureRoot, "web", "dist", "paimos"),
       join(fixtureRoot, "web", "dist", "pharos"),
       join(fixtureRoot, "web", "dist", "janus"),
@@ -860,6 +865,8 @@ test("direct SSH deployment overrides preserve one pinned host identity", async 
       ),
       writeFile(join(fixtureRoot, "site", "index.html"), "fixture archive\n"),
       writeFile(join(fixtureRoot, "web", "dist", "index.html"), "fixture umbrella\n"),
+      writeFile(join(fixtureRoot, "web", "dist", "overview", "index.html"), "fixture overview\n"),
+      writeFile(join(fixtureRoot, "web", "dist", "de", "ueberblick", "index.html"), "fixture german overview\n"),
       writeFile(join(fixtureRoot, "web", "dist", "paimos", "index.html"), "fixture paimos\n"),
       writeFile(join(fixtureRoot, "web", "dist", "pharos", "index.html"), "fixture pharos\n"),
       writeFile(join(fixtureRoot, "web", "dist", "janus", "index.html"), "fixture janus\n"),

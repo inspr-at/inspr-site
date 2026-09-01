@@ -8,6 +8,8 @@ interface Props {
   active: "inspr" | "paimos" | "pharos" | "janus";
   nav: Array<{ label: string; href: string }>;
   showSignIn?: boolean;
+  showProductSwitcher?: boolean;
+  primaryAction?: { label: string; href: string };
   locale?: "en" | "de";
   languageLinks?: { en: string; de: string };
 }
@@ -19,6 +21,8 @@ const {
   active,
   nav,
   showSignIn = false,
+  showProductSwitcher = true,
+  primaryAction,
   locale = "en",
   languageLinks,
 } = Astro.props;
@@ -96,24 +100,36 @@ const languageChoiceHref = (href: string, choice: "en" | "de") => {
         <summary>{labels.sections}</summary>
         <nav class="mobile-navigation__panel" aria-label={labels.mobile}>
           {nav.map((item) => <a href={item.href}>{item.label}</a>)}
+          {primaryAction && (
+            <a class="mobile-navigation__primary" href={primaryAction.href}>
+              {primaryAction.label} <span aria-hidden="true">→</span>
+            </a>
+          )}
         </nav>
       </details>
-      <details class="product-switcher">
-        <summary>{labels.products}</summary>
-        <div class="product-switcher__panel">
-          {productLinks.map((item) => (
-            <a
-              href={item.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`${item.label}, ${labels.opensInNewTab}`}
-              aria-current={item.label.toLowerCase() === active ? "page" : undefined}
-            >
-              {item.label}
-            </a>
-          ))}
-        </div>
-      </details>
+      {primaryAction && (
+        <a class="header-action" href={primaryAction.href}>
+          {primaryAction.label} <span aria-hidden="true">→</span>
+        </a>
+      )}
+      {showProductSwitcher && (
+        <details class="product-switcher">
+          <summary>{labels.products}</summary>
+          <div class="product-switcher__panel">
+            {productLinks.map((item) => (
+              <a
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${item.label}, ${labels.opensInNewTab}`}
+                aria-current={item.label.toLowerCase() === active ? "page" : undefined}
+              >
+                {item.label}
+              </a>
+            ))}
+          </div>
+        </details>
+      )}
     </div>
   </div>
 </header>

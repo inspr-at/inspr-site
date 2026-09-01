@@ -8,7 +8,11 @@ one Astro application.
 | Route | Production host or target |
 | --- | --- |
 | `/` | `www.inspr.at` |
-| `/aithema/` | `aithema.inspr.at` (target; edge routing and DNS pending) |
+| `/de/` | `www.inspr.at` German edition |
+| `/overview/` | `www.inspr.at` concise English overview |
+| `/de/ueberblick/` | `www.inspr.at` concise German overview |
+| `/eli10/` | 308 compatibility redirect to `/overview/` |
+| `/aithema/` | `aithema.inspr.at` |
 | `/paimos/` | `paimos.inspr.at` |
 | `/pharos/` | `pharos.inspr.at` |
 | `/janus/` | `janus.inspr.at` |

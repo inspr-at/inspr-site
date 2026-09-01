@@ -553,6 +553,10 @@
     gap: clamp(2.25rem, 4vw, 4.25rem);
   }
 
+  html[lang="de"] .product-hero h1 {
+    font-size: clamp(3.1rem, 6vw, 5rem);
+  }
+
   html[data-product="janus"] .product-hero h1 {
     font-size: clamp(2.7rem, 4.9vw, 5.35rem);
   }
@@ -560,6 +564,8 @@
   .product-hero__copy {
     position: relative;
     z-index: 2;
+    min-width: 0;
+    max-width: 100%;
     animation: rise-in 760ms var(--ease) both;
   }
 
@@ -2914,6 +2920,10 @@
 
   h1 {
     font-size: clamp(3rem, 15vw, 4.5rem);
+  }
+
+  html[lang="de"] .product-hero h1 {
+    font-size: clamp(3rem, 14vw, 3.5rem);
   }
 
   h2 {

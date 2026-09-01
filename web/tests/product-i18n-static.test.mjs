@@ -98,6 +98,23 @@ test("German product content keeps canonical /de/ URLs and the shared copy rules
   assert.doesNotMatch(aithema, /AGPL|MIT|repositoryUrl|releaseUrl/);
 });
 
+test("German product hero headlines stay inside the shared copy column", async () => {
+  const styles = await source("styles/microsites.css");
+
+  assert.match(
+    styles,
+    /\.product-hero__copy \{[\s\S]*?min-width: 0;[\s\S]*?max-width: 100%;/,
+  );
+  assert.match(
+    styles,
+    /html\[lang="de"\] \.product-hero h1 \{\s*font-size: clamp\(3\.1rem, 6vw, 5rem\);\s*\}[\s\S]*?html\[data-product="janus"\] \.product-hero h1 \{\s*font-size: clamp\(2\.7rem, 4\.9vw, 5\.35rem\);/,
+  );
+  assert.match(
+    styles,
+    /@media \(max-width: 36rem\) \{[\s\S]*?html\[lang="de"\] \.product-hero h1 \{\s*font-size: clamp\(3rem, 14vw, 3\.5rem\);/,
+  );
+});
+
 test("German product content mirrors the English structure claim for claim", async () => {
   const structuralMarkers = [
     [/^\s*question:/gm, "faq questions"],

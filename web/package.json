@@ -12,6 +12,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "test:content": "node --test tests/*-static.test.mjs",
+    "test:browser": "playwright test",
     "check": "astro check",
     "captures:check": "node scripts/sync-paimos-captures.mjs --check"
   },
@@ -27,6 +28,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
+    "@playwright/test": "^1.62.1",
     "@resvg/resvg-js": "^2.6.2",
     "@types/node": "^22.20.1",
     "satori": "^0.26.0",

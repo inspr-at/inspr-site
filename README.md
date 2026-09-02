@@ -124,15 +124,18 @@ cd web
 npm run test:content
 npm run check
 npm run build
+npm run test:browser
 npm audit --audit-level=high
 ```
 
 `npm run check` is `astro check`, the TypeScript pass over every `.astro` and
 `.ts` file; `npm run build` chains the capture check, the release manifest,
 the hero-loop audit, `scripts/verify-csp.py` and the section-pattern audit.
-The same four commands run in GitHub Actions (`.github/workflows/ci.yml`) on
-every pull request and on `main`; a red `ci` check means the change is not
-deployable.
+`npm run test:browser` starts the built site and runs responsive geometry
+regressions in Chromium, Firefox and WebKit; install those engines once with
+`npx playwright install chromium firefox webkit`. The same five checks run in
+GitHub Actions (`.github/workflows/ci.yml`) on every pull request and on
+`main`; a red `ci` check means the change is not deployable.
 
 The content tests protect:
 

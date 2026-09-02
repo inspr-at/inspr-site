@@ -4,7 +4,8 @@ name: ci
 # checks an operator runs before ./deploy.sh: content contract tests, the Astro
 # type-check, the production build (which chains captures:check, the release
 # manifest, the hero-loop audit, the CSP hash verifier and the section-pattern
-# audit) and the high-severity dependency audit. No deploy happens here.
+# audit), responsive geometry in Chromium/Firefox/WebKit and the high-severity
+# dependency audit. No deploy happens here.
 
 on:
   pull_request:
@@ -42,6 +43,9 @@ jobs:
 
       - run: npm ci
 
+      - name: install browser regression engines
+        run: npx playwright install --with-deps chromium firefox webkit
+
       - name: content contract tests
         run: npm run test:content
 
@@ -53,6 +57,9 @@ jobs:
 
       - name: production build, CSP and asset audits
         run: npm run build
+
+      - name: browser geometry regressions
+        run: npm run test:browser
 
       - name: dependency audit
         run: npm audit --audit-level=high

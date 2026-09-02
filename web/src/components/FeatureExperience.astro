@@ -123,6 +123,12 @@ const fallbackIcons = ["circle-dot", "waypoints", "layers-3", "shield-check", "w
     font-size: clamp(1.05rem, 2vw, 1.35rem);
   }
 
+  .feature-experience__copy {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    hyphens: auto;
+  }
+
   .feature-experience p { margin: 0.5rem 0 0; }
 
   .feature-experience__copy > strong {
@@ -254,6 +260,7 @@ const fallbackIcons = ["circle-dot", "waypoints", "layers-3", "shield-check", "w
     gap: 0;
     max-width: 68rem;
     margin-inline: auto;
+    padding-inline-end: calc((var(--sequence-count) - 1) * 1.1rem + 0.4rem);
     perspective: 1000px;
   }
 
@@ -381,6 +388,7 @@ const fallbackIcons = ["circle-dot", "waypoints", "layers-3", "shield-check", "w
       grid-template-columns: 2.5rem minmax(0, 1fr);
       transform: none;
     }
+    .feature-experience--evidence-stack ol { padding-inline-end: 0.25rem; }
     .feature-experience--evidence-stack .feature-experience__number { display: none; }
     .feature-experience--evidence-stack article:hover,
     .feature-experience--evidence-stack article:focus-visible { transform: translateX(0.25rem); }

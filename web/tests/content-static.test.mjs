@@ -138,11 +138,13 @@ test("the shared Pharos mark is the canonical low-complexity SVG", async () => {
   assert.ok((mark.match(/<(?:path|rect)\b/g) ?? []).length <= 12);
 });
 
-test("the umbrella links its actual site source and direct license", async () => {
+test("the umbrella links its public site, product sources and direct license", async () => {
   const umbrella = await source("pages/index.astro");
 
-  assert.match(umbrella, /https:\/\/github\.com\/inspr-at\/inspr-site/);
-  assert.match(umbrella, /https:\/\/github\.com\/inspr-at\/inspr"/);
+  assert.match(umbrella, /const repositoryUrl = "https:\/\/github\.com\/inspr-at\/inspr-site";/);
+  assert.match(umbrella, /const productSourcesUrl = `\$\{repositoryUrl\}#product-sources`;/);
+  assert.match(umbrella, /const modulesUrl = "https:\/\/github\.com\/inspr-at\/inspr-modules";/);
+  assert.doesNotMatch(umbrella, /https:\/\/github\.com\/inspr-at\/inspr(?:["'`/]|$)/);
   assert.match(umbrella, /const siteLicenseUrl = `\$\{repositoryUrl\}\/blob\/main\/LICENSE`/);
   assert.match(umbrella, /licenseName="AGPL-3\.0-only"/);
   assert.match(umbrella, /licenseUrl=\{siteLicenseUrl\}/);

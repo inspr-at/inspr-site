@@ -135,6 +135,8 @@ test("the three-engine browser gate stays within the constrained CI runner", asy
     assert.doesNotMatch(geometryTest, /scrollIntoViewIfNeeded/);
     assert.match(geometryTest, /scrollIntoView\(\{ block: "center", inline: "nearest" \}\)/);
   }
+  assert.doesNotMatch(tableGeometry, /expect\.poll/);
+  assert.match(tableGeometry, /const scrollPosition = await scroller\.evaluate/);
 });
 
 test("the CSP verifier rejects stale pins even when no inline scripts exist", async () => {

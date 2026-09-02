@@ -34,7 +34,10 @@ for (const path of routes) {
 
     await scroller.focus();
     await expect(scroller).toBeFocused();
-    await scroller.evaluate((element) => { element.scrollLeft = element.scrollWidth; });
-    await expect.poll(() => scroller.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+    const scrollPosition = await scroller.evaluate((element) => {
+      element.scrollLeft = element.scrollWidth - element.clientWidth;
+      return element.scrollLeft;
+    });
+    expect(scrollPosition).toBeGreaterThan(0);
   });
 }

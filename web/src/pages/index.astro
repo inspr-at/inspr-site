@@ -30,7 +30,7 @@ const copy = (english: string, german: string) => locale === "de" ? german : eng
 
 const repositoryUrl = "https://github.com/inspr-at/inspr-site";
 const siteLicenseUrl = `${repositoryUrl}/blob/main/LICENSE`;
-const umbrellaRepositoryUrl = "https://github.com/inspr-at/inspr";
+const productSourcesUrl = `${repositoryUrl}#product-sources`;
 const modulesUrl = "https://github.com/inspr-at/inspr-modules";
 const englishUrl = `${siteUrls.inspr}/`;
 const germanUrl = `${siteUrls.inspr}/de/`;
@@ -632,8 +632,8 @@ const productFlowSteps = [
         <a href={repositoryUrl} target="_blank" rel="noopener noreferrer">
           <span>{copy("INSPR site", "INSPR-Website")}</span><small>{copy("This page and the product microsites", "Diese Seite und die Produkt-Microsites")}</small><b aria-hidden="true">↗</b>
         </a>
-        <a href={umbrellaRepositoryUrl} target="_blank" rel="noopener noreferrer">
-          <span>{copy("INSPR umbrella", "INSPR-Dach")}</span><small>{copy("The vision and the product family", "Die Vision und die Produktfamilie")}</small><b aria-hidden="true">↗</b>
+        <a href={productSourcesUrl} target="_blank" rel="noopener noreferrer">
+          <span>{copy("Product sources", "Produktquellen")}</span><small>{copy("Aithema's boundary and the published repositories", "Aithemas Abgrenzung und die veröffentlichten Repositories")}</small><b aria-hidden="true">↗</b>
         </a>
         <a href={modulesUrl} target="_blank" rel="noopener noreferrer">
           <span>INSPR modules</span><small>{copy("Shared doctrine and operating modules", "Gemeinsame Doktrin und Betriebsmodule")}</small><b aria-hidden="true">↗</b>

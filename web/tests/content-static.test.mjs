@@ -102,6 +102,41 @@ test("microsites keep an accessible mobile section menu", async () => {
   assert.match(styles, /@media \(max-width: 72rem\)[\s\S]*?\.mobile-navigation \{\s*display: block;/);
 });
 
+test("the three-engine browser gate stays within the constrained CI runner", async () => {
+  const config = await readFile(
+    new URL("../playwright.config.mjs", import.meta.url),
+    "utf8",
+  );
+  const workflow = await readFile(
+    new URL("../../.github/workflows/ci.yml", import.meta.url),
+    "utf8",
+  );
+  const featureGeometry = await readFile(
+    new URL("browser/feature-experience.spec.mjs", import.meta.url),
+    "utf8",
+  );
+  const tableGeometry = await readFile(
+    new URL("browser/integration-table.spec.mjs", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(config, /workers: process\.env\.CI \? 1 : undefined/);
+  assert.match(config, /fullyParallel: true/);
+  assert.match(config, /retries: process\.env\.CI \? 1 : 0/);
+  assert.match(workflow, /npm run test:browser -- --project=chromium/);
+  assert.match(workflow, /npm run test:browser -- --project=firefox/);
+  for (const shard of [1, 2, 3, 4]) {
+    assert.match(
+      workflow,
+      new RegExp(`npm run test:browser -- --project=webkit --shard=${shard}/4`),
+    );
+  }
+  for (const geometryTest of [featureGeometry, tableGeometry]) {
+    assert.doesNotMatch(geometryTest, /scrollIntoViewIfNeeded/);
+    assert.match(geometryTest, /scrollIntoView\(\{ block: "center", inline: "nearest" \}\)/);
+  }
+});
+
 test("the CSP verifier rejects stale pins even when no inline scripts exist", async () => {
   const fixture = await mkdtemp(join(tmpdir(), "inspr-csp-"));
 
@@ -138,11 +173,13 @@ test("the shared Pharos mark is the canonical low-complexity SVG", async () => {
   assert.ok((mark.match(/<(?:path|rect)\b/g) ?? []).length <= 12);
 });
 
-test("the umbrella links its actual site source and direct license", async () => {
+test("the umbrella links its public site, product sources and direct license", async () => {
   const umbrella = await source("pages/index.astro");
 
-  assert.match(umbrella, /https:\/\/github\.com\/inspr-at\/inspr-site/);
-  assert.match(umbrella, /https:\/\/github\.com\/inspr-at\/inspr"/);
+  assert.match(umbrella, /const repositoryUrl = "https:\/\/github\.com\/inspr-at\/inspr-site";/);
+  assert.match(umbrella, /const productSourcesUrl = `\$\{repositoryUrl\}#product-sources`;/);
+  assert.match(umbrella, /const modulesUrl = "https:\/\/github\.com\/inspr-at\/inspr-modules";/);
+  assert.doesNotMatch(umbrella, /https:\/\/github\.com\/inspr-at\/inspr(?:["'`/]|$)/);
   assert.match(umbrella, /const siteLicenseUrl = `\$\{repositoryUrl\}\/blob\/main\/LICENSE`/);
   assert.match(umbrella, /licenseName="AGPL-3\.0-only"/);
   assert.match(umbrella, /licenseUrl=\{siteLicenseUrl\}/);

@@ -9,7 +9,9 @@ for (const path of routes) {
     await page.evaluate(() => document.fonts.ready);
 
     const scroller = page.locator("[data-integration-matrix] .table-wrap");
-    await scroller.scrollIntoViewIfNeeded();
+    await scroller.evaluate((element) => {
+      element.scrollIntoView({ block: "center", inline: "nearest" });
+    });
 
     const geometry = await scroller.evaluate((element) => {
       const rect = element.getBoundingClientRect();

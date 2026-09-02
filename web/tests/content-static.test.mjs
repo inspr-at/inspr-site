@@ -102,6 +102,17 @@ test("microsites keep an accessible mobile section menu", async () => {
   assert.match(styles, /@media \(max-width: 72rem\)[\s\S]*?\.mobile-navigation \{\s*display: block;/);
 });
 
+test("the three-engine browser gate stays within the constrained CI runner", async () => {
+  const config = await readFile(
+    new URL("../playwright.config.mjs", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(config, /workers: process\.env\.CI \? 1 : undefined/);
+  assert.match(config, /fullyParallel: true/);
+  assert.match(config, /retries: process\.env\.CI \? 1 : 0/);
+});
+
 test("the CSP verifier rejects stale pins even when no inline scripts exist", async () => {
   const fixture = await mkdtemp(join(tmpdir(), "inspr-csp-"));
 

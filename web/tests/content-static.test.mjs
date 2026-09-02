@@ -107,10 +107,26 @@ test("the three-engine browser gate stays within the constrained CI runner", asy
     new URL("../playwright.config.mjs", import.meta.url),
     "utf8",
   );
+  const layoutOnlyRouting = await readFile(
+    new URL("browser/layout-only-routing.mjs", import.meta.url),
+    "utf8",
+  );
+  const featureGeometry = await readFile(
+    new URL("browser/feature-experience.spec.mjs", import.meta.url),
+    "utf8",
+  );
+  const tableGeometry = await readFile(
+    new URL("browser/integration-table.spec.mjs", import.meta.url),
+    "utf8",
+  );
 
   assert.match(config, /workers: process\.env\.CI \? 1 : undefined/);
   assert.match(config, /fullyParallel: true/);
   assert.match(config, /retries: process\.env\.CI \? 1 : 0/);
+  assert.match(layoutOnlyRouting, /new Set\(\["image", "media"\]\)/);
+  assert.match(layoutOnlyRouting, /route\.abort\("blockedbyclient"\)/);
+  assert.match(featureGeometry, /installLayoutOnlyRouting\(page\)/);
+  assert.match(tableGeometry, /installLayoutOnlyRouting\(page\)/);
 });
 
 test("the CSP verifier rejects stale pins even when no inline scripts exist", async () => {

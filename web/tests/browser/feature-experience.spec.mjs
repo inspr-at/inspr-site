@@ -21,7 +21,9 @@ for (const route of routes) {
       await page.evaluate(() => document.fonts.ready);
 
       const experience = page.locator(route.selector);
-      await experience.scrollIntoViewIfNeeded();
+      await experience.evaluate((element) => {
+        element.scrollIntoView({ block: "center", inline: "nearest" });
+      });
       await experience.locator("article").last().hover();
 
       const geometry = await experience.evaluate((element) => {

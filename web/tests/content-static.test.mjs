@@ -111,6 +111,14 @@ test("the three-engine browser gate stays within the constrained CI runner", asy
     new URL("../../.github/workflows/ci.yml", import.meta.url),
     "utf8",
   );
+  const featureGeometry = await readFile(
+    new URL("browser/feature-experience.spec.mjs", import.meta.url),
+    "utf8",
+  );
+  const tableGeometry = await readFile(
+    new URL("browser/integration-table.spec.mjs", import.meta.url),
+    "utf8",
+  );
 
   assert.match(config, /workers: process\.env\.CI \? 1 : undefined/);
   assert.match(config, /fullyParallel: true/);
@@ -122,6 +130,10 @@ test("the three-engine browser gate stays within the constrained CI runner", asy
       workflow,
       new RegExp(`npm run test:browser -- --project=webkit --shard=${shard}/4`),
     );
+  }
+  for (const geometryTest of [featureGeometry, tableGeometry]) {
+    assert.doesNotMatch(geometryTest, /scrollIntoViewIfNeeded/);
+    assert.match(geometryTest, /scrollIntoView\(\{ block: "center", inline: "nearest" \}\)/);
   }
 });
 

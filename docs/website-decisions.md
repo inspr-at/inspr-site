@@ -311,13 +311,16 @@ current and future modal.
 **Ticket:** paimos PAI-695, PAI-696
 **Status:** Committed (rule)
 
-All Paimos interface imagery is captured from the **current build's seeded
-demo workspace** (dev stack, dev banners hidden), never from a production
-instance — production screenshots would put real customer data on a public
-page. Every capture states its provenance in the caption ("Demo workspace,
-Paimos vX.Y.Z"). The annotated workbench capture has a framing contract
+All Paimos interface imagery is captured from the **represented shipped
+build's seeded demo workspace** (dev stack, dev banners hidden), never from a
+production instance — production screenshots would put real customer data on
+a public page. Every capture states its provenance in the caption ("Demo
+workspace, Paimos `v<release>`"). The annotated workbench capture has a framing contract
 (TASKS heading at top, 1600x1000@2x) that the three hotspot positions are
-tuned to; re-measure when the capture changes. Refresh pipeline:
+tuned to; re-measure when the represented surface changes and the capture is
+regenerated. A release that changes only an uncaptured surface does not relabel
+older pixels: the manifest continues to name the exact release they depict.
+Refresh pipeline:
 paimos PAI-695.
 
 ---

@@ -560,6 +560,17 @@ export const paimosContent = {
           },
         },
         {
+          title: "Explicit orchestrator setup",
+          body:
+            "When a project has no orchestrator binding, an authorized super admin can choose the local CLI alias and canonical agent, then copy one fully visible, secret-free terminal command. The browser never executes the command or guesses an agent.",
+          meta: "One copied command, verified before any binding is written",
+          reference: {
+            label: "Orchestrator binding API",
+            href: docsUrl("api-minimal.md#instance-orchestrator-pin"),
+            external: true,
+          },
+        },
+        {
           title: "Issue-to-file anchors",
           body:
             "Repository scanners can attach issues to concrete files and symbols. Staleness checks and provenance help agents distinguish declared context from derived context.",

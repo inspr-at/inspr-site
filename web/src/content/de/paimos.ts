@@ -563,6 +563,17 @@ export const paimosContentDe = {
           },
         },
         {
+          title: "Explizite Orchestrator-Einrichtung",
+          body:
+            "Ist für ein Projekt kein Orchestrator verknüpft, kann ein berechtigter Super-Admin den lokalen CLI-Alias und den kanonischen Agenten wählen und dann einen vollständig sichtbaren, geheimnisfreien Terminal-Befehl kopieren. Der Browser führt den Befehl nie aus und errät keinen Agenten.",
+          meta: "Ein kopierter Befehl, vor jeder Verknüpfung geprüft",
+          reference: {
+            label: "API der Orchestrator-Verknüpfung",
+            href: docsUrl("api-minimal.md#instance-orchestrator-pin"),
+            external: true,
+          },
+        },
+        {
           title: "Ticket-zu-Datei-Anker",
           body:
             "Repository-Scanner können Tickets an konkrete Dateien und Symbole heften. Aktualitätsprüfungen und Provenienz helfen Agenten, deklarierten von abgeleitetem Kontext zu unterscheiden.",

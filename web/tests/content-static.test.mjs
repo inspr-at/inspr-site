@@ -475,6 +475,10 @@ test("Paimos public evidence keeps release and capture provenance honest", async
   assert.match(content, /title: "Durable agent handoffs"/);
   assert.match(content, /Sender allowlists, typed action holds and an untrusted-data frame/);
   assert.match(content, /label: "Agent message security"[\s\S]*?docsUrl\("AGENT_MESSAGE_SECURITY\.md"\)/);
+  assert.match(content, /title: "Explicit orchestrator setup"/);
+  assert.match(content, /copy one fully visible, secret-free terminal command/);
+  assert.match(content, /The browser never executes the command or guesses an agent/);
+  assert.match(content, /label: "Orchestrator binding API"[\s\S]*?docsUrl\("api-minimal\.md#instance-orchestrator-pin"\)/);
   assert.match(productPage, /id="trust"/);
   assert.match(productPage, /id="limits"/);
 

@@ -1,9 +1,4 @@
 import { expect, test } from "@playwright/test";
-import { installLayoutOnlyRouting } from "./layout-only-routing.mjs";
-
-test.beforeEach(async ({ page }) => {
-  await installLayoutOnlyRouting(page);
-});
 
 const routes = ["/paimos/", "/paimos/de/", "/pharos/", "/pharos/de/"];
 

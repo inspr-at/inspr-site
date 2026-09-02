@@ -58,8 +58,26 @@ jobs:
       - name: production build, CSP and asset audits
         run: npm run build
 
-      - name: browser geometry regressions
-        run: npm run test:browser
+      - name: browser geometry regressions - Chromium
+        run: npm run test:browser -- --project=chromium
+
+      - name: browser geometry regressions - Firefox
+        run: npm run test:browser -- --project=firefox
+
+      # WebKit on the constrained Linux runner becomes unstable after several
+      # long microsite documents in one process. Four shards preserve every
+      # assertion while giving each small batch a fresh browser process.
+      - name: browser geometry regressions - WebKit 1 of 4
+        run: npm run test:browser -- --project=webkit --shard=1/4
+
+      - name: browser geometry regressions - WebKit 2 of 4
+        run: npm run test:browser -- --project=webkit --shard=2/4
+
+      - name: browser geometry regressions - WebKit 3 of 4
+        run: npm run test:browser -- --project=webkit --shard=3/4
+
+      - name: browser geometry regressions - WebKit 4 of 4
+        run: npm run test:browser -- --project=webkit --shard=4/4
 
       - name: dependency audit
         run: npm audit --audit-level=high

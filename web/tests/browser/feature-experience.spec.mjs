@@ -1,9 +1,4 @@
 import { expect, test } from "@playwright/test";
-import { installLayoutOnlyRouting } from "./layout-only-routing.mjs";
-
-test.beforeEach(async ({ page }) => {
-  await installLayoutOnlyRouting(page);
-});
 
 const routes = [
   { path: "/paimos/", selector: "#feature-agent-context .feature-experience--evidence-stack" },

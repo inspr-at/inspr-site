@@ -328,6 +328,7 @@ test("all four microsites render claim visuals and accessible workflow controls"
     "assets/products/pharos/fleet-gate.png",
     "assets/products/janus/value-boundary.png",
     "assets/products/paimos/product-surface.png",
+    "assets/products/paimos/ui-session-home.png",
     "assets/products/paimos/ui-agent-mode.png",
   ];
   for (const asset of assets) {
@@ -459,7 +460,9 @@ test("Paimos public evidence keeps release and capture provenance honest", async
   const surface = await source("components/PaimosProductSurface.astro");
 
   assert.match(surface, /import captureManifest from .*capture-manifest\.json/);
+  assert.match(surface, /import uiSessionHome from .*ui-session-home\.png/);
   assert.match(surface, /import uiAgentMode from .*ui-agent-mode\.png/);
+  assert.match(surface, /title: copy\("Session home", "Sitzungszentrale"\)/);
   assert.match(surface, /title: "Agent Mode"/);
   assert.match(surface, /const captureRelease = `v\$\{captureManifest\.release\}`;/);
   assert.match(surface, /figcaption: `Demo workspace, Paimos \$\{captureRelease\} — seeded synthetic data\.`/);
@@ -477,7 +480,8 @@ test("Paimos public evidence keeps release and capture provenance honest", async
   assert.match(content, /label: "Agent message security"[\s\S]*?docsUrl\("AGENT_MESSAGE_SECURITY\.md"\)/);
   assert.match(content, /title: "Explicit orchestrator setup"/);
   assert.match(content, /copy one fully visible, secret-free terminal command/);
-  assert.match(content, /The browser never executes the command or guesses an agent/);
+  assert.match(content, /one action opens its existing agent editor in a new tab/);
+  assert.match(content, /The browser never executes the command, receives a secret or guesses an agent/);
   assert.match(content, /label: "Orchestrator binding API"[\s\S]*?docsUrl\("api-minimal\.md#instance-orchestrator-pin"\)/);
   assert.match(productPage, /id="trust"/);
   assert.match(productPage, /id="limits"/);
@@ -489,11 +493,38 @@ test("Paimos public evidence keeps release and capture provenance honest", async
   assert.equal(captureCheck.status, 0, captureCheck.stderr || captureCheck.stdout);
 });
 
+test("Paimos capture publication rejects ambiguous or impossible release identities", async () => {
+  const captureDir = await mkdtemp(join(tmpdir(), "inspr-paimos-captures-"));
+  const script = "scripts/sync-paimos-captures.mjs";
+  const cwd = fileURLToPath(new URL("..", import.meta.url));
+  const sourceCommit = "a".repeat(40);
+  const verifyFailure = (releaseKind, release, expected) => {
+    const result = spawnSync(
+      process.execPath,
+      [script, "--capture-dir", captureDir, "--release-kind", releaseKind, "--release", release, "--source-commit", sourceCommit],
+      { cwd, encoding: "utf8" },
+    );
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, expected);
+  };
+
+  try {
+    verifyFailure("calendar", "26.02.30", /not a real date and time/);
+    verifyFailure("semver", "26.09.04.20.54", /legacy release is not semver/);
+    verifyFailure("guess", "26.09.04.20.54", /release kind must be semver or calendar/);
+  } finally {
+    await rm(captureDir, { recursive: true, force: true });
+  }
+});
+
 test("Paimos product loops stay lazy, bounded and inside the PhotoSwipe gallery", async () => {
   const surface = await source("components/PaimosProductSurface.astro");
   const manifest = JSON.parse(
     await source("assets/products/paimos/capture-manifest.json"),
   );
+
+  assert.equal(manifest.schemaVersion, 3);
+  assert.equal(manifest.releaseKind, "calendar");
 
   assert.match(surface, /import loopIssueWorkbench from .*loop-issue-workbench\.mp4/);
   assert.match(surface, /import loopSearchNavigate from .*loop-search-navigate\.mp4/);
@@ -511,8 +542,7 @@ test("Paimos product loops stay lazy, bounded and inside the PhotoSwipe gallery"
   assert.match(surface, /lightbox\.on\("contentDestroy"/);
   assert.match(surface, /video\.removeAttribute\("src"\)/);
 
-  assert.equal(manifest.schemaVersion, 2);
-  assert.match(manifest.release, /^\d+\.\d+\.\d+$/);
+  assert.match(manifest.release, /^\d{2}\.\d{2}\.\d{2}(?:\.\d{2}\.\d{2})?$/);
   assert.match(manifest.sourceCommit, /^[0-9a-f]{40}$/);
   assert.deepEqual(
     manifest.videos.map(({ name }) => name),

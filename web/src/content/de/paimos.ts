@@ -565,8 +565,8 @@ export const paimosContentDe = {
         {
           title: "Explizite Orchestrator-Einrichtung",
           body:
-            "Ist für ein Projekt kein Orchestrator verknüpft, kann ein berechtigter Super-Admin den lokalen CLI-Alias und den kanonischen Agenten wählen und dann einen vollständig sichtbaren, geheimnisfreien Terminal-Befehl kopieren. Der Browser führt den Befehl nie aus und errät keinen Agenten.",
-          meta: "Ein kopierter Befehl, vor jeder Verknüpfung geprüft",
+            "Ist für ein Projekt kein Orchestrator verknüpft, kann ein berechtigter Super-Admin den lokalen CLI-Alias und den kanonischen Agenten wählen und dann einen vollständig sichtbaren Terminal-Befehl ohne Geheimnisse kopieren. Hat das Projekt noch keinen kanonischen Agenten, öffnet eine Aktion den vorhandenen Agenten-Editor in einem neuen Tab; die ursprüngliche Ansicht wartet auf eine ausdrückliche Aktualisierung. Nicht verfügbare Abfragen bieten nur einen erneuten Versuch, konfigurierte Projekte können das Gesprächsfenster öffnen, ohne etwas zu senden. Der Browser führt den Befehl nie aus, erhält kein Geheimnis und errät keinen Agenten.",
+          meta: "Ein ehrlicher nächster Schritt für jeden Einrichtungszustand",
           reference: {
             label: "API der Orchestrator-Verknüpfung",
             href: docsUrl("api-minimal.md#instance-orchestrator-pin"),

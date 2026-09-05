@@ -17,6 +17,7 @@ const componentPath = join(webRoot, "src/components/PaimosProductSurface.astro")
 const manifestPath = join(assetDir, "capture-manifest.json");
 const assetNames = [
   "product-surface.png",
+  "ui-session-home.png",
   "ui-agent-mode.png",
   "ui-issues.png",
   "ui-board.png",
@@ -48,6 +49,27 @@ function readJson(path) {
     return JSON.parse(readFileSync(path, "utf8"));
   } catch (error) {
     fail(`cannot read ${path}: ${error.message}`);
+  }
+}
+
+function verifyRelease(releaseKind, release) {
+  if (releaseKind === "semver") {
+    if (!/^\d+\.\d+\.\d+$/.test(release)) fail("legacy release is not semver");
+    return;
+  }
+  if (releaseKind !== "calendar") fail("release kind must be semver or calendar");
+  const match = release.match(/^(\d{2})\.(\d{2})\.(\d{2})(?:\.(\d{2})\.(\d{2}))?$/);
+  if (!match) fail("calendar release is not yy.mm.dd[.hh.mm]");
+  const [, yy, month, day, hour = "00", minute = "00"] = match;
+  const instant = new Date(Date.UTC(2000 + Number(yy), Number(month) - 1, Number(day), Number(hour), Number(minute)));
+  if (
+    instant.getUTCFullYear() !== 2000 + Number(yy) ||
+    instant.getUTCMonth() !== Number(month) - 1 ||
+    instant.getUTCDate() !== Number(day) ||
+    instant.getUTCHours() !== Number(hour) ||
+    instant.getUTCMinutes() !== Number(minute)
+  ) {
+    fail("calendar release is not a real date and time");
   }
 }
 
@@ -171,10 +193,10 @@ function verifyVideo(path, expected) {
 
 function verifyCommitted() {
   const manifest = readJson(manifestPath);
-  if (manifest.schemaVersion !== 2) fail("unsupported capture manifest schema");
-  if (!/^\d+\.\d+\.\d+$/.test(manifest.release)) fail("manifest release is not semver");
+  if (manifest.schemaVersion !== 3) fail("unsupported capture manifest schema");
+  verifyRelease(manifest.releaseKind, manifest.release);
   if (!/^[0-9a-f]{40}$/.test(manifest.sourceCommit)) fail("manifest source commit is invalid");
-  if (manifest.assets?.length !== assetNames.length) fail("manifest must contain all six captures");
+  if (manifest.assets?.length !== assetNames.length) fail(`manifest must contain all ${assetNames.length} captures`);
   for (const name of assetNames) {
     const expected = manifest.assets.find((asset) => asset.name === name);
     if (!expected) fail(`manifest is missing ${name}`);
@@ -202,10 +224,11 @@ if (process.argv.includes("--check")) {
 } else {
   const captureDirArg = valueAfter("--capture-dir");
   const release = valueAfter("--release");
+  const releaseKind = valueAfter("--release-kind");
   const sourceCommit = valueAfter("--source-commit");
   if (!captureDirArg) fail("--capture-dir is required");
   const captureDir = resolve(captureDirArg);
-  if (!/^\d+\.\d+\.\d+$/.test(release)) fail("--release must be semver");
+  verifyRelease(releaseKind, release);
   if (!/^[0-9a-f]{40}$/.test(sourceCommit)) fail("--source-commit must be a full Git object id");
 
   const layout = readJson(join(captureDir, "capture-surface.json"));
@@ -216,7 +239,7 @@ if (process.argv.includes("--check")) {
   for (const name of videoNames) copyFileSync(join(captureDir, name), join(assetDir, name));
   writeFileSync(
     manifestPath,
-    `${JSON.stringify({ schemaVersion: 2, release, sourceCommit, assets, videos, layout }, null, 2)}\n`,
+    `${JSON.stringify({ schemaVersion: 3, releaseKind, release, sourceCommit, assets, videos, layout }, null, 2)}\n`,
   );
   verifyCommitted();
 }

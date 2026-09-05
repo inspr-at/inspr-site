@@ -2,6 +2,7 @@
 import { Image, getImage } from "astro:assets";
 import ContextIcon from "./ContextIcon.astro";
 import productSurface from "../assets/products/paimos/product-surface.png";
+import uiSessionHome from "../assets/products/paimos/ui-session-home.png";
 import uiIssues from "../assets/products/paimos/ui-issues.png";
 import uiBoard from "../assets/products/paimos/ui-board.png";
 import uiAgentMode from "../assets/products/paimos/ui-agent-mode.png";
@@ -77,6 +78,19 @@ const labels = locale === "de"
 // Ordered deliberately: the AI-era surfaces lead, the classic ceremony
 // closes the row for the teams that still want it.
 const imageViews = [
+  {
+    id: "session-home",
+    image: uiSessionHome,
+    title: copy("Session home", "Sitzungszentrale"),
+    caption: copy(
+      "See the authorized project, bind its orchestrator, and leave every empty or unavailable state through a truthful next action.",
+      "Sehen Sie das berechtigte Projekt, verknüpfen Sie seinen Orchestrator und verlassen Sie jeden leeren oder nicht verfügbaren Zustand über einen ehrlichen nächsten Schritt.",
+    ),
+    alt: copy(
+      "Paimos session home showing an authorized project and actionable orchestrator setup beside the empty product-session state",
+      "Paimos-Sitzungszentrale mit berechtigtem Projekt und ausführbarer Orchestrator-Einrichtung neben dem leeren Produkt-Sitzungsstatus",
+    ),
+  },
   {
     id: "voice-intake",
     image: uiVoiceIntake,

@@ -562,8 +562,8 @@ export const paimosContent = {
         {
           title: "Explicit orchestrator setup",
           body:
-            "When a project has no orchestrator binding, an authorized super admin can choose the local CLI alias and canonical agent, then copy one fully visible, secret-free terminal command. The browser never executes the command or guesses an agent.",
-          meta: "One copied command, verified before any binding is written",
+            "When a project has no orchestrator binding, an authorized super admin can choose the local CLI alias and canonical agent, then copy one fully visible, secret-free terminal command. If the project has no canonical agent yet, one action opens its existing agent editor in a new tab and the original screen waits for an explicit refresh. Unavailable reads offer only a retry; configured projects can open the talk panel without sending. The browser never executes the command, receives a secret or guesses an agent.",
+          meta: "A truthful next action for every setup state",
           reference: {
             label: "Orchestrator binding API",
             href: docsUrl("api-minimal.md#instance-orchestrator-pin"),

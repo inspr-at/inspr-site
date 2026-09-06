@@ -462,7 +462,7 @@ test("Paimos public evidence keeps release and capture provenance honest", async
   assert.match(surface, /import captureManifest from .*capture-manifest\.json/);
   assert.match(surface, /import uiSessionHome from .*ui-session-home\.png/);
   assert.match(surface, /import uiAgentMode from .*ui-agent-mode\.png/);
-  assert.match(surface, /title: copy\("Session home", "Sitzungszentrale"\)/);
+  assert.match(surface, /title: copy\("Workspace home", "Arbeitsbereich"\)/);
   assert.match(surface, /title: "Agent Mode"/);
   assert.match(surface, /const captureRelease = `v\$\{captureManifest\.release\}`;/);
   assert.match(surface, /figcaption: `Demo workspace, Paimos \$\{captureRelease\} — seeded synthetic data\.`/);

@@ -1,50 +1,50 @@
 {
   "schemaVersion": 3,
   "releaseKind": "calendar",
-  "release": "26.09.04.20.54",
-  "sourceCommit": "ebe85ba42b100eec650ceacff451c0fbd1e11f2c",
+  "release": "26.09.06.21.31",
+  "sourceCommit": "64feac0463534f4c7f3c4e801c3bcf8afb2e4d93",
   "assets": [
     {
       "name": "product-surface.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "e4485b8e7e779c49786139448f89bf5932a4fd0fc2b9c8ae6e6b01138576ceb2"
+      "sha256": "0173584451a93e09e6b5d31e848070d909e7bbea202169eb2cf63299a247c660"
     },
     {
       "name": "ui-session-home.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "d039ada36e96b2b42fb69b7b6758ed15ca4d7a9c57e8637c209f515d03e0feeb"
+      "sha256": "e7638e7f7cf245289a458f126bec87b1a05248fb4e34b661b2653ccef77ea9a7"
     },
     {
       "name": "ui-agent-mode.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "e7bcacc2a46bebb0169be6b88273ac25416054633964e1eb0ef4c6ab693733dd"
+      "sha256": "5376675ea1e1ca4769054cec71452b6b10bf70bf30d506a42aedaf4c051c754d"
     },
     {
       "name": "ui-issues.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "055b1fbba8ffcb8d4957b04740261b5daf9b97cf12246891ddc4ecaa6870d953"
+      "sha256": "2050103695304451a745515518036fedc349ce4953f67f26cbb4026e094edfb7"
     },
     {
       "name": "ui-board.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "b2665dad504c96624947fa87fb40c4aa69c67464725c09db4dffc12d9db7e522"
+      "sha256": "c4b33d4778e3c79abab0329f38fbbfb0c8fa5faee03b972cc1a38ad1311e0368"
     },
     {
       "name": "ui-search.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "fa7e7f2bb71e077ee9f8eebfe9032b116c9e870fff23ce13fd56454a99fc437f"
+      "sha256": "75cc2e753d31a30751cd367c3fd92fdbec4ff760dbcbacb7c04f33c006c567a8"
     },
     {
       "name": "ui-voice-intake.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "9354b1c4a824899d0704f9034ac0ab8ddec5e35391700e8679490b93d3d4b7c6"
+      "sha256": "60e78fd35f58f85c2abb66cd7fd36780073b2201b919be339d2617b63b72dab7"
     }
   ],
   "videos": [
@@ -52,17 +52,17 @@
       "name": "loop-issue-workbench.mp4",
       "width": 1280,
       "height": 800,
-      "durationSeconds": 7.25,
-      "bytes": 486643,
-      "sha256": "e445be28385b90fe78bfca4717501163f71c8baf89612baf3a57b79f40f4ec32"
+      "durationSeconds": 5.25,
+      "bytes": 437215,
+      "sha256": "4d740bd98fd0b9af675ed15cf29ad566eba338945fa79a4ef21bea1872f396b8"
     },
     {
       "name": "loop-search-navigate.mp4",
       "width": 1280,
       "height": 800,
-      "durationSeconds": 6.625,
-      "bytes": 229522,
-      "sha256": "b141e160ffd608f4dd64a63775f33a5bd4373e0032c8ba79e41c34faed3c9c72"
+      "durationSeconds": 6.042,
+      "bytes": 199027,
+      "sha256": "2621eeb4ff5375189af73bbdfd1afa0f5f79e88285305b4c5063f3d68e481e50"
     }
   ],
   "layout": {
@@ -78,9 +78,9 @@
     },
     "landmarks": {
       "issueContext": {
-        "x": 0.7259,
+        "x": 0.7625,
         "y": 0.2754,
-        "width": 0.2632,
+        "width": 0.2265,
         "height": 0.024
       },
       "executionControl": {

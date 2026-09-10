@@ -186,7 +186,7 @@ test("the umbrella start page carries the Details slider, depth leads and techni
   assert.match(showcase, /product\.sheet\.command &&/);
   assert.match(showcase, /<code class="product-sheet__command">\$ \{product\.sheet\.command\}<\/code>/);
   assert.match(control, /fetch\("\/release\.json"/);
-  assert.match(control, /if \(liveLoaded\) return;\s*liveLoaded = true;/);
+  assert.match(control, /if \(liveLoaded \|\| !document\.querySelector\("\[data-live\]"\)\) return;\s*liveLoaded = true;/);
   assert.match(control, /if \(level === "technical"\) void loadLive\(\);/);
   assert.doesNotMatch(stack, /fetch\("\/release\.json"|loadLive/);
   assert.doesNotMatch(umbrella, /\b(hsb|csb|mbp)\d/i);

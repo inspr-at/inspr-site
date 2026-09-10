@@ -263,8 +263,13 @@
     transform: translateY(0);
   }
 
+  /* The header sticks to the top. Once the reader has scrolled a little,
+     SiteHeaderMotion marks it floating: the bar compacts by a transform,
+     lifts on a deeper shadow and gains a touch of frost. Nothing reflows;
+     the header keeps its height, so the page never jumps. */
   .site-header {
-    position: relative;
+    position: sticky;
+    top: 0;
     z-index: 20;
     padding-block: 1rem 0.5rem;
   }
@@ -278,9 +283,34 @@
     border: 1px solid rgb(255 255 255 / 0.82);
     border-radius: 1.35rem;
     background: rgb(255 253 249 / 0.76);
-    box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line);
+    box-shadow:
+      var(--shadow-sm),
+      0 0 0 rgb(16 45 66 / 0),
+      inset 0 0 0 1px var(--line);
     -webkit-backdrop-filter: blur(22px) saturate(1.15);
     backdrop-filter: blur(22px) saturate(1.15);
+    transform-origin: 50% 0;
+    transition:
+      transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 0.65s ease,
+      border-color 0.65s ease;
+  }
+
+  .site-header[data-floating] .site-header__bar {
+    transform: translateY(-0.4rem) scale(0.965);
+    border-color: rgb(255 255 255 / 0.95);
+    background: rgb(255 253 249 / 0.9);
+    box-shadow:
+      0 2px 6px rgb(16 45 66 / 0.06),
+      0 20px 52px rgb(16 45 66 / 0.16),
+      inset 0 0 0 1px var(--line);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-header__bar {
+      transition: none;
+    }
   }
 
   .site-brand {

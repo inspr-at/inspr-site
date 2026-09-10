@@ -1,6 +1,7 @@
 ---
 import DetailLevels from "./DetailLevels.astro";
 import DetailsControl from "./DetailsControl.astro";
+import SiteHeaderMotion from "./SiteHeaderMotion.astro";
 import MicrositeLayout from "../layouts/MicrositeLayout.astro";
 import ServiceRibbon from "./ServiceRibbon.astro";
 import HeroLoop from "./HeroLoop.astro";
@@ -251,6 +252,8 @@ const deployedAtLabel = releaseMetadata.deployedAt
       </div>
     </div>
   </header>
+
+  <SiteHeaderMotion />
 
   <main id="main-content">
     <ServiceRibbon text={content.serviceIntro} locale={locale} />

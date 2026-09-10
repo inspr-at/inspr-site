@@ -1,0 +1,40 @@
+---
+/**
+ * The shared header sticks to the top and starts to float once the reader
+ * has scrolled a little: slightly compacted, lifted by a shadow, a touch
+ * more frost. Only transform, shadow, background and border animate, so the
+ * page never reflows. Hysteresis keeps it from flickering around the
+ * threshold. Included by MicrositeHeader and the Aithema page's own header.
+ */
+---
+
+<script>
+  const header = document.querySelector<HTMLElement>(".site-header");
+  if (header) {
+    const liftAt = 72;
+    const restAt = 20;
+    let floating = false;
+    let scheduled = false;
+    const update = () => {
+      scheduled = false;
+      const y = window.scrollY;
+      if (!floating && y > liftAt) {
+        floating = true;
+        header.setAttribute("data-floating", "");
+      } else if (floating && y < restAt) {
+        floating = false;
+        header.removeAttribute("data-floating");
+      }
+    };
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (scheduled) return;
+        scheduled = true;
+        requestAnimationFrame(update);
+      },
+      { passive: true },
+    );
+    update();
+  }
+</script>

@@ -293,6 +293,14 @@ test("Overview Details slider is wordless and its technical depth is a readable 
   assert.match(details, /window\.scrollY <= 0/);
   assert.match(details, /event\.key === "Escape"[\s\S]*?inspr:details-request/);
   assert.doesNotMatch(details, /data-details-pin/);
+  // Every card has an address (#l1 … #l7): arriving with one opens the
+  // technical depth at that card, browsing writes it silently, leaving
+  // technical clears it.
+  assert.match(details, /<li\s+class="overview-layer"\s+id=\{layer\.id\}/);
+  assert.match(details, /window\.history\.replaceState\(window\.history\.state, "", url\.toString\(\)\)/);
+  assert.match(details, /window\.addEventListener\("hashchange", followHash\)/);
+  assert.match(details, /indexOfHash\(window\.location\.hash\)[\s\S]*?inspr:details-request[\s\S]*?level: "technical"/);
+  assert.match(details, /writeHash\(null\)/);
   assert.match(styles, /@media \(hover: hover\) and \(pointer: fine\) and \(min-width: 56rem\) and \(prefers-reduced-motion: no-preference\)/);
   assert.match(styles, /html\[data-details\]:not\(\[data-details-reading\]\) \.overview-main \{[\s\S]*?scale\(0\.56\)/);
   assert.match(styles, /html\[data-details-reading\] \.overview-details \{[\s\S]*?visibility: hidden;/);

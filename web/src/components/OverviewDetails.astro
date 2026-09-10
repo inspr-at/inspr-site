@@ -133,6 +133,7 @@ const live = {
       {[...layers].reverse().map((layer, position) => (
         <li
           class="overview-layer"
+          id={layer.id}
           data-details-layer={layer.id}
           data-details-position={position}
           style={`--layer-index: ${layers.length - 1 - position}; --layer-position: ${position};`}
@@ -271,11 +272,24 @@ const live = {
       panel.toggleAttribute("data-details-last", active === cards.length - 1);
     };
 
+    // Every card has an address: #l1 … #l7. Browsing writes it silently;
+    // arriving with one opens the technical depth at that card.
+    const hashOf = (index: number) => `#${cards[index]?.dataset.detailsLayer ?? ""}`;
+    const indexOfHash = (hash: string) => cards.findIndex((card) => `#${card.dataset.detailsLayer}` === hash);
+    const writeHash = (index: number | null) => {
+      const url = new URL(window.location.href);
+      const next = index === null ? "" : hashOf(index);
+      if (url.hash === next) return;
+      url.hash = next;
+      window.history.replaceState(window.history.state, "", url.toString());
+    };
+
     const go = (index: number) => {
       const next = Math.min(cards.length - 1, Math.max(0, index));
       if (next === active) return false;
       active = next;
       layout();
+      writeHash(active);
       return true;
     };
 
@@ -291,9 +305,11 @@ const live = {
       root.toggleAttribute("data-details-reading", false);
       panel.hidden = !next;
       if (enabled) {
-        active = 0;
+        const linked = indexOfHash(window.location.hash);
+        active = linked >= 0 ? linked : 0;
         layout();
         setOwning(true);
+        writeHash(active);
         void loadLive();
       } else {
         owning = false;
@@ -301,9 +317,32 @@ const live = {
           card.removeAttribute("data-details-active");
           card.querySelector("[data-details-layer-tag]")?.setAttribute("aria-expanded", "false");
         }
-        if (next) void loadLive();
+        if (next) {
+          void loadLive();
+          // Static stack: the linked card is simply scrolled into view.
+          const linked = indexOfHash(window.location.hash);
+          if (linked >= 0) cards[linked].scrollIntoView({ behavior: "smooth", block: "start" });
+        } else {
+          writeHash(null);
+        }
       }
     };
+
+    const followHash = () => {
+      const linked = indexOfHash(window.location.hash);
+      if (linked < 0) return;
+      if (root.getAttribute("data-details-level") !== "technical") {
+        document.dispatchEvent(new CustomEvent("inspr:details-request", { detail: { level: "technical" } }));
+        return;
+      }
+      if (enabled) {
+        if (!owning) setOwning(true);
+        go(linked);
+      } else {
+        cards[linked].scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    };
+    window.addEventListener("hashchange", followHash);
 
     const follow = () => {
       const technical = root.getAttribute("data-details-level") === "technical";
@@ -382,7 +421,9 @@ const live = {
     });
     sceneQuery.addEventListener("change", follow);
 
-    // The control's module may have run before this one.
+    // The control's module may have run before this one; a layer address in
+    // the URL asks for the technical depth.
     follow();
+    followHash();
   }
 </script>

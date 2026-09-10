@@ -72,3 +72,28 @@ test("the depth travels across the family's hosts and every product host is prob
     assert.match(deploy, new RegExp(`probe_page "[A-Za-z]+ German details control" "https://${slug}\\.inspr\\.at/de/" "data-details-slider"`));
   }
 });
+
+test("the umbrella start page carries the Details slider and six leads in three depths", async () => {
+  const [umbrella, deploy] = await Promise.all([
+    source("pages/index.astro"),
+    rootFile("deploy.sh"),
+  ]);
+  assert.match(umbrella, /import DetailLevels from "\.\.\/components\/DetailLevels\.astro"/);
+  assert.match(umbrella, /languageLinks=\{\{ en: "\/", de: "\/de\/" \}\}\s*detailsSlider=\{\{[\s\S]*?label: "Details",[\s\S]*?\{ id: "technical", label: copy\("Technical", "Technisch"\) \},/);
+  assert.equal((umbrella.match(/<DetailLevels/g) || []).length, 5);
+  assert.match(umbrella, /leadDepths=\{\{\s*simple: copy\(/);
+  for (const phrase of [
+    "Say what you want to build. Four tools take it from there, one step at a time, and each step waits for your yes.",
+    "Sagen Sie, was Sie bauen wollen. Vier Werkzeuge übernehmen es von da an, Schritt für Schritt, und jeder Schritt wartet auf Ihr Ja.",
+    "Every handoff is an explicit human approval gate.",
+    "Jede Übergabe ist ein explizites menschliches Freigabe-Gate.",
+    "Three of the four tools are open for anyone to read and run. The fourth is on its way.",
+    "Drei der vier Werkzeuge sind offen, jeder kann sie lesen und betreiben. Das vierte ist unterwegs.",
+  ]) {
+    assert.ok(umbrella.includes(phrase), `missing umbrella depth copy: ${phrase}`);
+  }
+  assert.doesNotMatch(umbrella, /\b(hsb|csb|mbp)\d/i);
+  assert.doesNotMatch(umbrella, /barta\.cm|netcup|hetzner|storage box/i);
+  assert.match(deploy, /probe_page "INSPR umbrella details control" "https:\/\/www\.inspr\.at\/" "data-details-slider"/);
+  assert.match(deploy, /probe_page "INSPR German umbrella details control" "https:\/\/www\.inspr\.at\/de\/" "data-details-slider"/);
+});

@@ -683,6 +683,8 @@ else
   probe_page "INSPR umbrella" "https://www.inspr.at/" "Inspiration is the only limit." "text/html" "$RELEASE_ID"
   probe_page "INSPR overview" "https://www.inspr.at/overview/" "From an idea to something that" "text/html"
   probe_page "INSPR German overview" "https://www.inspr.at/de/ueberblick/" "Von einer Idee zu etwas" "text/html"
+  probe_page "INSPR umbrella details control" "https://www.inspr.at/" "data-details-slider" "text/html"
+  probe_page "INSPR German umbrella details control" "https://www.inspr.at/de/" "data-details-slider" "text/html"
   probe_page "INSPR overview details switch" "https://www.inspr.at/overview/" "data-details-slider" "text/html"
   probe_page "INSPR German overview details switch" "https://www.inspr.at/de/ueberblick/" "data-details-slider" "text/html"
   probe_page "Aithema details control" "https://aithema.inspr.at/" "data-details-slider" "text/html"

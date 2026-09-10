@@ -229,3 +229,67 @@ test("Overview keeps a bounded, friendly and responsive two-screen structure", a
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
   assert.doesNotMatch(styles, /animation:/);
 });
+
+test("Overview Details switch reveals seven public-safe layers in both languages", async () => {
+  const [page, header, details, styles, deploy] = await Promise.all([
+    source("components/OverviewPage.astro"),
+    source("components/MicrositeHeader.astro"),
+    source("components/OverviewDetails.astro"),
+    source("styles/overview-details.css"),
+    rootFile("deploy.sh"),
+  ]);
+
+  // The switch lives in the header, before the language choice, and is named
+  // "Details" — never developer, sysop or nerd.
+  assert.match(page, /import OverviewDetails from "\.\/OverviewDetails\.astro"/);
+  assert.match(page, /detailsToggle=\{\{[\s\S]*?label: "Details",[\s\S]*?controls: "overview-details",/);
+  assert.match(page, /<\/main>\s*<OverviewDetails locale=\{locale\} \/>/);
+  assert.match(header, /\{detailsToggle && \([\s\S]*?class="details-switch"[\s\S]*?aria-pressed="false"[\s\S]*?data-details-toggle/);
+  assert.match(header, /data-details-toggle[\s\S]*?\{languageLinks && \(/);
+  assert.doesNotMatch(page + header + details, /developer|sysop|nerd/i);
+
+  // Seven layers, bottom to top, each with a tag, body and tools.
+  const ids = [...details.matchAll(/id: "(l\d)",/g)].map((match) => match[1]);
+  assert.deepEqual(ids, ["l1", "l2", "l3", "l4", "l5", "l6", "l7"]);
+  assert.match(details, /id="overview-details"[\s\S]*?data-details-panel[\s\S]*?hidden/);
+  assert.match(details, /data-details-layer=\{layer\.id\}/);
+  assert.match(details, /class="overview-layer__tag"[\s\S]*?aria-expanded="false"[\s\S]*?data-details-layer-tag/);
+  assert.match(details, /<dl class="overview-layer__live" data-details-live/);
+  for (const phrase of [
+    "Workstations, home servers and a few rented cloud VMs.",
+    "Arbeitsplätze, Heimserver und einige gemietete Cloud-VMs.",
+    "one static build, five hostnames, published by a script that can always roll back.",
+    "ein statischer Build, fünf Hostnamen, veröffentlicht von einem Skript, das jederzeit zurückrollen kann.",
+    "The rulebook every AI agent loads at session start.",
+    "Das Regelwerk, das jeder KI-Agent zu Beginn jeder Sitzung lädt.",
+  ]) {
+    assert.ok(details.includes(phrase), `missing details copy: ${phrase}`);
+  }
+
+  // Public content conveys the kind of machine, never an identity: no host
+  // names, internal domains, filesystem paths or provider SKUs.
+  assert.doesNotMatch(details, /\b(hsb|csb|mbp)\d/i);
+  assert.doesNotMatch(details, /barta\.cm|headscale\.|\bhs\./i);
+  assert.doesNotMatch(details, /netcup|hetzner|storage box/i);
+  assert.doesNotMatch(details, /~\/|\/run\/|\/home\/|\/srv\//);
+
+  // Live facts come from the page's own origin; the switch remembers itself
+  // the way the language choice does; Escape always closes.
+  assert.match(details, /fetch\("\/release\.json"/);
+  assert.match(details, /method: "HEAD"/);
+  assert.match(details, /localStorage\.(getItem|setItem)\(storageKey/);
+  assert.match(details, /event\.key === "Escape"/);
+  assert.doesNotMatch(details, /is:inline/);
+
+  // Static stack by default; the 3D scene only for fine pointers, wide
+  // viewports and no reduced-motion preference.
+  assert.match(styles, /@media \(hover: hover\) and \(pointer: fine\) and \(min-width: 56rem\) and \(prefers-reduced-motion: no-preference\)/);
+  assert.match(styles, /html\[data-details\] \.overview-main \{[\s\S]*?perspective\(1800px\)/);
+  assert.match(styles, /\.overview-details \{[\s\S]*?position: fixed;/);
+  assert.match(styles, /order: calc\(7 - var\(--layer-index\)\);/);
+  assert.match(styles, /@media print \{[\s\S]*?\.overview-details \{[\s\S]*?display: none;/);
+
+  // Every release proves the switch is live on both editions.
+  assert.match(deploy, /probe_page "INSPR overview details switch" "https:\/\/www\.inspr\.at\/overview\/" "data-details-toggle"/);
+  assert.match(deploy, /probe_page "INSPR German overview details switch" "https:\/\/www\.inspr\.at\/de\/ueberblick\/" "data-details-toggle"/);
+});

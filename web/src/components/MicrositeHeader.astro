@@ -12,6 +12,8 @@ interface Props {
   primaryAction?: { label: string; href: string };
   locale?: "en" | "de";
   languageLinks?: { en: string; de: string };
+  /** Header switch that reveals the technical layers behind the page. */
+  detailsToggle?: { label: string; description: string; controls: string };
 }
 
 const {
@@ -25,6 +27,7 @@ const {
   primaryAction,
   locale = "en",
   languageLinks,
+  detailsToggle,
 } = Astro.props;
 
 const labels = locale === "de"
@@ -81,6 +84,21 @@ const productHref = (href: string) =>
 
     <div class="site-header__actions">
       {showSignIn && <a class="quiet-link" href={siteUrls.signIn} target="_blank" rel="noopener noreferrer">{labels.signIn}</a>}
+      {detailsToggle && (
+        <button
+          class="details-switch"
+          type="button"
+          aria-pressed="false"
+          aria-controls={detailsToggle.controls}
+          aria-label={detailsToggle.description}
+          title={detailsToggle.description}
+          data-details-toggle
+        >
+          <span class="details-switch__track" aria-hidden="true"><span class="details-switch__knob"></span></span>
+          <span>{detailsToggle.label}</span>
+          <span class="details-switch__led" aria-hidden="true"></span>
+        </button>
+      )}
       {languageLinks && (
         <nav class="language-switch" aria-label={labels.languages}>
           <a

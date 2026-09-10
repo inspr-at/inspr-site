@@ -2,6 +2,7 @@
 import ContextIcon from "./ContextIcon.astro";
 import HeroLoop from "./HeroLoop.astro";
 import MicrositeHeader from "./MicrositeHeader.astro";
+import OverviewDetails from "./OverviewDetails.astro";
 import MicrositeLayout from "../layouts/MicrositeLayout.astro";
 import "../styles/overview.css";
 
@@ -173,6 +174,14 @@ const steps = [
     primaryAction={{ label: copy("Full site", "Website"), href: fullSiteUrl }}
     locale={locale}
     languageLinks={{ en: "/overview/", de: "/de/ueberblick/" }}
+    detailsToggle={{
+      label: "Details",
+      description: copy(
+        "Show the technical layers behind this page",
+        "Die technischen Schichten hinter dieser Seite anzeigen",
+      ),
+      controls: "overview-details",
+    }}
   />
 
   <main id="main-content" class="overview-main">
@@ -333,6 +342,8 @@ const steps = [
       </div>
     </section>
   </main>
+
+  <OverviewDetails locale={locale} />
 
   <footer class="overview-footer page-shell">
     <p>© {new Date().getUTCFullYear()} <a href={siteUrls.author} rel="me">Markus Barta</a> · INSPR</p>

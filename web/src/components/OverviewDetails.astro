@@ -1,0 +1,343 @@
+---
+/**
+ * The layers behind the Overview. One markup tree serves two presentations:
+ * a static exploded stack (default, phones, coarse pointers, reduced motion)
+ * and a fixed three-dimensional scene behind the translucent page (fine
+ * pointer, wide viewport). The header's Details switch toggles it.
+ *
+ * Content rule: convey the kind of machine and the tool, never a host name,
+ * internal domain, path or provider SKU. Nobody outside needs those.
+ */
+import "../styles/overview-details.css";
+
+interface Props {
+  locale?: "en" | "de";
+}
+
+const locale: "en" | "de" = Astro.props.locale === "de" ? "de" : "en";
+const copy = (english: string, german: string) => locale === "de" ? german : english;
+
+const layers = [
+  {
+    id: "l1",
+    number: "L1",
+    name: copy("Hardware", "Hardware"),
+    body: copy(
+      "Workstations, home servers and a few rented cloud VMs. Extra servers appear on demand and vanish when the job is done.",
+      "Arbeitsplätze, Heimserver und einige gemietete Cloud-VMs. Zusätzliche Server entstehen bei Bedarf und verschwinden nach getaner Arbeit.",
+    ),
+    tools: [
+      copy("workstations", "Arbeitsplätze"),
+      copy("home servers", "Heimserver"),
+      copy("cloud VMs", "Cloud-VMs"),
+      copy("on-demand VMs via Pharos", "On-demand-VMs via Pharos"),
+    ],
+  },
+  {
+    id: "l2",
+    number: "L2",
+    name: copy("Network", "Netzwerk"),
+    body: copy(
+      "Every machine sits on one private mesh, wherever it is. A self-hosted coordinator holds the keys. Public names go through Cloudflare.",
+      "Jede Maschine hängt in einem privaten Mesh, egal wo sie steht. Ein selbst betriebener Koordinator hält die Schlüssel. Öffentliche Namen laufen über Cloudflare.",
+    ),
+    tools: ["Headscale", "Tailscale", "Cloudflare DNS + edge", "Traefik TLS"],
+  },
+  {
+    id: "l3",
+    number: "L3",
+    name: copy("Host config", "Hostkonfiguration"),
+    body: copy(
+      "Each host is described in text and built from it. The repository is the truth; activation enforces it. Backups run from the same declaration to off-site storage.",
+      "Jeder Host ist in Text beschrieben und wird daraus gebaut. Das Repository ist die Wahrheit; die Aktivierung setzt sie durch. Backups laufen aus derselben Deklaration auf externen Speicher.",
+    ),
+    tools: ["NixOS", "nix-darwin", "Home Manager", "disko", copy("ZFS snapshots", "ZFS-Snapshots"), "restic"],
+  },
+  {
+    id: "l4",
+    number: "L4",
+    name: "Secrets",
+    body: copy(
+      "Secrets are encrypted at rest and unlocked only by the one host that owns the key. A vault is the human master copy. Agents load what they may use and never print it.",
+      "Secrets liegen verschlüsselt und werden nur von dem Host entschlüsselt, dem der Schlüssel gehört. Ein Tresor ist die Stammkopie für Menschen. Agenten laden, was sie nutzen dürfen, und geben es nie aus.",
+    ),
+    tools: ["agenix", "1Password", copy("Janus permits", "Janus-Freigaben")],
+  },
+  {
+    id: "l5",
+    number: "L5",
+    name: copy("Service config", "Dienstkonfiguration"),
+    body: copy(
+      "Online services with an API are declared as code too. Today that is the identity provider behind every sign-in; DNS and repository settings are next.",
+      "Auch Online-Dienste mit API werden als Code deklariert. Heute ist das der Identitätsanbieter hinter jeder Anmeldung; DNS und Repository-Einstellungen folgen.",
+    ),
+    tools: ["OpenTofu", "Zitadel OIDC", copy("single sign-on", "Single Sign-on")],
+  },
+  {
+    id: "l6",
+    number: "L6",
+    name: copy("Products", "Produkte"),
+    body: copy(
+      "Aithema (need), Paimos (what), Pharos (where), Janus (may) and this site: one static build, five hostnames, published by a script that can always roll back.",
+      "Aithema (Bedarf), Paimos (Was), Pharos (Wo), Janus (Darf) und diese Website: ein statischer Build, fünf Hostnamen, veröffentlicht von einem Skript, das jederzeit zurückrollen kann.",
+    ),
+    tools: ["Astro", copy("Caddy pinned by digest", "Caddy per Digest fixiert"), copy("immutable releases", "unveränderliche Releases"), copy("strict CSP", "strikte CSP")],
+    live: true,
+  },
+  {
+    id: "l7",
+    number: "L7",
+    name: copy("Doctrine", "Doktrin"),
+    body: copy(
+      "The rulebook every AI agent loads at session start. A tiny always-on kernel for irreversible mistakes, deeper packs on demand, versioned and signed. A CLI checks and heals each machine.",
+      "Das Regelwerk, das jeder KI-Agent zu Beginn jeder Sitzung lädt. Ein winziger, immer aktiver Kern für unumkehrbare Fehler, tiefere Pakete bei Bedarf, versioniert und signiert. Eine CLI prüft und heilt jede Maschine.",
+    ),
+    tools: [copy("kernel", "Kernel"), copy("domain packs", "Domänenpakete"), "inspr CLI", copy("signed releases", "signierte Releases")],
+  },
+];
+
+const live = {
+  heading: copy("This page, right now", "Diese Seite, jetzt"),
+  release: copy("release", "Release"),
+  source: copy("source", "Quelle"),
+  deployed: copy("deployed", "veröffentlicht"),
+  csp: copy("CSP script hashes", "CSP-Skript-Hashes"),
+  hsts: copy("HSTS", "HSTS"),
+  pending: copy("reading…", "wird gelesen…"),
+};
+---
+
+<aside
+  id="overview-details"
+  class="overview-details"
+  data-details-panel
+  aria-labelledby="overview-details-title"
+  hidden
+>
+  <div class="overview-details__frame">
+    <header class="overview-details__header">
+      <p class="overview-kicker">{copy("Details", "Details")}</p>
+      <h2 id="overview-details-title">{copy("What this runs on.", "Worauf das läuft.")}</h2>
+      <p class="overview-details__lede">{copy(
+        "Seven layers, bottom to top. Every one that can be declared is declared; what remains is judgment.",
+        "Sieben Schichten, von unten nach oben. Alles, was deklariert werden kann, ist deklariert; der Rest ist Urteilskraft.",
+      )}</p>
+      <button
+        class="overview-details__pin"
+        type="button"
+        aria-pressed="false"
+        data-details-pin
+      >
+        <span class="overview-details__pin-dot" aria-hidden="true"></span>
+        <span data-details-pin-label data-pinned={copy("Pinned · click to release", "Fixiert · Klick löst")}>{copy("Pointer steers · click to pin", "Zeiger steuert · Klick fixiert")}</span>
+      </button>
+    </header>
+
+    <ol class="overview-details__layers" data-details-scene>
+      {layers.map((layer, index) => (
+        <li
+          class="overview-layer"
+          data-details-layer={layer.id}
+          style={`--layer-index: ${index};`}
+        >
+          <button
+            class="overview-layer__tag"
+            type="button"
+            aria-expanded="false"
+            aria-controls={`overview-layer-${layer.id}-body`}
+            data-details-layer-tag
+          >
+            <span class="overview-layer__number">{layer.number}</span>
+            <span class="overview-layer__name">{layer.name}</span>
+          </button>
+          <div class="overview-layer__body" id={`overview-layer-${layer.id}-body`}>
+            <p>{layer.body}</p>
+            <ul class="overview-layer__tools" aria-label={copy("Tools", "Werkzeuge")}>
+              {layer.tools.map((tool) => <li>{tool}</li>)}
+            </ul>
+            {layer.live && (
+              <dl class="overview-layer__live" data-details-live aria-label={live.heading}>
+                <div><dt>{live.release}</dt><dd data-live="release">{live.pending}</dd></div>
+                <div><dt>{live.source}</dt><dd data-live="source">{live.pending}</dd></div>
+                <div><dt>{live.deployed}</dt><dd data-live="deployed">{live.pending}</dd></div>
+                <div><dt>{live.csp}</dt><dd data-live="csp">{live.pending}</dd></div>
+                <div><dt>{live.hsts}</dt><dd data-live="hsts">{live.pending}</dd></div>
+              </dl>
+            )}
+          </div>
+        </li>
+      ))}
+    </ol>
+  </div>
+</aside>
+
+<script>
+  // Details switch: reveals the layers behind the Overview. Bundled by Astro
+  // as a same-origin module, so the strict CSP needs no new hash.
+  const root = document.documentElement;
+  const panel = document.querySelector<HTMLElement>("[data-details-panel]");
+  const toggles = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-details-toggle]"));
+  const pin = panel?.querySelector<HTMLButtonElement>("[data-details-pin]") ?? null;
+  const pinLabel = panel?.querySelector<HTMLElement>("[data-details-pin-label]") ?? null;
+  const scene = panel?.querySelector<HTMLElement>("[data-details-scene]") ?? null;
+  const layers = Array.from(panel?.querySelectorAll<HTMLElement>("[data-details-layer]") ?? []);
+  const storageKey = "inspr-details";
+  const sceneQuery = window.matchMedia(
+    "(hover: hover) and (pointer: fine) and (min-width: 56rem) and (prefers-reduced-motion: no-preference)",
+  );
+  const pinCopy = {
+    steer: pinLabel?.textContent ?? "",
+    pinned: pinLabel?.dataset.pinned ?? "Pinned · click to release",
+  };
+
+  let enabled = false;
+  let pinned = false;
+  let liveLoaded = false;
+
+  if (panel && toggles.length > 0) {
+    const setTilt = (x: number, y: number) => {
+      root.style.setProperty("--details-tilt-x", `${x.toFixed(2)}deg`);
+      root.style.setProperty("--details-tilt-y", `${y.toFixed(2)}deg`);
+    };
+
+    const resetTilt = () => setTilt(0, 0);
+
+    const select = (target: HTMLElement | null) => {
+      for (const layer of layers) {
+        const active = layer === target;
+        layer.toggleAttribute("data-details-active", active);
+        layer.querySelector("[data-details-layer-tag]")?.setAttribute("aria-expanded", active ? "true" : "false");
+      }
+      panel.toggleAttribute("data-details-focused", target !== null);
+    };
+
+    const setPinned = (next: boolean) => {
+      pinned = next;
+      panel.toggleAttribute("data-details-pinned", pinned);
+      pin?.setAttribute("aria-pressed", pinned ? "true" : "false");
+      if (pinLabel) pinLabel.textContent = pinned ? pinCopy.pinned : pinCopy.steer;
+    };
+
+    const loadLive = async () => {
+      if (liveLoaded) return;
+      liveLoaded = true;
+      const field = (name: string) => panel.querySelector<HTMLElement>(`[data-live="${name}"]`);
+      const write = (name: string, value: string) => {
+        const target = field(name);
+        if (target) target.textContent = value;
+      };
+      try {
+        const manifest = await fetch("/release.json", { cache: "no-store" }).then((response) => response.json());
+        write("release", String(manifest?.deployment?.releaseId ?? "local build"));
+        write("source", String(manifest?.source?.git ?? "unknown") + (manifest?.source?.dirty ? " (dirty)" : ""));
+        write("deployed", String(manifest?.deployment?.deployedAt ?? "not deployed"));
+      } catch {
+        write("release", "unavailable");
+        write("source", "unavailable");
+        write("deployed", "unavailable");
+      }
+      try {
+        const response = await fetch(window.location.pathname, { method: "HEAD", cache: "no-store" });
+        const csp = response.headers.get("content-security-policy") ?? "";
+        const hashes = csp.match(/'sha256-[^']+'/g)?.length ?? 0;
+        write("csp", csp ? `script-src 'self' + ${hashes}` : "not exposed");
+        write("hsts", response.headers.get("strict-transport-security") ? "preload" : "not exposed");
+      } catch {
+        write("csp", "unavailable");
+        write("hsts", "unavailable");
+      }
+    };
+
+    const setEnabled = (next: boolean, options: { persist?: boolean; scroll?: boolean } = {}) => {
+      enabled = next;
+      root.toggleAttribute("data-details", enabled);
+      panel.hidden = !enabled;
+      for (const toggle of toggles) toggle.setAttribute("aria-pressed", enabled ? "true" : "false");
+      if (!enabled) {
+        setPinned(false);
+        select(null);
+        resetTilt();
+      } else {
+        setTilt(0, 0);
+        void loadLive();
+        if (options.scroll && !sceneQuery.matches) {
+          panel.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+      if (options.persist !== false) {
+        try {
+          localStorage.setItem(storageKey, enabled ? "1" : "0");
+        } catch {
+          // Storage may be unavailable; the switch still works for this visit.
+        }
+      }
+    };
+
+    for (const toggle of toggles) {
+      toggle.addEventListener("click", () => setEnabled(!enabled, { scroll: true }));
+    }
+
+    pin?.addEventListener("click", () => setPinned(!pinned));
+
+    // Parallax moves the planes under the pointer, so a selection survives a
+    // brief leave; only a settled departure clears it.
+    let leaveTimer: number | undefined;
+    for (const layer of layers) {
+      const tag = layer.querySelector<HTMLButtonElement>("[data-details-layer-tag]");
+      layer.addEventListener("pointerenter", () => {
+        if (!sceneQuery.matches) return;
+        window.clearTimeout(leaveTimer);
+        select(layer);
+      });
+      layer.addEventListener("pointerleave", () => {
+        if (!sceneQuery.matches || pinned) return;
+        window.clearTimeout(leaveTimer);
+        leaveTimer = window.setTimeout(() => select(null), 350);
+      });
+      tag?.addEventListener("click", () => {
+        if (sceneQuery.matches) {
+          // In the scene the tag is a handle: choose the plane and hold it.
+          select(layer);
+          setPinned(!pinned);
+          return;
+        }
+        select(layer.hasAttribute("data-details-active") ? null : layer);
+      });
+      tag?.addEventListener("focus", () => select(layer));
+    }
+
+    window.addEventListener("pointermove", (event) => {
+      if (!enabled || pinned || !sceneQuery.matches) return;
+      const x = event.clientX / window.innerWidth - 0.5;
+      const y = event.clientY / window.innerHeight - 0.5;
+      setTilt(-y * 4, x * 7);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && enabled) setEnabled(false);
+    });
+
+    sceneQuery.addEventListener("change", () => {
+      if (!enabled) return;
+      setPinned(false);
+      select(null);
+      resetTilt();
+    });
+
+    // Clicking a plane (not its tag) pins the current perspective.
+    scene?.addEventListener("click", (event) => {
+      if (!sceneQuery.matches) return;
+      const target = event.target as HTMLElement;
+      if (target.closest("[data-details-layer-tag]") || !target.closest("[data-details-layer]")) return;
+      setPinned(!pinned);
+    });
+
+    let remembered: string | null = null;
+    try {
+      remembered = localStorage.getItem(storageKey);
+    } catch {
+      remembered = null;
+    }
+    if (remembered === "1") setEnabled(true, { persist: false });
+  }
+</script>

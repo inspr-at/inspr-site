@@ -1,0 +1,505 @@
+/* Details switch — the layers behind the Overview.
+ *
+ * Default presentation: a static exploded stack in the page flow (phones,
+ * coarse pointers, reduced motion). Wide fine-pointer viewports upgrade to a
+ * fixed three-dimensional scene behind the translucent page. Same markup. */
+
+:root {
+  --details-tilt-x: 0deg;
+  --details-tilt-y: 0deg;
+}
+
+/* ---- Header switch ---------------------------------------------------- */
+
+.details-switch {
+  display: inline-flex;
+  min-height: 2.65rem;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0 0.7rem 0 0.45rem;
+  border: 1px solid var(--rule, rgb(16 45 66 / 0.16));
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-soft, #536773);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.details-switch:hover,
+.details-switch:focus-visible {
+  border-color: #147b78;
+  color: var(--ink, #102d42);
+  outline: none;
+}
+
+.details-switch:focus-visible {
+  box-shadow: 0 0 0 3px rgb(20 123 120 / 0.25);
+}
+
+.details-switch__track {
+  position: relative;
+  width: 2rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  background: rgb(16 45 66 / 0.16);
+  transition: background 0.35s ease;
+}
+
+.details-switch__knob {
+  position: absolute;
+  top: 0.12rem;
+  left: 0.12rem;
+  width: 0.86rem;
+  height: 0.86rem;
+  border-radius: 50%;
+  background: #fffdf9;
+  box-shadow: 0 1px 2px rgb(16 45 66 / 0.25);
+  transition: transform 0.35s cubic-bezier(0.4, 1.4, 0.5, 1);
+}
+
+.details-switch__led {
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 50%;
+  background: rgb(16 45 66 / 0.18);
+  transition: background 0.35s ease, box-shadow 0.35s ease;
+}
+
+.details-switch[aria-pressed="true"] {
+  color: var(--ink, #102d42);
+}
+
+.details-switch[aria-pressed="true"] .details-switch__track {
+  background: #147b78;
+}
+
+.details-switch[aria-pressed="true"] .details-switch__knob {
+  transform: translateX(0.9rem);
+}
+
+.details-switch[aria-pressed="true"] .details-switch__led {
+  background: #147b78;
+  box-shadow: 0 0 0.5rem #147b78;
+}
+
+/* ---- Panel: static exploded stack (default) --------------------------- */
+
+.overview-details {
+  --details-ink: #102d42;
+  --details-soft: #536773;
+  --details-teal: #147b78;
+  --details-gold: #d99b2b;
+  --details-paper: #fffdf9;
+  --details-line: rgb(16 45 66 / 0.55);
+  --details-fill: rgb(255 253 249 / 0.6);
+  color: var(--details-ink);
+}
+
+.overview-details__frame {
+  width: min(100% - 2 * var(--gutter, 1.25rem), var(--shell, 78rem));
+  margin-inline: auto;
+  padding-block: 2.5rem 3.5rem;
+}
+
+.overview-details__header {
+  display: grid;
+  gap: 0.6rem;
+  margin-bottom: 1.75rem;
+}
+
+.overview-details__header h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 3.4vw, 2.4rem);
+  font-weight: 400;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.overview-details__lede {
+  max-width: 44ch;
+  margin: 0;
+  color: var(--details-soft);
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+
+.overview-details__pin {
+  display: none;
+}
+
+.overview-details__layers {
+  display: grid;
+  gap: 0.8rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Static stack reads top-down from L7 to L1, like a cutaway drawing. */
+.overview-layer {
+  position: relative;
+  order: calc(7 - var(--layer-index));
+  border: 1px solid var(--details-line);
+  border-radius: 0.9rem;
+  background: var(--details-fill);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, opacity 0.35s ease;
+}
+
+.overview-layer__tag {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin: -1px 0 0 -1px;
+  padding: 0.45rem 0.9rem 0.4rem 0.75rem;
+  border: 0;
+  border-radius: 0.9rem 0 0.7rem 0;
+  background: var(--details-ink);
+  color: var(--details-paper);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.overview-layer__tag:focus-visible {
+  outline: 2px solid var(--details-teal);
+  outline-offset: 2px;
+}
+
+.overview-layer__number {
+  opacity: 0.65;
+  font-weight: 500;
+}
+
+.overview-layer__body {
+  padding: 0.75rem 1.1rem 1.1rem;
+}
+
+.overview-layer__body > p {
+  max-width: 58ch;
+  margin: 0 0 0.7rem;
+  font-size: 0.94rem;
+  line-height: 1.5;
+}
+
+.overview-layer__tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.overview-layer__tools li {
+  padding: 0.18rem 0.5rem;
+  border: 1px solid var(--details-line);
+  border-radius: 0.3rem;
+  background: var(--details-paper);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+}
+
+.overview-layer__live {
+  display: grid;
+  gap: 0.25rem 1rem;
+  margin: 0.9rem 0 0;
+  padding-top: 0.7rem;
+  border-top: 1px dashed var(--details-line);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.overview-layer__live > div {
+  display: grid;
+  grid-template-columns: minmax(7rem, max-content) 1fr;
+  gap: 0.75rem;
+}
+
+.overview-layer__live dt {
+  color: var(--details-gold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.overview-layer__live dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.overview-layer[data-details-active] {
+  border-color: var(--details-gold);
+  box-shadow: 0 0 0 1px var(--details-gold);
+}
+
+/* ---- Scene: fixed 3D backdrop behind the translucent page ------------- */
+
+@media (hover: hover) and (pointer: fine) and (min-width: 56rem) and (prefers-reduced-motion: no-preference) {
+  html[data-details] {
+    background: var(--details-paper, #fffdf9);
+  }
+
+  html[data-details] .overview-main {
+    position: relative;
+    z-index: 1;
+    transform-origin: 50% 40vh;
+    transform:
+      perspective(1800px)
+      rotateX(var(--details-tilt-x))
+      rotateY(calc(-6deg + var(--details-tilt-y)))
+      translateX(10%)
+      scale(0.76);
+    border: 1px solid rgb(16 45 66 / 0.14);
+    border-radius: 1.25rem;
+    background: rgb(255 253 249 / 0.7);
+    box-shadow:
+      0 40px 90px rgb(16 45 66 / 0.14),
+      inset 0 0 0 1px rgb(255 255 255 / 0.4);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    transition:
+      transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1),
+      background 0.9s ease,
+      box-shadow 0.9s ease;
+  }
+
+  /* The page is glass: the pointer reaches the layers behind it, except on
+     links and controls, which keep working. */
+  html[data-details] .overview-main {
+    pointer-events: none;
+  }
+
+  html[data-details] .overview-main :is(a, button, summary, input, video) {
+    pointer-events: auto;
+  }
+
+  html[data-details] .overview-main::before {
+    /* Keeps hero backgrounds from painting over the glass edge. */
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  html[data-details] .overview-footer {
+    position: relative;
+    z-index: 1;
+  }
+
+  .overview-details {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    /* The backdrop and the list sit at depth zero, in front of the receded
+       planes, so they must not take the pointer; planes and controls do. */
+    pointer-events: none;
+    background:
+      radial-gradient(60% 50% at 78% 22%, rgb(217 155 43 / 0.09), transparent 70%),
+      radial-gradient(50% 60% at 16% 84%, rgb(20 123 120 / 0.09), transparent 70%),
+      var(--details-paper);
+  }
+
+  .overview-details__frame {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .overview-details__header {
+    position: absolute;
+    pointer-events: auto;
+    top: 6.25rem;
+    left: clamp(1rem, 3vw, 2.5rem);
+    z-index: 3;
+    max-width: 16rem;
+    margin: 0;
+    gap: 0.35rem;
+  }
+
+  .overview-details__header h2 {
+    font-size: 1.25rem;
+  }
+
+  .overview-details__lede {
+    display: none;
+  }
+
+  .overview-details__pin {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: max-content;
+    margin-top: 0.35rem;
+    padding: 0.35rem 0.7rem 0.35rem 0.5rem;
+    border: 1px solid rgb(16 45 66 / 0.2);
+    border-radius: 999px;
+    background: rgb(255 253 249 / 0.8);
+    color: var(--details-soft);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .overview-details__pin:focus-visible {
+    outline: 2px solid var(--details-teal);
+    outline-offset: 2px;
+  }
+
+  .overview-details__pin-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border: 1px solid var(--details-soft);
+    border-radius: 50%;
+  }
+
+  .overview-details[data-details-pinned] .overview-details__pin {
+    color: var(--details-ink);
+  }
+
+  .overview-details[data-details-pinned] .overview-details__pin-dot {
+    border-color: var(--details-gold);
+    background: var(--details-gold);
+    box-shadow: 0 0 0.5rem var(--details-gold);
+  }
+
+  /* One shared vanishing point; each plane carries its own complete 3D
+     transform and is painted in depth order. A shared preserve-3d group
+     would look the same but Chrome hit-tests it unreliably. */
+  .overview-details__layers {
+    position: absolute;
+    inset: 0;
+    display: block;
+    perspective: 1500px;
+    perspective-origin: 50% 40%;
+  }
+
+  /* Seven planes recede up and left, L1 nearest, L7 farthest. */
+  .overview-layer {
+    --layer-depth: calc(-60px - var(--layer-index) * 60px);
+    --layer-lift: 0px;
+    --layer-pose:
+      rotateX(calc(10deg + var(--details-tilt-x)))
+      rotateY(calc(-8deg + var(--details-tilt-y)))
+      translateZ(calc(var(--layer-depth) + var(--layer-lift)));
+    position: absolute;
+    z-index: calc(20 - var(--layer-index));
+    pointer-events: auto;
+    cursor: pointer;
+    top: calc(17vh + (6 - var(--layer-index)) * 8.2vh);
+    left: calc(1.5vw + (6 - var(--layer-index)) * 2.7vw);
+    width: min(58vw, 50rem);
+    height: min(44vh, 24rem);
+    order: 0;
+    border-radius: 0.9rem;
+    background: rgb(255 253 249 / 0.38);
+    transform: var(--layer-pose);
+    opacity: 1;
+    transition:
+      transform 0.25s ease-out,
+      opacity 0.35s ease,
+      background 0.3s ease,
+      box-shadow 0.3s ease;
+    animation: overview-layer-enter 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: calc(var(--layer-index) * 60ms);
+  }
+
+  .overview-details[data-details-pinned] .overview-layer {
+    transition:
+      transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1),
+      opacity 0.35s ease,
+      background 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+
+  .overview-details[data-details-focused] .overview-layer {
+    opacity: 0.2;
+  }
+
+  .overview-details[data-details-focused] .overview-layer[data-details-active] {
+    opacity: 1;
+    --layer-lift: 40px;
+    background: rgb(255 253 249 / 0.9);
+    box-shadow:
+      0 0 0 1px var(--details-gold),
+      0 24px 60px rgb(16 45 66 / 0.14);
+  }
+
+  .overview-layer__body {
+    max-width: 24rem;
+    padding: 0.7rem 1rem 1rem 0.9rem;
+  }
+
+  /* Planes stay quiet until chosen: tools as faint chips, the explanation
+     only on the active plane, so the page above remains readable. */
+  .overview-layer__body > p {
+    font-size: 0.8rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .overview-layer__tools {
+    opacity: 0.55;
+    transition: opacity 0.3s ease;
+  }
+
+  .overview-layer[data-details-active] .overview-layer__body > p,
+  .overview-layer[data-details-active] .overview-layer__tools {
+    opacity: 1;
+  }
+
+  .overview-layer__live {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .overview-layer[data-details-active] .overview-layer__live {
+    opacity: 1;
+  }
+
+  .overview-layer__live {
+    max-width: 26rem;
+  }
+
+  @keyframes overview-layer-enter {
+    from {
+      opacity: 0;
+      transform: var(--layer-pose) translateY(3rem);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .details-switch,
+  .details-switch__track,
+  .details-switch__knob,
+  .details-switch__led,
+  .overview-layer {
+    transition: none;
+  }
+}
+
+@media print {
+  .details-switch,
+  .overview-details {
+    display: none;
+  }
+}

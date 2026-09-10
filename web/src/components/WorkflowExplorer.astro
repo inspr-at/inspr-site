@@ -7,6 +7,7 @@ import DetailLevels from "./DetailLevels.astro";
 
 interface Props {
   id: string;
+  "data-depth-min"?: "standard";
   eyebrow: string;
   title: string;
   lead: string;
@@ -14,6 +15,7 @@ interface Props {
   handoff?: ProductHandoff;
   steps: StepItem[];
   image: ImageMetadata;
+  imageFit?: "cover" | "contain";
   alt: string;
   closing?: string;
   tone?: "light" | "ink";
@@ -30,6 +32,7 @@ const {
   handoff,
   steps,
   image,
+  imageFit = "cover",
   alt,
   closing,
   tone = "ink",
@@ -71,6 +74,8 @@ const labels = locale === "de"
   id={id}
   aria-labelledby={`${id}-title`}
   data-workflow-explorer
+  data-depth-layout
+  data-depth-min={Astro.props["data-depth-min"]}
   data-section-pattern={pattern}
   data-active-stage="0"
   data-pause-label={labels.pause}
@@ -81,9 +86,9 @@ const labels = locale === "de"
 >
   <div class="workflow__shell page-shell">
     <header class="workflow__intro">
-      <p class="eyebrow">{eyebrow}</p>
+      <p class="eyebrow" data-depth-min="standard">{eyebrow}</p>
       <h2 id={`${id}-title`}>{title}</h2>
-      <div>
+      <div data-depth-min="standard">
         <p class="section-lead"><DetailLevels simple={leadDepths?.simple ?? lead} standard={lead} technical={leadDepths?.technical ?? lead} /></p>
         {handoff && (
           <dl class="product-handoff details-drawer" data-drawer aria-label={labels.handoff}>
@@ -96,8 +101,15 @@ const labels = locale === "de"
       </div>
     </header>
 
-    <div class="workflow__experience">
-      <figure class="workflow__visual">
+    {id === "model" && (
+      <ol class="workflow__simple" data-depth-max="simple">
+        {steps.map((step) => (
+          <li><strong>{step.title}</strong><p>{step.simple ?? step.body}</p></li>
+        ))}
+      </ol>
+    )}
+    <div class="workflow__experience" data-depth-min="standard">
+      <figure class:list={["workflow__visual", { "workflow__visual--contain": imageFit === "contain" }]}>
         <Image
           src={image}
           alt={alt}
@@ -199,7 +211,7 @@ const labels = locale === "de"
       </div>
     </div>
 
-    {closing && <p class="workflow__closing">{closing}</p>}
+    {closing && <p class="workflow__closing" data-depth-min="standard">{closing}</p>}
   </div>
 </section>
 
@@ -538,8 +550,11 @@ const labels = locale === "de"
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 900ms var(--ease), filter 700ms ease;
-    transform: scale(1.015) translate3d(calc((0.5 - var(--workflow-ratio)) * 1.5%), 0, 0);
+    transition: filter 700ms ease;
+  }
+
+  .workflow__visual--contain img {
+    object-fit: contain;
   }
 
   .workflow__glass {
@@ -556,6 +571,7 @@ const labels = locale === "de"
     position: absolute;
     inset: 0;
     z-index: 2;
+    overflow: hidden;
     pointer-events: none;
   }
 

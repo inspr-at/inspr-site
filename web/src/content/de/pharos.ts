@@ -109,6 +109,7 @@ export const pharosContentDe = {
     steps: [
       {
         number: "01",
+        simple: "Sehen Sie aktuelle Berichte darüber, wie es Ihren Servern geht.",
         title: "Beobachten",
         visual: { x: 30, y: 19 },
         body:
@@ -123,6 +124,7 @@ export const pharosContentDe = {
       },
       {
         number: "02",
+        simple: "Vergleichen Sie, was läuft, mit dem, was geplant war.",
         title: "Vergleichen",
         visual: { x: 29, y: 66 },
         body:
@@ -137,6 +139,7 @@ export const pharosContentDe = {
       },
       {
         number: "03",
+        simple: "Prüfen und beurteilen Sie eine Änderung, bevor sie ausgeführt werden kann.",
         title: "Absichern",
         visual: { x: 63, y: 50 },
         body:
@@ -151,6 +154,7 @@ export const pharosContentDe = {
       },
       {
         number: "04",
+        simple: "Prüfen Sie anhand aktueller Berichte, ob die Änderung funktioniert hat.",
         title: "Verifizieren",
         visual: { x: 86, y: 48 },
         body:

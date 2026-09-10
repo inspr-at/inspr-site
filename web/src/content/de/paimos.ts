@@ -420,6 +420,7 @@ export const paimosContentDe = {
     steps: [
       {
         number: "01",
+        simple: "Beschreiben Sie die Arbeit und stimmen Sie einem Plan zu, bevor sie beginnt.",
         title: "Planen",
         visual: { x: 24, y: 18 },
         icon: "folder-kanban",
@@ -435,6 +436,7 @@ export const paimosContentDe = {
       },
       {
         number: "02",
+        simple: "Halten Sie den Code, die Anleitungen und das Projektwissen zusammen.",
         title: "Kontext",
         visual: { x: 22, y: 68 },
         icon: "book-open-check",
@@ -450,6 +452,7 @@ export const paimosContentDe = {
       },
       {
         number: "03",
+        simple: "Wählen Sie, wie die Arbeit ausgeführt wird, und verfolgen Sie ihren Fortschritt.",
         title: "Ausführen",
         visual: { x: 50, y: 40 },
         icon: "play",
@@ -465,6 +468,7 @@ export const paimosContentDe = {
       },
       {
         number: "04",
+        simple: "Prüfen Sie die Ergebnisse und die Aufzeichnungen darüber, was passiert ist.",
         title: "Nachweise",
         visual: { x: 77, y: 69 },
         icon: "file-check-2",
@@ -480,6 +484,7 @@ export const paimosContentDe = {
       },
       {
         number: "05",
+        simple: "Teilen Sie die ausgewählten Ergebnisse mit Ihrem Kunden und halten Sie dessen Abnahme fest.",
         title: "Abnehmen",
         visual: { x: 50, y: 78 },
         icon: "badge-check",

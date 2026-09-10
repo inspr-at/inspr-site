@@ -35,6 +35,7 @@ export type CardItem = {
 };
 
 export type StepItem = CardItem & {
+  simple?: string;
   number: string;
   signal?: string;
   visual?: {

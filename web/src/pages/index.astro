@@ -69,6 +69,7 @@ const products = [
   {
     name: "Aithema",
     sheet: sheets.aithema,
+    simple: copy("Turn your words and files into a clear description of what you need.", "Aus Ihren Worten und Dateien entsteht eine klare Beschreibung dessen, was Sie brauchen."),
     label: copy(productTaxonomy.aithema, "Anforderungen"),
     href: siteUrls.aithema,
     logo: aithemaLogo,
@@ -94,6 +95,7 @@ const products = [
   {
     name: "Paimos",
     sheet: sheets.paimos,
+    simple: copy("Keep the plan, the work and the results together in one project.", "Behalten Sie den Plan, die Arbeit und die Ergebnisse in einem Projekt zusammen."),
     label: copy(productTaxonomy.paimos, "Projektkontext"),
     href: siteUrls.paimos,
     logo: paimosLogo,
@@ -119,6 +121,7 @@ const products = [
   {
     name: "Pharos",
     sheet: sheets.pharos,
+    simple: copy("Check your servers and backups before approving a change.", "Prüfen Sie Ihre Server und Backups, bevor Sie eine Änderung freigeben."),
     label: copy(productTaxonomy.pharos, "Serverzustand und Backup-Nachweise"),
     href: siteUrls.pharos,
     logo: pharosLogo,
@@ -144,6 +147,7 @@ const products = [
   {
     name: "Janus",
     sheet: sheets.janus,
+    simple: copy("Allow a specific use of a secret without showing the secret itself.", "Erlauben Sie eine bestimmte Nutzung eines Geheimnisses, ohne das Geheimnis selbst zu zeigen."),
     label: copy(productTaxonomy.janus, "Governance für Geheimnisse"),
     href: siteUrls.janus,
     logo: janusLogo,
@@ -386,7 +390,7 @@ const productFlowSteps = [
     />
 
     <section
-      class="umbrella-hero page-shell"
+      class="umbrella-hero page-shell" data-depth-layout
       aria-labelledby="hero-title"
       data-section-pattern="editorial-hero"
     >
@@ -413,22 +417,22 @@ const productFlowSteps = [
           <a class="button" href="#flow">
             {copy("See the flow", "Ablauf ansehen")} <span aria-hidden="true">↓</span>
           </a>
-          <a class="button button--ghost" href={repositoryUrl} target="_blank" rel="noopener noreferrer">
+          <a data-depth-min="standard" class="button button--ghost" href={repositoryUrl} target="_blank" rel="noopener noreferrer">
             {copy("Read the source", "Quellcode lesen")} <span aria-hidden="true">↗</span>
           </a>
         </div>
         <dl class="umbrella-spec details-drawer" data-drawer aria-label={copy("This page, technically", "Diese Seite, technisch")}>
           <div class="details-drawer__inner">
-            <div><dt>{copy("release", "Release")}</dt><dd data-live="release">…</dd></div>
-            <div><dt>{copy("source", "Quelle")}</dt><dd data-live="source">…</dd></div>
-            <div><dt>{copy("deployed", "veröffentlicht")}</dt><dd data-live="deployed">…</dd></div>
-            <div><dt>CSP</dt><dd data-live="csp">…</dd></div>
-            <div><dt>HSTS</dt><dd data-live="hsts">…</dd></div>
-            <div><dt>{copy("licence", "Lizenz")}</dt><dd>AGPL-3.0-only</dd></div>
+            <div><dt>{copy("release", "Release")}</dt><dd class="umbrella-spec__token" data-live="release">…</dd></div>
+            <div><dt>{copy("source", "Quelle")}</dt><dd class="umbrella-spec__token" data-live="source">…</dd></div>
+            <div><dt>{copy("deployed", "veröffentlicht")}</dt><dd class="umbrella-spec__token" data-live="deployed">…</dd></div>
+            <div><dt>CSP</dt><dd class="umbrella-spec__token" data-live="csp">…</dd></div>
+            <div><dt>HSTS</dt><dd class="umbrella-spec__token" data-live="hsts">…</dd></div>
+            <div><dt>{copy("licence", "Lizenz")}</dt><dd class="umbrella-spec__token">AGPL-3.0-only</dd></div>
             <div><dt>{copy("hosts", "Hosts")}</dt><dd>{copy("1 build · 5 hostnames · 2 languages", "1 Build · 5 Hostnamen · 2 Sprachen")}</dd></div>
           </div>
         </dl>
-        <p class="umbrella-hero__note">
+        <p class="umbrella-hero__note" data-depth-min="standard">
           {copy(
             "The tools carry the difficult parts. The decisions stay with you.",
             "Die Werkzeuge übernehmen die schwierigen Teile. Die Entscheidungen bleiben bei Ihnen.",
@@ -436,7 +440,7 @@ const productFlowSteps = [
         </p>
       </div>
 
-      <figure class="umbrella-hero__visual">
+      <figure class="umbrella-hero__visual" data-depth-min="standard">
         <HeroLoop
           id="inspr"
           locale={locale}
@@ -458,7 +462,7 @@ const productFlowSteps = [
     </section>
 
     <ul
-      class="umbrella-proof page-shell"
+      class="umbrella-proof page-shell" data-depth-min="standard"
       aria-label={copy("INSPR characteristics and definitions", "INSPR-Merkmale und Erklärungen")}
       data-section-pattern="proof-strip"
     >
@@ -474,7 +478,7 @@ const productFlowSteps = [
       ))}
     </ul>
 
-    <section
+    <section data-depth-min="standard"
       class="umbrella-idea"
       id="idea"
       aria-labelledby="idea-title"
@@ -514,7 +518,7 @@ const productFlowSteps = [
     </section>
 
     <section
-      class="umbrella-products page-shell"
+      class="umbrella-products page-shell" data-depth-layout
       id="products"
       aria-labelledby="products-title"
       data-section-pattern="editorial-product-stories"
@@ -556,7 +560,7 @@ const productFlowSteps = [
               aria-labelledby={`product-${product.name.toLowerCase()}-link`}
             >
               <article class:list={["product-story", { "product-story--reverse": index % 2 === 0 }]}>
-                <span class="product-story__visual">
+                <span class="product-story__visual" data-depth-min="standard">
                   {product.video ? (
                     <HeroLoop
                       id="aithema"
@@ -585,13 +589,14 @@ const productFlowSteps = [
                     <img src={product.logo.src} alt="" width="60" height="60" loading="lazy" />
                     <div>
                       <p class="eyebrow">{product.label}</p>
-                      <h3>{product.name}</h3>
+                      <h3 id={`product-${product.name.toLowerCase()}-link`}>{product.name}</h3>
                     </div>
                   </div>
-                  <h4>{product.title}</h4>
-                  <p>{product.body}</p>
-                  <p class="product-story__detail">{product.detail}</p>
-                  <span class="text-link" id={`product-${product.name.toLowerCase()}-link`}>
+                  <h4 data-depth-min="standard">{product.title}</h4>
+                  <p data-depth-min="standard">{product.body}</p>
+                  <p class="product-story__simple" data-depth-max="simple">{product.simple}</p>
+                  <div data-depth-min="standard"><p class="product-story__detail">{product.detail}</p></div>
+                  <span data-depth-min="standard" class="text-link">
                     {locale === "de" ? `${product.name} ansehen` : `Explore ${product.name}`} <span aria-hidden="true">→</span>
                     <span class="visually-hidden"> ({copy("opens in a new tab", "öffnet in einem neuen Tab")})</span>
                   </span>
@@ -621,7 +626,7 @@ const productFlowSteps = [
     </section>
 
     <section
-      class="identity-utility page-shell"
+      class="identity-utility page-shell" data-depth-min="standard" data-depth-max="standard"
       aria-labelledby="identity-title"
       data-section-pattern="identity-bridge"
     >
@@ -658,7 +663,7 @@ const productFlowSteps = [
       </div>
     </section>
 
-    <WorkflowExplorer
+    <WorkflowExplorer data-depth-min="standard"
       locale={locale}
       id="flow"
       eyebrow={copy("Four steps, four approvals", "Vier Schritte, vier Freigaben")}
@@ -691,7 +696,7 @@ const productFlowSteps = [
       pattern="guided-workflow"
     />
 
-    <section
+    <section data-depth-min="standard"
       class="umbrella-principles page-shell"
       id="principles"
       aria-labelledby="principles-title"
@@ -722,7 +727,7 @@ const productFlowSteps = [
       <PrincipleFieldNotes principles={principles} locale={locale} />
     </section>
 
-    <section
+    <section data-depth-min="standard"
       class="source-panel page-shell"
       id="source"
       aria-labelledby="source-title"
@@ -766,7 +771,7 @@ const productFlowSteps = [
       </nav>
     </section>
 
-    <section
+    <section data-depth-min="standard"
       class="umbrella-faq faq page-shell"
       aria-labelledby="faq-title"
       data-section-pattern="faq-accordion"
@@ -807,7 +812,7 @@ const productFlowSteps = [
     </section>
   </main>
 
-  <MicrositeFooter
+  <MicrositeFooter data-depth-min="standard" data-depth-max="standard"
     name="INSPR"
     repositoryUrl={repositoryUrl}
     licenseName="AGPL-3.0-only"
@@ -851,6 +856,7 @@ const productFlowSteps = [
     color: var(--text-soft, #526269);
     font-size: clamp(1.15rem, 1.7vw, 1.45rem);
     line-height: 1.6;
+    text-wrap: pretty;
   }
 
   .umbrella-spec {
@@ -884,11 +890,19 @@ const productFlowSteps = [
     font-size: 0.62rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
+    overflow-wrap: break-word;
+    hyphens: manual;
+    white-space: nowrap;
   }
 
   .umbrella-spec dd {
     margin: 0;
     color: var(--ink-soft);
+    overflow-wrap: break-word;
+    hyphens: manual;
+  }
+
+  .umbrella-spec dd.umbrella-spec__token {
     overflow-wrap: anywhere;
   }
 

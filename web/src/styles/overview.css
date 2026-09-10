@@ -61,6 +61,7 @@
   color: var(--overview-soft);
   font-size: clamp(1.04rem, 1.35vw, 1.28rem);
   line-height: 1.6;
+  text-wrap: pretty;
 }
 
 .overview-button {

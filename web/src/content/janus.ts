@@ -112,6 +112,7 @@ export const janusContent = {
     steps: [
       {
         number: "01",
+        simple: "Name the secret you need without seeing it or gaining access to it.",
         icon: "list-tree",
         title: "SecretRef",
         visual: { x: 15, y: 50 },
@@ -127,6 +128,7 @@ export const janusContent = {
       },
       {
         number: "02",
+        simple: "Get permission for one specific use for a limited time.",
         icon: "ticket-check",
         title: "UsePermit",
         visual: { x: 55, y: 50 },
@@ -142,6 +144,7 @@ export const janusContent = {
       },
       {
         number: "03",
+        simple: "Use the secret through an approved action that keeps its value hidden.",
         icon: "workflow",
         title: "Approved path",
         visual: { x: 80, y: 47 },

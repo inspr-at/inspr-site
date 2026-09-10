@@ -26,6 +26,15 @@ export const paimosContentDe = {
       "Selbst gehostetes Projektmanagement, das Arbeit, Repository-Kontext, KI-Ausführungskontrollen, Laufnachweise und Kundenabnahme in einem Projektbild zusammenhält.",
   },
   hero: {
+    sheet: {
+      repo: "github.com/inspr-at/paimos",
+      runtime: "Selbst gehostet, ein Container, Anmeldung per OIDC.",
+      gate: "Der Staging-Stand wird im selben Projektmodell geprüft, aus dem der Agent gearbeitet hat; die Freigabe wird am Ticket festgehalten.",
+      artefact: "Tickets, Spezifikationen, Wissen und Laufnachweise, berechtigungsbewusst.",
+      interfaces: "UI, CLI, HTTP-API",
+      maturity: "veröffentlicht, AGPL-3.0-only",
+      command: 'paimos issue create -p PROJ --title "…"',
+    },
     eyebrow: "Projektkontext, geteilt",
     title: "Ein gemeinsames Projektbild.",
     depths: {
@@ -394,6 +403,10 @@ export const paimosContentDe = {
     ],
   },
   model: {
+    handoff: {
+      in: "freigegebener Anforderungssatz",
+      out: "Staging-Build + Nachweise",
+    },
     eyebrow: "So funktioniert es",
     title: "Das Projekt ist die Steuerungsebene.",
     depths: {

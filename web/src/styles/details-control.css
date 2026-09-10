@@ -17,6 +17,110 @@ html[data-details-level="technical"] [data-copy-level="technical"] {
   display: inline;
 }
 
+/* ---- Drawers ---------------------------------------------------------- */
+
+.details-drawer,
+.overview-drawer {
+  --drawer-i: 0;
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.3s ease;
+}
+
+.details-drawer__inner,
+.overview-drawer__inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+html[data-details-level="technical"] .details-drawer,
+html[data-details-level="technical"] .overview-drawer {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition:
+    grid-template-rows 0.65s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--drawer-i) * 45ms),
+    opacity 0.45s ease calc(var(--drawer-i) * 45ms + 120ms);
+}
+
+/* ---- Product datasheets and handoffs ---------------------------------- */
+
+.product-sheet,
+.product-handoff {
+  --sheet-label: color-mix(in srgb, var(--secondary-soft) 65%, var(--ink));
+  --sheet-ink: var(--ink);
+  --sheet-rule: var(--line-strong);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.product-sheet .details-drawer__inner,
+.product-handoff .details-drawer__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 7.5rem) minmax(0, 1fr);
+  gap: 0.45rem 0.75rem;
+  color: var(--sheet-ink);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+/* Keep vertical space inside the clipped wrapper, and only while open. */
+html[data-details-level="technical"] .product-sheet .details-drawer__inner,
+html[data-details-level="technical"] .product-handoff .details-drawer__inner {
+  margin-top: 1.1rem;
+  padding-top: 1.1rem;
+  border-top: 1px dashed var(--sheet-rule);
+}
+
+.product-sheet dt,
+.product-handoff dt {
+  color: var(--sheet-label);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  line-height: 1.7;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.product-sheet dd,
+.product-handoff dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.product-sheet__command {
+  display: block;
+  padding: 0.45rem 0.65rem;
+  border-radius: 0.45rem;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.workflow--ink .product-handoff {
+  --sheet-label: var(--secondary-soft);
+  --sheet-ink: var(--night-soft);
+  --sheet-rule: color-mix(in srgb, var(--night-soft) 30%, transparent);
+}
+
+@media print {
+  .product-sheet .details-drawer__inner,
+  .product-handoff .details-drawer__inner {
+    margin-top: 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px dashed var(--sheet-rule);
+  }
+}
+
 /* ---- Header slider ---------------------------------------------------- */
 
 /* The header cluster stays on one row: the control is compact, its label
@@ -191,5 +295,23 @@ html[data-details-level="technical"] [data-copy-level="technical"] {
 @media print {
   .details-slider {
     display: none;
+  }
+}
+
+/* Both the opening and closing transitions yield to reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .details-drawer,
+  .overview-drawer,
+  html[data-details-level="technical"] .details-drawer,
+  html[data-details-level="technical"] .overview-drawer {
+    transition: none;
+  }
+}
+
+@media print {
+  .details-drawer,
+  .overview-drawer {
+    grid-template-rows: 1fr;
+    opacity: 1;
   }
 }

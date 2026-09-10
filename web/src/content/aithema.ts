@@ -13,6 +13,14 @@ export const aithemaContent = {
       "Aithema turns conversation and files into reviewable requirements. You correct the result and choose whether work should continue.",
   },
   hero: {
+    sheet: {
+      repo: "open module planned; hosted preview today",
+      runtime: "Hosted web preview.",
+      gate: "A person reviews the requirement set and chooses Continue; nothing downstream starts on a draft.",
+      artefact: "Structured, versioned requirement set with its sources.",
+      interfaces: "web preview",
+      maturity: "preview",
+    },
     eyebrow: "Requirements, made reviewable",
     title: "Requirements you approve before work begins.",
     depths: {
@@ -74,6 +82,10 @@ export const aithemaContent = {
     ],
   },
   model: {
+    handoff: {
+      in: "conversation + files",
+      out: "approved requirement set",
+    },
     eyebrow: "The Aithema path",
     title: "Share. Shape. Review. Continue.",
     depths: {

@@ -60,6 +60,74 @@ test("product hero, problem and model leads ship in three depths on both edition
   }
 });
 
+test("product technical drawers share typed, public datasheets and localized handoffs", async () => {
+  const [types, productPage, aithemaPage, workflow, control, styles, stack, overviewStyles] = await Promise.all([
+    source("content/types.ts"),
+    source("components/ProductPage.astro"),
+    source("components/AithemaProductPage.astro"),
+    source("components/WorkflowExplorer.astro"),
+    source("components/DetailsControl.astro"),
+    source("styles/details-control.css"),
+    source("components/OverviewStack.astro"),
+    source("styles/overview-details.css"),
+  ]);
+  assert.match(types, /export type ProductSheet = \{\s*repo: string;\s*runtime: string;\s*gate: string;\s*artefact: string;\s*interfaces: string;\s*maturity: string;\s*command\?: string;\s*\};/);
+  assert.match(types, /export type ProductHandoff = \{\s*in: string;\s*out: string;\s*\};/);
+  assert.equal((types.match(/hero: \{\s*sheet: ProductSheet;/g) || []).length, 2);
+  assert.equal((types.match(/model: \{\s*handoff: ProductHandoff;/g) || []).length, 2);
+
+  const fields = ["repo", "runtime", "gate", "artefact", "interfaces", "maturity"];
+  const handoffs = {
+    en: ["conversation + files", "approved requirement set", "staged build + evidence", "release on a declared host", "bounded permit"],
+    de: ["Gespräch + Dateien", "freigegebener Anforderungssatz", "Staging-Build + Nachweise", "Release auf deklariertem Host", "begrenzte Freigabe"],
+  };
+  for (const [index, slug] of products.entries()) {
+    for (const locale of ["en", "de"]) {
+      const text = await source(`content/${locale === "de" ? "de/" : ""}${slug}.ts`);
+      const hero = text.match(/^  hero: \{\n([\s\S]*?)^  \},/m)?.[1];
+      const model = text.match(/^  model: \{\n([\s\S]*?)^  \},/m)?.[1];
+      assert.ok(hero && model, `${slug} ${locale}: hero and model exist`);
+      const sheet = hero.match(/^    sheet: \{\n([\s\S]*?)^    \},/m)?.[1];
+      const handoff = model.match(/^    handoff: \{\n([\s\S]*?)^    \},/m)?.[1];
+      assert.ok(sheet && handoff, `${slug} ${locale}: sheet belongs to hero, handoff to model`);
+      for (const field of fields) assert.match(sheet, new RegExp(`^      ${field}: "[^"\\n]+",$`, "m"));
+      assert.ok(handoff.includes(`in: "${handoffs[locale][index]}"`));
+      assert.ok(handoff.includes(`out: "${handoffs[locale][index + 1]}"`));
+      if (slug === "paimos") assert.ok(sheet.includes('command: \'paimos issue create -p PROJ --title "…"\''));
+      else assert.doesNotMatch(sheet, /command:/);
+      assert.doesNotMatch(sheet + handoff, /\b(hsb|csb|mbp)\d/i, `${slug} ${locale}: no host names`);
+      assert.doesNotMatch(sheet + handoff, /barta\.cm|netcup|hetzner|storage box/i, `${slug} ${locale}: no internal domains or providers`);
+    }
+  }
+
+  for (const page of [productPage, aithemaPage]) {
+    assert.match(page, /class="product-hero__copy"[\s\S]*?class="button-row"[\s\S]*?<dl class="product-sheet details-drawer" data-drawer>\s*<div class="details-drawer__inner">/);
+    for (const field of fields) assert.ok(page.includes(`<dt>{sheetLabels.${field}}</dt><dd>{content.hero.sheet.${field}}</dd>`));
+    assert.match(page, /content\.hero\.sheet\.command &&/);
+    assert.match(page, /<WorkflowExplorer[\s\S]*?handoff=\{content\.model\.handoff\}/);
+    for (const label of ["Repo", "Laufzeit", "Gate", "Artefakt", "Schnittstellen", "Reife"]) {
+      assert.ok(page.includes(`"${label}"`));
+    }
+  }
+  assert.match(workflow, /handoff\?: ProductHandoff;/);
+  assert.match(workflow, /<DetailLevels[\s\S]*?\{handoff && \(\s*<dl class="product-handoff details-drawer" data-drawer aria-label=\{labels\.handoff\}>\s*<div class="details-drawer__inner">/);
+  assert.match(workflow, /<dt>\{labels\.handoffIn\}<\/dt><dd>\{handoff\.in\}<\/dd>/);
+  assert.match(workflow, /<dt>\{labels\.handoffOut\}<\/dt><dd>\{handoff\.out\}<\/dd>/);
+  for (const label of ["handoff in", "handoff out", "Übergabe hinein", "Übergabe hinaus"]) assert.ok(workflow.includes(`"${label}"`));
+
+  assert.match(control, /querySelectorAll<HTMLElement>\("\[data-drawer\]"\)/);
+  assert.match(control, /drawer\.style\.setProperty\("--drawer-i", String\(index\)\)/);
+  assert.doesNotMatch(stack, /--drawer-i/);
+  assert.doesNotMatch(control, /is:inline/);
+  assert.match(styles, /\.details-drawer,\s*\.overview-drawer \{\s*--drawer-i: 0;\s*display: grid;\s*grid-template-rows: 0fr;\s*opacity: 0;/);
+  assert.match(styles, /\.details-drawer__inner,\s*\.overview-drawer__inner \{\s*min-height: 0;\s*overflow: hidden;/);
+  assert.match(styles, /html\[data-details-level="technical"\] \.details-drawer,[\s\S]*?grid-template-rows: 1fr;\s*opacity: 1;[\s\S]*?calc\(var\(--drawer-i\) \* 45ms\)/);
+  assert.match(styles, /@media \(prefers-reduced-motion: reduce\) \{\s*\.details-drawer,[\s\S]*?html\[data-details-level="technical"\] \.details-drawer,[\s\S]*?transition: none;/);
+  assert.match(styles, /@media print \{\s*\.details-drawer,\s*\.overview-drawer \{\s*grid-template-rows: 1fr;\s*opacity: 1;/);
+  assert.match(styles, /\.product-sheet,\s*\.product-handoff \{[^}]*margin: 0;\s*padding: 0;\s*border: 0;/);
+  assert.doesNotMatch(overviewStyles, /grid-template-rows: [01]fr/);
+});
+
 test("the depth travels across the family's hosts and every product host is probed", async () => {
   const [control, deploy] = await Promise.all([
     source("components/DetailsControl.astro"),

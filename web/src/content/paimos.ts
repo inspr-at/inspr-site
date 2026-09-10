@@ -23,6 +23,15 @@ export const paimosContent = {
       "Self-hosted project management that keeps work, repository context, AI execution controls, run evidence and customer acceptance in one project picture.",
   },
   hero: {
+    sheet: {
+      repo: "github.com/inspr-at/paimos",
+      runtime: "Self-hosted, one container, sign-in via OIDC.",
+      gate: "The staged result is reviewed in the same project model the agent worked from; the approval is recorded on the ticket.",
+      artefact: "Tickets, specs, knowledge and run evidence, permission-aware.",
+      interfaces: "UI, CLI, HTTP API",
+      maturity: "released, AGPL-3.0-only",
+      command: 'paimos issue create -p PROJ --title "…"',
+    },
     eyebrow: "Project context, shared",
     title: "One shared project picture.",
     depths: {
@@ -391,6 +400,10 @@ export const paimosContent = {
     ],
   },
   model: {
+    handoff: {
+      in: "approved requirement set",
+      out: "staged build + evidence",
+    },
     eyebrow: "How it works",
     title: "The project is the control plane.",
     depths: {

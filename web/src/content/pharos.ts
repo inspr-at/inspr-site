@@ -19,6 +19,14 @@ export const pharosContent = {
       "Pharos is a self-hosted fleet operations control plane for server liveness, configuration drift, backup evidence and guarded maintenance workflows.",
   },
   hero: {
+    sheet: {
+      repo: "github.com/inspr-at/pharos",
+      runtime: "Rust server plus an outbound host beacon; no inbound port on the host.",
+      gate: "Backup evidence, build result, authorisation and an explicit confirmation are recorded before the host may apply anything.",
+      artefact: "Host reports, backup and restore evidence, the review record.",
+      interfaces: "UI, beacon, OIDC",
+      maturity: "released, AGPL-3.0-only",
+    },
     eyebrow: "PHAROS / FLEET OPERATIONS",
     title: "Fleet truth before action.",
     depths: {
@@ -81,6 +89,10 @@ export const pharosContent = {
     ],
   },
   model: {
+    handoff: {
+      in: "staged build + evidence",
+      out: "release on a declared host",
+    },
     eyebrow: "OPERATING MODEL",
     title: "Observe. Compare. Gate. Verify.",
     depths: {

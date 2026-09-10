@@ -3,9 +3,8 @@
  * "The stack": the seven layers everything runs on, as a datasheet table.
  * Part of the technical depth of the Overview: the section unfolds when the
  * Details control is at Technical, like every other drawer on the page.
- * Rows answer to #l1 … #l7. The script here also numbers the page's drawers
- * for the staggered unfold, reads the live release facts and handles the
- * layer addresses.
+ * Rows answer to #l1 … #l7. The script here reads the live release facts
+ * and handles the layer addresses.
  *
  * Content rule: convey the kind of machine and the tool, never a host name,
  * internal domain, path or provider SKU.
@@ -155,13 +154,11 @@ const live = {
 </section>
 
 <script>
-  // Technical depth of the Overview: number the drawers for the staggered
-  // unfold, read the live release facts once, answer to layer addresses.
+  // Technical depth of the Overview: read the live release facts once
+  // and answer to layer addresses.
   // Bundled by Astro as a same-origin module, so the strict CSP needs no hash.
   const root = document.documentElement;
-  const drawers = Array.from(document.querySelectorAll<HTMLElement>("[data-drawer]"));
   const rows = Array.from(document.querySelectorAll<HTMLElement>("[data-stack-layer]"));
-  drawers.forEach((drawer, index) => drawer.style.setProperty("--drawer-i", String(index)));
 
   const technical = () => root.getAttribute("data-details-level") === "technical";
   let liveLoaded = false;

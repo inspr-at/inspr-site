@@ -290,17 +290,17 @@ test("Overview Details slider is wordless and its technical depth is a datasheet
   assert.match(stack, /command: "inspr check --profile=server"/);
   assert.match(stack, /fetch\("\/release\.json"/);
   assert.match(stack, /method: "HEAD"/);
-  assert.match(stack, /drawer\.style\.setProperty\("--drawer-i", String\(index\)\)/);
+  assert.match(control, /drawer\.style\.setProperty\("--drawer-i", String\(index\)\)/);
   assert.match(stack, /window\.addEventListener\("hashchange", followHash\)/);
   assert.match(stack, /inspr:details-request[\s\S]*?level: "technical"/);
   assert.match(stack, /event\.key !== "Escape"[\s\S]*?level: "standard"/);
   assert.doesNotMatch(stack + styles, /wheel|preserve-3d|rotateX|data-details-reading|cover/i);
-  assert.match(styles, /html\[data-details-level="technical"\] \.overview-drawer \{[\s\S]*?grid-template-rows: 1fr;[\s\S]*?calc\(var\(--drawer-i\) \* 45ms\)/);
+  assert.match(controlStyles, /html\[data-details-level="technical"\] \.overview-drawer \{[\s\S]*?grid-template-rows: 1fr;[\s\S]*?calc\(var\(--drawer-i\) \* 45ms\)/);
   assert.match(styles, /html\[data-details-level="technical"\] \.overview-kicker\[data-index\]::before \{[\s\S]*?opacity: 1;/);
   assert.match(styles, /html\[data-details-level="simple"\] \.overview-promises small \{[\s\S]*?max-height: 0;/);
   assert.match(styles, /html\[data-details-level="simple"\] \.overview-control \{[\s\S]*?max-height: 0;/);
   assert.match(styles, /@media \(max-width: 64rem\) \{[\s\S]*?\.overview-stack__row \{\s*grid-template-columns: 1fr;/);
-  assert.match(styles, /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\.overview-drawer,/);
+  assert.match(controlStyles, /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\.overview-drawer,/);
   assert.doesNotMatch(stack + control, /is:inline/);
 
   // Public content conveys the kind of machine, never an identity: no host

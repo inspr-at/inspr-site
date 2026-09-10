@@ -4,6 +4,22 @@ export type Depths = {
   technical?: string;
 };
 
+/** The public technical facts shown beneath a product hero. */
+export type ProductSheet = {
+  repo: string;
+  runtime: string;
+  gate: string;
+  artefact: string;
+  interfaces: string;
+  maturity: string;
+  command?: string;
+};
+
+export type ProductHandoff = {
+  in: string;
+  out: string;
+};
+
 export type LinkItem = {
   label: string;
   href: string;
@@ -58,6 +74,7 @@ export type ProductContent = {
     description: string;
   };
   hero: {
+    sheet: ProductSheet;
     depths?: Depths;
     eyebrow: string;
     title: string;
@@ -97,6 +114,7 @@ export type ProductContent = {
     items: CardItem[];
   };
   model: {
+    handoff: ProductHandoff;
     depths?: Depths;
     eyebrow: string;
     title: string;
@@ -170,6 +188,7 @@ export type PreviewProductContent = {
     description: string;
   };
   hero: {
+    sheet: ProductSheet;
     depths?: Depths;
     eyebrow: string;
     title: string;
@@ -189,6 +208,7 @@ export type PreviewProductContent = {
     items: CardItem[];
   };
   model: {
+    handoff: ProductHandoff;
     depths?: Depths;
     eyebrow: string;
     title: string;

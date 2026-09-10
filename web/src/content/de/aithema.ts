@@ -16,6 +16,14 @@ export const aithemaContentDe = {
       "Aithema macht aus Gesprächen und Dateien prüfbare Anforderungen. Sie korrigieren das Ergebnis und entscheiden, ob die Arbeit weitergeht.",
   },
   hero: {
+    sheet: {
+      repo: "offenes Modul geplant; heute gehostete Vorschau",
+      runtime: "Gehostete Web-Vorschau.",
+      gate: "Ein Mensch prüft den Anforderungssatz und wählt Weiter; nichts Nachgelagertes startet auf einem Entwurf.",
+      artefact: "Strukturierter, versionierter Anforderungssatz mit seinen Quellen.",
+      interfaces: "Web-Vorschau",
+      maturity: "Vorschau",
+    },
     eyebrow: "Anforderungen, prüfbar gemacht",
     title: "Anforderungen, die Sie vor Arbeitsbeginn freigeben.",
     depths: {
@@ -77,6 +85,10 @@ export const aithemaContentDe = {
     ],
   },
   model: {
+    handoff: {
+      in: "Gespräch + Dateien",
+      out: "freigegebener Anforderungssatz",
+    },
     eyebrow: "Der Aithema-Weg",
     title: "Teilen. Formen. Prüfen. Weiter.",
     depths: {

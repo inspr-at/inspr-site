@@ -9,83 +9,109 @@
   --details-tilt-y: 0deg;
 }
 
-/* ---- Header switch ---------------------------------------------------- */
+/* ---- Copy depth ------------------------------------------------------- */
 
-.details-switch {
+/* All three depths ship in the HTML; only the chosen one renders. Without
+   JavaScript, or at the default position, the standard depth shows. */
+[data-copy-level] {
+  display: none;
+}
+
+html:not([data-details-level]) [data-copy-level="standard"],
+html[data-details-level="standard"] [data-copy-level="standard"],
+html[data-details-level="simple"] [data-copy-level="simple"],
+html[data-details-level="technical"] [data-copy-level="technical"] {
+  display: inline;
+}
+
+/* ---- Header control: three positions ---------------------------------- */
+
+/* The header cluster must stay on one row: the control is compact, its
+   visible label appears only on very wide screens, and nothing wraps. */
+.site-header__bar:has(.details-slider) {
+  grid-template-columns: minmax(10rem, 0.7fr) auto minmax(10rem, 1.3fr);
+}
+
+.site-header__actions:has(.details-slider) {
+  flex-wrap: nowrap;
+}
+
+.site-header__actions:has(.details-slider) > * {
+  white-space: nowrap;
+}
+
+.details-slider {
   display: inline-flex;
   min-height: 2.65rem;
   align-items: center;
-  gap: 0.55rem;
-  padding: 0 0.7rem 0 0.45rem;
+  gap: 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.details-slider__label {
+  display: none;
+  color: var(--ink-soft, #536773);
+}
+
+@media (min-width: 100rem) {
+  .details-slider__label {
+    display: inline;
+  }
+}
+
+.details-slider__track {
+  display: inline-flex;
+  padding: 0.16rem;
   border: 1px solid var(--rule, rgb(16 45 66 / 0.16));
+  border-radius: 999px;
+  background: rgb(255 253 249 / 0.6);
+}
+
+.details-slider__option {
+  padding: 0.4rem 0.52rem;
+  border: 0;
   border-radius: 999px;
   background: transparent;
   color: var(--ink-soft, #536773);
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  line-height: 1;
-  text-transform: uppercase;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
   cursor: pointer;
-  transition: border-color 0.3s ease, color 0.3s ease;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
-.details-switch:hover,
-.details-switch:focus-visible {
-  border-color: #147b78;
-  color: var(--ink, #102d42);
-  outline: none;
-}
-
-.details-switch:focus-visible {
-  box-shadow: 0 0 0 3px rgb(20 123 120 / 0.25);
-}
-
-.details-switch__track {
-  position: relative;
-  width: 2rem;
-  height: 1.1rem;
-  border-radius: 999px;
-  background: rgb(16 45 66 / 0.16);
-  transition: background 0.35s ease;
-}
-
-.details-switch__knob {
-  position: absolute;
-  top: 0.12rem;
-  left: 0.12rem;
-  width: 0.86rem;
-  height: 0.86rem;
-  border-radius: 50%;
-  background: #fffdf9;
-  box-shadow: 0 1px 2px rgb(16 45 66 / 0.25);
-  transition: transform 0.35s cubic-bezier(0.4, 1.4, 0.5, 1);
-}
-
-.details-switch__led {
-  width: 0.38rem;
-  height: 0.38rem;
-  border-radius: 50%;
-  background: rgb(16 45 66 / 0.18);
-  transition: background 0.35s ease, box-shadow 0.35s ease;
-}
-
-.details-switch[aria-pressed="true"] {
+.details-slider__option:hover {
   color: var(--ink, #102d42);
 }
 
-.details-switch[aria-pressed="true"] .details-switch__track {
+.details-slider__option:focus-visible {
+  outline: 2px solid #147b78;
+  outline-offset: 2px;
+}
+
+.details-slider__option[aria-checked="true"] {
+  background: var(--ink, #102d42);
+  color: #fffdf9;
+}
+
+.details-slider__option[aria-checked="true"][data-details-level="technical"] {
   background: #147b78;
 }
 
-.details-switch[aria-pressed="true"] .details-switch__knob {
-  transform: translateX(0.9rem);
-}
+@media (max-width: 40rem) {
+  .details-slider {
+    gap: 0.3rem;
+    font-size: 0.52rem;
+  }
 
-.details-switch[aria-pressed="true"] .details-switch__led {
-  background: #147b78;
-  box-shadow: 0 0 0.5rem #147b78;
+  .details-slider__option {
+    padding: 0.38rem 0.45rem;
+  }
 }
 
 /* ---- Panel: static exploded stack (default) --------------------------- */
@@ -488,17 +514,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .details-switch,
-  .details-switch__track,
-  .details-switch__knob,
-  .details-switch__led,
+  .details-slider__option,
   .overview-layer {
     transition: none;
   }
 }
 
 @media print {
-  .details-switch,
+  .details-slider,
   .overview-details {
     display: none;
   }

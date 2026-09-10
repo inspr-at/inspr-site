@@ -1,0 +1,17 @@
+---
+/**
+ * One sentence in three depths. All three ship in the static HTML; the
+ * header's Details control picks which one is visible, so switching never
+ * reloads or fetches. Without JavaScript, or at the default position, the
+ * standard depth shows.
+ */
+interface Props {
+  simple: string;
+  standard: string;
+  technical: string;
+}
+
+const { simple, standard, technical } = Astro.props;
+---
+
+<span data-copy-level="simple">{simple}</span><span data-copy-level="standard">{standard}</span><span data-copy-level="technical">{technical}</span>

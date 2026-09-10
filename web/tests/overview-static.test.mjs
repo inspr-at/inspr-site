@@ -230,31 +230,57 @@ test("Overview keeps a bounded, friendly and responsive two-screen structure", a
   assert.doesNotMatch(styles, /animation:/);
 });
 
-test("Overview Details switch reveals seven public-safe layers in both languages", async () => {
-  const [page, header, details, styles, deploy] = await Promise.all([
+test("Overview Details control offers three depths and reveals seven public-safe layers", async () => {
+  const [page, header, details, levels, styles, deploy] = await Promise.all([
     source("components/OverviewPage.astro"),
     source("components/MicrositeHeader.astro"),
     source("components/OverviewDetails.astro"),
+    source("components/DetailLevels.astro"),
     source("styles/overview-details.css"),
     rootFile("deploy.sh"),
   ]);
 
-  // The switch lives in the header, before the language choice, and is named
-  // "Details" — never developer, sysop or nerd.
+  // A three-position control named "Details" sits in the header before the
+  // language choice — never developer, sysop or nerd.
+  assert.match(page, /import DetailLevels from "\.\/DetailLevels\.astro"/);
   assert.match(page, /import OverviewDetails from "\.\/OverviewDetails\.astro"/);
-  assert.match(page, /detailsToggle=\{\{[\s\S]*?label: "Details",[\s\S]*?controls: "overview-details",/);
+  assert.match(page, /detailsSlider=\{\{[\s\S]*?label: "Details",[\s\S]*?controls: "overview-details",/);
+  const levelIds = [...page.matchAll(/\{ id: "(simple|standard|technical)", label: /g)].map((match) => match[1]);
+  assert.deepEqual(levelIds, ["simple", "standard", "technical"]);
   assert.match(page, /<\/main>\s*<OverviewDetails locale=\{locale\} \/>/);
-  assert.match(header, /\{detailsToggle && \([\s\S]*?class="details-switch"[\s\S]*?aria-pressed="false"[\s\S]*?data-details-toggle/);
-  assert.match(header, /data-details-toggle[\s\S]*?\{languageLinks && \(/);
+  assert.match(header, /\{detailsSlider && \([\s\S]*?class="details-slider"[\s\S]*?role="radiogroup"[\s\S]*?data-details-slider/);
+  assert.match(header, /role="radio"[\s\S]*?aria-checked=\{level\.id === "standard" \? "true" : "false"\}[\s\S]*?data-details-level=\{level\.id\}/);
+  assert.match(header, /data-details-slider[\s\S]*?\{languageLinks && \(/);
   assert.doesNotMatch(page + header + details, /developer|sysop|nerd/i);
 
-  // Seven layers, bottom to top, each with a tag, body and tools.
+  // Every depth ships in the static HTML and swaps in place; the standard
+  // depth is what renders without JavaScript.
+  assert.match(levels, /<span data-copy-level="simple">\{simple\}<\/span><span data-copy-level="standard">\{standard\}<\/span><span data-copy-level="technical">\{technical\}<\/span>/);
+  assert.match(styles, /html:not\(\[data-details-level\]\) \[data-copy-level="standard"\]/);
+  assert.equal((page.match(/<DetailLevels/g) || []).length, 6);
+  assert.equal((page.match(/simple: copy\(/g) || []).length, 8);
+  assert.equal((page.match(/technical: copy\(/g) || []).length, 8);
+  for (const phrase of [
+    "Nothing happens without your yes.",
+    "Ohne Ihr Ja passiert nichts.",
+    "You talk, it writes down what you need.",
+    "Sie reden, es schreibt auf, was Sie brauchen.",
+    "Bounded secret permits with roles, delegation and value-free audit; rotation without exposure.",
+    "Begrenzte Secret-Freigaben mit Rollen, Delegation und wertfreiem Audit; Rotation ohne Offenlegung.",
+  ]) {
+    assert.ok(page.includes(phrase), `missing depth copy: ${phrase}`);
+  }
+
+  // Seven layers, bottom to top, each with a tag, body and tools; shown only
+  // at the technical depth.
   const ids = [...details.matchAll(/id: "(l\d)",/g)].map((match) => match[1]);
   assert.deepEqual(ids, ["l1", "l2", "l3", "l4", "l5", "l6", "l7"]);
   assert.match(details, /id="overview-details"[\s\S]*?data-details-panel[\s\S]*?hidden/);
   assert.match(details, /data-details-layer=\{layer\.id\}/);
   assert.match(details, /class="overview-layer__tag"[\s\S]*?aria-expanded="false"[\s\S]*?data-details-layer-tag/);
   assert.match(details, /<dl class="overview-layer__live" data-details-live/);
+  assert.match(details, /setEnabled\(level === "technical"/);
+  assert.match(details, /localStorage\.getItem\(legacyStorageKey\) === "1"\) remembered = "technical"/);
   for (const phrase of [
     "Workstations, home servers and a few rented cloud VMs.",
     "Arbeitsplätze, Heimserver und einige gemietete Cloud-VMs.",
@@ -268,17 +294,20 @@ test("Overview Details switch reveals seven public-safe layers in both languages
 
   // Public content conveys the kind of machine, never an identity: no host
   // names, internal domains, filesystem paths or provider SKUs.
-  assert.doesNotMatch(details, /\b(hsb|csb|mbp)\d/i);
-  assert.doesNotMatch(details, /barta\.cm|headscale\.|\bhs\./i);
-  assert.doesNotMatch(details, /netcup|hetzner|storage box/i);
-  assert.doesNotMatch(details, /~\/|\/run\/|\/home\/|\/srv\//);
+  for (const text of [details, page]) {
+    assert.doesNotMatch(text, /\b(hsb|csb|mbp)\d/i);
+    assert.doesNotMatch(text, /barta\.cm|headscale\.|\bhs\./i);
+    assert.doesNotMatch(text, /netcup|hetzner|storage box/i);
+    assert.doesNotMatch(text, /~\/|\/run\/|\/home\/|\/srv\//);
+  }
 
-  // Live facts come from the page's own origin; the switch remembers itself
-  // the way the language choice does; Escape always closes.
+  // Live facts come from the page's own origin; the control remembers itself
+  // the way the language choice does; Escape returns to standard.
   assert.match(details, /fetch\("\/release\.json"/);
   assert.match(details, /method: "HEAD"/);
   assert.match(details, /localStorage\.(getItem|setItem)\(storageKey/);
-  assert.match(details, /event\.key === "Escape"/);
+  assert.match(details, /event\.key === "Escape" && enabled\) setLevel\("standard"\)/);
+  assert.match(details, /ArrowRight/);
   assert.doesNotMatch(details, /is:inline/);
 
   // Static stack by default; the 3D scene only for fine pointers, wide
@@ -289,7 +318,7 @@ test("Overview Details switch reveals seven public-safe layers in both languages
   assert.match(styles, /order: calc\(7 - var\(--layer-index\)\);/);
   assert.match(styles, /@media print \{[\s\S]*?\.overview-details \{[\s\S]*?display: none;/);
 
-  // Every release proves the switch is live on both editions.
-  assert.match(deploy, /probe_page "INSPR overview details switch" "https:\/\/www\.inspr\.at\/overview\/" "data-details-toggle"/);
-  assert.match(deploy, /probe_page "INSPR German overview details switch" "https:\/\/www\.inspr\.at\/de\/ueberblick\/" "data-details-toggle"/);
+  // Every release proves the control is live on both editions.
+  assert.match(deploy, /probe_page "INSPR overview details switch" "https:\/\/www\.inspr\.at\/overview\/" "data-details-slider"/);
+  assert.match(deploy, /probe_page "INSPR German overview details switch" "https:\/\/www\.inspr\.at\/de\/ueberblick\/" "data-details-slider"/);
 });

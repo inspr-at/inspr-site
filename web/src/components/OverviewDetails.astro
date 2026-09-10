@@ -172,16 +172,21 @@ const live = {
 </aside>
 
 <script>
-  // Details switch: reveals the layers behind the Overview. Bundled by Astro
-  // as a same-origin module, so the strict CSP needs no new hash.
+  // Details control: three depths of copy, and at the technical depth the
+  // layers behind the Overview. Bundled by Astro as a same-origin module, so
+  // the strict CSP needs no new hash.
+  type Level = "simple" | "standard" | "technical";
+  const LEVELS: Level[] = ["simple", "standard", "technical"];
   const root = document.documentElement;
   const panel = document.querySelector<HTMLElement>("[data-details-panel]");
-  const toggles = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-details-toggle]"));
+  const slider = document.querySelector<HTMLElement>("[data-details-slider]");
+  const options = Array.from(slider?.querySelectorAll<HTMLButtonElement>("[data-details-level]") ?? []);
   const pin = panel?.querySelector<HTMLButtonElement>("[data-details-pin]") ?? null;
   const pinLabel = panel?.querySelector<HTMLElement>("[data-details-pin-label]") ?? null;
   const scene = panel?.querySelector<HTMLElement>("[data-details-scene]") ?? null;
   const layers = Array.from(panel?.querySelectorAll<HTMLElement>("[data-details-layer]") ?? []);
-  const storageKey = "inspr-details";
+  const storageKey = "inspr-details-level";
+  const legacyStorageKey = "inspr-details";
   const sceneQuery = window.matchMedia(
     "(hover: hover) and (pointer: fine) and (min-width: 56rem) and (prefers-reduced-motion: no-preference)",
   );
@@ -190,11 +195,12 @@ const live = {
     pinned: pinLabel?.dataset.pinned ?? "Pinned · click to release",
   };
 
+  let level: Level = "standard";
   let enabled = false;
   let pinned = false;
   let liveLoaded = false;
 
-  if (panel && toggles.length > 0) {
+  if (panel && slider && options.length === 3) {
     const setTilt = (x: number, y: number) => {
       root.style.setProperty("--details-tilt-x", `${x.toFixed(2)}deg`);
       root.style.setProperty("--details-tilt-y", `${y.toFixed(2)}deg`);
@@ -248,11 +254,10 @@ const live = {
       }
     };
 
-    const setEnabled = (next: boolean, options: { persist?: boolean; scroll?: boolean } = {}) => {
+    const setEnabled = (next: boolean, scroll: boolean) => {
       enabled = next;
       root.toggleAttribute("data-details", enabled);
       panel.hidden = !enabled;
-      for (const toggle of toggles) toggle.setAttribute("aria-pressed", enabled ? "true" : "false");
       if (!enabled) {
         setPinned(false);
         select(null);
@@ -260,22 +265,46 @@ const live = {
       } else {
         setTilt(0, 0);
         void loadLive();
-        if (options.scroll && !sceneQuery.matches) {
+        if (scroll && !sceneQuery.matches) {
           panel.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }
-      if (options.persist !== false) {
-        try {
-          localStorage.setItem(storageKey, enabled ? "1" : "0");
-        } catch {
-          // Storage may be unavailable; the switch still works for this visit.
         }
       }
     };
 
-    for (const toggle of toggles) {
-      toggle.addEventListener("click", () => setEnabled(!enabled, { scroll: true }));
+    const setLevel = (next: Level, settings: { persist?: boolean; scroll?: boolean } = {}) => {
+      level = next;
+      root.setAttribute("data-details-level", level);
+      for (const option of options) {
+        const checked = option.dataset.detailsLevel === level;
+        option.setAttribute("aria-checked", checked ? "true" : "false");
+        option.tabIndex = checked ? 0 : -1;
+      }
+      setEnabled(level === "technical", settings.scroll === true);
+      if (settings.persist !== false) {
+        try {
+          localStorage.setItem(storageKey, level);
+        } catch {
+          // Storage may be unavailable; the control still works for this visit.
+        }
+      }
+    };
+
+    for (const option of options) {
+      option.addEventListener("click", () => {
+        const next = option.dataset.detailsLevel as Level;
+        if (LEVELS.includes(next)) setLevel(next, { scroll: true });
+      });
     }
+
+    // Arrow keys move along the control like a radio group.
+    slider.addEventListener("keydown", (event) => {
+      const delta = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 0;
+      if (delta === 0) return;
+      event.preventDefault();
+      const next = LEVELS[(LEVELS.indexOf(level) + delta + LEVELS.length) % LEVELS.length];
+      setLevel(next, { scroll: true });
+      options.find((option) => option.dataset.detailsLevel === next)?.focus();
+    });
 
     pin?.addEventListener("click", () => setPinned(!pinned));
 
@@ -314,7 +343,7 @@ const live = {
     });
 
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && enabled) setEnabled(false);
+      if (event.key === "Escape" && enabled) setLevel("standard");
     });
 
     sceneQuery.addEventListener("change", () => {
@@ -335,9 +364,15 @@ const live = {
     let remembered: string | null = null;
     try {
       remembered = localStorage.getItem(storageKey);
+      // The first edition stored an on/off switch; "on" meant technical.
+      if (remembered === null && localStorage.getItem(legacyStorageKey) === "1") remembered = "technical";
     } catch {
       remembered = null;
     }
-    if (remembered === "1") setEnabled(true, { persist: false });
+    if (remembered && LEVELS.includes(remembered as Level) && remembered !== "standard") {
+      setLevel(remembered as Level, { persist: false });
+    } else {
+      setLevel("standard", { persist: false });
+    }
   }
 </script>

@@ -223,7 +223,7 @@ const { label, description, controls, levels } = Astro.props;
   let liveLoaded = false;
 
   const loadLive = async () => {
-    if (liveLoaded) return;
+    if (liveLoaded || !document.querySelector("[data-live]")) return;
     liveLoaded = true;
     const write = (name: string, value: string) => {
       for (const target of document.querySelectorAll<HTMLElement>(`[data-live="${name}"]`)) target.textContent = value;

@@ -9,6 +9,15 @@ import WorkflowExplorer from "../components/WorkflowExplorer.astro";
 import SituationPacket from "../components/SituationPacket.astro";
 import PrincipleFieldNotes from "../components/PrincipleFieldNotes.astro";
 import HeroLoop from "../components/HeroLoop.astro";
+import { aithemaContent } from "../content/aithema";
+import { aithemaContentDe } from "../content/de/aithema";
+import { paimosContent } from "../content/paimos";
+import { paimosContentDe } from "../content/de/paimos";
+import { pharosContent } from "../content/pharos";
+import { pharosContentDe } from "../content/de/pharos";
+import { janusContent } from "../content/janus";
+import { janusContentDe } from "../content/de/janus";
+import type { ProductSheet } from "../content/types";
 import { productTaxonomy, siteUrls } from "../content/urls";
 
 import insprHero from "../assets/products/inspr/hero.png";
@@ -46,9 +55,20 @@ const nav = [
   { label: copy("Source", "Quellcode"), href: "#source" },
 ];
 
+const sheetLabels = locale === "de"
+  ? { repo: "Repo", runtime: "Laufzeit", gate: "Gate", artefact: "Artefakt", interfaces: "Schnittstellen", maturity: "Reife", command: "Befehl" }
+  : { repo: "repo", runtime: "runtime", gate: "gate", artefact: "artefact", interfaces: "interfaces", maturity: "maturity", command: "command" };
+const sheets: Record<"aithema" | "paimos" | "pharos" | "janus", ProductSheet> = {
+  aithema: (locale === "de" ? aithemaContentDe : aithemaContent).hero.sheet,
+  paimos: (locale === "de" ? paimosContentDe : paimosContent).hero.sheet,
+  pharos: (locale === "de" ? pharosContentDe : pharosContent).hero.sheet,
+  janus: (locale === "de" ? janusContentDe : janusContent).hero.sheet,
+};
+
 const products = [
   {
     name: "Aithema",
+    sheet: sheets.aithema,
     label: copy(productTaxonomy.aithema, "Anforderungen"),
     href: siteUrls.aithema,
     logo: aithemaLogo,
@@ -73,6 +93,7 @@ const products = [
   },
   {
     name: "Paimos",
+    sheet: sheets.paimos,
     label: copy(productTaxonomy.paimos, "Projektkontext"),
     href: siteUrls.paimos,
     logo: paimosLogo,
@@ -97,6 +118,7 @@ const products = [
   },
   {
     name: "Pharos",
+    sheet: sheets.pharos,
     label: copy(productTaxonomy.pharos, "Serverzustand und Backup-Nachweise"),
     href: siteUrls.pharos,
     logo: pharosLogo,
@@ -121,6 +143,7 @@ const products = [
   },
   {
     name: "Janus",
+    sheet: sheets.janus,
     label: copy(productTaxonomy.janus, "Governance für Geheimnisse"),
     href: siteUrls.janus,
     logo: janusLogo,
@@ -394,6 +417,17 @@ const productFlowSteps = [
             {copy("Read the source", "Quellcode lesen")} <span aria-hidden="true">↗</span>
           </a>
         </div>
+        <dl class="umbrella-spec details-drawer" data-drawer aria-label={copy("This page, technically", "Diese Seite, technisch")}>
+          <div class="details-drawer__inner">
+            <div><dt>{copy("release", "Release")}</dt><dd data-live="release">…</dd></div>
+            <div><dt>{copy("source", "Quelle")}</dt><dd data-live="source">…</dd></div>
+            <div><dt>{copy("deployed", "veröffentlicht")}</dt><dd data-live="deployed">…</dd></div>
+            <div><dt>CSP</dt><dd data-live="csp">…</dd></div>
+            <div><dt>HSTS</dt><dd data-live="hsts">…</dd></div>
+            <div><dt>{copy("licence", "Lizenz")}</dt><dd>AGPL-3.0-only</dd></div>
+            <div><dt>{copy("hosts", "Hosts")}</dt><dd>{copy("1 build · 5 hostnames · 2 languages", "1 Build · 5 Hostnamen · 2 Sprachen")}</dd></div>
+          </div>
+        </dl>
         <p class="umbrella-hero__note">
           {copy(
             "The tools carry the difficult parts. The decisions stay with you.",
@@ -513,56 +547,74 @@ const productFlowSteps = [
 
       <div class="product-showcase">
         {products.map((product, index) => (
-          <a
-            class="product-story-link"
-            href={product.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-labelledby={`product-${product.name.toLowerCase()}-link`}
-          >
-            <article class:list={["product-story", { "product-story--reverse": index % 2 === 0 }]}>
-              <span class="product-story__visual">
-                {product.video ? (
-                  <HeroLoop
-                    id="aithema"
-                    poster={product.hero}
-                    video={product.video}
-                    alt={product.alt}
-                    sizes="(min-width: 60rem) 48vw, 100vw"
-                    locale={locale}
-                    activation="hover"
-                    showControl={false}
-                    loading="lazy"
-                  />
-                ) : (
-                  <Image
-                    src={product.hero}
-                    alt={product.alt}
-                    widths={[560, 800, 1120]}
-                    sizes="(min-width: 60rem) 48vw, 100vw"
-                    quality={82}
-                    loading="lazy"
-                  />
-                )}
-              </span>
-              <div class="product-story__copy">
-                <div class="product-story__identity">
-                  <img src={product.logo.src} alt="" width="60" height="60" loading="lazy" />
-                  <div>
-                    <p class="eyebrow">{product.label}</p>
-                    <h3>{product.name}</h3>
-                  </div>
-                </div>
-                <h4>{product.title}</h4>
-                <p>{product.body}</p>
-                <p class="product-story__detail">{product.detail}</p>
-                <span class="text-link" id={`product-${product.name.toLowerCase()}-link`}>
-                  {locale === "de" ? `${product.name} ansehen` : `Explore ${product.name}`} <span aria-hidden="true">→</span>
-                  <span class="visually-hidden"> ({copy("opens in a new tab", "öffnet in einem neuen Tab")})</span>
+          <div class="product-story-item">
+            <a
+              class="product-story-link"
+              href={product.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-labelledby={`product-${product.name.toLowerCase()}-link`}
+            >
+              <article class:list={["product-story", { "product-story--reverse": index % 2 === 0 }]}>
+                <span class="product-story__visual">
+                  {product.video ? (
+                    <HeroLoop
+                      id="aithema"
+                      poster={product.hero}
+                      video={product.video}
+                      alt={product.alt}
+                      sizes="(min-width: 60rem) 48vw, 100vw"
+                      locale={locale}
+                      activation="hover"
+                      showControl={false}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <Image
+                      src={product.hero}
+                      alt={product.alt}
+                      widths={[560, 800, 1120]}
+                      sizes="(min-width: 60rem) 48vw, 100vw"
+                      quality={82}
+                      loading="lazy"
+                    />
+                  )}
                 </span>
+                <div class="product-story__copy">
+                  <div class="product-story__identity">
+                    <img src={product.logo.src} alt="" width="60" height="60" loading="lazy" />
+                    <div>
+                      <p class="eyebrow">{product.label}</p>
+                      <h3>{product.name}</h3>
+                    </div>
+                  </div>
+                  <h4>{product.title}</h4>
+                  <p>{product.body}</p>
+                  <p class="product-story__detail">{product.detail}</p>
+                  <span class="text-link" id={`product-${product.name.toLowerCase()}-link`}>
+                    {locale === "de" ? `${product.name} ansehen` : `Explore ${product.name}`} <span aria-hidden="true">→</span>
+                    <span class="visually-hidden"> ({copy("opens in a new tab", "öffnet in einem neuen Tab")})</span>
+                  </span>
+                </div>
+              </article>
+            </a>
+            <dl class="product-sheet details-drawer" data-drawer>
+              <div class="details-drawer__inner">
+                <dt>{sheetLabels.repo}</dt><dd>{product.sheet.repo}</dd>
+                <dt>{sheetLabels.runtime}</dt><dd>{product.sheet.runtime}</dd>
+                <dt>{sheetLabels.gate}</dt><dd>{product.sheet.gate}</dd>
+                <dt>{sheetLabels.artefact}</dt><dd>{product.sheet.artefact}</dd>
+                <dt>{sheetLabels.interfaces}</dt><dd>{product.sheet.interfaces}</dd>
+                <dt>{sheetLabels.maturity}</dt><dd>{product.sheet.maturity}</dd>
+                {product.sheet.command && (
+                  <>
+                    <dt>{sheetLabels.command}</dt>
+                    <dd><code class="product-sheet__command">$ {product.sheet.command}</code></dd>
+                  </>
+                )}
               </div>
-            </article>
-          </a>
+            </dl>
+          </div>
         ))}
 
       </div>
@@ -801,6 +853,45 @@ const productFlowSteps = [
     line-height: 1.6;
   }
 
+  .umbrella-spec {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    line-height: 1.5;
+  }
+
+  .umbrella-spec .details-drawer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem 1.4rem;
+  }
+
+  :global(html[data-details-level="technical"]) .umbrella-spec .details-drawer__inner {
+    margin-top: 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px dashed var(--line);
+  }
+
+  .umbrella-spec .details-drawer__inner > div {
+    min-width: 0;
+  }
+
+  .umbrella-spec dt {
+    color: color-mix(in srgb, var(--secondary-soft) 65%, var(--ink));
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .umbrella-spec dd {
+    margin: 0;
+    color: var(--ink-soft);
+    overflow-wrap: anywhere;
+  }
+
   .umbrella-hero__note {
     margin: 1.5rem 0 0;
     color: var(--text-faint, #708087);
@@ -996,6 +1087,12 @@ const productFlowSteps = [
     display: grid;
     gap: clamp(4rem, 9vw, 8rem);
     margin-top: clamp(3rem, 7vw, 6rem);
+  }
+
+  .product-story-item {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
   }
 
   .product-story-link {

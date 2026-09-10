@@ -141,10 +141,12 @@ test("the depth travels across the family's hosts and every product host is prob
   }
 });
 
-test("the umbrella start page carries the Details slider and six leads in three depths", async () => {
-  const [umbrella, deploy] = await Promise.all([
+test("the umbrella start page carries the Details slider, depth leads and technical datasheets", async () => {
+  const [umbrella, deploy, control, stack] = await Promise.all([
     source("pages/index.astro"),
     rootFile("deploy.sh"),
+    source("components/DetailsControl.astro"),
+    source("components/OverviewStack.astro"),
   ]);
   assert.match(umbrella, /import DetailLevels from "\.\.\/components\/DetailLevels\.astro"/);
   assert.match(umbrella, /languageLinks=\{\{ en: "\/", de: "\/de\/" \}\}\s*detailsSlider=\{\{[\s\S]*?label: "Details",[\s\S]*?\{ id: "technical", label: copy\("Technical", "Technisch"\) \},/);
@@ -160,6 +162,33 @@ test("the umbrella start page carries the Details slider and six leads in three 
   ]) {
     assert.ok(umbrella.includes(phrase), `missing umbrella depth copy: ${phrase}`);
   }
+  for (const slug of products) {
+    assert.ok(umbrella.includes(`import { ${slug}Content } from "../content/${slug}";`));
+    assert.ok(umbrella.includes(`import { ${slug}ContentDe } from "../content/de/${slug}";`));
+    assert.ok(umbrella.includes(`${slug}: (locale === "de" ? ${slug}ContentDe : ${slug}Content).hero.sheet`));
+    assert.match(umbrella, new RegExp(`name: "${slug[0].toUpperCase() + slug.slice(1)}",\\s*sheet: sheets\\.${slug},`));
+  }
+  const spec = umbrella.match(/<dl class="umbrella-spec details-drawer" data-drawer[\s\S]*?<\/dl>/)?.[0];
+  assert.ok(spec, "the umbrella has a technical hero spec strip");
+  for (const field of ["release", "source", "deployed", "csp", "hsts"]) {
+    assert.ok(spec.includes(`data-live="${field}"`));
+  }
+  assert.match(spec, /AGPL-3\.0-only/);
+  assert.match(spec, /copy\("1 build · 5 hostnames · 2 languages", "1 Build · 5 Hostnamen · 2 Sprachen"\)/);
+  assert.match(umbrella, /\.umbrella-spec \{\s*margin: 0;\s*padding: 0;\s*border: 0;/);
+  assert.match(umbrella, /:global\(html\[data-details-level="technical"\]\) \.umbrella-spec \.details-drawer__inner \{\s*margin-top: 1\.1rem;\s*padding-top: 1\.1rem;\s*border-top: 1px dashed var\(--line\);/);
+  const showcase = umbrella.match(/<div class="product-showcase">[\s\S]*?<\/section>/)?.[0];
+  assert.ok(showcase);
+  assert.match(showcase, /<div class="product-story-item">\s*<a[\s\S]*?<\/a>\s*<dl class="product-sheet details-drawer" data-drawer>\s*<div class="details-drawer__inner">/);
+  for (const field of ["repo", "runtime", "gate", "artefact", "interfaces", "maturity"]) {
+    assert.ok(showcase.includes(`<dt>{sheetLabels.${field}}</dt><dd>{product.sheet.${field}}</dd>`));
+  }
+  assert.match(showcase, /product\.sheet\.command &&/);
+  assert.match(showcase, /<code class="product-sheet__command">\$ \{product\.sheet\.command\}<\/code>/);
+  assert.match(control, /fetch\("\/release\.json"/);
+  assert.match(control, /if \(liveLoaded\) return;\s*liveLoaded = true;/);
+  assert.match(control, /if \(level === "technical"\) void loadLive\(\);/);
+  assert.doesNotMatch(stack, /fetch\("\/release\.json"|loadLive/);
   assert.doesNotMatch(umbrella, /\b(hsb|csb|mbp)\d/i);
   assert.doesNotMatch(umbrella, /barta\.cm|netcup|hetzner|storage box/i);
   assert.match(deploy, /probe_page "INSPR umbrella details control" "https:\/\/www\.inspr\.at\/" "data-details-slider"/);

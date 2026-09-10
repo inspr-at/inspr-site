@@ -419,12 +419,6 @@ html[data-details-level="simple"] .product-story__identity img { width: 2.5rem; 
 html[data-details-level="simple"] .product-story__identity h3 { font-size: 1.7rem; }
 html[data-details-level="simple"] .product-story__simple { margin-top: 0.75rem; font-size: 1rem; }
 
-/* Keep the legal/source navigation, compressed below the one-page essence. */
-html[data-details-level="simple"] .site-footer__grid { grid-template-columns: 1fr; padding-block: 1rem; gap: 1rem; }
-html[data-details-level="simple"] .site-footer__legal { padding-block: 0.75rem; }
-html[data-details-level="simple"] .site-footer__brand p { margin-top: 0.5rem; }
-html[data-details-level="simple"] .site-footer nav { gap: 0.35rem; }
-
 .overview-stack__row > *,
 .overview-stack__tools li {
   min-width: 0;

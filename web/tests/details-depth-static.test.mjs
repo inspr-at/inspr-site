@@ -32,11 +32,17 @@ test("shared depth folds measure live pixels, guard completion, reverse and init
   assert.match(css, /\.is-folded[^}]*display: none;/);
 });
 
-test("depth typography avoids mid-word prose breaks and keeps the simple footer compact", async () => {
+test("depth typography avoids mid-word prose breaks and leaves footers outside the fold mechanic", async () => {
   const feature = await source("components/FeatureExperience.astro");
   assert.match(feature, /\.feature-experience__copy\s*\{[^}]*overflow-wrap: break-word;[^}]*hyphens: manual;/);
   const footer = await source("components/MicrositeFooter.astro");
-  assert.equal((footer.match(/<nav data-depth-min="standard"/g) ?? []).length, 3);
+  assert.doesNotMatch(footer, /data-depth-(?:min|max|layout)/);
+  const aithema = await source("components/AithemaProductPage.astro");
+  assert.doesNotMatch(aithema.slice(aithema.indexOf('<footer class="site-footer">')), /data-depth-(?:min|max|layout)/);
+  const overview = await source("components/OverviewPage.astro");
+  assert.doesNotMatch(overview.slice(overview.indexOf('<footer class="overview-footer')), /data-depth-(?:min|max|layout)/);
+  const depthStyles = await source("styles/details-control.css");
+  assert.doesNotMatch(depthStyles, /html\[data-details-level="simple"\] \.site-footer/);
   const microsites = await source("styles/microsites.css");
   assert.match(microsites, /h1,\s*h2,\s*h3,\s*h4\s*\{[^}]*text-wrap: balance;/);
   const typography = await source("styles/typography.css");
@@ -48,8 +54,11 @@ test("umbrella folds supporting sections and compacts all four linked products i
   for (const marker of ['id="idea"', 'id="principles"', 'id="source"', 'data-section-pattern="faq-accordion"']) boundary(page, marker);
   boundary(page, 'data-section-pattern="identity-bridge"', true);
   boundary(page, 'id="flow"', false, "WorkflowExplorer");
-  boundary(page, "ctaTitle=", true, "MicrositeFooter");
-  for (const cls of ["umbrella-hero__visual", "umbrella-proof page-shell", "product-story__visual"]) {
+  const heroStart = page.indexOf('class="umbrella-hero page-shell"');
+  const hero = page.slice(heroStart, page.indexOf("</section>", heroStart));
+  assert.doesNotMatch(hero, /data-depth-(?:min|max)=/);
+  assert.match(hero, /class="umbrella-hero__visual">/);
+  for (const cls of ["umbrella-proof page-shell", "product-story__visual"]) {
     assert.match(page, new RegExp(`class="${cls}" data-depth-min="standard"`));
   }
   assert.match(page, /data-depth-max="simple">\{product\.simple\}/);
@@ -72,14 +81,15 @@ test("all six page families keep their essence and preserve technical evidence",
     if (slug === "aithema") {
       boundary(page, 'id="release-path"');
       boundary(page, 'data-section-pattern="proof-strip"');
-      boundary(page, 'data-section-pattern="professional-cta"', true);
     } else {
       for (const id of ["specs", "architecture", "trust", "open-source"]) boundary(page, `id="${id}"`);
       boundary(page, 'data-section-pattern="filterable-matrix"');
-      boundary(page, "ctaTitle=", true, "MicrositeFooter");
       assert.match(page, /<div data-depth-min="standard">\{content.slug === "paimos" && <PaimosProductSurface/);
     }
-    assert.match(page, /class="product-hero__visual" data-depth-min="standard"/);
+    const heroStart = page.indexOf('class="product-hero page-shell"');
+    const hero = page.slice(heroStart, page.indexOf("</section>", heroStart));
+    assert.doesNotMatch(hero, /data-depth-(?:min|max)=/);
+    assert.match(hero, /class="product-hero__visual">/);
     assert.match(page, /<WorkflowExplorer\s+id="model"/);
   }
 });

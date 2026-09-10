@@ -230,12 +230,12 @@ test("Overview keeps a bounded, friendly and responsive two-screen structure", a
   assert.doesNotMatch(styles, /animation:/);
 });
 
-test("Overview Details slider is wordless and its technical depth is a readable cover flow", async () => {
-  const [page, header, control, details, levels, controlStyles, styles, deploy] = await Promise.all([
+test("Overview Details slider is wordless and its technical depth is a datasheet over the standard page", async () => {
+  const [page, header, control, stack, levels, controlStyles, styles, deploy] = await Promise.all([
     source("components/OverviewPage.astro"),
     source("components/MicrositeHeader.astro"),
     source("components/DetailsControl.astro"),
-    source("components/OverviewDetails.astro"),
+    source("components/OverviewStack.astro"),
     source("components/DetailLevels.astro"),
     source("styles/details-control.css"),
     source("styles/overview-details.css"),
@@ -246,22 +246,18 @@ test("Overview Details slider is wordless and its technical depth is a readable 
   // language choice: a real slider for screen readers, no visible level
   // names, no caption, no tooltip — and never developer, sysop or nerd.
   assert.match(page, /import DetailLevels from "\.\/DetailLevels\.astro"/);
-  assert.match(page, /import OverviewDetails from "\.\/OverviewDetails\.astro"/);
+  assert.match(page, /import OverviewStack from "\.\/OverviewStack\.astro"/);
   assert.match(page, /detailsSlider=\{\{[\s\S]*?label: "Details",[\s\S]*?controls: "overview-details",/);
   assert.deepEqual([...page.matchAll(/\{ id: "(simple|standard|technical)", label: /g)].map((match) => match[1]), ["simple", "standard", "technical"]);
-  assert.match(page, /<\/main>\s*<OverviewDetails locale=\{locale\} \/>/);
   assert.match(header, /import DetailsControl from "\.\/DetailsControl\.astro"/);
   assert.match(header, /\{detailsSlider && \([\s\S]*?<DetailsControl[\s\S]*?\{languageLinks && \(/);
   assert.match(control, /class="details-slider__track"[\s\S]*?role="slider"[\s\S]*?aria-valuemin="0"[\s\S]*?aria-valuemax="2"[\s\S]*?aria-valuetext=\{levels\[1\]\?\.label\}/);
   assert.match(control, /class="details-slider__glyph" aria-hidden="true"><i><\/i><i><\/i><i><\/i>/);
-  assert.match(control, /data-details-name=\{level\.label\}[\s\S]*?aria-hidden="true"/);
   assert.doesNotMatch(control, /title=\{|<span[^>]*>\{level\.label\}/);
-  assert.doesNotMatch(controlStyles, /::after[\s\S]*?content: attr\(data-details-name\)/);
   assert.match(control, /"pointerdown"[\s\S]*?"pointermove"[\s\S]*?"wheel"[\s\S]*?"keydown"/);
   assert.match(control, /searchParams\.get\(linkParam\)/);
-  assert.match(control, /localStorage\.getItem\(legacyStorageKey\) === "1"\) initial = "technical"/);
   assert.match(control, /\[data-specs-eli10\]/);
-  assert.doesNotMatch(page + header + control + details, /developer|sysop|nerd/i);
+  assert.doesNotMatch(page + header + control + stack, /developer|sysop|nerd/i);
 
   // Every depth ships in the static HTML and swaps in place; the standard
   // depth is what renders without JavaScript.
@@ -271,49 +267,45 @@ test("Overview Details slider is wordless and its technical depth is a readable 
   assert.equal((page.match(/simple: copy\(/g) || []).length, 8);
   assert.equal((page.match(/technical: copy\(/g) || []).length, 8);
 
-  // Layout density grows with the depth: Simple folds secondary blocks away,
-  // Technical adds the release meta line; everything transitions.
+  // Technical is a datasheet that unfolds over the standard page: drawers
+  // beneath the hero, the four path cards and the four promises, handoff
+  // labels on the flow, a mono index on the kickers, and the stack section.
+  // No cover flow, no page pushed aside, no scroll hijack.
+  assert.match(page, /class="overview-spec overview-drawer" data-drawer[\s\S]*?data-live="release"[\s\S]*?data-live="csp"[\s\S]*?AGPL-3\.0-only/);
+  assert.match(page, /class="overview-sheet overview-drawer" data-drawer[\s\S]*?\{sheetLabels\.repo\}[\s\S]*?\{sheetLabels\.gate\}[\s\S]*?\{sheetLabels\.maturity\}/);
+  assert.equal((page.match(/    sheet: \{/g) || []).length, 4);
+  assert.equal((page.match(/    mechanism: copy\(/g) || []).length, 4);
+  assert.equal((page.match(/handoff: copy\(/g) || []).length, 5);
+  assert.match(page, /class="overview-flow__handoff" aria-hidden="true">\{node\.handoff\}/);
+  assert.match(page, /class="overview-drawer overview-promise__mechanism" data-drawer/);
+  assert.match(page, /<p class="overview-kicker" data-index="00">/);
+  assert.match(page, /<p class="overview-kicker" data-index="01">/);
+  assert.match(page, /<OverviewStack locale=\{locale\} \/>\s*<section class="overview-next/);
+  assert.doesNotMatch(page, /OverviewDetails|overview-meta/);
+  assert.match(page, /command: 'paimos issue create -p PROJ --title "…"'/);
+  assert.match(stack, /class="overview-stack page-shell overview-drawer overview-drawer--section" id="stack"[\s\S]*?data-drawer/);
+  assert.deepEqual([...stack.matchAll(/id: "(l\d)", number: "L\d"/g)].map((match) => match[1]), ["l7", "l6", "l5", "l4", "l3", "l2", "l1"]);
+  assert.match(stack, /role="table"[\s\S]*?role="columnheader"[\s\S]*?id=\{layer\.id\} data-stack-layer=\{layer\.id\}/);
+  assert.match(stack, /<dl class="overview-stack__live" data-details-live/);
+  assert.match(stack, /command: "inspr check --profile=server"/);
+  assert.match(stack, /fetch\("\/release\.json"/);
+  assert.match(stack, /method: "HEAD"/);
+  assert.match(stack, /drawer\.style\.setProperty\("--drawer-i", String\(index\)\)/);
+  assert.match(stack, /window\.addEventListener\("hashchange", followHash\)/);
+  assert.match(stack, /inspr:details-request[\s\S]*?level: "technical"/);
+  assert.match(stack, /event\.key !== "Escape"[\s\S]*?level: "standard"/);
+  assert.doesNotMatch(stack + styles, /wheel|preserve-3d|rotateX|data-details-reading|cover/i);
+  assert.match(styles, /html\[data-details-level="technical"\] \.overview-drawer \{[\s\S]*?grid-template-rows: 1fr;[\s\S]*?calc\(var\(--drawer-i\) \* 45ms\)/);
+  assert.match(styles, /html\[data-details-level="technical"\] \.overview-kicker\[data-index\]::before \{[\s\S]*?opacity: 1;/);
   assert.match(styles, /html\[data-details-level="simple"\] \.overview-promises small \{[\s\S]*?max-height: 0;/);
   assert.match(styles, /html\[data-details-level="simple"\] \.overview-control \{[\s\S]*?max-height: 0;/);
-  assert.match(styles, /html\[data-details-level="technical"\] \.overview-meta \{[\s\S]*?opacity: 1;/);
-  assert.match(page, /class="overview-meta"[\s\S]*?data-live="release"[\s\S]*?data-live="source"[\s\S]*?data-live="deployed"/);
-
-  // Technical on wide fine-pointer viewports: a vertical cover flow, one
-  // active card fully readable, the rest as tabs; wheel, keys and clicks
-  // move; after the last card the page scroll is released.
-  const ids = [...details.matchAll(/id: "(l\d)",/g)].map((match) => match[1]);
-  assert.deepEqual(ids, ["l1", "l2", "l3", "l4", "l5", "l6", "l7"]);
-  assert.match(details, /\[\.\.\.layers\]\.reverse\(\)\.map\(\(layer, position\)/);
-  assert.match(details, /id="overview-details"[\s\S]*?data-details-panel[\s\S]*?hidden/);
-  assert.match(details, /data-details-counter/);
-  assert.match(details, /data-details-hint/);
-  assert.match(details, /"wheel",[\s\S]*?\{ passive: false \}/);
-  assert.match(details, /ArrowDown: 1, PageDown: 1, ArrowUp: -1, PageUp: -1/);
-  assert.match(details, /setOwning\(false\)/);
-  assert.match(details, /window\.scrollY <= 0/);
-  assert.match(details, /event\.key === "Escape"[\s\S]*?inspr:details-request/);
-  assert.doesNotMatch(details, /data-details-pin/);
-  // Every card has an address (#l1 … #l7): arriving with one opens the
-  // technical depth at that card, browsing writes it silently, leaving
-  // technical clears it.
-  assert.match(details, /<li\s+class="overview-layer"\s+id=\{layer\.id\}/);
-  assert.match(details, /window\.history\.replaceState\(window\.history\.state, "", url\.toString\(\)\)/);
-  assert.match(details, /window\.addEventListener\("hashchange", followHash\)/);
-  assert.match(details, /indexOfHash\(window\.location\.hash\)[\s\S]*?inspr:details-request[\s\S]*?level: "technical"/);
-  assert.match(details, /writeHash\(null\)/);
-  assert.match(styles, /@media \(hover: hover\) and \(pointer: fine\) and \(min-width: 56rem\) and \(prefers-reduced-motion: no-preference\)/);
-  assert.match(styles, /html\[data-details\]:not\(\[data-details-reading\]\) \.overview-main \{[\s\S]*?scale\(0\.56\)/);
-  assert.match(styles, /html\[data-details-reading\] \.overview-details \{[\s\S]*?visibility: hidden;/);
-  assert.match(styles, /\.overview-layer\[data-details-active\] \.overview-layer__body \{[\s\S]*?grid-template-rows: 1fr;/);
-  assert.match(styles, /\.overview-layer__inner \{\s*padding: 0 1\.4rem;/);
-  assert.match(details, /<dl class="overview-layer__live" data-details-live/);
-  assert.match(details, /fetch\("\/release\.json"/);
-  assert.match(details, /method: "HEAD"/);
-  assert.doesNotMatch(details + control, /is:inline/);
+  assert.match(styles, /@media \(max-width: 64rem\) \{[\s\S]*?\.overview-stack__row \{\s*grid-template-columns: 1fr;/);
+  assert.match(styles, /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\.overview-drawer,/);
+  assert.doesNotMatch(stack + control, /is:inline/);
 
   // Public content conveys the kind of machine, never an identity: no host
   // names, internal domains, filesystem paths or provider SKUs.
-  for (const text of [details, page]) {
+  for (const text of [stack, page]) {
     assert.doesNotMatch(text, /\b(hsb|csb|mbp)\d/i);
     assert.doesNotMatch(text, /barta\.cm|headscale\.|\bhs\./i);
     assert.doesNotMatch(text, /netcup|hetzner|storage box/i);

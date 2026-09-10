@@ -1,0 +1,231 @@
+---
+/**
+ * "The stack": the seven layers everything runs on, as a datasheet table.
+ * Part of the technical depth of the Overview: the section unfolds when the
+ * Details control is at Technical, like every other drawer on the page.
+ * Rows answer to #l1 … #l7. The script here also numbers the page's drawers
+ * for the staggered unfold, reads the live release facts and handles the
+ * layer addresses.
+ *
+ * Content rule: convey the kind of machine and the tool, never a host name,
+ * internal domain, path or provider SKU.
+ */
+import "../styles/overview-details.css";
+
+interface Props {
+  locale?: "en" | "de";
+}
+
+const locale: "en" | "de" = Astro.props.locale === "de" ? "de" : "en";
+const copy = (english: string, german: string) => locale === "de" ? german : english;
+
+const columns = {
+  layer: copy("Layer", "Schicht"),
+  what: copy("What it is", "Was es ist"),
+  tools: copy("Tools", "Werkzeuge"),
+  declared: copy("Declared in", "Deklariert in"),
+  verified: copy("Verified by", "Geprüft durch"),
+  evidence: copy("Evidence", "Nachweis"),
+};
+
+const layers = [
+  {
+    id: "l7", number: "L7", name: copy("Doctrine", "Doktrin"),
+    what: copy("The rulebook every AI agent loads at session start: a tiny always-on kernel for irreversible mistakes, deeper packs on demand.", "Das Regelwerk, das jeder KI-Agent zu Beginn jeder Sitzung lädt: ein winziger, immer aktiver Kern für unumkehrbare Fehler, tiefere Pakete bei Bedarf."),
+    tools: [copy("kernel", "Kernel"), copy("domain packs", "Domänenpakete"), "inspr CLI"],
+    declared: copy("inspr-modules, versioned and signed; each repository pins the version it follows", "inspr-modules, versioniert und signiert; jedes Repository pinnt die Version, der es folgt"),
+    verified: copy("inspr check on every machine; inspr heal repairs known drift", "inspr check auf jeder Maschine; inspr heal repariert bekannte Drift"),
+    evidence: copy("signed release tags, pinned revisions", "signierte Release-Tags, gepinnte Revisionen"),
+    command: "inspr check --profile=server",
+  },
+  {
+    id: "l6", number: "L6", name: copy("Products", "Produkte"),
+    what: copy("Aithema, Paimos, Pharos, Janus and this site family: one static build, five hostnames, published by a script that can always roll back.", "Aithema, Paimos, Pharos, Janus und diese Website-Familie: ein statischer Build, fünf Hostnamen, veröffentlicht von einem Skript, das jederzeit zurückrollen kann."),
+    tools: ["Astro", "Caddy", copy("immutable releases", "unveränderliche Releases"), copy("strict CSP", "strikte CSP")],
+    declared: copy("product repositories; the site in inspr-site, its container in the host configuration", "Produkt-Repositories; die Website in inspr-site, ihr Container in der Hostkonfiguration"),
+    verified: copy("content contracts, CSP hash verification, live probes of every hostname after each release", "Inhaltsverträge, CSP-Hash-Prüfung, Live-Probes jedes Hostnamens nach jedem Release"),
+    evidence: copy("release manifest of this page, read live below", "Release-Manifest dieser Seite, unten live gelesen"),
+    live: true,
+  },
+  {
+    id: "l5", number: "L5", name: copy("Service config", "Dienstkonfiguration"),
+    what: copy("Online services with an API are declared as code too. Today that is the identity provider behind every sign-in.", "Auch Online-Dienste mit API werden als Code deklariert. Heute ist das der Identitätsanbieter hinter jeder Anmeldung."),
+    tools: ["OpenTofu", "Zitadel OIDC", copy("single sign-on", "Single Sign-on")],
+    declared: copy("inspr-services", "inspr-services"),
+    verified: copy("plan and apply show the diff before anything changes", "Plan und Apply zeigen den Diff, bevor sich etwas ändert"),
+    evidence: copy("provider state; DNS and repository settings are next", "Provider-State; DNS- und Repository-Einstellungen folgen"),
+  },
+  {
+    id: "l4", number: "L4", name: "Secrets",
+    what: copy("Encrypted at rest and unlocked only by the one host that owns the key. A vault is the human master copy; agents load what they may use and never print it.", "Verschlüsselt und nur von dem Host entschlüsselt, dem der Schlüssel gehört. Ein Tresor ist die Stammkopie für Menschen; Agenten laden, was sie nutzen dürfen, und geben es nie aus."),
+    tools: ["agenix", "1Password", copy("Janus permits", "Janus-Freigaben")],
+    declared: copy("secrets folder of the host configuration, one key per host", "Secrets-Ordner der Hostkonfiguration, ein Schlüssel pro Host"),
+    verified: copy("negative-path tests in Janus; value-free audit of every permit", "Negativpfad-Tests in Janus; wertfreier Audit jeder Freigabe"),
+    evidence: copy("audit records without values", "Audit-Einträge ohne Werte"),
+  },
+  {
+    id: "l3", number: "L3", name: copy("Host config", "Hostkonfiguration"),
+    what: copy("Each host is described in text and built from it. The repository is the truth; activation enforces it. Backups run from the same declaration to off-site storage.", "Jeder Host ist in Text beschrieben und wird daraus gebaut. Das Repository ist die Wahrheit; die Aktivierung setzt sie durch. Backups laufen aus derselben Deklaration auf externen Speicher."),
+    tools: ["NixOS", "nix-darwin", "Home Manager", "disko", copy("ZFS snapshots", "ZFS-Snapshots"), "restic"],
+    declared: copy("one Nix flake for every host, workstation and server", "ein Nix-Flake für jeden Host, Arbeitsplatz wie Server"),
+    verified: copy("activation is the check; Pharos reports drift, lock age and backup posture", "die Aktivierung ist die Prüfung; Pharos meldet Drift, Lock-Alter und Backup-Zustand"),
+    evidence: copy("host reports, restore validation separate from the last run", "Host-Berichte, Restore-Validierung getrennt vom letzten Lauf"),
+  },
+  {
+    id: "l2", number: "L2", name: copy("Network", "Netzwerk"),
+    what: copy("Every machine sits on one private mesh, wherever it is; a self-hosted coordinator holds the keys. Public names go through Cloudflare.", "Jede Maschine hängt in einem privaten Mesh, egal wo sie steht; ein selbst betriebener Koordinator hält die Schlüssel. Öffentliche Namen laufen über Cloudflare."),
+    tools: ["Headscale", "Tailscale", "Cloudflare", "Traefik"],
+    declared: copy("mesh in the host configuration; DNS still by hand, to be declared next", "Mesh in der Hostkonfiguration; DNS noch von Hand, als Nächstes deklariert"),
+    verified: copy("TLS per hostname, HSTS preload, strict CSP on every response", "TLS pro Hostname, HSTS-Preload, strikte CSP auf jeder Antwort"),
+    evidence: copy("the headers of this page", "die Header dieser Seite"),
+  },
+  {
+    id: "l1", number: "L1", name: "Hardware",
+    what: copy("Workstations, home servers and a few rented cloud VMs. Extra servers appear on demand and vanish when the job is done.", "Arbeitsplätze, Heimserver und einige gemietete Cloud-VMs. Zusätzliche Server entstehen bei Bedarf und verschwinden nach getaner Arbeit."),
+    tools: [copy("workstations", "Arbeitsplätze"), copy("home servers", "Heimserver"), copy("cloud VMs", "Cloud-VMs")],
+    declared: copy("inventory lives in Pharos, never in a static list; on-demand VMs via Pharos provisioning", "Inventar lebt in Pharos, nie in einer statischen Liste; On-demand-VMs über Pharos-Provisionierung"),
+    verified: copy("liveness from received heartbeats and each host's declared cadence", "Erreichbarkeit aus empfangenen Heartbeats und der deklarierten Kadenz jedes Hosts"),
+    evidence: copy("heartbeat history with honest gaps", "Heartbeat-Verlauf mit ehrlichen Lücken"),
+  },
+];
+
+const live = {
+  release: copy("release", "Release"),
+  source: copy("source", "Quelle"),
+  deployed: copy("deployed", "veröffentlicht"),
+  csp: copy("CSP script hashes", "CSP-Skript-Hashes"),
+  hsts: "HSTS",
+  pending: copy("reading…", "wird gelesen…"),
+};
+---
+
+<section class="overview-stack page-shell overview-drawer overview-drawer--section" id="stack" aria-labelledby="stack-title" data-drawer>
+  <div class="overview-drawer__inner">
+    <header class="overview-stack__header">
+      <div>
+        <p class="overview-kicker" data-index="02">{copy("The stack", "Der Stack")}</p>
+        <h2 id="stack-title">{copy("What all of this runs on.", "Worauf das alles läuft.")}</h2>
+      </div>
+      <p>{copy(
+        "Seven layers, top to bottom. Every one that can be declared is declared; what remains is judgment.",
+        "Sieben Schichten, von oben nach unten. Alles, was deklariert werden kann, ist deklariert; der Rest ist Urteilskraft.",
+      )}</p>
+    </header>
+
+    <div class="overview-stack__table" role="table" aria-label={copy("The seven layers", "Die sieben Schichten")}>
+      <div class="overview-stack__row overview-stack__row--head" role="row">
+        <span role="columnheader">{columns.layer}</span>
+        <span role="columnheader">{columns.what}</span>
+        <span role="columnheader">{columns.tools}</span>
+        <span role="columnheader">{columns.declared}</span>
+        <span role="columnheader">{columns.verified}</span>
+        <span role="columnheader">{columns.evidence}</span>
+      </div>
+      {layers.map((layer) => (
+        <div class="overview-stack__row" role="row" id={layer.id} data-stack-layer={layer.id}>
+          <span role="rowheader" class="overview-stack__layer">
+            <b>{layer.number}</b>
+            <span>{layer.name}</span>
+          </span>
+          <span role="cell" data-column={columns.what}>
+            {layer.what}
+            {layer.command && <code class="overview-stack__command">$ {layer.command}</code>}
+          </span>
+          <span role="cell" data-column={columns.tools}>
+            <ul class="overview-stack__tools">{layer.tools.map((tool) => <li>{tool}</li>)}</ul>
+          </span>
+          <span role="cell" data-column={columns.declared}>{layer.declared}</span>
+          <span role="cell" data-column={columns.verified}>{layer.verified}</span>
+          <span role="cell" data-column={columns.evidence}>
+            {layer.evidence}
+            {layer.live && (
+              <dl class="overview-stack__live" data-details-live>
+                <div><dt>{live.release}</dt><dd data-live="release">{live.pending}</dd></div>
+                <div><dt>{live.source}</dt><dd data-live="source">{live.pending}</dd></div>
+                <div><dt>{live.deployed}</dt><dd data-live="deployed">{live.pending}</dd></div>
+                <div><dt>{live.csp}</dt><dd data-live="csp">{live.pending}</dd></div>
+                <div><dt>{live.hsts}</dt><dd data-live="hsts">{live.pending}</dd></div>
+              </dl>
+            )}
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  // Technical depth of the Overview: number the drawers for the staggered
+  // unfold, read the live release facts once, answer to layer addresses.
+  // Bundled by Astro as a same-origin module, so the strict CSP needs no hash.
+  const root = document.documentElement;
+  const drawers = Array.from(document.querySelectorAll<HTMLElement>("[data-drawer]"));
+  const rows = Array.from(document.querySelectorAll<HTMLElement>("[data-stack-layer]"));
+  drawers.forEach((drawer, index) => drawer.style.setProperty("--drawer-i", String(index)));
+
+  const technical = () => root.getAttribute("data-details-level") === "technical";
+  let liveLoaded = false;
+
+  const loadLive = async () => {
+    if (liveLoaded) return;
+    liveLoaded = true;
+    const write = (name: string, value: string) => {
+      for (const target of document.querySelectorAll<HTMLElement>(`[data-live="${name}"]`)) target.textContent = value;
+    };
+    try {
+      const manifest = await fetch("/release.json", { cache: "no-store" }).then((response) => response.json());
+      write("release", String(manifest?.deployment?.releaseId ?? "local build"));
+      write("source", String(manifest?.source?.git ?? "unknown") + (manifest?.source?.dirty ? " (dirty)" : ""));
+      write("deployed", String(manifest?.deployment?.deployedAt ?? "not deployed"));
+    } catch {
+      write("release", "unavailable");
+      write("source", "unavailable");
+      write("deployed", "unavailable");
+    }
+    try {
+      const response = await fetch(window.location.pathname, { method: "HEAD", cache: "no-store" });
+      const csp = response.headers.get("content-security-policy") ?? "";
+      const hashes = csp.match(/'sha256-[^']+'/g)?.length ?? 0;
+      write("csp", csp ? `script-src 'self' + ${hashes}` : "not exposed");
+      write("hsts", response.headers.get("strict-transport-security") ? "preload" : "not exposed");
+    } catch {
+      write("csp", "unavailable");
+      write("hsts", "unavailable");
+    }
+  };
+
+  // Every layer row has an address: #l1 … #l7. Arriving with one asks for
+  // the technical depth, then brings the row into view once it has unfolded.
+  const rowOfHash = () => rows.find((row) => `#${row.dataset.stackLayer}` === window.location.hash) ?? null;
+  const revealRow = () => {
+    const row = rowOfHash();
+    if (!row) return;
+    window.setTimeout(() => row.scrollIntoView({ behavior: "smooth", block: "center" }), 700);
+    row.setAttribute("data-stack-highlight", "");
+    window.setTimeout(() => row.removeAttribute("data-stack-highlight"), 2600);
+  };
+  const followHash = () => {
+    if (!rowOfHash()) return;
+    if (!technical()) {
+      document.dispatchEvent(new CustomEvent("inspr:details-request", { detail: { level: "technical" } }));
+      return;
+    }
+    revealRow();
+  };
+
+  document.addEventListener("inspr:details-level", (event) => {
+    if (!technical()) return;
+    void loadLive();
+    const source = (event as CustomEvent<{ source?: string }>).detail?.source;
+    if (source === "user" && rowOfHash()) revealRow();
+  });
+  window.addEventListener("hashchange", followHash);
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || !technical()) return;
+    if ((event.target as HTMLElement | null)?.closest("[data-details-slider], input, textarea, select")) return;
+    document.dispatchEvent(new CustomEvent("inspr:details-request", { detail: { level: "standard" } }));
+  });
+
+  if (technical()) void loadLive();
+  followHash();
+</script>

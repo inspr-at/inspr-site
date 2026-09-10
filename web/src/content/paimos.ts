@@ -417,6 +417,7 @@ export const paimosContent = {
     steps: [
       {
         number: "01",
+        simple: "Describe the work and agree on a plan before it starts.",
         title: "Plan",
         visual: { x: 24, y: 18 },
         icon: "folder-kanban",
@@ -432,6 +433,7 @@ export const paimosContent = {
       },
       {
         number: "02",
+        simple: "Keep the code, instructions and project knowledge together.",
         title: "Context",
         visual: { x: 22, y: 68 },
         icon: "book-open-check",
@@ -447,6 +449,7 @@ export const paimosContent = {
       },
       {
         number: "03",
+        simple: "Choose how the work runs and follow its progress.",
         title: "Run",
         visual: { x: 50, y: 40 },
         icon: "play",
@@ -462,6 +465,7 @@ export const paimosContent = {
       },
       {
         number: "04",
+        simple: "Review the results and the records of what happened.",
         title: "Evidence",
         visual: { x: 77, y: 69 },
         icon: "file-check-2",
@@ -477,6 +481,7 @@ export const paimosContent = {
       },
       {
         number: "05",
+        simple: "Share the selected results with your customer and record their acceptance.",
         title: "Accept",
         visual: { x: 50, y: 78 },
         icon: "badge-check",

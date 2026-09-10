@@ -62,16 +62,162 @@ const { label, description, controls, levels } = Astro.props;
   const LEVELS: Level[] = ["simple", "standard", "technical"];
   const isLevel = (value: unknown): value is Level => LEVELS.includes(value as Level);
   const root = document.documentElement;
-  // Number all drawers before applying the initial depth on any family page.
-  const drawers = Array.from(document.querySelectorAll<HTMLElement>("[data-drawer]"));
-  drawers.forEach((drawer, index) => drawer.style.setProperty("--drawer-i", String(index)));
-  const slider = document.querySelector<HTMLElement>("[data-details-slider]");
-  const track = slider?.querySelector<HTMLElement>("[data-details-track]") ?? null;
-  const notches = Array.from(slider?.querySelectorAll<HTMLElement>("[data-details-level]") ?? []);
   const storageKey = "inspr-details-level";
   const legacyStorageKey = "inspr-details";
   const linkParam = "details";
   let level: Level = "standard";
+  let fromLink = false;
+  try {
+    const url = new URL(window.location.href);
+    const linked = url.searchParams.get(linkParam);
+    if (isLevel(linked)) {
+      level = linked;
+      fromLink = true;
+      url.searchParams.delete(linkParam);
+      window.history.replaceState(window.history.state, "", url.toString());
+    }
+  } catch { /* The default works even without URL/history access. */ }
+  if (!fromLink) {
+    try {
+      const remembered = localStorage.getItem(storageKey);
+      if (isLevel(remembered)) level = remembered;
+      else if (localStorage.getItem(legacyStorageKey) === "1") level = "technical";
+    } catch { /* Storage is optional. */ }
+  }
+
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const FOLD_STAGGER_MS = 25;
+  const FOLD_STAGGER_CAP = 8;
+  const FOLD_MIN_DURATION_MS = 450;
+  const FOLD_MAX_DURATION_MS = 800;
+  const FOLD_HEIGHT_CAP_PX = 1600;
+  const FOLD_TIMEOUT_BUFFER_MS = 50;
+  const folds = Array.from(document.querySelectorAll<HTMLElement>("[data-depth-min], [data-depth-max]"));
+  // Outer boxes animate too, so removing a grid column or reducing its gaps
+  // never instantly moves the following section. These boxes stay open.
+  folds.push(...document.querySelectorAll<HTMLElement>("[data-depth-layout]:not([data-depth-min]):not([data-depth-max])"));
+  folds.sort((a, b) => a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
+  const spacing = ["margin-block-start", "margin-block-end", "padding-block-start", "padding-block-end"];
+  const pending = new Map<HTMLElement, () => void>();
+  const isClosed = (element: HTMLElement, next: Level) => {
+    const depth = LEVELS.indexOf(next);
+    const min = element.dataset.depthMin;
+    const max = element.dataset.depthMax;
+    return (isLevel(min) && depth < LEVELS.indexOf(min)) || (isLevel(max) && depth > LEVELS.indexOf(max));
+  };
+  const settle = (element: HTMLElement, closed: boolean) => {
+    element.classList.toggle("is-folding", closed);
+    element.classList.toggle("is-folded", closed);
+    element.inert = closed;
+    element.style.height = closed ? "" : "auto";
+    element.style.removeProperty("overflow");
+    element.style.removeProperty("min-height");
+    element.style.removeProperty("opacity");
+    element.style.removeProperty("transition");
+    element.style.removeProperty("transition-delay");
+    element.style.removeProperty("transition-duration");
+    spacing.forEach((property) => element.style.removeProperty(property));
+  };
+  const foldTo = (next: Level, animate: boolean) => {
+    const previous = root.getAttribute("data-details-level");
+    const compactChanged = (previous === "simple") !== (next === "simple");
+    const activeElement = document.activeElement;
+    const active = folds.map((element) => pending.has(element)
+      || !isLevel(previous) || isClosed(element, previous) !== isClosed(element, next)
+      || (compactChanged && element.hasAttribute("data-depth-layout") && !isClosed(element, next)));
+    // Read every current box BEFORE changing copy depth or compact layout.
+    // On reversal these are the interpolated pixels, never the old endpoint.
+    const snapshots = folds.map((element) => {
+      const css = getComputedStyle(element);
+      return {
+        height: element.getBoundingClientRect().height,
+        opacity: css.opacity,
+        spacing: spacing.map((property) => css.getPropertyValue(property)),
+      };
+    });
+    root.setAttribute("data-details-level", next);
+    const closed = folds.map((element) => isClosed(element, next));
+    // Measure the complete destination layout in one pass: nested folds must
+    // already have their destination state when their parent is measured.
+    folds.forEach((element, index) => {
+      pending.get(element)?.();
+      settle(element, closed[index]);
+      element.style.transition = "none";
+    });
+    if (!animate || reducedMotion.matches) {
+      folds.forEach((element, index) => settle(element, closed[index]));
+      return;
+    }
+    const targets = folds.map((element, index) => {
+      const css = getComputedStyle(element);
+      return {
+        height: closed[index] ? 0 : element.scrollHeight + parseFloat(css.borderTopWidth) + parseFloat(css.borderBottomWidth),
+        opacity: closed[index] ? "0" : css.opacity,
+        spacing: spacing.map((property) => css.getPropertyValue(property)),
+      };
+    });
+    folds.forEach((element, index) => {
+      if (!active[index]) {
+        settle(element, closed[index]);
+        return;
+      }
+      const current = snapshots[index];
+      element.classList.remove("is-folded");
+      element.style.overflow = "hidden";
+      element.style.minHeight = "0";
+      element.style.height = `${current.height}px`;
+      element.style.opacity = current.opacity;
+      spacing.forEach((property, i) => element.style.setProperty(property, current.spacing[i]));
+      if (closed[index] && element.contains(activeElement)) track?.focus({ preventScroll: true });
+    });
+    void root.offsetHeight;
+    let activeIndex = 0;
+    folds.forEach((element, index) => {
+      if (!active[index]) return;
+      const target = targets[index];
+      const delay = Math.min(activeIndex, FOLD_STAGGER_CAP) * FOLD_STAGGER_MS;
+      const height = Math.max(snapshots[index].height, target.height);
+      const duration = FOLD_MIN_DURATION_MS
+        + (Math.min(height, FOLD_HEIGHT_CAP_PX) / FOLD_HEIGHT_CAP_PX)
+          * (FOLD_MAX_DURATION_MS - FOLD_MIN_DURATION_MS);
+      activeIndex += 1;
+      element.style.removeProperty("transition");
+      element.style.transitionDelay = `${delay}ms`;
+      element.style.transitionDuration = `${duration}ms`;
+      element.style.height = `${target.height}px`;
+      element.style.opacity = target.opacity;
+      spacing.forEach((property, i) => element.style.setProperty(property, target.spacing[i]));
+      const cancel = () => {
+        window.clearTimeout(timer);
+        element.removeEventListener("transitionend", onEnd);
+        pending.delete(element);
+      };
+      const finish = () => {
+        cancel();
+        if (isClosed(element, level) === closed[index]) settle(element, closed[index]);
+      };
+      const onEnd = (event: TransitionEvent) => {
+        if (event.target === element && event.propertyName === "height"
+          && !folds.some((child) => child !== element && element.contains(child) && pending.has(child))) finish();
+      };
+      // Zero-height elements and detached/hidden ancestors emit no height end.
+      const timer = window.setTimeout(finish, duration + delay + FOLD_TIMEOUT_BUFFER_MS);
+      element.addEventListener("transitionend", onEnd);
+      pending.set(element, cancel);
+    });
+  };
+
+  // Apply remembered folds immediately, before numbering drawers or live work.
+  foldTo(level, false);
+  const drawers = Array.from(document.querySelectorAll<HTMLElement>("[data-drawer]"));
+  drawers.forEach((drawer, index) => drawer.style.setProperty("--drawer-i", String(Math.min(index, 8))));
+  const slider = document.querySelector<HTMLElement>("[data-details-slider]");
+  const track = slider?.querySelector<HTMLElement>("[data-details-track]") ?? null;
+  const notches = Array.from(slider?.querySelectorAll<HTMLElement>("[data-details-level]") ?? []);
+  reducedMotion.addEventListener("change", () => foldTo(level, false));
+  window.addEventListener("resize", () => {
+    if (pending.size) foldTo(level, false);
+  });
 
   // Fill every live fact on the page once, when Technical is first applied.
   let liveLoaded = false;
@@ -142,7 +288,7 @@ const { label, description, controls, levels } = Astro.props;
     const setLevel = (next: Level, source: "init" | "user", persist = true) => {
       level = next;
       const position = LEVELS.indexOf(level);
-      root.setAttribute("data-details-level", level);
+      foldTo(level, source !== "init");
       slider.dataset.level = level;
       slider.style.setProperty("--details-pos", String(position));
       track.setAttribute("aria-valuenow", String(position));
@@ -164,6 +310,23 @@ const { label, description, controls, levels } = Astro.props;
       const next = LEVELS[Math.min(2, Math.max(0, LEVELS.indexOf(level) + delta))];
       if (next !== level) setLevel(next, "user");
     };
+
+    // In-page navigation also works when its destination is folded.
+    document.addEventListener("click", (event) => {
+      const anchor = (event.target as Element | null)?.closest<HTMLAnchorElement>('a[href^="#"]');
+      const id = anchor?.getAttribute("href")?.slice(1);
+      const target = id ? document.getElementById(id) : null;
+      const folded = target?.closest<HTMLElement>(".is-folding, .is-folded")
+        ?? (id === "capabilities" ? target?.querySelector<HTMLElement>(".is-folding, .is-folded") : null);
+      if (!target || !folded) return;
+      event.preventDefault();
+      setLevel("standard", "user");
+      history.replaceState(history.state, "", `#${id}`);
+      window.setTimeout(
+        () => target.scrollIntoView({ behavior: reducedMotion.matches ? "instant" : "smooth" }),
+        reducedMotion.matches ? 0 : FOLD_MAX_DURATION_MS + FOLD_STAGGER_CAP * FOLD_STAGGER_MS + FOLD_TIMEOUT_BUFFER_MS,
+      );
+    });
 
     // Click or drag anywhere on the track; the nearest notch wins.
     const levelAt = (clientX: number): Level => {
@@ -221,31 +384,6 @@ const { label, description, controls, levels } = Astro.props;
       if (isLevel(requested)) setLevel(requested, "user");
     });
 
-    // Arrival: an explicit ?details= wins, then the remembered choice, then
-    // the first edition's on/off switch, whose "on" meant technical.
-    let initial: Level = "standard";
-    let fromLink = false;
-    try {
-      const url = new URL(window.location.href);
-      const linked = url.searchParams.get(linkParam);
-      if (isLevel(linked)) {
-        initial = linked;
-        fromLink = true;
-        url.searchParams.delete(linkParam);
-        window.history.replaceState(window.history.state, "", url.toString());
-      }
-    } catch {
-      // Leave the address alone if it cannot be parsed.
-    }
-    if (!fromLink) {
-      try {
-        const remembered = localStorage.getItem(storageKey);
-        if (isLevel(remembered)) initial = remembered;
-        else if (localStorage.getItem(legacyStorageKey) === "1") initial = "technical";
-      } catch {
-        initial = "standard";
-      }
-    }
-    setLevel(initial, "init", fromLink);
+    setLevel(level, "init", fromLink);
   }
 </script>

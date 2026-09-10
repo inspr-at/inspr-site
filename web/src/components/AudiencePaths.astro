@@ -59,7 +59,7 @@ const listLabel = locale === "de" ? "Betriebsperspektiven" : "Operating perspect
     grid-template-columns: auto minmax(0, 1fr);
     gap: 1rem;
     min-height: 16rem;
-    overflow: hidden;
+    overflow: visible;
     padding: clamp(1.25rem, 3vw, 2rem);
     border: 0;
     border-right: 1px solid var(--line);
@@ -83,8 +83,8 @@ const listLabel = locale === "de" ? "Betriebsperspektiven" : "Operating perspect
 
   .audience-paths__watermark {
     position: absolute;
-    right: -0.05em;
-    bottom: -0.22em;
+    right: 0;
+    bottom: 0;
     color: color-mix(in srgb, var(--accent) 9%, transparent);
     font-family: var(--font-display);
     font-size: clamp(7rem, 15vw, 12rem);

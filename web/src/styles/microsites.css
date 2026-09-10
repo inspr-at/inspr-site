@@ -168,7 +168,8 @@
 
   h1,
   h2,
-  h3 {
+  h3,
+  h4 {
     font-family: var(--font-display);
     font-variation-settings: "opsz" 90, "wght" 420, "SOFT" 12, "WONK" 0;
     letter-spacing: -0.035em;
@@ -873,6 +874,7 @@
   }
 
   .specs__tile {
+    display: grid;
     min-height: 10.5rem;
     perspective: 1000px;
   }
@@ -885,7 +887,7 @@
 
   .specs__flip {
     position: relative;
-    display: block;
+    display: grid;
     width: 100%;
     height: 100%;
     min-height: inherit;
@@ -908,8 +910,9 @@
   }
 
   .specs__face {
-    position: absolute;
-    inset: 0;
+    position: relative;
+    inset: auto;
+    grid-area: 1 / 1;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -951,6 +954,13 @@
     line-height: 1.28;
     color: var(--ink-soft);
     text-wrap: balance;
+  }
+
+  @media (max-width: 40rem) {
+    .specs__face--front .specs__label {
+      max-width: 100%;
+      font-size: clamp(0.9rem, 3.8vw, 1.05rem);
+    }
   }
 
   /* ELI10 mode: the section root's data-eli10 attribute decides which text
@@ -1461,8 +1471,7 @@
     color: var(--inspectable-muted);
     font-size: 0.72rem;
     line-height: 1.25;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
   }
 
   .inspectable-rail__selector-arrow {
@@ -2719,18 +2728,23 @@
     font-size: 0.58rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
+    overflow-wrap: break-word;
+    hyphens: manual;
   }
 
   .site-footer__release dd {
     min-width: 0;
     margin: 0;
     color: var(--night-text);
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    hyphens: manual;
   }
 
+  .site-footer__release-token,
   .site-footer__release code {
     color: inherit;
     font: inherit;
+    overflow-wrap: anywhere;
   }
 
   @keyframes rise-in {

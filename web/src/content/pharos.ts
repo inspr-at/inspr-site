@@ -106,6 +106,7 @@ export const pharosContent = {
     steps: [
       {
         number: "01",
+        simple: "See fresh reports on how your servers are doing.",
         title: "Observe",
         visual: { x: 30, y: 19 },
         body:
@@ -120,6 +121,7 @@ export const pharosContent = {
       },
       {
         number: "02",
+        simple: "Compare what is running with what was planned.",
         title: "Compare",
         visual: { x: 29, y: 66 },
         body:
@@ -134,6 +136,7 @@ export const pharosContent = {
       },
       {
         number: "03",
+        simple: "Check and review a change before it can run.",
         title: "Gate",
         visual: { x: 63, y: 50 },
         body:
@@ -148,6 +151,7 @@ export const pharosContent = {
       },
       {
         number: "04",
+        simple: "Check fresh reports to see whether the change worked.",
         title: "Verify",
         visual: { x: 86, y: 48 },
         body:

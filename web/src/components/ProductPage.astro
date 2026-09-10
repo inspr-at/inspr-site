@@ -276,7 +276,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
     <ServiceRibbon text={content.serviceIntro} locale={locale} />
 
     <section
-      class="product-hero page-shell"
+      class="product-hero page-shell" data-depth-layout
       aria-labelledby="hero-title"
       data-section-pattern="editorial-hero"
     >
@@ -310,7 +310,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
         </dl>
       </div>
 
-      <figure class="product-hero__visual">
+      <figure class="product-hero__visual" data-depth-min="standard">
         <HeroLoop
           id={content.slug}
           poster={assets.hero}
@@ -323,7 +323,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
     </section>
 
     <div
-      class="proof-console page-shell"
+      data-depth-min="standard" class="proof-console page-shell"
       role="group"
       aria-label={labels.proofAria}
       data-section-pattern="proof-strip"
@@ -347,7 +347,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
     </div>
 
     {content.specs && (
-      <section
+      <section data-depth-min="standard"
         class="section page-shell specs"
         id="specs"
         aria-labelledby="specs-title"
@@ -444,7 +444,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
       </section>
     )}
 
-    <section
+    <section data-depth-min="standard"
       class="section page-shell"
       id="why"
       aria-labelledby="problem-title"
@@ -481,13 +481,13 @@ const featurePresentations: Record<string, FeaturePresentation> = {
       locale={locale}
     />
 
-    {content.slug === "paimos" && <PaimosProductSurface locale={locale} />}
+    <div data-depth-min="standard">{content.slug === "paimos" && <PaimosProductSurface locale={locale} />}</div>
 
     <div id="capabilities">
       {content.featureSections.map((feature, index) => {
         const presentation = featurePresentations[feature.id] ?? "ledger";
         return (
-          <section
+          <section data-depth-min="standard"
             class:list={["section", "page-shell", { "section--tint": index % 2 === 1 }]}
             id={`feature-${feature.id}`}
             aria-labelledby={`${feature.id}-title`}
@@ -520,7 +520,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
       })}
     </div>
 
-    <section
+    <section data-depth-min="standard" data-depth-max="standard"
       class="section page-shell"
       aria-labelledby="audience-title"
       data-section-pattern="audience-paths"
@@ -533,7 +533,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
       <AudiencePaths id={`${content.slug}-audiences`} items={content.audiences.items} locale={locale} />
     </section>
 
-    <section
+    <section data-depth-min="standard"
       class="section architecture"
       id="architecture"
       aria-labelledby="architecture-title"
@@ -614,7 +614,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
       </div>
     </section>
 
-    <section
+    <section data-depth-min="standard"
       class="section section--ink"
       id="trust"
       aria-labelledby="trust-title"
@@ -637,7 +637,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
       </div>
     </section>
 
-    <section
+    <section data-depth-min="standard"
       class="section page-shell"
       aria-labelledby="integrations-title"
       data-integration-matrix
@@ -687,7 +687,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
       </div>
     </section>
 
-    <section
+    <section data-depth-min="standard"
       class="section section--tint"
       id="limits"
       aria-labelledby="limits-title"
@@ -703,7 +703,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
       </div>
     </section>
 
-    <section
+    <section data-depth-min="standard"
       class="section page-shell open-source"
       id="open-source"
       aria-labelledby="source-title"
@@ -717,7 +717,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
       <ProvenanceReceipt links={content.openSource.links} locale={locale} />
     </section>
 
-    <section
+    <section data-depth-min="standard"
       class="section page-shell faq"
       aria-labelledby="faq-title"
       data-section-pattern="faq-accordion"
@@ -737,7 +737,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
     </section>
   </main>
 
-  <MicrositeFooter
+  <MicrositeFooter data-depth-min="standard" data-depth-max="standard"
     name={content.name}
     repositoryUrl={content.repositoryUrl}
     licenseName={content.license.name}

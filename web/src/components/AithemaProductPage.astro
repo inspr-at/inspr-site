@@ -262,7 +262,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
     <ServiceRibbon text={content.serviceIntro} locale={locale} />
 
     <section
-      class="product-hero page-shell"
+      class="product-hero page-shell" data-depth-layout
       aria-labelledby="hero-title"
       data-section-pattern="editorial-hero"
     >
@@ -298,7 +298,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
         </dl>
       </div>
 
-      <figure class="product-hero__visual">
+      <figure class="product-hero__visual" data-depth-min="standard">
         <HeroLoop
           id="aithema"
           poster={aithemaHero}
@@ -311,7 +311,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
     </section>
 
     <section
-      class="proof-console page-shell"
+      class="proof-console page-shell" data-depth-min="standard"
       aria-label={labels.proofAria}
       data-section-pattern="proof-strip"
     >
@@ -331,7 +331,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
       </ol>
     </section>
 
-    <section
+    <section data-depth-min="standard"
       class="section page-shell"
       id="why"
       aria-labelledby="problem-title"
@@ -361,6 +361,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
       handoff={content.model.handoff}
       steps={content.model.steps}
       image={aithemaLogo}
+      imageFit="contain"
       alt={labels.workflowAlt}
       closing={content.model.closing}
       tone="ink"
@@ -370,7 +371,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
 
     <div id="capabilities">
       {content.featureSections.map((feature, index) => (
-        <section
+        <section data-depth-min="standard"
           class:list={["section", "page-shell", { "section--tint": index % 2 === 1 }]}
           id={`feature-${feature.id}`}
           aria-labelledby={`${feature.id}-title`}
@@ -392,7 +393,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
       ))}
     </div>
 
-    <section
+    <section data-depth-min="standard" data-depth-max="standard"
       class="section page-shell"
       aria-labelledby="audience-title"
       data-section-pattern="audience-paths"
@@ -405,7 +406,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
       <AudiencePaths id="aithema-audiences" items={content.audiences.items} locale={locale} />
     </section>
 
-    <section
+    <section data-depth-min="standard"
       class="section section--tint"
       id="limits"
       aria-labelledby="limits-title"
@@ -421,7 +422,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
       </div>
     </section>
 
-    <section
+    <section data-depth-min="standard"
       class="section page-shell open-source"
       id="release-path"
       aria-labelledby="release-path-title"
@@ -444,7 +445,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
       </div>
     </section>
 
-    <section
+    <section data-depth-min="standard"
       class="section page-shell faq"
       aria-labelledby="faq-title"
       data-section-pattern="faq-accordion"
@@ -465,7 +466,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
   </main>
 
   <footer class="site-footer">
-    <section
+    <section data-depth-min="standard" data-depth-max="standard"
       class="footer-cta page-shell"
       aria-labelledby="footer-cta-title"
       data-section-pattern="professional-cta"
@@ -485,7 +486,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
       </a>
     </section>
 
-    <div class="site-footer__grid page-shell">
+    <div class="site-footer__grid page-shell" data-depth-layout>
       <div class="site-footer__brand">
         <strong>{content.name}</strong>
         <p>{labels.familyDescription}</p>
@@ -531,7 +532,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
       </nav>
     </div>
 
-    <div class="site-footer__legal page-shell">
+    <div class="site-footer__legal page-shell" data-depth-layout>
       <p class="site-footer__legal-copy">
         <span>
           © {year} <a href={siteUrls.author} target="_blank" rel="me noopener noreferrer">Markus Barta</a> · INSPR
@@ -546,7 +547,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
       >
         <div>
           <dt>Site</dt>
-          <dd title={`${labels.package} ${releaseMetadata.packageName}`}>v{releaseMetadata.version}</dd>
+          <dd class="site-footer__release-token" title={`${labels.package} ${releaseMetadata.packageName}`}>v{releaseMetadata.version}</dd>
         </div>
         <div>
           <dt>Git</dt>

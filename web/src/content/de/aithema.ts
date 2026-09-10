@@ -102,6 +102,7 @@ export const aithemaContentDe = {
     steps: [
       {
         number: "01",
+        simple: "Sagen oder schreiben Sie, was Sie brauchen, und fügen Sie hilfreiche Dateien hinzu.",
         title: "Teilen",
         visual: { x: 23, y: 31 },
         body:
@@ -111,6 +112,7 @@ export const aithemaContentDe = {
       },
       {
         number: "02",
+        simple: "Machen Sie daraus eine klare Beschreibung, die Sie ändern können.",
         title: "Formen",
         visual: { x: 42, y: 52 },
         body:
@@ -120,6 +122,7 @@ export const aithemaContentDe = {
       },
       {
         number: "03",
+        simple: "Lesen Sie den Entwurf und korrigieren Sie, was falsch ist oder fehlt.",
         title: "Prüfen",
         visual: { x: 64, y: 52 },
         body:
@@ -129,6 +132,7 @@ export const aithemaContentDe = {
       },
       {
         number: "04",
+        simple: "Gehen Sie weiter, sobald die Beschreibung sagt, was Sie wirklich wollen.",
         title: "Weiter",
         visual: { x: 82, y: 31 },
         body:

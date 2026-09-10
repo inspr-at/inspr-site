@@ -288,7 +288,7 @@ const steps = [
   />
 
   <main id="main-content" class="overview-main">
-    <section class="overview-hero page-shell" aria-labelledby="overview-title">
+    <section class="overview-hero page-shell" data-depth-layout aria-labelledby="overview-title">
       <div class="overview-hero__copy">
         <p class="overview-kicker" data-index="00">{copy("A clear starting point", "Ein klarer Einstieg")}</p>
         <h1 id="overview-title">
@@ -316,12 +316,12 @@ const steps = [
         </a>
         <dl class="overview-spec overview-drawer" data-drawer aria-label={copy("This page, technically", "Diese Seite, technisch")}>
           <div class="overview-drawer__inner">
-            <div><dt>{copy("release", "Release")}</dt><dd data-live="release">…</dd></div>
-            <div><dt>{copy("source", "Quelle")}</dt><dd data-live="source">…</dd></div>
-            <div><dt>{copy("deployed", "veröffentlicht")}</dt><dd data-live="deployed">…</dd></div>
-            <div><dt>CSP</dt><dd data-live="csp">…</dd></div>
-            <div><dt>HSTS</dt><dd data-live="hsts">…</dd></div>
-            <div><dt>{copy("licence", "Lizenz")}</dt><dd>AGPL-3.0-only</dd></div>
+            <div><dt>{copy("release", "Release")}</dt><dd class="overview-spec__token" data-live="release">…</dd></div>
+            <div><dt>{copy("source", "Quelle")}</dt><dd class="overview-spec__token" data-live="source">…</dd></div>
+            <div><dt>{copy("deployed", "veröffentlicht")}</dt><dd class="overview-spec__token" data-live="deployed">…</dd></div>
+            <div><dt>CSP</dt><dd class="overview-spec__token" data-live="csp">…</dd></div>
+            <div><dt>HSTS</dt><dd class="overview-spec__token" data-live="hsts">…</dd></div>
+            <div><dt>{copy("licence", "Lizenz")}</dt><dd class="overview-spec__token">AGPL-3.0-only</dd></div>
             <div><dt>{copy("hosts", "Hosts")}</dt><dd>{copy("1 build · 5 hostnames · 2 languages", "1 Build · 5 Hostnamen · 2 Sprachen")}</dd></div>
           </div>
         </dl>
@@ -345,7 +345,7 @@ const steps = [
         </ol>
       </div>
 
-      <ul class="overview-promises" aria-label={copy("What remains yours", "Was bei Ihnen bleibt")}>
+      <ul class="overview-promises" data-depth-min="standard" aria-label={copy("What remains yours", "Was bei Ihnen bleibt")}>
         {promises.map((promise) => (
           <li>
             <span class="overview-promise__icon"><ContextIcon name={promise.icon} size={23} strokeWidth={1.65} /></span>
@@ -361,7 +361,7 @@ const steps = [
       </ul>
     </section>
 
-    <section class="overview-path page-shell" id="path" aria-labelledby="path-title">
+    <section class="overview-path page-shell" data-depth-layout id="path" aria-labelledby="path-title">
       <header class="overview-path__header">
         <div>
           <p class="overview-kicker" data-index="01">{copy("The path", "Der Weg")}</p>
@@ -396,7 +396,7 @@ const steps = [
               aria-labelledby={`overview-step-${step.id}-title`}
               aria-describedby={`overview-step-${step.id}-role overview-step-${step.id}-body overview-step-${step.id}-approval`}
             >
-              <div class="overview-step__preview" aria-hidden="true">
+              <div class="overview-step__preview" data-depth-min="standard" aria-hidden="true">
                 <HeroLoop
                   id={step.id}
                   poster={step.hero}
@@ -420,13 +420,13 @@ const steps = [
                   <span class="overview-step__arrow" aria-hidden="true">↗</span>
                 </h3>
                 <p class="overview-step__body" id={`overview-step-${step.id}-body`}><DetailLevels simple={step.simple} standard={step.body} technical={step.technical} /></p>
-                <p class="overview-step__approval" id={`overview-step-${step.id}-approval`}>
+                <p class="overview-step__approval" data-depth-min="standard" id={`overview-step-${step.id}-approval`}>
                   <ContextIcon name="user-round-check" size={20} strokeWidth={1.75} />
                   <span>{step.approval}</span>
                 </p>
               </div>
               {index < steps.length - 1 && (
-                <span class="overview-step__connector" aria-hidden="true">
+                <span class="overview-step__connector" data-depth-min="standard" aria-hidden="true">
                   <ContextIcon name="user-round-check" size={18} strokeWidth={1.6} />
                 </span>
               )}
@@ -448,7 +448,7 @@ const steps = [
         ))}
       </ol>
 
-      <div class="overview-control">
+      <div class="overview-control" data-depth-min="standard">
         <p class="overview-control__default">
           <ContextIcon name="shield-check" size={23} strokeWidth={1.7} />
           <span>
@@ -477,7 +477,7 @@ const steps = [
 
     <OverviewStack locale={locale} />
 
-    <section class="overview-next page-shell" aria-labelledby="next-title">
+    <section class="overview-next page-shell" data-depth-min="standard" aria-labelledby="next-title">
       <div class="overview-next__copy">
         <p class="overview-kicker" data-index="03">{copy("Beyond the overview", "Nach dem Überblick")}</p>
         <h2 id="next-title">{copy("The rest is open to you.", "Alles Weitere steht Ihnen offen.")}</h2>

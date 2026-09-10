@@ -48,6 +48,14 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  .display,
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+
   /* ---- Display class (used on .display / hero h1) ---------------------- */
   .display {
     font-family: var(--font-display);
@@ -59,7 +67,6 @@
     font-weight: 360;
     line-height: 0.96;
     letter-spacing: -0.022em;
-    text-wrap: balance;
     transition:
       --fr-wonk var(--dur-medium) var(--ease),
       --fr-soft var(--dur-slow) var(--ease);
@@ -72,7 +79,6 @@
     font-size: var(--t-2xl);
     line-height: 1.05;
     letter-spacing: -0.015em;
-    text-wrap: balance;
     margin-block-end: 0.5em;
     color: var(--text);
   }

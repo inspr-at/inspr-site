@@ -99,6 +99,7 @@ export const aithemaContent = {
     steps: [
       {
         number: "01",
+        simple: "Say or write what you need and add helpful files.",
         title: "Share",
         visual: { x: 23, y: 31 },
         body:
@@ -108,6 +109,7 @@ export const aithemaContent = {
       },
       {
         number: "02",
+        simple: "Turn that input into a clear description you can change.",
         title: "Shape",
         visual: { x: 42, y: 52 },
         body:
@@ -117,6 +119,7 @@ export const aithemaContent = {
       },
       {
         number: "03",
+        simple: "Read the draft and correct anything wrong or missing.",
         title: "Review",
         visual: { x: 64, y: 52 },
         body:
@@ -126,6 +129,7 @@ export const aithemaContent = {
       },
       {
         number: "04",
+        simple: "Continue when the description says what you really want.",
         title: "Continue",
         visual: { x: 82, y: 31 },
         body:

@@ -116,7 +116,7 @@ test("product technical drawers share typed, public datasheets and localized han
   for (const label of ["handoff in", "handoff out", "Übergabe hinein", "Übergabe hinaus"]) assert.ok(workflow.includes(`"${label}"`));
 
   assert.match(control, /querySelectorAll<HTMLElement>\("\[data-drawer\]"\)/);
-  assert.match(control, /drawer\.style\.setProperty\("--drawer-i", String\(index\)\)/);
+  assert.match(control, /drawer\.style\.setProperty\("--drawer-i", String\(Math\.min\(index, 8\)\)\)/);
   assert.doesNotMatch(stack, /--drawer-i/);
   assert.doesNotMatch(control, /is:inline/);
   assert.match(styles, /\.details-drawer,\s*\.overview-drawer \{\s*--drawer-i: 0;\s*display: grid;\s*grid-template-rows: 0fr;\s*opacity: 0;/);

@@ -24,6 +24,12 @@ export const pharosContentDe = {
   hero: {
     eyebrow: "PHAROS / FLOTTENBETRIEB",
     title: "Flottenwahrheit vor Aktion.",
+    depths: {
+      simple:
+        "Pharos zeigt den Menschen, die Ihre Server betreiben, was wirklich los ist: welche Maschinen gesund sind, welche abgedriftet sind, ob Backups funktioniert haben und was noch zu tun ist. Eine Anfrage sieht nie so aus, als wäre sie schon passiert.",
+      technical:
+        "Pharos gibt Operatoren einen aktuellen Blick auf Hosts, Konfigurationsdrift, Backup-Zustand und Wartung. Beobachteter Zustand, deklarierte Absicht und offene Aktionen bleiben in getrennten Schichten, damit ein Vorschlag nie als Fakt erscheint.",
+    },
     lead:
       "Pharos gibt Betriebsteams einen aktuellen Blick auf Server, Konfigurationsdrift, Backups und Wartung. Beobachteter Zustand, deklarierte Absicht und offene Arbeit bleiben getrennt. Eine Anfrage wird nie so dargestellt, als wäre sie schon Wirklichkeit geworden.",
     alt: "Ein Leuchtturm über einem ruhigen Netz verbundener Server",
@@ -41,6 +47,12 @@ export const pharosContentDe = {
   problem: {
     eyebrow: "DIE BETRIEBSLÜCKE",
     title: "Die Lücken sind das Risiko.",
+    depths: {
+      simple:
+        "Ein Server kann antworten und trotzdem still kaputtgehen. Ein Backup kann Erfolg melden, ohne zu belegen, dass sich etwas wiederherstellen lässt. Ein Deploy-Knopf kann funktionieren und keine Spur hinterlassen, was geprüft wurde. Pharos hält diese Fakten auseinander, statt sie zu vermischen.",
+      technical:
+        "Erreichbarkeit ist keine korrekte Konfiguration; ein erfolgreicher Backup-Job ist kein Restore-Nachweis; eine funktionierende Deploy-Aktion ist kein Prüfprotokoll. Pharos modelliert jedes davon als eigenes Signal, statt alles zu einer grünen Lampe zu verschmelzen.",
+    },
     lead:
       "Ein Server kann auf einen Ping antworten, während seine Konfiguration driftet. Ein Backup-Job kann erfolgreich sein, ohne zu belegen, dass sich etwas wiederherstellen lässt. Ein Deploy-Knopf kann funktionieren und trotzdem keinen belastbaren Nachweis hinterlassen, was geprüft wurde. Pharos führt diese Fakten zusammen, ohne so zu tun, als wären sie dasselbe.",
     visualAlt:
@@ -74,6 +86,12 @@ export const pharosContentDe = {
   model: {
     eyebrow: "BETRIEBSMODELL",
     title: "Beobachten. Vergleichen. Absichern. Verifizieren.",
+    depths: {
+      simple:
+        "Eine einfache Regel: Was wahr ist, was wir wollen und was wir tun, bleibt getrennt. So ist die Flotte leichter zu verstehen und schwerer versehentlich kaputtzumachen.",
+      technical:
+        "Fakten, Absicht und Aktionen liegen in getrennten Schichten: beobachtete Berichte, deklarierte Konfiguration und abgesicherte Operationen. Die Trennung hält das Flottenmodell lesbar und macht versehentliche Zustandsänderungen strukturell schwer.",
+    },
     lead:
       "Pharos folgt einer einfachen Regel: Fakten, Absicht und Aktionen gehören in verschiedene Schichten. Diese Trennung macht die Flotte leichter verständlich und schwerer versehentlich veränderbar.",
     steps: [

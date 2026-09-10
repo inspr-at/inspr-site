@@ -1,3 +1,9 @@
+/** One lead in two extra depths; the standard depth is the field itself. */
+export type Depths = {
+  simple?: string;
+  technical?: string;
+};
+
 export type LinkItem = {
   label: string;
   href: string;
@@ -52,6 +58,7 @@ export type ProductContent = {
     description: string;
   };
   hero: {
+    depths?: Depths;
     eyebrow: string;
     title: string;
     lead: string;
@@ -81,6 +88,7 @@ export type ProductContent = {
     }>;
   };
   problem: {
+    depths?: Depths;
     eyebrow: string;
     title: string;
     lead: string;
@@ -89,6 +97,7 @@ export type ProductContent = {
     items: CardItem[];
   };
   model: {
+    depths?: Depths;
     eyebrow: string;
     title: string;
     lead: string;
@@ -161,6 +170,7 @@ export type PreviewProductContent = {
     description: string;
   };
   hero: {
+    depths?: Depths;
     eyebrow: string;
     title: string;
     lead: string;
@@ -170,6 +180,7 @@ export type PreviewProductContent = {
   serviceIntro: string;
   proof: string[];
   problem: {
+    depths?: Depths;
     eyebrow: string;
     title: string;
     lead: string;
@@ -178,6 +189,7 @@ export type PreviewProductContent = {
     items: CardItem[];
   };
   model: {
+    depths?: Depths;
     eyebrow: string;
     title: string;
     lead: string;

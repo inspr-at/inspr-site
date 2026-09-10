@@ -1,0 +1,216 @@
+---
+/**
+ * The Details control: a wordless level slider, three notches, like a
+ * volume control. Left of it a glyph of three rising bars fills with the
+ * level. No visible level names, no caption, no tooltip; screen readers get
+ * a real slider with a value text.
+ *
+ *   0 simple     plain words for deciders, less on the page
+ *   1 standard   the page as most readers see it (renders without JavaScript)
+ *   2 technical  terms of art, more on the page; the Overview opens its scene
+ *
+ * The control owns the level: it stamps `data-details-level` on <html>,
+ * remembers the choice like the language choice, honours `?details=` on
+ * arrival so the depth travels between the family's hosts, keeps cross-host
+ * links carrying it, and switches the specs grid's plain-words mode on for
+ * Simple. Other scripts listen for `inspr:details-level` and may ask for a
+ * change with `inspr:details-request`.
+ */
+import "../styles/details-control.css";
+
+interface Props {
+  label: string;
+  description: string;
+  controls?: string;
+  levels: Array<{ id: "simple" | "standard" | "technical"; label: string }>;
+}
+
+const { label, description, controls, levels } = Astro.props;
+---
+
+<div class="details-slider" data-details-slider data-level="standard" style="--details-pos: 1;">
+  <span class="details-slider__label" aria-hidden="true">{label}</span>
+  <span class="details-slider__glyph" aria-hidden="true"><i></i><i></i><i></i></span>
+  <div
+    class="details-slider__track"
+    role="slider"
+    tabindex="0"
+    aria-label={description}
+    aria-controls={controls}
+    aria-valuemin="0"
+    aria-valuemax="2"
+    aria-valuenow="1"
+    aria-valuetext={levels[1]?.label}
+    data-details-track
+  >
+    <span class="details-slider__fill" aria-hidden="true"></span>
+    {levels.map((level, index) => (
+      <span
+        class="details-slider__notch"
+        style={`--i: ${index};`}
+        data-details-level={level.id}
+        data-details-name={level.label}
+        aria-hidden="true"
+      ></span>
+    ))}
+    <span class="details-slider__knob" aria-hidden="true"></span>
+  </div>
+</div>
+
+<script>
+  type Level = "simple" | "standard" | "technical";
+  const LEVELS: Level[] = ["simple", "standard", "technical"];
+  const isLevel = (value: unknown): value is Level => LEVELS.includes(value as Level);
+  const root = document.documentElement;
+  const slider = document.querySelector<HTMLElement>("[data-details-slider]");
+  const track = slider?.querySelector<HTMLElement>("[data-details-track]") ?? null;
+  const notches = Array.from(slider?.querySelectorAll<HTMLElement>("[data-details-level]") ?? []);
+  const storageKey = "inspr-details-level";
+  const legacyStorageKey = "inspr-details";
+  const linkParam = "details";
+  let level: Level = "standard";
+
+  if (slider && track && notches.length === 3) {
+    const familyHost = (url: URL) => url.hostname === "inspr.at" || url.hostname.endsWith(".inspr.at");
+    const nameOf = (value: Level) => notches.find((notch) => notch.dataset.detailsLevel === value)?.dataset.detailsName ?? value;
+
+    // Links to other hosts of the family carry the depth, as they carry the
+    // language; same-host links rely on storage.
+    const syncLinks = () => {
+      for (const link of document.querySelectorAll<HTMLAnchorElement>("a[href]")) {
+        let url: URL;
+        try {
+          url = new URL(link.getAttribute("href") ?? "", window.location.href);
+        } catch {
+          continue;
+        }
+        if (url.origin === window.location.origin || !familyHost(url)) continue;
+        if (level === "standard") url.searchParams.delete(linkParam);
+        else url.searchParams.set(linkParam, level);
+        link.setAttribute("href", url.toString());
+      }
+    };
+
+    // The specs grid has a plain-words mode of its own; Simple means on.
+    const syncSpecs = () => {
+      const specs = document.getElementById("specs");
+      const control = specs?.querySelector<HTMLButtonElement>("[data-specs-eli10]");
+      if (!specs || !control) return;
+      const plain = specs.getAttribute("data-eli10") === "true";
+      if (plain !== (level === "simple")) control.click();
+    };
+
+    const afterScripts = (task: () => void) => {
+      if (document.readyState === "complete") task();
+      else window.addEventListener("DOMContentLoaded", task, { once: true });
+    };
+
+    const setLevel = (next: Level, source: "init" | "user", persist = true) => {
+      level = next;
+      const position = LEVELS.indexOf(level);
+      root.setAttribute("data-details-level", level);
+      slider.dataset.level = level;
+      slider.style.setProperty("--details-pos", String(position));
+      track.setAttribute("aria-valuenow", String(position));
+      track.setAttribute("aria-valuetext", nameOf(level));
+      if (persist) {
+        try {
+          localStorage.setItem(storageKey, level);
+        } catch {
+          // Storage may be unavailable; the control still works for this visit.
+        }
+      }
+      syncLinks();
+      afterScripts(syncSpecs);
+      document.dispatchEvent(new CustomEvent("inspr:details-level", { detail: { level, source } }));
+    };
+
+    const step = (delta: number) => {
+      const next = LEVELS[Math.min(2, Math.max(0, LEVELS.indexOf(level) + delta))];
+      if (next !== level) setLevel(next, "user");
+    };
+
+    // Click or drag anywhere on the track; the nearest notch wins.
+    const levelAt = (clientX: number): Level => {
+      const rect = track.getBoundingClientRect();
+      const inset = 8;
+      const ratio = (clientX - rect.left - inset) / Math.max(1, rect.width - inset * 2);
+      return LEVELS[Math.min(2, Math.max(0, Math.round(ratio * 2)))];
+    };
+    let dragging = false;
+    track.addEventListener("pointerdown", (event) => {
+      dragging = true;
+      track.setPointerCapture(event.pointerId);
+      const next = levelAt(event.clientX);
+      if (next !== level) setLevel(next, "user");
+      event.preventDefault();
+    });
+    track.addEventListener("pointermove", (event) => {
+      if (!dragging) return;
+      const next = levelAt(event.clientX);
+      if (next !== level) setLevel(next, "user");
+    });
+    const endDrag = () => {
+      dragging = false;
+    };
+    track.addEventListener("pointerup", endDrag);
+    track.addEventListener("pointercancel", endDrag);
+
+    // Wheel over the control nudges it; keys move it like any slider.
+    let wheelBudget = 0;
+    track.addEventListener(
+      "wheel",
+      (event) => {
+        event.preventDefault();
+        wheelBudget += event.deltaY !== 0 ? -event.deltaY : event.deltaX;
+        if (Math.abs(wheelBudget) < 40) return;
+        step(wheelBudget > 0 ? 1 : -1);
+        wheelBudget = 0;
+      },
+      { passive: false },
+    );
+    track.addEventListener("keydown", (event) => {
+      const delta =
+        event.key === "ArrowRight" || event.key === "ArrowUp" ? 1 :
+        event.key === "ArrowLeft" || event.key === "ArrowDown" ? -1 : 0;
+      if (event.key === "Home") setLevel("simple", "user");
+      else if (event.key === "End") setLevel("technical", "user");
+      else if (delta !== 0) step(delta);
+      else return;
+      event.preventDefault();
+      event.stopPropagation();
+    });
+
+    document.addEventListener("inspr:details-request", (event) => {
+      const requested = (event as CustomEvent<{ level?: unknown }>).detail?.level;
+      if (isLevel(requested)) setLevel(requested, "user");
+    });
+
+    // Arrival: an explicit ?details= wins, then the remembered choice, then
+    // the first edition's on/off switch, whose "on" meant technical.
+    let initial: Level = "standard";
+    let fromLink = false;
+    try {
+      const url = new URL(window.location.href);
+      const linked = url.searchParams.get(linkParam);
+      if (isLevel(linked)) {
+        initial = linked;
+        fromLink = true;
+        url.searchParams.delete(linkParam);
+        window.history.replaceState(window.history.state, "", url.toString());
+      }
+    } catch {
+      // Leave the address alone if it cannot be parsed.
+    }
+    if (!fromLink) {
+      try {
+        const remembered = localStorage.getItem(storageKey);
+        if (isLevel(remembered)) initial = remembered;
+        else if (localStorage.getItem(legacyStorageKey) === "1") initial = "technical";
+      } catch {
+        initial = "standard";
+      }
+    }
+    setLevel(initial, "init", fromLink);
+  }
+</script>

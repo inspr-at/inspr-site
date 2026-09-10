@@ -15,6 +15,12 @@ export const aithemaContent = {
   hero: {
     eyebrow: "Requirements, made reviewable",
     title: "Requirements you approve before work begins.",
+    depths: {
+      simple:
+        "Talk, type or drop in files. Aithema turns that into a clear list of what you need, then waits for you to read it and say Continue.",
+      technical:
+        "Speech, text and files become a structured, reviewable requirement set. Aithema organises the input; the review and the explicit Continue stay with you, so nothing downstream starts on an unapproved draft.",
+    },
     lead:
       "Speak, type or share files. Aithema helps turn that input into clear requirements, then waits for you to review them and choose Continue.",
     alt: "A Requirement Prism resolving diffuse teal and gold light into one precise decision object",
@@ -31,6 +37,12 @@ export const aithemaContent = {
   problem: {
     eyebrow: "Before the build",
     title: "Good work needs a clear starting point.",
+    depths: {
+      simple:
+        "Ideas show up in chats, notes and files. The hard part is making one version out of them that a person can read, fix and approve.",
+      technical:
+        "Input arrives fragmented across conversations, notes and documents. The work is consolidating it into one versioned, inspectable requirement set that a person can correct and approve before delivery begins.",
+    },
     lead:
       "Ideas arrive through conversations, notes and files. The difficult part is turning them into one version that a person can inspect, correct and approve.",
     visualAlt:
@@ -64,6 +76,12 @@ export const aithemaContent = {
   model: {
     eyebrow: "The Aithema path",
     title: "Share. Shape. Review. Continue.",
+    depths: {
+      simple:
+        "Aithema does the sorting and tidying. You make the decision.",
+      technical:
+        "Aithema carries the consolidation and structuring effort while the approval decision remains a human action with a reviewable artefact behind it.",
+    },
     lead:
       "Aithema handles the effort of organizing input while keeping the decision with you.",
     steps: [

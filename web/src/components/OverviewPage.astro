@@ -220,9 +220,9 @@ const steps = [
       description: copy("How much detail this page shows", "Wie viel Detail diese Seite zeigt"),
       controls: "overview-details",
       levels: [
-        { id: "simple", label: copy("Simple", "Einfach"), description: copy("Plain words, no technical terms", "Einfache Worte, keine Fachbegriffe") },
-        { id: "standard", label: "Standard", description: copy("The overview as most readers see it", "Der Überblick, wie ihn die meisten sehen") },
-        { id: "technical", label: copy("Technical", "Technisch"), description: copy("Full technical detail and the layers behind the page", "Volle technische Tiefe und die Schichten hinter der Seite") },
+        { id: "simple", label: copy("Simple", "Einfach") },
+        { id: "standard", label: "Standard" },
+        { id: "technical", label: copy("Technical", "Technisch") },
       ],
     }}
   />
@@ -254,6 +254,11 @@ const steps = [
         <a class="overview-button" href="#path">
           {copy("See how it works", "So funktioniert es")} <span aria-hidden="true">↓</span>
         </a>
+        <p class="overview-meta" aria-hidden="true">
+          <span data-label={copy("release", "Release")}><b data-live="release">…</b></span>
+          <span data-label={copy("source", "Quelle")}><b data-live="source">…</b></span>
+          <span data-label={copy("deployed", "veröffentlicht")}><b data-live="deployed">…</b></span>
+        </p>
       </div>
 
       <div class="overview-flow" role="img" aria-label={copy(

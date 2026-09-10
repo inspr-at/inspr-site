@@ -21,6 +21,12 @@ export const pharosContent = {
   hero: {
     eyebrow: "PHAROS / FLEET OPERATIONS",
     title: "Fleet truth before action.",
+    depths: {
+      simple:
+        "Pharos shows the people who run your servers what is really going on: which machines are healthy, which have drifted, whether backups worked and what still needs doing. A request never looks like it already happened.",
+      technical:
+        "Pharos gives operators a current view of hosts, configuration drift, backup posture and maintenance, with observed state, declared intent and pending actions kept in separate layers so a proposal is never rendered as fact.",
+    },
     lead:
       "Pharos gives operations teams a current view of servers, configuration drift, backups and maintenance. It keeps observed state, declared intent and pending work separate, so a request is never presented as if it had already become reality.",
     alt: "A lighthouse overlooking a calm network of connected fleet nodes",
@@ -38,6 +44,12 @@ export const pharosContent = {
   problem: {
     eyebrow: "THE OPERATING GAP",
     title: "The gaps are the risk.",
+    depths: {
+      simple:
+        "A server can answer while quietly going wrong. A backup can report success without proving anything can be restored. A deploy button can work and leave no record of what was checked. Pharos keeps those facts apart instead of blending them.",
+      technical:
+        "Liveness is not configuration correctness; a successful backup job is not restore evidence; a working deploy action is not a review record. Pharos models each as its own signal rather than collapsing them into one green light.",
+    },
     lead:
       "A server can answer a ping while its configuration is drifting. A backup job can succeed without proving that anything can be restored. A deployment button can work while leaving no trustworthy record of what was reviewed. Pharos brings those facts together without pretending they are the same thing.",
     visualAlt:
@@ -71,6 +83,12 @@ export const pharosContent = {
   model: {
     eyebrow: "OPERATING MODEL",
     title: "Observe. Compare. Gate. Verify.",
+    depths: {
+      simple:
+        "One simple rule: what is true, what we want, and what we do are kept separate. That makes the fleet easier to understand and harder to break by accident.",
+      technical:
+        "Facts, intent and actions live in separate layers: observed reports, declared configuration and guarded operations. The separation keeps the fleet model legible and makes accidental state change structurally hard.",
+    },
     lead:
       "Pharos is built around a simple rule: facts, intent and actions belong to different layers. Keeping those layers separate makes the fleet easier to understand and harder to change by accident.",
     steps: [

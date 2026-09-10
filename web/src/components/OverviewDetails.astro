@@ -96,6 +96,8 @@ const layers = [
   },
 ];
 
+const counterOf = copy("of", "von");
+const hint = copy("Continue reading", "Weiter lesen");
 const live = {
   heading: copy("This page, right now", "Diese Seite, jetzt"),
   release: copy("release", "Release"),
@@ -119,26 +121,21 @@ const live = {
       <p class="overview-kicker">{copy("Details", "Details")}</p>
       <h2 id="overview-details-title">{copy("What this runs on.", "Worauf das läuft.")}</h2>
       <p class="overview-details__lede">{copy(
-        "Seven layers, bottom to top. Every one that can be declared is declared; what remains is judgment.",
-        "Sieben Schichten, von unten nach oben. Alles, was deklariert werden kann, ist deklariert; der Rest ist Urteilskraft.",
+        "Seven layers, top to bottom. Every one that can be declared is declared; what remains is judgment.",
+        "Sieben Schichten, von oben nach unten. Alles, was deklariert werden kann, ist deklariert; der Rest ist Urteilskraft.",
       )}</p>
-      <button
-        class="overview-details__pin"
-        type="button"
-        aria-pressed="false"
-        data-details-pin
-      >
-        <span class="overview-details__pin-dot" aria-hidden="true"></span>
-        <span data-details-pin-label data-pinned={copy("Pinned · click to release", "Fixiert · Klick löst")}>{copy("Pointer steers · click to pin", "Zeiger steuert · Klick fixiert")}</span>
-      </button>
+      <p class="overview-details__counter" aria-live="polite">
+        <span data-details-counter>1</span> {counterOf} 7
+      </p>
     </header>
 
     <ol class="overview-details__layers" data-details-scene>
-      {layers.map((layer, index) => (
+      {[...layers].reverse().map((layer, position) => (
         <li
           class="overview-layer"
           data-details-layer={layer.id}
-          style={`--layer-index: ${index};`}
+          data-details-position={position}
+          style={`--layer-index: ${layers.length - 1 - position}; --layer-position: ${position};`}
         >
           <button
             class="overview-layer__tag"
@@ -151,86 +148,61 @@ const live = {
             <span class="overview-layer__name">{layer.name}</span>
           </button>
           <div class="overview-layer__body" id={`overview-layer-${layer.id}-body`}>
-            <p>{layer.body}</p>
-            <ul class="overview-layer__tools" aria-label={copy("Tools", "Werkzeuge")}>
-              {layer.tools.map((tool) => <li>{tool}</li>)}
-            </ul>
-            {layer.live && (
-              <dl class="overview-layer__live" data-details-live aria-label={live.heading}>
-                <div><dt>{live.release}</dt><dd data-live="release">{live.pending}</dd></div>
-                <div><dt>{live.source}</dt><dd data-live="source">{live.pending}</dd></div>
-                <div><dt>{live.deployed}</dt><dd data-live="deployed">{live.pending}</dd></div>
-                <div><dt>{live.csp}</dt><dd data-live="csp">{live.pending}</dd></div>
-                <div><dt>{live.hsts}</dt><dd data-live="hsts">{live.pending}</dd></div>
-              </dl>
-            )}
+            <div class="overview-layer__inner">
+              <p>{layer.body}</p>
+              <ul class="overview-layer__tools" aria-label={copy("Tools", "Werkzeuge")}>
+                {layer.tools.map((tool) => <li>{tool}</li>)}
+              </ul>
+              {layer.live && (
+                <dl class="overview-layer__live" data-details-live aria-label={live.heading}>
+                  <div><dt>{live.release}</dt><dd data-live="release">{live.pending}</dd></div>
+                  <div><dt>{live.source}</dt><dd data-live="source">{live.pending}</dd></div>
+                  <div><dt>{live.deployed}</dt><dd data-live="deployed">{live.pending}</dd></div>
+                  <div><dt>{live.csp}</dt><dd data-live="csp">{live.pending}</dd></div>
+                  <div><dt>{live.hsts}</dt><dd data-live="hsts">{live.pending}</dd></div>
+                </dl>
+              )}
+            </div>
           </div>
         </li>
       ))}
     </ol>
+
+    <p class="overview-details__hint" data-details-hint aria-hidden="true">{hint} <span>↓</span></p>
   </div>
 </aside>
 
 <script>
-  // Details control: three depths of copy, and at the technical depth the
-  // layers behind the Overview. Bundled by Astro as a same-origin module, so
-  // the strict CSP needs no new hash.
-  type Level = "simple" | "standard" | "technical";
-  const LEVELS: Level[] = ["simple", "standard", "technical"];
+  // The layers behind the Overview as a vertical cover flow. The header's
+  // Details control owns the depth; this scene follows it and opens at the
+  // technical depth. One card is active and fully readable; the others are
+  // tabs stacked above and below, offset left. Wheel, keys and clicks move
+  // between them; after the last card the page scroll is released. Bundled
+  // by Astro as a same-origin module, so the strict CSP needs no new hash.
   const root = document.documentElement;
   const panel = document.querySelector<HTMLElement>("[data-details-panel]");
-  const slider = document.querySelector<HTMLElement>("[data-details-slider]");
-  const options = Array.from(slider?.querySelectorAll<HTMLButtonElement>("[data-details-level]") ?? []);
-  const pin = panel?.querySelector<HTMLButtonElement>("[data-details-pin]") ?? null;
-  const pinLabel = panel?.querySelector<HTMLElement>("[data-details-pin-label]") ?? null;
   const scene = panel?.querySelector<HTMLElement>("[data-details-scene]") ?? null;
-  const layers = Array.from(panel?.querySelectorAll<HTMLElement>("[data-details-layer]") ?? []);
-  const storageKey = "inspr-details-level";
-  const legacyStorageKey = "inspr-details";
+  const cards = Array.from(panel?.querySelectorAll<HTMLElement>("[data-details-layer]") ?? []);
+  const counter = panel?.querySelector<HTMLElement>("[data-details-counter]") ?? null;
   const sceneQuery = window.matchMedia(
     "(hover: hover) and (pointer: fine) and (min-width: 56rem) and (prefers-reduced-motion: no-preference)",
   );
-  const pinCopy = {
-    steer: pinLabel?.textContent ?? "",
-    pinned: pinLabel?.dataset.pinned ?? "Pinned · click to release",
-  };
 
-  let level: Level = "standard";
   let enabled = false;
-  let pinned = false;
+  let owning = false;
+  let active = 0;
   let liveLoaded = false;
+  let wheelBudget = 0;
+  let lastStep = 0;
 
-  if (panel && slider && options.length === 3) {
-    const setTilt = (x: number, y: number) => {
-      root.style.setProperty("--details-tilt-x", `${x.toFixed(2)}deg`);
-      root.style.setProperty("--details-tilt-y", `${y.toFixed(2)}deg`);
-    };
-
-    const resetTilt = () => setTilt(0, 0);
-
-    const select = (target: HTMLElement | null) => {
-      for (const layer of layers) {
-        const active = layer === target;
-        layer.toggleAttribute("data-details-active", active);
-        layer.querySelector("[data-details-layer-tag]")?.setAttribute("aria-expanded", active ? "true" : "false");
-      }
-      panel.toggleAttribute("data-details-focused", target !== null);
-    };
-
-    const setPinned = (next: boolean) => {
-      pinned = next;
-      panel.toggleAttribute("data-details-pinned", pinned);
-      pin?.setAttribute("aria-pressed", pinned ? "true" : "false");
-      if (pinLabel) pinLabel.textContent = pinned ? pinCopy.pinned : pinCopy.steer;
-    };
+  if (panel && scene && cards.length > 0) {
+    const rem = () => parseFloat(getComputedStyle(root).fontSize) || 16;
 
     const loadLive = async () => {
       if (liveLoaded) return;
       liveLoaded = true;
-      const field = (name: string) => panel.querySelector<HTMLElement>(`[data-live="${name}"]`);
       const write = (name: string, value: string) => {
-        const target = field(name);
-        if (target) target.textContent = value;
+        for (const target of document.querySelectorAll<HTMLElement>(`[data-live="${name}"]`)) target.textContent = value;
       };
       try {
         const manifest = await fetch("/release.json", { cache: "no-store" }).then((response) => response.json());
@@ -254,125 +226,163 @@ const live = {
       }
     };
 
-    const setEnabled = (next: boolean, scroll: boolean) => {
-      enabled = next;
+    // Lay the stack out around the active card: it sits at the vertical
+    // centre; tabs fan out above and below, each step further left.
+    const layout = () => {
+      const unit = rem();
+      const pitch = 3.1 * unit;
+      const gap = 1.1 * unit;
+      const shift = 1.7 * unit;
+      const activeCard = cards[active];
+      const tag = activeCard.querySelector<HTMLElement>("[data-details-layer-tag]");
+      const inner = activeCard.querySelector<HTMLElement>(".overview-layer__inner");
+      const activeHeight = Math.min(
+        window.innerHeight * 0.62,
+        (tag?.offsetHeight ?? 0) + (inner?.scrollHeight ?? 0) + 1.5 * unit,
+      );
+      const half = activeHeight / 2;
+      // Keep the whole fan inside the band between the heading and the hint.
+      const count = cards.length;
+      const topReach = half + gap + Math.max(0, active - 0.5) * pitch + (active > 0 ? pitch * 0.5 : 0);
+      const bottomReach = half + gap + Math.max(0, count - 1 - active - 0.5) * pitch + (active < count - 1 ? pitch * 0.5 : 0);
+      const topLimit = 11.5 * unit;
+      const bottomLimit = window.innerHeight - 4.5 * unit;
+      let centre = window.innerHeight / 2;
+      if (centre + bottomReach > bottomLimit) centre = bottomLimit - bottomReach;
+      if (centre - topReach < topLimit) centre = topLimit + topReach;
+      scene.style.setProperty("--details-centre", `${centre.toFixed(1)}px`);
+      cards.forEach((card, index) => {
+        const distance = index - active;
+        const away = Math.abs(distance);
+        const isActive = distance === 0;
+        card.toggleAttribute("data-details-active", isActive);
+        card.querySelector("[data-details-layer-tag]")?.setAttribute("aria-expanded", isActive ? "true" : "false");
+        let y = 0;
+        if (distance < 0) y = -(half + gap + (away - 1) * pitch + pitch * 0.5);
+        if (distance > 0) y = half + gap + (away - 1) * pitch + pitch * 0.5;
+        const x = -away * shift;
+        const scale = isActive ? 1 : Math.max(0.82, 1 - away * 0.035);
+        card.style.setProperty("--card-y", `${y.toFixed(1)}px`);
+        card.style.setProperty("--card-x", `${x.toFixed(1)}px`);
+        card.style.setProperty("--card-scale", scale.toFixed(3));
+        card.style.zIndex = String(20 - away);
+      });
+      if (counter) counter.textContent = String(active + 1);
+      panel.toggleAttribute("data-details-last", active === cards.length - 1);
+    };
+
+    const go = (index: number) => {
+      const next = Math.min(cards.length - 1, Math.max(0, index));
+      if (next === active) return false;
+      active = next;
+      layout();
+      return true;
+    };
+
+    const setOwning = (next: boolean) => {
+      owning = next;
+      root.toggleAttribute("data-details-reading", enabled && !owning);
+      if (owning) window.scrollTo({ top: 0, behavior: "auto" });
+    };
+
+    const setEnabled = (next: boolean) => {
+      enabled = next && sceneQuery.matches;
       root.toggleAttribute("data-details", enabled);
-      panel.hidden = !enabled;
-      if (!enabled) {
-        setPinned(false);
-        select(null);
-        resetTilt();
-      } else {
-        setTilt(0, 0);
+      root.toggleAttribute("data-details-reading", false);
+      panel.hidden = !next;
+      if (enabled) {
+        active = 0;
+        layout();
+        setOwning(true);
         void loadLive();
-        if (scroll && !sceneQuery.matches) {
-          panel.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        owning = false;
+        for (const card of cards) {
+          card.removeAttribute("data-details-active");
+          card.querySelector("[data-details-layer-tag]")?.setAttribute("aria-expanded", "false");
         }
+        if (next) void loadLive();
       }
     };
 
-    const setLevel = (next: Level, settings: { persist?: boolean; scroll?: boolean } = {}) => {
-      level = next;
-      root.setAttribute("data-details-level", level);
-      for (const option of options) {
-        const checked = option.dataset.detailsLevel === level;
-        option.setAttribute("aria-checked", checked ? "true" : "false");
-        option.tabIndex = checked ? 0 : -1;
-      }
-      setEnabled(level === "technical", settings.scroll === true);
-      if (settings.persist !== false) {
-        try {
-          localStorage.setItem(storageKey, level);
-        } catch {
-          // Storage may be unavailable; the control still works for this visit.
-        }
-      }
+    const follow = () => {
+      const technical = root.getAttribute("data-details-level") === "technical";
+      if (technical === !panel.hidden) return;
+      setEnabled(technical);
     };
+    document.addEventListener("inspr:details-level", follow);
 
-    for (const option of options) {
-      option.addEventListener("click", () => {
-        const next = option.dataset.detailsLevel as Level;
-        if (LEVELS.includes(next)) setLevel(next, { scroll: true });
-      });
-    }
-
-    // Arrow keys move along the control like a radio group.
-    slider.addEventListener("keydown", (event) => {
-      const delta = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 0;
-      if (delta === 0) return;
-      event.preventDefault();
-      const next = LEVELS[(LEVELS.indexOf(level) + delta + LEVELS.length) % LEVELS.length];
-      setLevel(next, { scroll: true });
-      options.find((option) => option.dataset.detailsLevel === next)?.focus();
-    });
-
-    pin?.addEventListener("click", () => setPinned(!pinned));
-
-    // Parallax moves the planes under the pointer, so a selection survives a
-    // brief leave; only a settled departure clears it.
-    let leaveTimer: number | undefined;
-    for (const layer of layers) {
-      const tag = layer.querySelector<HTMLButtonElement>("[data-details-layer-tag]");
-      layer.addEventListener("pointerenter", () => {
-        if (!sceneQuery.matches) return;
-        window.clearTimeout(leaveTimer);
-        select(layer);
-      });
-      layer.addEventListener("pointerleave", () => {
-        if (!sceneQuery.matches || pinned) return;
-        window.clearTimeout(leaveTimer);
-        leaveTimer = window.setTimeout(() => select(null), 350);
-      });
-      tag?.addEventListener("click", () => {
-        if (sceneQuery.matches) {
-          // In the scene the tag is a handle: choose the plane and hold it.
-          select(layer);
-          setPinned(!pinned);
+    // Wheel: one card per notch while the scene owns the page; past the last
+    // card the page scrolls; at the top, wheeling up takes the scene back.
+    const stepBy = (delta: number) => {
+      const now = performance.now();
+      if (now - lastStep < 420) return;
+      lastStep = now;
+      if (delta > 0 && active === cards.length - 1) {
+        setOwning(false);
+        return;
+      }
+      go(active + delta);
+    };
+    window.addEventListener(
+      "wheel",
+      (event) => {
+        if (!enabled) return;
+        if (!owning) {
+          if (event.deltaY < 0 && window.scrollY <= 0) {
+            event.preventDefault();
+            setOwning(true);
+          }
           return;
         }
-        select(layer.hasAttribute("data-details-active") ? null : layer);
-      });
-      tag?.addEventListener("focus", () => select(layer));
-    }
-
-    window.addEventListener("pointermove", (event) => {
-      if (!enabled || pinned || !sceneQuery.matches) return;
-      const x = event.clientX / window.innerWidth - 0.5;
-      const y = event.clientY / window.innerHeight - 0.5;
-      setTilt(-y * 4, x * 7);
-    });
+        event.preventDefault();
+        wheelBudget += event.deltaY;
+        if (Math.abs(wheelBudget) < 48) return;
+        const delta = wheelBudget > 0 ? 1 : -1;
+        wheelBudget = 0;
+        stepBy(delta);
+      },
+      { passive: false },
+    );
 
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && enabled) setLevel("standard");
-    });
-
-    sceneQuery.addEventListener("change", () => {
       if (!enabled) return;
-      setPinned(false);
-      select(null);
-      resetTilt();
+      if ((event.target as HTMLElement | null)?.closest("[data-details-slider], input, textarea, select")) return;
+      if (event.key === "Escape") {
+        document.dispatchEvent(new CustomEvent("inspr:details-request", { detail: { level: "standard" } }));
+        return;
+      }
+      if (!owning) return;
+      const map: Record<string, number> = { ArrowDown: 1, PageDown: 1, ArrowUp: -1, PageUp: -1 };
+      if (event.key === "Home") go(0);
+      else if (event.key === "End") go(cards.length - 1);
+      else if (event.key in map) stepBy(map[event.key]);
+      else if (event.key === " ") stepBy(event.shiftKey ? -1 : 1);
+      else return;
+      event.preventDefault();
     });
 
-    // Clicking a plane (not its tag) pins the current perspective.
-    scene?.addEventListener("click", (event) => {
-      if (!sceneQuery.matches) return;
-      const target = event.target as HTMLElement;
-      if (target.closest("[data-details-layer-tag]") || !target.closest("[data-details-layer]")) return;
-      setPinned(!pinned);
+    cards.forEach((card, index) => {
+      card.addEventListener("click", () => {
+        if (!enabled) return;
+        if (!owning) setOwning(true);
+        go(index);
+      });
     });
 
-    let remembered: string | null = null;
-    try {
-      remembered = localStorage.getItem(storageKey);
-      // The first edition stored an on/off switch; "on" meant technical.
-      if (remembered === null && localStorage.getItem(legacyStorageKey) === "1") remembered = "technical";
-    } catch {
-      remembered = null;
-    }
-    if (remembered && LEVELS.includes(remembered as Level) && remembered !== "standard") {
-      setLevel(remembered as Level, { persist: false });
-    } else {
-      setLevel("standard", { persist: false });
-    }
+    // A whisper of parallax; navigation no longer depends on the pointer.
+    window.addEventListener("pointermove", (event) => {
+      if (!enabled || !owning) return;
+      const x = event.clientX / window.innerWidth - 0.5;
+      scene.style.setProperty("--details-tilt-y", `${(x * 6).toFixed(2)}deg`);
+    });
+
+    window.addEventListener("resize", () => {
+      if (enabled) layout();
+    });
+    sceneQuery.addEventListener("change", follow);
+
+    // The control's module may have run before this one.
+    follow();
   }
 </script>

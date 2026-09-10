@@ -1,5 +1,6 @@
 ---
 import MicrositeLayout from "../layouts/MicrositeLayout.astro";
+import DetailLevels from "./DetailLevels.astro";
 import MicrositeHeader from "./MicrositeHeader.astro";
 import MicrositeFooter from "./MicrositeFooter.astro";
 import ServiceRibbon from "./ServiceRibbon.astro";
@@ -60,6 +61,9 @@ const labels = locale === "de"
       proofAria: "Produktmerkmale",
       proofLabel: "Betriebsprofil",
       specsEli10: "Einfach erklärt",
+      detailsDescription: "Wie viel Detail diese Seite zeigt",
+      detailsSimple: "Einfach",
+      detailsTechnical: "Technisch",
       specsFlipAll: "Alle umdrehen",
       specsUnflipAll: "Alle zurückdrehen",
       specsShuffle: "Eckdaten-Raster mischen",
@@ -95,6 +99,9 @@ const labels = locale === "de"
       proofAria: "Product characteristics",
       proofLabel: "Operating posture",
       specsEli10: "ELI10 mode",
+      detailsDescription: "How much detail this page shows",
+      detailsSimple: "Simple",
+      detailsTechnical: "Technical",
       specsFlipAll: "Flip all",
       specsUnflipAll: "Unflip all",
       specsShuffle: "Shuffle the specs grid",
@@ -251,6 +258,15 @@ const featurePresentations: Record<string, FeaturePresentation> = {
     nav={nav}
     locale={locale}
     languageLinks={{ en: "/", de: "/de/" }}
+    detailsSlider={{
+      label: "Details",
+      description: labels.detailsDescription,
+      levels: [
+        { id: "simple", label: labels.detailsSimple },
+        { id: "standard", label: "Standard" },
+        { id: "technical", label: labels.detailsTechnical },
+      ],
+    }}
   />
 
   <main id="main-content">
@@ -264,7 +280,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
       <div class="product-hero__copy">
         <p class="eyebrow">{content.hero.eyebrow}</p>
         <h1 id="hero-title">{content.hero.title}</h1>
-        <p class="hero-lead">{content.hero.lead}</p>
+        <p class="hero-lead"><DetailLevels simple={content.hero.depths?.simple ?? content.hero.lead} standard={content.hero.lead} technical={content.hero.depths?.technical ?? content.hero.lead} /></p>
         <div class="button-row">
           <a class="button" href={content.hero.primaryHref}>
             {content.hero.primaryLabel} <span aria-hidden="true">↓</span>
@@ -418,7 +434,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
       <header class="section-intro">
         <p class="eyebrow">{content.problem.eyebrow}</p>
         <h2 id="problem-title">{content.problem.title}</h2>
-        <p class="section-lead">{content.problem.lead}</p>
+        <p class="section-lead"><DetailLevels simple={content.problem.depths?.simple ?? content.problem.lead} standard={content.problem.lead} technical={content.problem.depths?.technical ?? content.problem.lead} /></p>
       </header>
       <FractureAtlas
         id={`${content.slug}-problem`}
@@ -435,6 +451,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
       eyebrow={content.model.eyebrow}
       title={content.model.title}
       lead={content.model.lead}
+      leadDepths={content.model.depths}
       steps={content.model.steps}
       image={assets.workflow}
       alt={assets.workflowAlt}

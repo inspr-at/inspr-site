@@ -1,27 +1,364 @@
-/* Details on the Overview: the layers scene and the layout density per
- * depth. The header slider and the copy-depth rule live in
- * details-control.css.
+/* Technical depth of the Overview: a datasheet unfolding from the story.
  *
- * Default presentation of the layers: a static exploded stack in the page
- * flow (phones, coarse pointers, reduced motion). Wide fine-pointer
- * viewports upgrade to a fixed vertical cover flow behind a dimmed page.
- * Same markup. */
+ * Standard is the base and stays exactly where it is. At Technical, drawers
+ * unfold beneath the hero, the four path cards and the four promises, the
+ * flow gains its handoff labels, the kickers gain a mono index, and the
+ * stack section appears. Simple folds secondary blocks away. Every change
+ * is height and opacity on a soft curve, staggered top to bottom; nothing
+ * reloads, nothing hijacks the scroll. The header slider and the copy-depth
+ * rule live in details-control.css. */
 
-:root {
-  --details-tilt-y: 0deg;
+/* ---- Drawers ---------------------------------------------------------- */
+
+.overview-drawer {
+  --drawer-i: 0;
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.3s ease;
 }
 
-/* ---- Layout density: less at Simple, more at Technical ---------------- */
+.overview-drawer__inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+html[data-details-level="technical"] .overview-drawer {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition:
+    grid-template-rows 0.65s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--drawer-i) * 45ms),
+    opacity 0.45s ease calc(var(--drawer-i) * 45ms + 120ms);
+}
+
+/* ---- Mono index and hairlines on the kickers -------------------------- */
+
+.overview-kicker[data-index]::before {
+  content: attr(data-index);
+  display: inline-block;
+  max-width: 0;
+  margin-right: 0;
+  overflow: hidden;
+  vertical-align: bottom;
+  color: var(--overview-gold);
+  opacity: 0;
+  transition: max-width 0.5s cubic-bezier(0.22, 1, 0.36, 1), margin 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+}
+
+html[data-details-level="technical"] .overview-kicker[data-index]::before {
+  max-width: 3em;
+  margin-right: 0.8em;
+  opacity: 1;
+}
+
+/* ---- Hero: spec strip ------------------------------------------------- */
+
+.overview-spec {
+  margin: 0;
+}
+
+.overview-spec .overview-drawer__inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.2rem;
+  padding-top: 0;
+  margin-top: 0;
+  border-top: 0 dashed var(--overview-line);
+  transition: padding 0.55s cubic-bezier(0.22, 1, 0.36, 1), margin 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+}
+
+.overview-spec .overview-drawer__inner > div {
+  display: inline-flex;
+  gap: 0.45rem;
+}
+
+.overview-spec dt {
+  color: var(--overview-gold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.overview-spec dd {
+  margin: 0;
+  color: var(--overview-ink);
+  overflow-wrap: anywhere;
+}
+
+html[data-details-level="technical"] .overview-spec .overview-drawer__inner {
+  margin-top: 1.1rem;
+  padding-top: 1.1rem;
+  border-top-width: 1px;
+}
+
+/* ---- Flow: handoff labels on the connections -------------------------- */
+
+.overview-flow__handoff {
+  display: block;
+  max-height: 0;
+  margin-top: 0;
+  overflow: hidden;
+  color: var(--overview-soft);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  line-height: 1.3;
+  text-align: center;
+  opacity: 0;
+  transition: max-height 0.5s cubic-bezier(0.22, 1, 0.36, 1), margin 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
+}
+
+html[data-details-level="technical"] .overview-flow__handoff {
+  max-height: 3rem;
+  margin-top: 0.45rem;
+  opacity: 1;
+}
+
+/* ---- Promises: mechanism ---------------------------------------------- */
+
+.overview-promise__mechanism .overview-drawer__inner {
+  display: block;
+  padding-top: 0;
+  margin-top: 0;
+  border-top: 0 dashed var(--overview-line);
+  transition: padding 0.55s cubic-bezier(0.22, 1, 0.36, 1), margin 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  color: var(--overview-soft);
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
+
+html[data-details-level="technical"] .overview-promise__mechanism .overview-drawer__inner {
+  margin-top: 0.5rem;
+  padding-top: 0.55rem;
+  border-top-width: 1px;
+}
+
+.overview-promise__mechanism b {
+  display: block;
+  margin-bottom: 0.15rem;
+  color: var(--overview-gold);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ---- Path cards: technical sheet -------------------------------------- */
+
+/* The card keeps its height in the row; the sheet takes its own space
+   beneath it instead of overflowing the cell. */
+.overview-steps {
+  grid-auto-rows: auto;
+  row-gap: 0;
+}
+
+.overview-step-item {
+  display: grid;
+  grid-row: span 2;
+  grid-template-rows: subgrid;
+}
+
+.overview-sheet {
+  margin: 0;
+}
+
+.overview-sheet .overview-drawer__inner {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0;
+  padding: 0 0.2rem;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--overview-ink);
+}
+
+html[data-details-level="technical"] .overview-sheet .overview-drawer__inner {
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--overview-line);
+}
+
+.overview-sheet .overview-drawer__inner > div {
+  display: grid;
+  grid-template-columns: 5.2rem 1fr;
+  gap: 0.6rem;
+}
+
+.overview-sheet dt {
+  color: var(--overview-gold);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  line-height: 1.7;
+  text-transform: uppercase;
+}
+
+.overview-sheet dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.overview-sheet__command,
+.overview-stack__command {
+  display: block;
+  margin-top: 0.35rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 0.45rem;
+  background: var(--overview-ink);
+  color: var(--overview-paper);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+/* ---- The stack: datasheet table --------------------------------------- */
+
+.overview-stack .overview-drawer__inner {
+  padding-block: 0;
+}
+
+html[data-details-level="technical"] .overview-stack .overview-drawer__inner {
+  padding-block: clamp(2.5rem, 5vw, 4rem) 1rem;
+}
+
+.overview-stack__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 1rem 3rem;
+  align-items: end;
+  margin-bottom: 1.6rem;
+}
+
+.overview-stack__header h2 {
+  margin: 0.45rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.6vw, 2.6rem);
+  font-weight: 400;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.overview-stack__header p {
+  max-width: 46ch;
+  margin: 0;
+  color: var(--overview-soft);
+  line-height: 1.5;
+}
+
+.overview-stack__table {
+  border-top: 1px solid var(--overview-ink);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.overview-stack__row {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 2.2fr) minmax(0, 1.2fr) minmax(0, 1.4fr) minmax(0, 1.4fr) minmax(0, 1.3fr);
+  gap: 0.9rem 1.2rem;
+  padding: 0.95rem 0.3rem;
+  border-bottom: 1px solid var(--overview-line);
+  transition: background 0.6s ease;
+}
+
+.overview-stack__row--head {
+  padding-block: 0.55rem;
+  color: var(--overview-soft);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.overview-stack__row[data-stack-highlight] {
+  background: rgb(217 155 43 / 0.1);
+}
+
+.overview-stack__layer {
+  display: grid;
+  align-content: start;
+  gap: 0.15rem;
+  font-family: var(--font-mono);
+}
+
+.overview-stack__layer b {
+  color: var(--overview-gold);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+}
+
+.overview-stack__layer span {
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.overview-stack__tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.overview-stack__tools li {
+  padding: 0.14rem 0.45rem;
+  border: 1px solid var(--overview-line);
+  border-radius: 0.3rem;
+  background: var(--overview-paper);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.overview-stack__live {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0.6rem 0 0;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--overview-line);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  line-height: 1.4;
+}
+
+.overview-stack__live > div {
+  display: grid;
+  grid-template-columns: 6rem 1fr;
+  gap: 0.5rem;
+}
+
+.overview-stack__live dt {
+  color: var(--overview-gold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.overview-stack__live dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ---- Simple: less on the page ----------------------------------------- */
 
 .overview-promises small,
-.overview-control,
-.overview-meta {
+.overview-control {
   overflow: hidden;
   transition:
-    max-height 0.55s cubic-bezier(0.2, 0.8, 0.2, 1),
+    max-height 0.55s cubic-bezier(0.22, 1, 0.36, 1),
     opacity 0.35s ease,
-    margin 0.55s cubic-bezier(0.2, 0.8, 0.2, 1),
-    padding 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+    margin 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    padding 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .overview-promises small {
@@ -45,417 +382,55 @@ html[data-details-level="simple"] .overview-control {
   opacity: 0;
 }
 
-/* Technical adds a mono meta line under the hero action: the exact release
-   this page was built from, read from the page's own origin. */
-.overview-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 1.1rem;
-  max-height: 0;
-  margin: 0;
-  padding: 0;
-  opacity: 0;
-  color: var(--overview-soft);
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.04em;
-  line-height: 1.5;
-}
+/* ---- Narrow screens --------------------------------------------------- */
 
-.overview-meta span {
-  display: inline-flex;
-  gap: 0.45rem;
-}
-
-.overview-meta span::before {
-  content: attr(data-label);
-  color: var(--overview-gold);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.overview-meta b {
-  font-weight: 400;
-  color: var(--overview-ink);
-  overflow-wrap: anywhere;
-}
-
-html[data-details-level="technical"] .overview-meta {
-  max-height: 6rem;
-  margin-top: 1.1rem;
-  opacity: 1;
-}
-
-/* ---- Layers: static exploded stack (default) -------------------------- */
-
-.overview-details {
-  --details-ink: #102d42;
-  --details-soft: #536773;
-  --details-teal: #147b78;
-  --details-gold: #d99b2b;
-  --details-paper: #fffdf9;
-  --details-line: rgb(16 45 66 / 0.55);
-  --details-fill: rgb(255 253 249 / 0.6);
-  color: var(--details-ink);
-}
-
-.overview-details__frame {
-  width: min(100% - 2 * var(--gutter, 1.25rem), var(--shell, 78rem));
-  margin-inline: auto;
-  padding-block: 2.5rem 3.5rem;
-}
-
-.overview-details__header {
-  display: grid;
-  gap: 0.6rem;
-  margin-bottom: 1.75rem;
-}
-
-.overview-details__header h2 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(1.7rem, 3.4vw, 2.4rem);
-  font-weight: 400;
-  line-height: 1.05;
-  text-wrap: balance;
-}
-
-.overview-details__lede {
-  max-width: 44ch;
-  margin: 0;
-  color: var(--details-soft);
-  font-size: 0.98rem;
-  line-height: 1.5;
-}
-
-.overview-details__counter,
-.overview-details__hint {
-  display: none;
-}
-
-.overview-details__layers {
-  display: grid;
-  gap: 0.8rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.overview-layer {
-  position: relative;
-  border: 1px solid var(--details-line);
-  border-radius: 0.9rem;
-  background: var(--details-fill);
-}
-
-.overview-layer__tag {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.6rem;
-  margin: -1px 0 0 -1px;
-  padding: 0.45rem 0.9rem 0.4rem 0.75rem;
-  border: 0;
-  border-radius: 0.9rem 0 0.7rem 0;
-  background: var(--details-ink);
-  color: var(--details-paper);
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  line-height: 1.2;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-
-.overview-layer__tag:focus-visible {
-  outline: 2px solid var(--details-teal);
-  outline-offset: 2px;
-}
-
-.overview-layer__number {
-  opacity: 0.65;
-  font-weight: 500;
-}
-
-.overview-layer__body {
-  display: grid;
-  grid-template-rows: 1fr;
-}
-
-.overview-layer__inner {
-  min-height: 0;
-  padding: 0.75rem 1.1rem 1.1rem;
-  overflow: hidden;
-}
-
-.overview-layer__inner > p {
-  max-width: 58ch;
-  margin: 0 0 0.7rem;
-  font-size: 0.94rem;
-  line-height: 1.5;
-}
-
-.overview-layer__tools {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.overview-layer__tools li {
-  padding: 0.18rem 0.5rem;
-  border: 1px solid var(--details-line);
-  border-radius: 0.3rem;
-  background: var(--details-paper);
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.04em;
-  line-height: 1.3;
-}
-
-.overview-layer__live {
-  display: grid;
-  gap: 0.25rem 1rem;
-  margin: 0.9rem 0 0;
-  padding-top: 0.7rem;
-  border-top: 1px dashed var(--details-line);
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  line-height: 1.4;
-}
-
-.overview-layer__live > div {
-  display: grid;
-  grid-template-columns: minmax(7rem, max-content) 1fr;
-  gap: 0.75rem;
-}
-
-.overview-layer__live dt {
-  color: var(--details-gold);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.overview-layer__live dd {
-  margin: 0;
-  overflow-wrap: anywhere;
-}
-
-/* ---- Scene: vertical cover flow behind the dimmed page ---------------- */
-
-@media (hover: hover) and (pointer: fine) and (min-width: 56rem) and (prefers-reduced-motion: no-preference) {
-  html[data-details] {
-    background: var(--details-paper, #fffdf9);
+@media (max-width: 64rem) {
+  .overview-stack__header {
+    grid-template-columns: 1fr;
+    align-items: start;
   }
 
-  /* The page becomes a dimmed glass slab on the right: still the same page,
-     no longer the object of attention. Released for reading below. */
-  html[data-details] .overview-main {
-    position: relative;
-    transform-origin: 100% 40vh;
-    transition:
-      transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1),
-      opacity 0.6s ease,
-      filter 0.6s ease;
+  .overview-stack__row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
   }
 
-  html[data-details]:not([data-details-reading]) .overview-main {
-    transform: perspective(1800px) rotateY(-9deg) translateX(9%) scale(0.56);
-    opacity: 0.42;
-    filter: saturate(0.8);
-    pointer-events: none;
-  }
-
-  html[data-details] .overview-footer {
-    transition: opacity 0.4s ease;
-  }
-
-  html[data-details]:not([data-details-reading]) .overview-footer {
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .overview-details {
-    position: fixed;
-    inset: 0;
-    z-index: 5;
-    overflow: hidden;
-    pointer-events: none;
-    background:
-      radial-gradient(60% 50% at 78% 22%, rgb(217 155 43 / 0.09), transparent 70%),
-      radial-gradient(50% 60% at 16% 84%, rgb(20 123 120 / 0.09), transparent 70%),
-      linear-gradient(90deg, var(--details-paper) 0%, var(--details-paper) 55%, rgb(255 253 249 / 0) 100%);
-    transition: opacity 0.6s ease, transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s linear 0s;
-  }
-
-  html[data-details-reading] .overview-details {
-    opacity: 0;
-    transform: translateY(-3%);
-    visibility: hidden;
-    transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s linear 0.6s;
-  }
-
-  .overview-details__frame {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-  }
-
-  .overview-details__header {
-    position: absolute;
-    top: 6.5rem;
-    left: clamp(1.25rem, 4vw, 3.5rem);
-    z-index: 3;
-    max-width: 15rem;
-    margin: 0;
-    gap: 0.4rem;
-    pointer-events: auto;
-  }
-
-  .overview-details__header h2 {
-    font-size: 1.3rem;
-  }
-
-  .overview-details__lede {
+  .overview-stack__row--head {
     display: none;
   }
 
-  .overview-details__counter {
+  .overview-stack__row [role="cell"]::before {
+    content: attr(data-column);
     display: block;
-    margin: 0.4rem 0 0;
-    color: var(--details-soft);
+    margin-bottom: 0.15rem;
+    color: var(--overview-gold);
     font-family: var(--font-mono);
-    font-size: 0.68rem;
-    letter-spacing: 0.14em;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .overview-details__hint {
-    position: absolute;
-    bottom: 1.6rem;
-    left: clamp(1.25rem, 4vw, 3.5rem);
-    display: block;
-    margin: 0;
-    color: var(--details-soft);
-    font-family: var(--font-mono);
-    font-size: 0.66rem;
-    letter-spacing: 0.14em;
+    font-size: 0.56rem;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    opacity: 0;
-    transform: translateY(0.4rem);
-    transition: opacity 0.4s ease, transform 0.4s ease;
   }
 
-  .overview-details__hint span {
-    display: inline-block;
-    animation: overview-hint-bob 1.6s ease-in-out infinite;
+  .overview-sheet .overview-drawer__inner > div {
+    grid-template-columns: 1fr;
+    gap: 0.1rem;
   }
+}
 
-  .overview-details[data-details-last] .overview-details__hint {
-    opacity: 1;
-    transform: none;
-  }
-
-  /* The stack: cards positioned by the script around the vertical centre. */
-  .overview-details__layers {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: clamp(1.25rem, 4vw, 3.5rem);
-    display: block;
-    width: min(56vw, 46rem);
-    margin-left: clamp(0rem, 16vw - 6rem, 12rem);
-    perspective: 1400px;
-    transform: rotateY(var(--details-tilt-y));
-    transition: transform 0.4s ease-out;
-    --details-centre: 50%;
-  }
-
-  .overview-layer {
-    --card-y: 0px;
-    --card-x: 0px;
-    --card-scale: 1;
-    position: absolute;
-    top: var(--details-centre, 50%);
-    left: 0;
-    width: 100%;
-    border-color: rgb(16 45 66 / 0.28);
-    border-radius: 0.9rem;
-    background: rgb(255 253 249 / 0.55);
-    box-shadow: 0 8px 24px rgb(16 45 66 / 0.06);
-    transform: translate(var(--card-x), calc(-50% + var(--card-y))) scale(var(--card-scale));
-    transform-origin: 0 50%;
-    pointer-events: auto;
-    cursor: pointer;
-    transition:
-      transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1),
-      background 0.35s ease,
-      border-color 0.35s ease,
-      box-shadow 0.35s ease;
-  }
-
-  .overview-layer[data-details-active] {
-    border-color: var(--details-gold);
-    background: rgb(255 253 249 / 0.96);
-    box-shadow:
-      0 0 0 1px var(--details-gold),
-      0 30px 70px rgb(16 45 66 / 0.16);
-    cursor: default;
-  }
-
-  .overview-layer__tag {
-    transition: padding 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), font-size 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-
-  .overview-layer[data-details-active] .overview-layer__tag {
-    padding: 0.6rem 1.2rem 0.55rem 1rem;
-    font-size: 0.86rem;
-  }
-
-  .overview-layer__body {
-    grid-template-rows: 0fr;
-    opacity: 0;
-    transition: grid-template-rows 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.35s ease;
-  }
-
-  .overview-layer[data-details-active] .overview-layer__body {
-    grid-template-rows: 1fr;
-    opacity: 1;
-    transition: grid-template-rows 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.45s ease 0.15s;
-  }
-
-  /* Vertical space lives in margins, not padding, so a collapsed card is
-     exactly its tab and never overlaps the tab below. */
-  .overview-layer__inner {
-    padding: 0 1.4rem;
-  }
-
-  .overview-layer__inner > p {
-    max-width: 52ch;
-    margin-top: 0.9rem;
-    font-size: 1.04rem;
-    line-height: 1.55;
-  }
-
-  .overview-layer__inner > :last-child {
-    margin-bottom: 1.3rem;
-  }
-
-  .overview-layer__tools li {
-    font-size: 0.7rem;
-  }
-
-  @keyframes overview-hint-bob {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(0.25rem); }
+@media (prefers-reduced-motion: reduce) {
+  .overview-drawer,
+  .overview-kicker[data-index]::before,
+  .overview-flow__handoff,
+  .overview-promise__mechanism .overview-drawer__inner,
+  .overview-promises small,
+  .overview-control,
+  .overview-stack__row {
+    transition: none;
   }
 }
 
 @media print {
-  .overview-details {
-    display: none;
+  .overview-drawer {
+    grid-template-rows: 1fr;
+    opacity: 1;
   }
 }

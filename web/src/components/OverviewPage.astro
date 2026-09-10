@@ -3,7 +3,7 @@ import ContextIcon from "./ContextIcon.astro";
 import HeroLoop from "./HeroLoop.astro";
 import MicrositeHeader from "./MicrositeHeader.astro";
 import DetailLevels from "./DetailLevels.astro";
-import OverviewDetails from "./OverviewDetails.astro";
+import OverviewStack from "./OverviewStack.astro";
 import MicrositeLayout from "../layouts/MicrositeLayout.astro";
 import "../styles/overview.css";
 
@@ -45,12 +45,23 @@ const nav = [
 ];
 
 const flowNodes = [
-  { label: copy("Idea", "Idee"), logo: insprLogo },
-  { label: copy("Requirements", "Anforderungen"), logo: aithemaLogo },
-  { label: copy("Build", "Umsetzung"), logo: paimosLogo },
-  { label: copy("Deploy", "Bereitstellung"), logo: pharosLogo },
-  { label: copy("Access", "Zugriff"), logo: janusLogo },
+  { label: copy("Idea", "Idee"), logo: insprLogo, handoff: copy("conversation + files", "Gespräch + Dateien") },
+  { label: copy("Requirements", "Anforderungen"), logo: aithemaLogo, handoff: copy("approved requirement set", "freigegebener Anforderungssatz") },
+  { label: copy("Build", "Umsetzung"), logo: paimosLogo, handoff: copy("staged build + evidence", "Staging-Build + Nachweise") },
+  { label: copy("Deploy", "Bereitstellung"), logo: pharosLogo, handoff: copy("release on a declared host", "Release auf deklariertem Host") },
+  { label: copy("Access", "Zugriff"), logo: janusLogo, handoff: copy("bounded permit", "begrenzte Freigabe") },
 ];
+
+// Technical depth: the enforcement behind each promise.
+const sheetLabels = {
+  repo: copy("repo", "Repo"),
+  runtime: copy("runtime", "Laufzeit"),
+  gate: copy("gate", "Gate"),
+  artefact: copy("artefact", "Artefakt"),
+  interfaces: copy("interfaces", "Schnittstellen"),
+  maturity: copy("maturity", "Reife"),
+  mechanism: copy("enforced by", "durchgesetzt durch"),
+};
 
 const promises = [
   {
@@ -61,6 +72,10 @@ const promises = [
     technical: copy(
       "Every transition is an explicit approval gate; agents cannot approve themselves.",
       "Jede Übergabe ist ein explizites Freigabe-Gate; Agenten können sich nicht selbst freigeben.",
+    ),
+    mechanism: copy(
+      "Gates live in the tools, not in a convention: approvals are recorded on the ticket, the deploy review and the permit. An agent has no approval capability.",
+      "Gates leben in den Werkzeugen, nicht in einer Konvention: Freigaben werden am Ticket, an der Deploy-Prüfung und an der Freigabe festgehalten. Ein Agent hat keine Freigabe-Befugnis.",
     ),
   },
   {
@@ -75,6 +90,10 @@ const promises = [
       "Paimos, Pharos and Janus are AGPL-3.0-only on GitHub. Aithema's module is planned.",
       "Paimos, Pharos und Janus sind AGPL-3.0-only auf GitHub. Aithemas Modul ist geplant.",
     ),
+    mechanism: copy(
+      "Each repository declares its SPDX licence; releases are tagged and the site links the exact sources. Running it as a service obliges you to publish your changes.",
+      "Jedes Repository deklariert seine SPDX-Lizenz; Releases sind getaggt, die Website verlinkt die exakten Quellen. Wer es als Dienst betreibt, muss Änderungen veröffentlichen.",
+    ),
   },
   {
     icon: "database",
@@ -85,6 +104,10 @@ const promises = [
       "Data stays in your instances; secret values never appear in transcripts or logs.",
       "Daten bleiben in Ihren Instanzen; Secret-Werte erscheinen nie in Transkripten oder Logs.",
     ),
+    mechanism: copy(
+      "Self-hosted instances behind your own sign-in. Secrets are encrypted at rest and handed out as references and bounded permits, so a value cannot end up in a prompt or a log.",
+      "Selbst betriebene Instanzen hinter Ihrer eigenen Anmeldung. Secrets liegen verschlüsselt und werden als Referenzen und begrenzte Freigaben herausgegeben; ein Wert kann so nicht in einem Prompt oder Log landen.",
+    ),
   },
   {
     icon: "server",
@@ -94,6 +117,10 @@ const promises = [
     technical: copy(
       "Self-hosted by design: declared hosts, verified backups, your cloud or your basement.",
       "Self-hosted by Design: deklarierte Hosts, geprüfte Backups, Ihre Cloud oder Ihr Keller.",
+    ),
+    mechanism: copy(
+      "Hosts are described in Nix and built from that description. Before a production deploy, Pharos checks the backup evidence of the target; the browser never sends commands to a host.",
+      "Hosts sind in Nix beschrieben und werden daraus gebaut. Vor einem Produktions-Deploy prüft Pharos den Backup-Nachweis des Ziels; der Browser sendet nie Befehle an einen Host.",
     ),
   },
 ];
@@ -118,6 +145,14 @@ const steps = [
       "Gespräche und Dokumente werden zu strukturierten, prüfbaren Anforderungen, bevor Code existiert.",
     ),
     approval: copy("You approve the requirements.", "Sie geben die Anforderungen frei."),
+    sheet: {
+      repo: copy("open module planned; hosted preview today", "offenes Modul geplant; heute gehostete Vorschau"),
+      runtime: copy("hosted web preview", "gehostete Web-Vorschau"),
+      gate: copy("a person reviews the requirement set and chooses Continue; nothing downstream starts on a draft", "ein Mensch prüft den Anforderungssatz und wählt Weiter; nichts Nachgelagertes startet auf einem Entwurf"),
+      artefact: copy("structured, versioned requirement set with its sources", "strukturierter, versionierter Anforderungssatz mit seinen Quellen"),
+      interfaces: copy("web preview", "Web-Vorschau"),
+      maturity: copy("preview", "Vorschau"),
+    },
   },
   {
     id: "paimos" as const,
@@ -138,6 +173,15 @@ const steps = [
       "Tickets, Spezifikationen und Wissen steuern eine agentische Umsetzung ins Staging, mit angehängten Nachweisen.",
     ),
     approval: copy("You approve the staged build.", "Sie geben den Stand im Staging frei."),
+    sheet: {
+      repo: "github.com/inspr-at/paimos",
+      runtime: copy("self-hosted, one container, sign-in via OIDC", "selbst gehostet, ein Container, Anmeldung per OIDC"),
+      gate: copy("the staged result is reviewed in the same project model the agent worked from; the approval is recorded on the ticket", "der Staging-Stand wird im selben Projektmodell geprüft, aus dem der Agent gearbeitet hat; die Freigabe wird am Ticket festgehalten"),
+      artefact: copy("tickets, specs, knowledge and run evidence, permission-aware", "Tickets, Spezifikationen, Wissen und Laufnachweise, berechtigungsbewusst"),
+      interfaces: copy("UI, CLI, HTTP API", "UI, CLI, HTTP-API"),
+      maturity: copy("released, AGPL-3.0-only", "veröffentlicht, AGPL-3.0-only"),
+      command: 'paimos issue create -p PROJ --title "…"',
+    },
   },
   {
     id: "pharos" as const,
@@ -158,6 +202,14 @@ const steps = [
       "Flottenwahrheit, Backup-Nachweis und ein abgesichertes Deployment auf einen deklarierten Host; Rollback ist einen Symlink entfernt.",
     ),
     approval: copy("You approve production.", "Sie geben die Produktion frei."),
+    sheet: {
+      repo: "github.com/inspr-at/pharos",
+      runtime: copy("Rust server plus an outbound host beacon; no inbound port on the host", "Rust-Server plus ausgehender Host-Beacon; kein eingehender Port am Host"),
+      gate: copy("backup evidence, build result, authorisation and an explicit confirmation are recorded before the host may apply anything", "Backup-Nachweis, Build-Ergebnis, Autorisierung und eine explizite Bestätigung werden festgehalten, bevor der Host etwas anwenden darf"),
+      artefact: copy("host reports, backup and restore evidence, the review record", "Host-Berichte, Backup- und Restore-Nachweise, das Prüfprotokoll"),
+      interfaces: copy("UI, beacon, OIDC", "UI, Beacon, OIDC"),
+      maturity: copy("released, AGPL-3.0-only", "veröffentlicht, AGPL-3.0-only"),
+    },
   },
   {
     id: "janus" as const,
@@ -178,6 +230,14 @@ const steps = [
       "Begrenzte Secret-Freigaben mit Rollen, Delegation und wertfreiem Audit; Rotation ohne Offenlegung.",
     ),
     approval: copy("You approve the permit.", "Sie geben die Berechtigung frei."),
+    sheet: {
+      repo: "github.com/inspr-at/janus",
+      runtime: copy("Rust engine with an encrypted store; a separate Go envelope for human oversight", "Rust-Engine mit verschlüsseltem Speicher; ein separater Go-Envelope für die menschliche Aufsicht"),
+      gate: copy("which reference, which requester, which sink: three decisions checked on their own; the value is materialised only inside the reviewed execution path", "welche Referenz, welcher Anfragende, welches Ziel: drei getrennt geprüfte Entscheidungen; der Wert wird nur im geprüften Ausführungspfad materialisiert"),
+      artefact: copy("a bounded permit and a value-free audit record", "eine begrenzte Freigabe und ein wertfreier Audit-Eintrag"),
+      interfaces: copy("engine API, envelope UI", "Engine-API, Envelope-UI"),
+      maturity: copy("engine released, envelope live, early product", "Engine veröffentlicht, Envelope live, frühes Produkt"),
+    },
   },
 ];
 ---
@@ -230,7 +290,7 @@ const steps = [
   <main id="main-content" class="overview-main">
     <section class="overview-hero page-shell" aria-labelledby="overview-title">
       <div class="overview-hero__copy">
-        <p class="overview-kicker">{copy("A clear starting point", "Ein klarer Einstieg")}</p>
+        <p class="overview-kicker" data-index="00">{copy("A clear starting point", "Ein klarer Einstieg")}</p>
         <h1 id="overview-title">
           {copy("From an idea to something that ", "Von einer Idee zu etwas, das ")}
           <em>{copy("runs.", "läuft.")}</em>
@@ -254,11 +314,17 @@ const steps = [
         <a class="overview-button" href="#path">
           {copy("See how it works", "So funktioniert es")} <span aria-hidden="true">↓</span>
         </a>
-        <p class="overview-meta" aria-hidden="true">
-          <span data-label={copy("release", "Release")}><b data-live="release">…</b></span>
-          <span data-label={copy("source", "Quelle")}><b data-live="source">…</b></span>
-          <span data-label={copy("deployed", "veröffentlicht")}><b data-live="deployed">…</b></span>
-        </p>
+        <dl class="overview-spec overview-drawer" data-drawer aria-label={copy("This page, technically", "Diese Seite, technisch")}>
+          <div class="overview-drawer__inner">
+            <div><dt>{copy("release", "Release")}</dt><dd data-live="release">…</dd></div>
+            <div><dt>{copy("source", "Quelle")}</dt><dd data-live="source">…</dd></div>
+            <div><dt>{copy("deployed", "veröffentlicht")}</dt><dd data-live="deployed">…</dd></div>
+            <div><dt>CSP</dt><dd data-live="csp">…</dd></div>
+            <div><dt>HSTS</dt><dd data-live="hsts">…</dd></div>
+            <div><dt>{copy("licence", "Lizenz")}</dt><dd>AGPL-3.0-only</dd></div>
+            <div><dt>{copy("hosts", "Hosts")}</dt><dd>{copy("1 build · 5 hostnames · 2 languages", "1 Build · 5 Hostnamen · 2 Sprachen")}</dd></div>
+          </div>
+        </dl>
       </div>
 
       <div class="overview-flow" role="img" aria-label={copy(
@@ -273,6 +339,7 @@ const steps = [
                 <img src={node.logo.src} alt="" width="46" height="46" />
               </span>
               <span>{node.label}</span>
+              <span class="overview-flow__handoff" aria-hidden="true">{node.handoff}</span>
             </li>
           ))}
         </ol>
@@ -282,7 +349,13 @@ const steps = [
         {promises.map((promise) => (
           <li>
             <span class="overview-promise__icon"><ContextIcon name={promise.icon} size={23} strokeWidth={1.65} /></span>
-            <span><strong>{promise.title}</strong><small><DetailLevels simple={promise.simple} standard={promise.body} technical={promise.technical} /></small></span>
+            <span>
+              <strong>{promise.title}</strong>
+              <small><DetailLevels simple={promise.simple} standard={promise.body} technical={promise.technical} /></small>
+              <span class="overview-drawer overview-promise__mechanism" data-drawer>
+                <span class="overview-drawer__inner"><b>{sheetLabels.mechanism}</b> {promise.mechanism}</span>
+              </span>
+            </span>
           </li>
         ))}
       </ul>
@@ -291,7 +364,7 @@ const steps = [
     <section class="overview-path page-shell" id="path" aria-labelledby="path-title">
       <header class="overview-path__header">
         <div>
-          <p class="overview-kicker">{copy("The path", "Der Weg")}</p>
+          <p class="overview-kicker" data-index="01">{copy("The path", "Der Weg")}</p>
           <h2 id="path-title">{copy("One path. Four tools. You approve.", "Ein Weg. Vier Werkzeuge. Sie geben frei.")}</h2>
         </div>
         <p>
@@ -352,12 +425,25 @@ const steps = [
                   <span>{step.approval}</span>
                 </p>
               </div>
+              {index < steps.length - 1 && (
+                <span class="overview-step__connector" aria-hidden="true">
+                  <ContextIcon name="user-round-check" size={18} strokeWidth={1.6} />
+                </span>
+              )}
             </a>
-            {index < steps.length - 1 && (
-              <span class="overview-step__connector" aria-hidden="true">
-                <ContextIcon name="user-round-check" size={18} strokeWidth={1.6} />
-              </span>
-            )}
+            <dl class="overview-sheet overview-drawer" data-drawer aria-label={`${step.name}, ${copy("technical sheet", "technisches Datenblatt")}`}>
+              <div class="overview-drawer__inner">
+                <div><dt>{sheetLabels.repo}</dt><dd>{step.sheet.repo}</dd></div>
+                <div><dt>{sheetLabels.runtime}</dt><dd>{step.sheet.runtime}</dd></div>
+                <div><dt>{sheetLabels.gate}</dt><dd>{step.sheet.gate}</dd></div>
+                <div><dt>{sheetLabels.artefact}</dt><dd>{step.sheet.artefact}</dd></div>
+                <div><dt>{sheetLabels.interfaces}</dt><dd>{step.sheet.interfaces}</dd></div>
+                <div><dt>{sheetLabels.maturity}</dt><dd>{step.sheet.maturity}</dd></div>
+                {"command" in step.sheet && step.sheet.command && (
+                  <code class="overview-sheet__command">$ {step.sheet.command}</code>
+                )}
+              </div>
+            </dl>
           </li>
         ))}
       </ol>
@@ -389,9 +475,11 @@ const steps = [
       </div>
     </section>
 
+    <OverviewStack locale={locale} />
+
     <section class="overview-next page-shell" aria-labelledby="next-title">
       <div class="overview-next__copy">
-        <p class="overview-kicker">{copy("Beyond the overview", "Nach dem Überblick")}</p>
+        <p class="overview-kicker" data-index="03">{copy("Beyond the overview", "Nach dem Überblick")}</p>
         <h2 id="next-title">{copy("The rest is open to you.", "Alles Weitere steht Ihnen offen.")}</h2>
         <p>
           <DetailLevels
@@ -424,8 +512,6 @@ const steps = [
       </div>
     </section>
   </main>
-
-  <OverviewDetails locale={locale} />
 
   <footer class="overview-footer page-shell">
     <p>© {new Date().getUTCFullYear()} <a href={siteUrls.author} rel="me">Markus Barta</a> · INSPR</p>

@@ -25,6 +25,12 @@ export const paimosContent = {
   hero: {
     eyebrow: "Project context, shared",
     title: "One shared project picture.",
+    depths: {
+      simple:
+        "Paimos is project management you run yourself, built for teams that work with AI helpers. It keeps the plan, the context and the record of what happened in one place, so a person can always see what was done and why.",
+      technical:
+        "Paimos is self-hosted, permission-aware project management: issues, repository context, runbooks, execution choices and run evidence in one model, exposed through UI, CLI and API so agents act with context and humans audit the result.",
+    },
     lead:
       "Paimos is self-hosted project management for engineering and delivery teams that work with AI agents. It keeps issues, repository context, operating knowledge, execution choices and run evidence together, so an agent can act with context and a human can see what happened.",
     alt: "Abstract project agora with people and AI participants around a shared operating surface",
@@ -348,6 +354,12 @@ export const paimosContent = {
   problem: {
     eyebrow: "Why Paimos",
     title: "Fragments break AI work.",
+    depths: {
+      simple:
+        "The ticket, the code, the how-to and the chat with an AI helper each know one part of the story. None of them can tell you who did what, with what permission, and what came back.",
+      technical:
+        "Tickets carry intent, repositories carry location, runbooks carry procedure and chat transcripts carry attempts. No single system records actor, supplied context, granted authority and returned evidence for one unit of work.",
+    },
     lead:
       "A ticket says what should change. The repository says where. A runbook says how. A chat window says what an agent tried. None of those systems alone can answer who acted, which context they received, what authority they had and what came back.",
     visualAlt:
@@ -381,6 +393,12 @@ export const paimosContent = {
   model: {
     eyebrow: "How it works",
     title: "The project is the control plane.",
+    depths: {
+      simple:
+        "Paimos puts the work, the background, what was done and the proof in one place. People and AI helpers look at the same picture, and people decide.",
+      technical:
+        "Paimos joins work items, context, execution and evidence in one permission-aware model. Humans plan and review in the same project model agents read from and report back into, so authority and evidence stay attached to the work.",
+    },
     lead:
       "Paimos connects work, context, execution and evidence in one permission-aware system. People plan and review in the same project model that agents read from and report back to.",
     steps: [

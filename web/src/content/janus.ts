@@ -24,6 +24,12 @@ export const janusContent = {
   hero: {
     eyebrow: "SECRET GOVERNANCE FOR HUMAN AND AGENT SYSTEMS",
     title: "Use secrets. Keep values hidden.",
+    depths: {
+      simple:
+        "Janus lets people and AI helpers use a password or key without ever seeing it. Each use is a narrow, approved permit, and the secret itself stays locked away.",
+      technical:
+        "Janus separates what may be used, who may request it and where it may flow. Callers hold opaque references and narrow, policy-bound permits; secret values are materialised only inside reviewed execution paths, never in prompts, browsers or logs.",
+    },
     lead:
       "Janus separates what may be used, who may request it and where it may go. Humans and AI work with opaque references and narrow, policy-bound permits. Secret values stay inside reviewed execution paths.",
     alt: "A translucent Janus gate with two profiles separating a protected credential from approved human, service and agent workflows.",
@@ -41,6 +47,12 @@ export const janusContent = {
   problem: {
     eyebrow: "THE PROBLEM",
     title: "Agents should not hold credentials.",
+    depths: {
+      simple:
+        "A program may truly need a key to do its job. An AI helper almost never needs to read it. Still, many setups hand automation a reusable key or a general \"read any secret\" tool.",
+      technical:
+        "A service may legitimately require a deployment credential; an agent rarely needs its value. Yet integrations still grant automation reusable tokens, environment variables or a generic vault-read capability, which turns every prompt into a potential exfiltration path.",
+    },
     lead:
       "A service may genuinely need a deployment credential. An AI agent rarely needs to read it. Yet many integrations still hand automation a reusable token, an environment variable or a generic vault read tool.",
     visualAlt:
@@ -77,6 +89,12 @@ export const janusContent = {
   model: {
     eyebrow: "THE JANUS MODEL",
     title: "Reference. Permit. Execute.",
+    depths: {
+      simple:
+        "Janus turns one big \"may read secrets\" permission into three small questions: what, who, and where to. Each one is checked on its own.",
+      technical:
+        "Janus decomposes a broad secret-read capability into three narrow, independently testable decisions: which reference, which requester, which sink. Each is enforced in types, reviewed policy and negative-path tests.",
+    },
     lead:
       "Janus turns one broad secret-read capability into three narrow and independently testable decisions.",
     steps: [

@@ -1,4 +1,6 @@
 ---
+import DetailLevels from "./DetailLevels.astro";
+import DetailsControl from "./DetailsControl.astro";
 import MicrositeLayout from "../layouts/MicrositeLayout.astro";
 import ServiceRibbon from "./ServiceRibbon.astro";
 import HeroLoop from "./HeroLoop.astro";
@@ -34,6 +36,9 @@ const labels = locale === "de"
       navCapabilities: "Funktionen",
       navLimits: "Grenzen",
       navPreview: "Vorschau",
+      detailsDescription: "Wie viel Detail diese Seite zeigt",
+      detailsSimple: "Einfach",
+      detailsTechnical: "Technisch",
       primary: "Hauptnavigation",
       sections: "Bereiche",
       mobile: "Navigation für Mobilgeräte",
@@ -76,6 +81,9 @@ const labels = locale === "de"
       navCapabilities: "Capabilities",
       navLimits: "Limits",
       navPreview: "Preview",
+      detailsDescription: "How much detail this page shows",
+      detailsSimple: "Simple",
+      detailsTechnical: "Technical",
       primary: "Primary navigation",
       sections: "Sections",
       mobile: "Mobile navigation",
@@ -182,6 +190,15 @@ const deployedAtLabel = releaseMetadata.deployedAt
       </nav>
 
       <div class="site-header__actions">
+        <DetailsControl
+          label="Details"
+          description={labels.detailsDescription}
+          levels={[
+            { id: "simple", label: labels.detailsSimple },
+            { id: "standard", label: "Standard" },
+            { id: "technical", label: labels.detailsTechnical },
+          ]}
+        />
         <nav class="language-switch" aria-label={labels.languages}>
           <a
             href={languageChoiceHref("/de/", "de")}
@@ -246,7 +263,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
       <div class="product-hero__copy">
         <p class="eyebrow">{content.hero.eyebrow}</p>
         <h1 id="hero-title">{content.hero.title}</h1>
-        <p class="hero-lead">{content.hero.lead}</p>
+        <p class="hero-lead"><DetailLevels simple={content.hero.depths?.simple ?? content.hero.lead} standard={content.hero.lead} technical={content.hero.depths?.technical ?? content.hero.lead} /></p>
         <div class="button-row">
           <a
             class="button"
@@ -301,7 +318,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
       <header class="section-intro">
         <p class="eyebrow">{content.problem.eyebrow}</p>
         <h2 id="problem-title">{content.problem.title}</h2>
-        <p class="section-lead">{content.problem.lead}</p>
+        <p class="section-lead"><DetailLevels simple={content.problem.depths?.simple ?? content.problem.lead} standard={content.problem.lead} technical={content.problem.depths?.technical ?? content.problem.lead} /></p>
       </header>
       <FractureAtlas
         id="aithema-problem"
@@ -318,6 +335,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
       eyebrow={content.model.eyebrow}
       title={content.model.title}
       lead={content.model.lead}
+      leadDepths={content.model.depths}
       steps={content.model.steps}
       image={aithemaLogo}
       alt={labels.workflowAlt}

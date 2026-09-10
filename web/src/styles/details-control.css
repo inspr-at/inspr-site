@@ -1,0 +1,195 @@
+/* Details control — a wordless level slider shared by the Overview and the
+ * product microsites. The Overview's scene lives in overview-details.css.
+ * The copy-depth rule (which of three sentences renders) is here too. */
+
+/* ---- Copy depth ------------------------------------------------------- */
+
+/* All three depths ship in the HTML; only the chosen one renders. Without
+   JavaScript, or at the default position, the standard depth shows. */
+[data-copy-level] {
+  display: none;
+}
+
+html:not([data-details-level]) [data-copy-level="standard"],
+html[data-details-level="standard"] [data-copy-level="standard"],
+html[data-details-level="simple"] [data-copy-level="simple"],
+html[data-details-level="technical"] [data-copy-level="technical"] {
+  display: inline;
+}
+
+/* ---- Header slider ---------------------------------------------------- */
+
+/* The header cluster stays on one row: the control is compact, its label
+   appears only on very wide screens, nothing wraps, and the grid gives the
+   actions column room. */
+.site-header__bar:has(.details-slider) {
+  grid-template-columns: minmax(10rem, 0.8fr) auto minmax(10rem, 1.2fr);
+}
+
+.site-header__actions:has(.details-slider) {
+  flex-wrap: nowrap;
+}
+
+.site-header__actions:has(.details-slider) > * {
+  white-space: nowrap;
+}
+
+.details-slider {
+  --details-pos: 1;
+  --details-ink: var(--ink, #102d42);
+  --details-soft: var(--ink-soft, #536773);
+  --details-line: rgb(16 45 66 / 0.22);
+  --details-teal: #147b78;
+  --details-paper: #fffdf9;
+  display: inline-flex;
+  min-height: 2.65rem;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.details-slider__label {
+  display: none;
+  color: var(--details-soft);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+@media (min-width: 100rem) {
+  .details-slider__label {
+    display: inline;
+  }
+}
+
+/* Three rising bars fill with the level, like a signal meter. */
+.details-slider__glyph {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 0.82rem;
+}
+
+.details-slider__glyph i {
+  width: 3px;
+  border-radius: 1px;
+  background: var(--details-line);
+  transition: background 0.3s ease;
+}
+
+.details-slider__glyph i:nth-child(1) {
+  height: 0.32rem;
+}
+
+.details-slider__glyph i:nth-child(2) {
+  height: 0.57rem;
+}
+
+.details-slider__glyph i:nth-child(3) {
+  height: 0.82rem;
+}
+
+.details-slider[data-level="simple"] .details-slider__glyph i:nth-child(1),
+.details-slider[data-level="standard"] .details-slider__glyph i:nth-child(-n + 2),
+.details-slider[data-level="technical"] .details-slider__glyph i {
+  background: var(--details-teal);
+}
+
+.details-slider__track {
+  --inset: 0.5rem;
+  position: relative;
+  width: 4.6rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+}
+
+.details-slider__track:focus-visible {
+  outline: 2px solid var(--details-teal);
+  outline-offset: 2px;
+}
+
+.details-slider__track::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: var(--inset);
+  left: var(--inset);
+  height: 2px;
+  border-radius: 1px;
+  background: var(--details-line);
+  transform: translateY(-50%);
+}
+
+.details-slider__fill {
+  position: absolute;
+  top: 50%;
+  left: var(--inset);
+  width: calc(var(--details-pos) * (100% - 2 * var(--inset)) / 2);
+  height: 2px;
+  border-radius: 1px;
+  background: var(--details-teal);
+  transform: translateY(-50%);
+  transition: width 0.35s cubic-bezier(0.4, 1.2, 0.5, 1);
+}
+
+.details-slider__notch {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--inset) + var(--i) * (100% - 2 * var(--inset)) / 2);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--details-line);
+  transform: translate(-50%, -50%);
+}
+
+.details-slider__knob {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--inset) + var(--details-pos) * (100% - 2 * var(--inset)) / 2);
+  width: 0.95rem;
+  height: 0.95rem;
+  border: 2px solid var(--details-ink);
+  border-radius: 50%;
+  background: var(--details-paper);
+  box-shadow: 0 1px 3px rgb(16 45 66 / 0.25);
+  transform: translate(-50%, -50%);
+  transition:
+    left 0.35s cubic-bezier(0.4, 1.2, 0.5, 1),
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.details-slider[data-level="technical"] .details-slider__knob {
+  border-color: var(--details-teal);
+  box-shadow: 0 0 0.6rem var(--details-teal);
+}
+
+@media (max-width: 40rem) {
+  .details-slider {
+    gap: 0.4rem;
+  }
+
+  .details-slider__track {
+    width: 3.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .details-slider__fill,
+  .details-slider__knob,
+  .details-slider__glyph i {
+    transition: none;
+  }
+}
+
+@media print {
+  .details-slider {
+    display: none;
+  }
+}

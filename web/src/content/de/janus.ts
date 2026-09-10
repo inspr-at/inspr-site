@@ -27,6 +27,12 @@ export const janusContentDe = {
   hero: {
     eyebrow: "GOVERNANCE FÜR GEHEIMNISSE IN MENSCH- UND AGENTENSYSTEMEN",
     title: "Geheimnisse nutzen. Werte verbergen.",
+    depths: {
+      simple:
+        "Mit Janus können Menschen und KI-Helfer ein Passwort oder einen Schlüssel benutzen, ohne ihn je zu sehen. Jede Nutzung ist eine enge, genehmigte Freigabe, und das Geheimnis selbst bleibt weggeschlossen.",
+      technical:
+        "Janus trennt, was verwendet werden darf, wer es anfordern darf und wohin es fließen darf. Aufrufer halten opake Referenzen und enge, richtliniengebundene Freigaben; Geheimniswerte werden nur in geprüften Ausführungspfaden materialisiert, nie in Prompts, Browsern oder Logs.",
+    },
     lead:
       "Janus trennt, was verwendet werden darf, wer es anfordern darf und wohin es gehen darf. Menschen und KI arbeiten mit opaken Referenzen und engen, richtliniengebundenen Freigaben. Geheimniswerte bleiben in geprüften Ausführungspfaden.",
     alt: "Ein durchscheinendes Janus-Tor mit zwei Profilen trennt ein geschütztes Zugangsdatum von freigegebenen Mensch-, Dienst- und Agenten-Abläufen.",
@@ -44,6 +50,12 @@ export const janusContentDe = {
   problem: {
     eyebrow: "DAS PROBLEM",
     title: "Agenten sollten keine Zugangsdaten halten.",
+    depths: {
+      simple:
+        "Ein Programm braucht vielleicht wirklich einen Schlüssel für seine Arbeit. Ein KI-Helfer muss ihn fast nie lesen. Trotzdem geben viele Aufbauten der Automatisierung einen wiederverwendbaren Schlüssel oder ein allgemeines „Lies jedes Geheimnis“-Werkzeug.",
+      technical:
+        "Ein Dienst kann ein Deployment-Zugangsdatum berechtigt brauchen; ein Agent braucht dessen Wert selten. Trotzdem erhalten Automatisierungen weiterhin wiederverwendbare Tokens, Umgebungsvariablen oder eine generische Vault-Lesefähigkeit, womit jeder Prompt zum möglichen Abflusspfad wird.",
+    },
     lead:
       "Ein Dienst braucht vielleicht wirklich ein Deployment-Zugangsdatum. Ein KI-Agent muss es selten lesen. Trotzdem geben viele Integrationen der Automatisierung noch ein wiederverwendbares Token, eine Umgebungsvariable oder ein generisches Vault-Lesewerkzeug.",
     visualAlt:
@@ -80,6 +92,12 @@ export const janusContentDe = {
   model: {
     eyebrow: "DAS JANUS-MODELL",
     title: "Referenz. Freigabe. Ausführung.",
+    depths: {
+      simple:
+        "Janus macht aus einer großen Erlaubnis „darf Geheimnisse lesen“ drei kleine Fragen: was, wer und wohin. Jede wird für sich geprüft.",
+      technical:
+        "Janus zerlegt eine breite Geheimnis-Lesebefugnis in drei enge, unabhängig testbare Entscheidungen: welche Referenz, welcher Anfragende, welches Ziel. Jede wird in Typen, geprüfter Richtlinie und Negativpfad-Tests durchgesetzt.",
+    },
     lead:
       "Janus zerlegt eine breite Geheimnis-Lesebefugnis in drei enge und unabhängig testbare Entscheidungen.",
     steps: [

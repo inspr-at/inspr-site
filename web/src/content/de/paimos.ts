@@ -28,6 +28,12 @@ export const paimosContentDe = {
   hero: {
     eyebrow: "Projektkontext, geteilt",
     title: "Ein gemeinsames Projektbild.",
+    depths: {
+      simple:
+        "Paimos ist Projektmanagement, das Sie selbst betreiben, gebaut für Teams, die mit KI-Helfern arbeiten. Plan, Hintergrund und der Nachweis, was passiert ist, liegen an einem Ort. So sieht ein Mensch immer, was getan wurde und warum.",
+      technical:
+        "Paimos ist selbst gehostetes, berechtigungsbewusstes Projektmanagement: Tickets, Repository-Kontext, Runbooks, Ausführungsentscheidungen und Laufnachweise in einem Modell, erreichbar über UI, CLI und API. Agenten handeln mit Kontext, Menschen prüfen das Ergebnis.",
+    },
     lead:
       "Paimos ist selbst gehostetes Projektmanagement für Engineering- und Delivery-Teams, die mit KI-Agenten arbeiten. Es hält Tickets, Repository-Kontext, Betriebswissen, Ausführungsentscheidungen und Laufnachweise zusammen. So kann ein Agent mit Kontext handeln, und ein Mensch sieht, was passiert ist.",
     alt: "Abstrakte Projekt-Agora, in der Menschen und KI-Teilnehmer um eine gemeinsame Arbeitsfläche stehen",
@@ -351,6 +357,12 @@ export const paimosContentDe = {
   problem: {
     eyebrow: "Warum Paimos",
     title: "Fragmente brechen KI-Arbeit.",
+    depths: {
+      simple:
+        "Das Ticket, der Code, die Anleitung und der Chat mit einem KI-Helfer kennen je einen Teil der Geschichte. Keiner davon kann sagen, wer was getan hat, mit welcher Erlaubnis und was zurückkam.",
+      technical:
+        "Tickets tragen Absicht, Repositories den Ort, Runbooks das Verfahren und Chat-Transkripte die Versuche. Kein einzelnes System hält Akteur, gelieferten Kontext, erteilte Befugnis und zurückgegebene Nachweise für eine Arbeitseinheit fest.",
+    },
     lead:
       "Ein Ticket sagt, was sich ändern soll. Das Repository sagt, wo. Ein Runbook sagt, wie. Ein Chatfenster sagt, was ein Agent versucht hat. Keines dieser Systeme allein kann beantworten, wer gehandelt hat, welchen Kontext es gab, welche Befugnis bestand und was zurückkam.",
     visualAlt:
@@ -384,6 +396,12 @@ export const paimosContentDe = {
   model: {
     eyebrow: "So funktioniert es",
     title: "Das Projekt ist die Steuerungsebene.",
+    depths: {
+      simple:
+        "Paimos legt Arbeit, Hintergrund, Getanes und Beleg an einen Ort. Menschen und KI-Helfer sehen dasselbe Bild, und Menschen entscheiden.",
+      technical:
+        "Paimos verbindet Arbeitseinheiten, Kontext, Ausführung und Nachweise in einem berechtigungsbewussten Modell. Menschen planen und prüfen im selben Projektmodell, aus dem Agenten lesen und in das sie zurückberichten; Befugnis und Nachweis bleiben an der Arbeit.",
+    },
     lead:
       "Paimos verbindet Arbeit, Kontext, Ausführung und Nachweise in einem berechtigungsbewussten System. Menschen planen und prüfen im selben Projektmodell, aus dem Agenten lesen und in das sie zurückberichten.",
     steps: [

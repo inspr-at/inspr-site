@@ -230,67 +230,78 @@ test("Overview keeps a bounded, friendly and responsive two-screen structure", a
   assert.doesNotMatch(styles, /animation:/);
 });
 
-test("Overview Details control offers three depths and reveals seven public-safe layers", async () => {
-  const [page, header, details, levels, styles, deploy] = await Promise.all([
+test("Overview Details slider is wordless and its technical depth is a readable cover flow", async () => {
+  const [page, header, control, details, levels, controlStyles, styles, deploy] = await Promise.all([
     source("components/OverviewPage.astro"),
     source("components/MicrositeHeader.astro"),
+    source("components/DetailsControl.astro"),
     source("components/OverviewDetails.astro"),
     source("components/DetailLevels.astro"),
+    source("styles/details-control.css"),
     source("styles/overview-details.css"),
     rootFile("deploy.sh"),
   ]);
 
-  // A three-position control named "Details" sits in the header before the
-  // language choice — never developer, sysop or nerd.
+  // A wordless level slider named "Details" sits in the header before the
+  // language choice: a real slider for screen readers, no visible level
+  // names, no caption, no tooltip — and never developer, sysop or nerd.
   assert.match(page, /import DetailLevels from "\.\/DetailLevels\.astro"/);
   assert.match(page, /import OverviewDetails from "\.\/OverviewDetails\.astro"/);
   assert.match(page, /detailsSlider=\{\{[\s\S]*?label: "Details",[\s\S]*?controls: "overview-details",/);
-  const levelIds = [...page.matchAll(/\{ id: "(simple|standard|technical)", label: /g)].map((match) => match[1]);
-  assert.deepEqual(levelIds, ["simple", "standard", "technical"]);
+  assert.deepEqual([...page.matchAll(/\{ id: "(simple|standard|technical)", label: /g)].map((match) => match[1]), ["simple", "standard", "technical"]);
   assert.match(page, /<\/main>\s*<OverviewDetails locale=\{locale\} \/>/);
-  assert.match(header, /\{detailsSlider && \([\s\S]*?class="details-slider"[\s\S]*?role="radiogroup"[\s\S]*?data-details-slider/);
-  assert.match(header, /role="radio"[\s\S]*?aria-checked=\{level\.id === "standard" \? "true" : "false"\}[\s\S]*?data-details-level=\{level\.id\}/);
-  assert.match(header, /data-details-slider[\s\S]*?\{languageLinks && \(/);
-  assert.doesNotMatch(page + header + details, /developer|sysop|nerd/i);
+  assert.match(header, /import DetailsControl from "\.\/DetailsControl\.astro"/);
+  assert.match(header, /\{detailsSlider && \([\s\S]*?<DetailsControl[\s\S]*?\{languageLinks && \(/);
+  assert.match(control, /class="details-slider__track"[\s\S]*?role="slider"[\s\S]*?aria-valuemin="0"[\s\S]*?aria-valuemax="2"[\s\S]*?aria-valuetext=\{levels\[1\]\?\.label\}/);
+  assert.match(control, /class="details-slider__glyph" aria-hidden="true"><i><\/i><i><\/i><i><\/i>/);
+  assert.match(control, /data-details-name=\{level\.label\}[\s\S]*?aria-hidden="true"/);
+  assert.doesNotMatch(control, /title=\{|<span[^>]*>\{level\.label\}/);
+  assert.doesNotMatch(controlStyles, /::after[\s\S]*?content: attr\(data-details-name\)/);
+  assert.match(control, /"pointerdown"[\s\S]*?"pointermove"[\s\S]*?"wheel"[\s\S]*?"keydown"/);
+  assert.match(control, /searchParams\.get\(linkParam\)/);
+  assert.match(control, /localStorage\.getItem\(legacyStorageKey\) === "1"\) initial = "technical"/);
+  assert.match(control, /\[data-specs-eli10\]/);
+  assert.doesNotMatch(page + header + control + details, /developer|sysop|nerd/i);
 
   // Every depth ships in the static HTML and swaps in place; the standard
   // depth is what renders without JavaScript.
   assert.match(levels, /<span data-copy-level="simple">\{simple\}<\/span><span data-copy-level="standard">\{standard\}<\/span><span data-copy-level="technical">\{technical\}<\/span>/);
-  assert.match(styles, /html:not\(\[data-details-level\]\) \[data-copy-level="standard"\]/);
+  assert.match(controlStyles, /html:not\(\[data-details-level\]\) \[data-copy-level="standard"\]/);
   assert.equal((page.match(/<DetailLevels/g) || []).length, 6);
   assert.equal((page.match(/simple: copy\(/g) || []).length, 8);
   assert.equal((page.match(/technical: copy\(/g) || []).length, 8);
-  for (const phrase of [
-    "Nothing happens without your yes.",
-    "Ohne Ihr Ja passiert nichts.",
-    "You talk, it writes down what you need.",
-    "Sie reden, es schreibt auf, was Sie brauchen.",
-    "Bounded secret permits with roles, delegation and value-free audit; rotation without exposure.",
-    "Begrenzte Secret-Freigaben mit Rollen, Delegation und wertfreiem Audit; Rotation ohne Offenlegung.",
-  ]) {
-    assert.ok(page.includes(phrase), `missing depth copy: ${phrase}`);
-  }
 
-  // Seven layers, bottom to top, each with a tag, body and tools; shown only
-  // at the technical depth.
+  // Layout density grows with the depth: Simple folds secondary blocks away,
+  // Technical adds the release meta line; everything transitions.
+  assert.match(styles, /html\[data-details-level="simple"\] \.overview-promises small \{[\s\S]*?max-height: 0;/);
+  assert.match(styles, /html\[data-details-level="simple"\] \.overview-control \{[\s\S]*?max-height: 0;/);
+  assert.match(styles, /html\[data-details-level="technical"\] \.overview-meta \{[\s\S]*?opacity: 1;/);
+  assert.match(page, /class="overview-meta"[\s\S]*?data-live="release"[\s\S]*?data-live="source"[\s\S]*?data-live="deployed"/);
+
+  // Technical on wide fine-pointer viewports: a vertical cover flow, one
+  // active card fully readable, the rest as tabs; wheel, keys and clicks
+  // move; after the last card the page scroll is released.
   const ids = [...details.matchAll(/id: "(l\d)",/g)].map((match) => match[1]);
   assert.deepEqual(ids, ["l1", "l2", "l3", "l4", "l5", "l6", "l7"]);
+  assert.match(details, /\[\.\.\.layers\]\.reverse\(\)\.map\(\(layer, position\)/);
   assert.match(details, /id="overview-details"[\s\S]*?data-details-panel[\s\S]*?hidden/);
-  assert.match(details, /data-details-layer=\{layer\.id\}/);
-  assert.match(details, /class="overview-layer__tag"[\s\S]*?aria-expanded="false"[\s\S]*?data-details-layer-tag/);
+  assert.match(details, /data-details-counter/);
+  assert.match(details, /data-details-hint/);
+  assert.match(details, /"wheel",[\s\S]*?\{ passive: false \}/);
+  assert.match(details, /ArrowDown: 1, PageDown: 1, ArrowUp: -1, PageUp: -1/);
+  assert.match(details, /setOwning\(false\)/);
+  assert.match(details, /window\.scrollY <= 0/);
+  assert.match(details, /event\.key === "Escape"[\s\S]*?inspr:details-request/);
+  assert.doesNotMatch(details, /data-details-pin/);
+  assert.match(styles, /@media \(hover: hover\) and \(pointer: fine\) and \(min-width: 56rem\) and \(prefers-reduced-motion: no-preference\)/);
+  assert.match(styles, /html\[data-details\]:not\(\[data-details-reading\]\) \.overview-main \{[\s\S]*?scale\(0\.56\)/);
+  assert.match(styles, /html\[data-details-reading\] \.overview-details \{[\s\S]*?visibility: hidden;/);
+  assert.match(styles, /\.overview-layer\[data-details-active\] \.overview-layer__body \{[\s\S]*?grid-template-rows: 1fr;/);
+  assert.match(styles, /\.overview-layer__inner \{\s*padding: 0 1\.4rem;/);
   assert.match(details, /<dl class="overview-layer__live" data-details-live/);
-  assert.match(details, /setEnabled\(level === "technical"/);
-  assert.match(details, /localStorage\.getItem\(legacyStorageKey\) === "1"\) remembered = "technical"/);
-  for (const phrase of [
-    "Workstations, home servers and a few rented cloud VMs.",
-    "Arbeitsplätze, Heimserver und einige gemietete Cloud-VMs.",
-    "one static build, five hostnames, published by a script that can always roll back.",
-    "ein statischer Build, fünf Hostnamen, veröffentlicht von einem Skript, das jederzeit zurückrollen kann.",
-    "The rulebook every AI agent loads at session start.",
-    "Das Regelwerk, das jeder KI-Agent zu Beginn jeder Sitzung lädt.",
-  ]) {
-    assert.ok(details.includes(phrase), `missing details copy: ${phrase}`);
-  }
+  assert.match(details, /fetch\("\/release\.json"/);
+  assert.match(details, /method: "HEAD"/);
+  assert.doesNotMatch(details + control, /is:inline/);
 
   // Public content conveys the kind of machine, never an identity: no host
   // names, internal domains, filesystem paths or provider SKUs.
@@ -300,23 +311,6 @@ test("Overview Details control offers three depths and reveals seven public-safe
     assert.doesNotMatch(text, /netcup|hetzner|storage box/i);
     assert.doesNotMatch(text, /~\/|\/run\/|\/home\/|\/srv\//);
   }
-
-  // Live facts come from the page's own origin; the control remembers itself
-  // the way the language choice does; Escape returns to standard.
-  assert.match(details, /fetch\("\/release\.json"/);
-  assert.match(details, /method: "HEAD"/);
-  assert.match(details, /localStorage\.(getItem|setItem)\(storageKey/);
-  assert.match(details, /event\.key === "Escape" && enabled\) setLevel\("standard"\)/);
-  assert.match(details, /ArrowRight/);
-  assert.doesNotMatch(details, /is:inline/);
-
-  // Static stack by default; the 3D scene only for fine pointers, wide
-  // viewports and no reduced-motion preference.
-  assert.match(styles, /@media \(hover: hover\) and \(pointer: fine\) and \(min-width: 56rem\) and \(prefers-reduced-motion: no-preference\)/);
-  assert.match(styles, /html\[data-details\] \.overview-main \{[\s\S]*?perspective\(1800px\)/);
-  assert.match(styles, /\.overview-details \{[\s\S]*?position: fixed;/);
-  assert.match(styles, /order: calc\(7 - var\(--layer-index\)\);/);
-  assert.match(styles, /@media print \{[\s\S]*?\.overview-details \{[\s\S]*?display: none;/);
 
   // Every release proves the control is live on both editions.
   assert.match(deploy, /probe_page "INSPR overview details switch" "https:\/\/www\.inspr\.at\/overview\/" "data-details-slider"/);

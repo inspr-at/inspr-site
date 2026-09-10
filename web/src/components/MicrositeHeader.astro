@@ -1,4 +1,5 @@
 ---
+import DetailsControl from "./DetailsControl.astro";
 import { productLinks, siteUrls } from "../content/urls";
 
 interface Props {
@@ -16,8 +17,8 @@ interface Props {
   detailsSlider?: {
     label: string;
     description: string;
-    controls: string;
-    levels: Array<{ id: "simple" | "standard" | "technical"; label: string; description: string }>;
+    controls?: string;
+    levels: Array<{ id: "simple" | "standard" | "technical"; label: string }>;
   };
 }
 
@@ -90,27 +91,12 @@ const productHref = (href: string) =>
     <div class="site-header__actions">
       {showSignIn && <a class="quiet-link" href={siteUrls.signIn} target="_blank" rel="noopener noreferrer">{labels.signIn}</a>}
       {detailsSlider && (
-        <div
-          class="details-slider"
-          role="radiogroup"
-          aria-label={detailsSlider.description}
-          aria-controls={detailsSlider.controls}
-          data-details-slider
-        >
-          <span class="details-slider__label" aria-hidden="true">{detailsSlider.label}</span>
-          <span class="details-slider__track">
-            {detailsSlider.levels.map((level) => (
-              <button
-                class="details-slider__option"
-                type="button"
-                role="radio"
-                aria-checked={level.id === "standard" ? "true" : "false"}
-                title={level.description}
-                data-details-level={level.id}
-              >{level.label}</button>
-            ))}
-          </span>
-        </div>
+        <DetailsControl
+          label={detailsSlider.label}
+          description={detailsSlider.description}
+          controls={detailsSlider.controls}
+          levels={detailsSlider.levels}
+        />
       )}
       {languageLinks && (
         <nav class="language-switch" aria-label={labels.languages}>

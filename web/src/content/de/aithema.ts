@@ -18,6 +18,12 @@ export const aithemaContentDe = {
   hero: {
     eyebrow: "Anforderungen, prüfbar gemacht",
     title: "Anforderungen, die Sie vor Arbeitsbeginn freigeben.",
+    depths: {
+      simple:
+        "Sprechen, tippen oder Dateien ablegen. Aithema macht daraus eine klare Liste dessen, was Sie brauchen, und wartet, bis Sie sie gelesen haben und „Weiter“ sagen.",
+      technical:
+        "Sprache, Text und Dateien werden zu einem strukturierten, prüfbaren Anforderungssatz. Aithema ordnet den Input; Prüfung und das explizite „Weiter“ bleiben bei Ihnen, damit nichts Nachgelagertes auf einem ungeprüften Entwurf startet.",
+    },
     lead:
       "Sprechen, schreiben oder Dateien teilen. Aithema hilft, aus diesem Input klare Anforderungen zu machen, und wartet dann darauf, dass Sie sie prüfen und „Weiter“ wählen.",
     alt: "Ein Anforderungsprisma bündelt diffuses türkis-goldenes Licht zu einem präzisen Entscheidungsobjekt",
@@ -34,6 +40,12 @@ export const aithemaContentDe = {
   problem: {
     eyebrow: "Vor dem Bau",
     title: "Gute Arbeit braucht einen klaren Anfang.",
+    depths: {
+      simple:
+        "Ideen tauchen in Chats, Notizen und Dateien auf. Das Schwierige ist, daraus eine Fassung zu machen, die ein Mensch lesen, korrigieren und freigeben kann.",
+      technical:
+        "Input kommt fragmentiert über Gespräche, Notizen und Dokumente an. Die Arbeit besteht darin, ihn zu einem versionierten, prüfbaren Anforderungssatz zu verdichten, den ein Mensch korrigieren und freigeben kann, bevor die Umsetzung beginnt.",
+    },
     lead:
       "Ideen kommen über Gespräche, Notizen und Dateien. Das Schwierige ist, daraus eine Fassung zu machen, die ein Mensch prüfen, korrigieren und freigeben kann.",
     visualAlt:
@@ -67,6 +79,12 @@ export const aithemaContentDe = {
   model: {
     eyebrow: "Der Aithema-Weg",
     title: "Teilen. Formen. Prüfen. Weiter.",
+    depths: {
+      simple:
+        "Aithema sortiert und räumt auf. Sie treffen die Entscheidung.",
+      technical:
+        "Aithema übernimmt die Verdichtungs- und Strukturierungsarbeit, während die Freigabe eine menschliche Handlung mit einem prüfbaren Artefakt dahinter bleibt.",
+    },
     lead:
       "Aithema übernimmt die Mühe, Input zu ordnen, und lässt die Entscheidung bei Ihnen.",
     steps: [

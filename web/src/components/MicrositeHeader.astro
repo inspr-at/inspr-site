@@ -1,5 +1,6 @@
 ---
 import DetailsControl from "./DetailsControl.astro";
+import SiteHeaderMotion from "./SiteHeaderMotion.astro";
 import { productLinks, siteUrls } from "../content/urls";
 
 interface Props {
@@ -156,6 +157,8 @@ const productHref = (href: string) =>
     </div>
   </div>
 </header>
+
+<SiteHeaderMotion />
 
 <script>
   document

@@ -2,6 +2,7 @@
 import { Image } from "astro:assets";
 import MicrositeLayout from "../layouts/MicrositeLayout.astro";
 import MicrositeHeader from "../components/MicrositeHeader.astro";
+import DetailLevels from "../components/DetailLevels.astro";
 import MicrositeFooter from "../components/MicrositeFooter.astro";
 import ServiceRibbon from "../components/ServiceRibbon.astro";
 import WorkflowExplorer from "../components/WorkflowExplorer.astro";
@@ -341,6 +342,15 @@ const productFlowSteps = [
     showSignIn={true}
     locale={locale}
     languageLinks={{ en: "/", de: "/de/" }}
+    detailsSlider={{
+      label: "Details",
+      description: copy("How much detail this page shows", "Wie viel Detail diese Seite zeigt"),
+      levels: [
+        { id: "simple", label: copy("Simple", "Einfach") },
+        { id: "standard", label: "Standard" },
+        { id: "technical", label: copy("Technical", "Technisch") },
+      ],
+    }}
   />
 
   <main id="main-content">
@@ -361,10 +371,20 @@ const productFlowSteps = [
         <p class="eyebrow">{copy("The idea", "Die Idee")}</p>
         <h1 id="hero-title">{copy("Inspiration is the only limit.", "Inspiration ist die einzige Grenze.")}</h1>
         <p class="umbrella-hero__lead">
-          {copy(
-            "Talk through what you want to build. Aithema writes the requirements, Paimos gives agents the project, Pharos handles deployment and Janus controls access. Every handoff waits for you.",
-            "Besprechen Sie, was Sie bauen wollen. Aithema schreibt die Anforderungen, Paimos gibt Agenten das Projekt, Pharos übernimmt die Bereitstellung und Janus kontrolliert den Zugriff. Jede Übergabe wartet auf Sie.",
-          )}
+          <DetailLevels
+            simple={copy(
+              "Say what you want to build. Four tools take it from there, one step at a time, and each step waits for your yes.",
+              "Sagen Sie, was Sie bauen wollen. Vier Werkzeuge übernehmen es von da an, Schritt für Schritt, und jeder Schritt wartet auf Ihr Ja.",
+            )}
+            standard={copy(
+              "Talk through what you want to build. Aithema writes the requirements, Paimos gives agents the project, Pharos handles deployment and Janus controls access. Every handoff waits for you.",
+              "Besprechen Sie, was Sie bauen wollen. Aithema schreibt die Anforderungen, Paimos gibt Agenten das Projekt, Pharos übernimmt die Bereitstellung und Janus kontrolliert den Zugriff. Jede Übergabe wartet auf Sie.",
+            )}
+            technical={copy(
+              "Describe the outcome; Aithema produces reviewable requirements, Paimos gives agents a permission-aware project model, Pharos runs a guarded deploy with evidence, Janus issues bounded access permits. Every handoff is an explicit human approval gate.",
+              "Beschreiben Sie das Ergebnis; Aithema erzeugt prüfbare Anforderungen, Paimos gibt Agenten ein berechtigungsbewusstes Projektmodell, Pharos führt ein abgesichertes Deployment mit Nachweisen aus, Janus vergibt begrenzte Zugriffsfreigaben. Jede Übergabe ist ein explizites menschliches Freigabe-Gate.",
+            )}
+          />
         </p>
         <div class="button-row">
           <a class="button" href="#flow">
@@ -433,10 +453,20 @@ const productFlowSteps = [
         </header>
         <div class="umbrella-idea__copy">
           <p class="section-lead">
-            {copy(
-              "Start from the thing you want to build. The tools carry requirements, project context, deployment safety and access control alongside it.",
-              "Beginnen Sie mit dem, was Sie bauen wollen. Die Werkzeuge tragen Anforderungen, Projektkontext, sichere Bereitstellung und Zugriffskontrolle mit.",
-            )}
+            <DetailLevels
+              simple={copy(
+                "You bring the idea. The tools carry the paperwork, the setup, the safe rollout and the keys.",
+                "Sie bringen die Idee. Die Werkzeuge tragen den Papierkram, die Einrichtung, die sichere Einführung und die Schlüssel.",
+              )}
+              standard={copy(
+                "Start from the thing you want to build. The tools carry requirements, project context, deployment safety and access control alongside it.",
+                "Beginnen Sie mit dem, was Sie bauen wollen. Die Werkzeuge tragen Anforderungen, Projektkontext, sichere Bereitstellung und Zugriffskontrolle mit.",
+              )}
+              technical={copy(
+                "Start from the deliverable. Requirements, repository context, deployment gating and access policy travel with it as reviewable artefacts, not as chat history.",
+                "Beginnen Sie beim Ergebnis. Anforderungen, Repository-Kontext, Deployment-Gates und Zugriffsrichtlinien reisen als prüfbare Artefakte mit, nicht als Chatverlauf.",
+              )}
+            />
           </p>
           <p>
             {copy(
@@ -464,10 +494,20 @@ const productFlowSteps = [
           )}
         </h2>
         <p class="section-lead">
-          {copy(
-            "Adopt one, or follow the whole path from requirements to enforced access. Between every two steps stands a person who chooses to continue.",
-            "Nutzen Sie eines oder folgen Sie dem ganzen Weg von Anforderungen bis zum geregelten Zugriff. Zwischen zwei Schritten entscheidet immer ein Mensch, ob es weitergeht.",
-          )}
+          <DetailLevels
+            simple={copy(
+              "Use one tool or all four. Between every two steps, a person decides whether to go on.",
+              "Nutzen Sie ein Werkzeug oder alle vier. Zwischen zwei Schritten entscheidet immer ein Mensch, ob es weitergeht.",
+            )}
+            standard={copy(
+              "Adopt one, or follow the whole path from requirements to enforced access. Between every two steps stands a person who chooses to continue.",
+              "Nutzen Sie eines oder folgen Sie dem ganzen Weg von Anforderungen bis zum geregelten Zugriff. Zwischen zwei Schritten entscheidet immer ein Mensch, ob es weitergeht.",
+            )}
+            technical={copy(
+              "Adopt them independently or as one pipeline from requirements to enforced access; each stage emits evidence and blocks on an explicit approval before the next may start.",
+              "Einzeln einsetzbar oder als eine Pipeline von Anforderungen bis zum durchgesetzten Zugriff; jede Stufe erzeugt Nachweise und blockiert bis zur expliziten Freigabe, bevor die nächste starten darf.",
+            )}
+          />
         </p>
       </header>
 
@@ -575,6 +615,16 @@ const productFlowSteps = [
         "Requirements, staged build, production deploy, access: four approvals, each backed by evidence the tool puts in front of you.",
         "Anforderungen, Build im Staging, Produktionsbereitstellung, Zugriff: vier Freigaben, jeweils gestützt auf Nachweise des Werkzeugs.",
       )}
+      leadDepths={{
+        simple: copy(
+          "Four steps, four times your yes, and each time the tool shows you what it did first.",
+          "Vier Schritte, viermal Ihr Ja, und jedes Mal zeigt Ihnen das Werkzeug vorher, was es getan hat.",
+        ),
+        technical: copy(
+          "Requirements, staged build, production deploy, access permit: four approval gates, each backed by artefacts the tool attaches, so the approval stays reviewable after the fact.",
+          "Anforderungen, Build im Staging, Produktionsbereitstellung, Zugriffsfreigabe: vier Freigabe-Gates, jeweils gestützt auf Artefakte, die das Werkzeug anhängt, damit die Freigabe auch im Nachhinein prüfbar bleibt.",
+        ),
+      }}
       steps={productFlowSteps}
       image={insprContinuity}
       alt={copy(
@@ -601,10 +651,20 @@ const productFlowSteps = [
           {copy("Built so you can say no.", "So gebaut, dass Sie Nein sagen können.")}
         </h2>
         <p class="section-lead">
-          {copy(
-            "Each rule keeps a decision informed, visible and reversible.",
-            "Jede Regel hält Entscheidungen informiert, sichtbar und umkehrbar.",
-          )}
+          <DetailLevels
+            simple={copy(
+              "Every rule exists so you can see what is happening and say no.",
+              "Jede Regel gibt es, damit Sie sehen, was passiert, und Nein sagen können.",
+            )}
+            standard={copy(
+              "Each rule keeps a decision informed, visible and reversible.",
+              "Jede Regel hält Entscheidungen informiert, sichtbar und umkehrbar.",
+            )}
+            technical={copy(
+              "Each rule keeps a decision informed, visible and reversible: evidence before approval, explicit gates, no silent state change.",
+              "Jede Regel hält Entscheidungen informiert, sichtbar und umkehrbar: Nachweise vor der Freigabe, explizite Gates, keine stille Zustandsänderung.",
+            )}
+          />
         </p>
       </header>
       <PrincipleFieldNotes principles={principles} locale={locale} />
@@ -622,10 +682,20 @@ const productFlowSteps = [
           {copy("Read it before you run it.", "Lesen Sie ihn, bevor Sie ihn betreiben.")}
         </h2>
         <p class="section-lead">
-          {copy(
-            "Paimos, Pharos and Janus are open-source software by Markus Barta, licensed AGPL-3.0-only. Aithema's reusable module is planned as open source. What is published, you can inspect, run yourself and change.",
-            "Paimos, Pharos und Janus sind Open-Source-Software von Markus Barta unter AGPL-3.0-only. Aithemas wiederverwendbares Modul ist als Open Source geplant. Veröffentlichtes können Sie prüfen, selbst betreiben und verändern.",
-          )}
+          <DetailLevels
+            simple={copy(
+              "Three of the four tools are open for anyone to read and run. The fourth is on its way.",
+              "Drei der vier Werkzeuge sind offen, jeder kann sie lesen und betreiben. Das vierte ist unterwegs.",
+            )}
+            standard={copy(
+              "Paimos, Pharos and Janus are open-source software by Markus Barta, licensed AGPL-3.0-only. Aithema's reusable module is planned as open source. What is published, you can inspect, run yourself and change.",
+              "Paimos, Pharos und Janus sind Open-Source-Software von Markus Barta unter AGPL-3.0-only. Aithemas wiederverwendbares Modul ist als Open Source geplant. Veröffentlichtes können Sie prüfen, selbst betreiben und verändern.",
+            )}
+            technical={copy(
+              "Paimos, Pharos and Janus are AGPL-3.0-only on GitHub, by Markus Barta. Aithema's reusable module is planned as open source. Published code can be inspected, self-hosted and modified under those terms.",
+              "Paimos, Pharos und Janus stehen unter AGPL-3.0-only auf GitHub, von Markus Barta. Aithemas wiederverwendbares Modul ist als Open Source geplant. Veröffentlichter Code kann unter diesen Bedingungen geprüft, selbst betrieben und verändert werden.",
+            )}
+          />
         </p>
       </div>
       <nav class="source-panel__links" aria-label={copy("INSPR source links", "Links zum INSPR-Quellcode")}>

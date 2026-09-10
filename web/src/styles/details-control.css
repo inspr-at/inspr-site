@@ -369,25 +369,6 @@ html:not([data-details-level]) :is(.workflow__simple, .product-story__simple) {
 .workflow__simple li { min-width: 0; overflow-wrap: break-word; hyphens: manual; }
 .workflow__simple p { margin-top: 0.5rem; }
 
-html[data-details-level="simple"] :is(.product-hero, .umbrella-hero) {
-  grid-template-columns: minmax(0, 1fr);
-  min-height: 0;
-  gap: 0;
-  padding-block: 2rem;
-}
-html[data-details-level="simple"] :is(.product-hero__copy, .umbrella-hero__copy) {
-  max-width: 66rem;
-}
-html[data-details-level="simple"] :is(.product-hero, .umbrella-hero) h1 {
-  max-width: 24ch;
-  font-size: clamp(2.3rem, 4.2vw, 3.8rem);
-}
-html[data-details-level="simple"] :is(.hero-lead, .umbrella-hero__lead) {
-  max-width: 62ch;
-  margin-top: 1rem;
-  font-size: 1.1rem;
-}
-html[data-details-level="simple"] .button-row { margin-top: 1rem; }
 html[data-details-level="simple"] .workflow {
   padding-block: 1.75rem;
 }

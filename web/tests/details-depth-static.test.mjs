@@ -56,7 +56,7 @@ test("umbrella folds supporting sections and compacts all four linked products i
   boundary(page, 'id="flow"', false, "WorkflowExplorer");
   const heroStart = page.indexOf('class="umbrella-hero page-shell"');
   const hero = page.slice(heroStart, page.indexOf("</section>", heroStart));
-  assert.doesNotMatch(hero, /data-depth-(?:min|max)=/);
+  assert.doesNotMatch(hero, /data-depth-(?:min|max|layout)/);
   assert.match(hero, /class="umbrella-hero__visual">/);
   for (const cls of ["umbrella-proof page-shell", "product-story__visual"]) {
     assert.match(page, new RegExp(`class="${cls}" data-depth-min="standard"`));
@@ -69,6 +69,7 @@ test("umbrella folds supporting sections and compacts all four linked products i
 
 test("all six page families keep their essence and preserve technical evidence", async () => {
   const overview = await source("components/OverviewPage.astro");
+  assert.match(overview, /class="overview-hero page-shell" data-depth-layout/);
   for (const cls of ["overview-promises", "overview-step__preview", "overview-step__approval", "overview-step__connector", "overview-control", "overview-next page-shell"]) {
     assert.ok(overview.includes(`class="${cls}" data-depth-min="standard"`), cls);
   }
@@ -88,9 +89,16 @@ test("all six page families keep their essence and preserve technical evidence",
     }
     const heroStart = page.indexOf('class="product-hero page-shell"');
     const hero = page.slice(heroStart, page.indexOf("</section>", heroStart));
-    assert.doesNotMatch(hero, /data-depth-(?:min|max)=/);
+    assert.doesNotMatch(hero, /data-depth-(?:min|max|layout)/);
     assert.match(hero, /class="product-hero__visual">/);
     assert.match(page, /<WorkflowExplorer\s+id="model"/);
+  }
+});
+
+test("Simple preserves the Standard hero layout and typography", async () => {
+  const css = await source("styles/details-control.css");
+  for (const selector of ["product-hero", "umbrella-hero", "product-hero__copy", "umbrella-hero__copy", "hero-lead", "umbrella-hero__lead", "button-row"]) {
+    assert.doesNotMatch(css, new RegExp(`data-details-level="simple"[^}]*\\.${selector}`), selector);
   }
 });
 

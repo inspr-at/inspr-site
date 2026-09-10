@@ -154,43 +154,12 @@ const live = {
 </section>
 
 <script>
-  // Technical depth of the Overview: read the live release facts once
-  // and answer to layer addresses.
+  // Technical depth of the Overview: answer to layer addresses.
   // Bundled by Astro as a same-origin module, so the strict CSP needs no hash.
   const root = document.documentElement;
   const rows = Array.from(document.querySelectorAll<HTMLElement>("[data-stack-layer]"));
 
   const technical = () => root.getAttribute("data-details-level") === "technical";
-  let liveLoaded = false;
-
-  const loadLive = async () => {
-    if (liveLoaded) return;
-    liveLoaded = true;
-    const write = (name: string, value: string) => {
-      for (const target of document.querySelectorAll<HTMLElement>(`[data-live="${name}"]`)) target.textContent = value;
-    };
-    try {
-      const manifest = await fetch("/release.json", { cache: "no-store" }).then((response) => response.json());
-      write("release", String(manifest?.deployment?.releaseId ?? "local build"));
-      write("source", String(manifest?.source?.git ?? "unknown") + (manifest?.source?.dirty ? " (dirty)" : ""));
-      write("deployed", String(manifest?.deployment?.deployedAt ?? "not deployed"));
-    } catch {
-      write("release", "unavailable");
-      write("source", "unavailable");
-      write("deployed", "unavailable");
-    }
-    try {
-      const response = await fetch(window.location.pathname, { method: "HEAD", cache: "no-store" });
-      const csp = response.headers.get("content-security-policy") ?? "";
-      const hashes = csp.match(/'sha256-[^']+'/g)?.length ?? 0;
-      write("csp", csp ? `script-src 'self' + ${hashes}` : "not exposed");
-      write("hsts", response.headers.get("strict-transport-security") ? "preload" : "not exposed");
-    } catch {
-      write("csp", "unavailable");
-      write("hsts", "unavailable");
-    }
-  };
-
   // Every layer row has an address: #l1 … #l7. Arriving with one asks for
   // the technical depth, then brings the row into view once it has unfolded.
   const rowOfHash = () => rows.find((row) => `#${row.dataset.stackLayer}` === window.location.hash) ?? null;
@@ -212,7 +181,6 @@ const live = {
 
   document.addEventListener("inspr:details-level", (event) => {
     if (!technical()) return;
-    void loadLive();
     const source = (event as CustomEvent<{ source?: string }>).detail?.source;
     if (source === "user" && rowOfHash()) revealRow();
   });
@@ -223,6 +191,5 @@ const live = {
     document.dispatchEvent(new CustomEvent("inspr:details-request", { detail: { level: "standard" } }));
   });
 
-  if (technical()) void loadLive();
   followHash();
 </script>

@@ -288,8 +288,9 @@ test("Overview Details slider is wordless and its technical depth is a datasheet
   assert.match(stack, /role="table"[\s\S]*?role="columnheader"[\s\S]*?id=\{layer\.id\} data-stack-layer=\{layer\.id\}/);
   assert.match(stack, /<dl class="overview-stack__live" data-details-live/);
   assert.match(stack, /command: "inspr check --profile=server"/);
-  assert.match(stack, /fetch\("\/release\.json"/);
-  assert.match(stack, /method: "HEAD"/);
+  assert.match(control, /fetch\("\/release\.json"/);
+  assert.doesNotMatch(stack, /fetch\("\/release\.json"/);
+  assert.match(control, /method: "HEAD"/);
   assert.match(control, /drawer\.style\.setProperty\("--drawer-i", String\(index\)\)/);
   assert.match(stack, /window\.addEventListener\("hashchange", followHash\)/);
   assert.match(stack, /inspr:details-request[\s\S]*?level: "technical"/);

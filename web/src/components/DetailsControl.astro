@@ -73,6 +73,37 @@ const { label, description, controls, levels } = Astro.props;
   const linkParam = "details";
   let level: Level = "standard";
 
+  // Fill every live fact on the page once, when Technical is first applied.
+  let liveLoaded = false;
+
+  const loadLive = async () => {
+    if (liveLoaded) return;
+    liveLoaded = true;
+    const write = (name: string, value: string) => {
+      for (const target of document.querySelectorAll<HTMLElement>(`[data-live="${name}"]`)) target.textContent = value;
+    };
+    try {
+      const manifest = await fetch("/release.json", { cache: "no-store" }).then((response) => response.json());
+      write("release", String(manifest?.deployment?.releaseId ?? "local build"));
+      write("source", String(manifest?.source?.git ?? "unknown") + (manifest?.source?.dirty ? " (dirty)" : ""));
+      write("deployed", String(manifest?.deployment?.deployedAt ?? "not deployed"));
+    } catch {
+      write("release", "unavailable");
+      write("source", "unavailable");
+      write("deployed", "unavailable");
+    }
+    try {
+      const response = await fetch(window.location.pathname, { method: "HEAD", cache: "no-store" });
+      const csp = response.headers.get("content-security-policy") ?? "";
+      const hashes = csp.match(/'sha256-[^']+'/g)?.length ?? 0;
+      write("csp", csp ? `script-src 'self' + ${hashes}` : "not exposed");
+      write("hsts", response.headers.get("strict-transport-security") ? "preload" : "not exposed");
+    } catch {
+      write("csp", "unavailable");
+      write("hsts", "unavailable");
+    }
+  };
+
   if (slider && track && notches.length === 3) {
     const familyHost = (url: URL) => url.hostname === "inspr.at" || url.hostname.endsWith(".inspr.at");
     const nameOf = (value: Level) => notches.find((notch) => notch.dataset.detailsLevel === value)?.dataset.detailsName ?? value;
@@ -125,6 +156,7 @@ const { label, description, controls, levels } = Astro.props;
       }
       syncLinks();
       afterScripts(syncSpecs);
+      if (level === "technical") void loadLive();
       document.dispatchEvent(new CustomEvent("inspr:details-level", { detail: { level, source } }));
     };
 

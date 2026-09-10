@@ -390,7 +390,7 @@ const productFlowSteps = [
     />
 
     <section
-      class="umbrella-hero page-shell" data-depth-layout
+      class="umbrella-hero page-shell"
       aria-labelledby="hero-title"
       data-section-pattern="editorial-hero"
     >
@@ -417,7 +417,7 @@ const productFlowSteps = [
           <a class="button" href="#flow">
             {copy("See the flow", "Ablauf ansehen")} <span aria-hidden="true">↓</span>
           </a>
-          <a data-depth-min="standard" class="button button--ghost" href={repositoryUrl} target="_blank" rel="noopener noreferrer">
+          <a class="button button--ghost" href={repositoryUrl} target="_blank" rel="noopener noreferrer">
             {copy("Read the source", "Quellcode lesen")} <span aria-hidden="true">↗</span>
           </a>
         </div>
@@ -432,7 +432,7 @@ const productFlowSteps = [
             <div><dt>{copy("hosts", "Hosts")}</dt><dd>{copy("1 build · 5 hostnames · 2 languages", "1 Build · 5 Hostnamen · 2 Sprachen")}</dd></div>
           </div>
         </dl>
-        <p class="umbrella-hero__note" data-depth-min="standard">
+        <p class="umbrella-hero__note">
           {copy(
             "The tools carry the difficult parts. The decisions stay with you.",
             "Die Werkzeuge übernehmen die schwierigen Teile. Die Entscheidungen bleiben bei Ihnen.",
@@ -440,7 +440,7 @@ const productFlowSteps = [
         </p>
       </div>
 
-      <figure class="umbrella-hero__visual" data-depth-min="standard">
+      <figure class="umbrella-hero__visual">
         <HeroLoop
           id="inspr"
           locale={locale}
@@ -812,7 +812,7 @@ const productFlowSteps = [
     </section>
   </main>
 
-  <MicrositeFooter data-depth-min="standard" data-depth-max="standard"
+  <MicrositeFooter
     name="INSPR"
     repositoryUrl={repositoryUrl}
     licenseName="AGPL-3.0-only"

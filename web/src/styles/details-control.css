@@ -369,25 +369,6 @@ html:not([data-details-level]) :is(.workflow__simple, .product-story__simple) {
 .workflow__simple li { min-width: 0; overflow-wrap: break-word; hyphens: manual; }
 .workflow__simple p { margin-top: 0.5rem; }
 
-html[data-details-level="simple"] :is(.product-hero, .umbrella-hero) {
-  grid-template-columns: minmax(0, 1fr);
-  min-height: 0;
-  gap: 0;
-  padding-block: 2rem;
-}
-html[data-details-level="simple"] :is(.product-hero__copy, .umbrella-hero__copy) {
-  max-width: 66rem;
-}
-html[data-details-level="simple"] :is(.product-hero, .umbrella-hero) h1 {
-  max-width: 24ch;
-  font-size: clamp(2.3rem, 4.2vw, 3.8rem);
-}
-html[data-details-level="simple"] :is(.hero-lead, .umbrella-hero__lead) {
-  max-width: 62ch;
-  margin-top: 1rem;
-  font-size: 1.1rem;
-}
-html[data-details-level="simple"] .button-row { margin-top: 1rem; }
 html[data-details-level="simple"] .workflow {
   padding-block: 1.75rem;
 }
@@ -418,12 +399,6 @@ html[data-details-level="simple"] .product-story__identity { gap: 0.75rem; align
 html[data-details-level="simple"] .product-story__identity img { width: 2.5rem; height: 2.5rem; }
 html[data-details-level="simple"] .product-story__identity h3 { font-size: 1.7rem; }
 html[data-details-level="simple"] .product-story__simple { margin-top: 0.75rem; font-size: 1rem; }
-
-/* Keep the legal/source navigation, compressed below the one-page essence. */
-html[data-details-level="simple"] .site-footer__grid { grid-template-columns: 1fr; padding-block: 1rem; gap: 1rem; }
-html[data-details-level="simple"] .site-footer__legal { padding-block: 0.75rem; }
-html[data-details-level="simple"] .site-footer__brand p { margin-top: 0.5rem; }
-html[data-details-level="simple"] .site-footer nav { gap: 0.35rem; }
 
 .overview-stack__row > *,
 .overview-stack__tools li {

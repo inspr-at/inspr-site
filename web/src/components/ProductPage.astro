@@ -276,7 +276,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
     <ServiceRibbon text={content.serviceIntro} locale={locale} />
 
     <section
-      class="product-hero page-shell" data-depth-layout
+      class="product-hero page-shell"
       aria-labelledby="hero-title"
       data-section-pattern="editorial-hero"
     >
@@ -310,7 +310,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
         </dl>
       </div>
 
-      <figure class="product-hero__visual" data-depth-min="standard">
+      <figure class="product-hero__visual">
         <HeroLoop
           id={content.slug}
           poster={assets.hero}
@@ -737,7 +737,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
     </section>
   </main>
 
-  <MicrositeFooter data-depth-min="standard" data-depth-max="standard"
+  <MicrositeFooter
     name={content.name}
     repositoryUrl={content.repositoryUrl}
     licenseName={content.license.name}

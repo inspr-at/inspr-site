@@ -4,8 +4,6 @@ import { releaseMetadata } from "../../release-metadata.mjs";
 
 interface Props {
   name: string;
-  "data-depth-min"?: "standard";
-  "data-depth-max"?: "standard";
   repositoryUrl: string;
   licenseName?: string;
   licenseUrl?: string;
@@ -88,7 +86,7 @@ const labels = locale === "de"
 ---
 
 <footer class="site-footer">
-  <section data-depth-min={Astro.props["data-depth-min"]} data-depth-max={Astro.props["data-depth-max"]} class="footer-cta page-shell" aria-labelledby="footer-cta-title">
+  <section class="footer-cta page-shell" aria-labelledby="footer-cta-title">
     <div>
       <p class="eyebrow">{labels.path}</p>
       <h2 id="footer-cta-title">{ctaTitle}</h2>
@@ -99,19 +97,19 @@ const labels = locale === "de"
     </a>
   </section>
 
-  <div class="site-footer__grid page-shell" data-depth-layout>
+  <div class="site-footer__grid page-shell">
     <div class="site-footer__brand">
       <strong>{name}</strong>
       <p>{labels.familyDescription}</p>
     </div>
 
-    <nav data-depth-min="standard" aria-label={labels.productsAria}>
+    <nav aria-label={labels.productsAria}>
       <p class="footer-label">{labels.family}</p>
       <a href={locale === "de" ? siteUrls.overviewGerman : siteUrls.overview}>{labels.overview}</a>
       {productLinks.map((item) => <a href={productHref(item.href)} target="_blank" rel="noopener noreferrer" aria-label={`${item.label}, ${labels.opensInNewTab}`}>{item.label}</a>)}
     </nav>
 
-    <nav data-depth-min="standard" aria-label={labels.sourceAria}>
+    <nav aria-label={labels.sourceAria}>
       <p class="footer-label">{labels.source}</p>
       <a href={repositoryUrl} target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
       <a href={siteUrls.agpl} target="_blank" rel="noopener noreferrer">
@@ -120,7 +118,7 @@ const labels = locale === "de"
       </a>
     </nav>
 
-    <nav data-depth-min="standard" aria-label={labels.operateAria}>
+    <nav aria-label={labels.operateAria}>
       <p class="footer-label">{labels.operate}</p>
       <a href={siteUrls.business} target="_blank" rel="noopener noreferrer">{labels.services} <span aria-hidden="true">↗</span></a>
       <a href={siteUrls.identity} target="_blank" rel="noopener noreferrer">{labels.identity} <span aria-hidden="true">↗</span></a>
@@ -130,7 +128,7 @@ const labels = locale === "de"
     </nav>
   </div>
 
-  <div class="site-footer__legal page-shell" data-depth-layout>
+  <div class="site-footer__legal page-shell">
     <p class="site-footer__legal-copy">
       <span>
         © {year} <a href={siteUrls.author} target="_blank" rel="me noopener noreferrer">Markus Barta</a> · INSPR

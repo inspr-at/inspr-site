@@ -22,6 +22,14 @@ export const janusContent = {
       "Janus lets AI agents request secret-backed work through opaque references, policy-bound permits and reviewed execution paths without exposing credentials to the model.",
   },
   hero: {
+    sheet: {
+      repo: "github.com/inspr-at/janus",
+      runtime: "Rust engine with an encrypted store; a separate Go envelope for human oversight.",
+      gate: "Which reference, which requester, which sink: three decisions checked on their own; the value is materialised only inside the reviewed execution path.",
+      artefact: "A bounded permit and a value-free audit record.",
+      interfaces: "engine API, envelope UI",
+      maturity: "engine released, envelope live, early product",
+    },
     eyebrow: "SECRET GOVERNANCE FOR HUMAN AND AGENT SYSTEMS",
     title: "Use secrets. Keep values hidden.",
     depths: {
@@ -87,6 +95,10 @@ export const janusContent = {
     ],
   },
   model: {
+    handoff: {
+      in: "release on a declared host",
+      out: "bounded permit",
+    },
     eyebrow: "THE JANUS MODEL",
     title: "Reference. Permit. Execute.",
     depths: {

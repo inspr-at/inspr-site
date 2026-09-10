@@ -25,6 +25,14 @@ export const janusContentDe = {
       "Mit Janus fordern KI-Agenten geheimnisgestützte Arbeit über opake Referenzen, richtliniengebundene Freigaben und geprüfte Ausführungspfade an, ohne dass Zugangsdaten das Modell erreichen.",
   },
   hero: {
+    sheet: {
+      repo: "github.com/inspr-at/janus",
+      runtime: "Rust-Engine mit verschlüsseltem Speicher; ein separater Go-Envelope für die menschliche Aufsicht.",
+      gate: "Welche Referenz, welcher Anfragende, welches Ziel: drei getrennt geprüfte Entscheidungen; der Wert wird nur im geprüften Ausführungspfad materialisiert.",
+      artefact: "Eine begrenzte Freigabe und ein wertfreier Audit-Eintrag.",
+      interfaces: "Engine-API, Envelope-UI",
+      maturity: "Engine veröffentlicht, Envelope live, frühes Produkt",
+    },
     eyebrow: "GOVERNANCE FÜR GEHEIMNISSE IN MENSCH- UND AGENTENSYSTEMEN",
     title: "Geheimnisse nutzen. Werte verbergen.",
     depths: {
@@ -90,6 +98,10 @@ export const janusContentDe = {
     ],
   },
   model: {
+    handoff: {
+      in: "Release auf deklariertem Host",
+      out: "begrenzte Freigabe",
+    },
     eyebrow: "DAS JANUS-MODELL",
     title: "Referenz. Freigabe. Ausführung.",
     depths: {

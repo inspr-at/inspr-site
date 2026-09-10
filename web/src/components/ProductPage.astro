@@ -40,6 +40,9 @@ interface Props {
 
 const { content } = Astro.props;
 const locale: "en" | "de" = Astro.props.locale === "de" ? "de" : "en";
+const sheetLabels = locale === "de"
+  ? { repo: "Repo", runtime: "Laufzeit", gate: "Gate", artefact: "Artefakt", interfaces: "Schnittstellen", maturity: "Reife", command: "Befehl" }
+  : { repo: "repo", runtime: "runtime", gate: "gate", artefact: "artefact", interfaces: "interfaces", maturity: "maturity", command: "command" };
 
 // The shared DE/EN locale contract: English lives at the product-host root,
 // German at /de/. Both alternates derive from the canonical host so hreflang
@@ -289,6 +292,22 @@ const featurePresentations: Record<string, FeaturePresentation> = {
             {labels.viewSource} <span aria-hidden="true">↗</span>
           </a>
         </div>
+        <dl class="product-sheet details-drawer" data-drawer>
+          <div class="details-drawer__inner">
+            <dt>{sheetLabels.repo}</dt><dd>{content.hero.sheet.repo}</dd>
+            <dt>{sheetLabels.runtime}</dt><dd>{content.hero.sheet.runtime}</dd>
+            <dt>{sheetLabels.gate}</dt><dd>{content.hero.sheet.gate}</dd>
+            <dt>{sheetLabels.artefact}</dt><dd>{content.hero.sheet.artefact}</dd>
+            <dt>{sheetLabels.interfaces}</dt><dd>{content.hero.sheet.interfaces}</dd>
+            <dt>{sheetLabels.maturity}</dt><dd>{content.hero.sheet.maturity}</dd>
+            {content.hero.sheet.command && (
+              <>
+                <dt>{sheetLabels.command}</dt>
+                <dd><code class="product-sheet__command">$ {content.hero.sheet.command}</code></dd>
+              </>
+            )}
+          </div>
+        </dl>
       </div>
 
       <figure class="product-hero__visual">
@@ -452,6 +471,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
       title={content.model.title}
       lead={content.model.lead}
       leadDepths={content.model.depths}
+      handoff={content.model.handoff}
       steps={content.model.steps}
       image={assets.workflow}
       alt={assets.workflowAlt}

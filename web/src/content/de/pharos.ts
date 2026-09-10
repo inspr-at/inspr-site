@@ -22,6 +22,14 @@ export const pharosContentDe = {
       "Pharos ist eine selbst gehostete Steuerungsebene für Flottenbetrieb: Server-Erreichbarkeit, Konfigurationsdrift, Backup-Nachweise und abgesicherte Wartungsabläufe.",
   },
   hero: {
+    sheet: {
+      repo: "github.com/inspr-at/pharos",
+      runtime: "Rust-Server plus ausgehender Host-Beacon; kein eingehender Port am Host.",
+      gate: "Backup-Nachweis, Build-Ergebnis, Autorisierung und eine explizite Bestätigung werden festgehalten, bevor der Host etwas anwenden darf.",
+      artefact: "Host-Berichte, Backup- und Restore-Nachweise, das Prüfprotokoll.",
+      interfaces: "UI, Beacon, OIDC",
+      maturity: "veröffentlicht, AGPL-3.0-only",
+    },
     eyebrow: "PHAROS / FLOTTENBETRIEB",
     title: "Flottenwahrheit vor Aktion.",
     depths: {
@@ -84,6 +92,10 @@ export const pharosContentDe = {
     ],
   },
   model: {
+    handoff: {
+      in: "Staging-Build + Nachweise",
+      out: "Release auf deklariertem Host",
+    },
     eyebrow: "BETRIEBSMODELL",
     title: "Beobachten. Vergleichen. Absichern. Verifizieren.",
     depths: {

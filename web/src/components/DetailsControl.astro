@@ -62,6 +62,9 @@ const { label, description, controls, levels } = Astro.props;
   const LEVELS: Level[] = ["simple", "standard", "technical"];
   const isLevel = (value: unknown): value is Level => LEVELS.includes(value as Level);
   const root = document.documentElement;
+  // Number all drawers before applying the initial depth on any family page.
+  const drawers = Array.from(document.querySelectorAll<HTMLElement>("[data-drawer]"));
+  drawers.forEach((drawer, index) => drawer.style.setProperty("--drawer-i", String(index)));
   const slider = document.querySelector<HTMLElement>("[data-details-slider]");
   const track = slider?.querySelector<HTMLElement>("[data-details-track]") ?? null;
   const notches = Array.from(slider?.querySelectorAll<HTMLElement>("[data-details-level]") ?? []);

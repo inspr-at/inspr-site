@@ -202,7 +202,7 @@ test("Shared header controls use one vertical alignment contract", async () => {
   assert.match(header, /class="mobile-navigation__primary"/);
   assert.match(header, /aria-current=\{item\.current \? "page" : undefined\}/);
   assert.match(styles, /\.site-nav \{[\s\S]*?min-height: 2\.65rem;[\s\S]*?align-items: center;/);
-  assert.match(styles, /\.site-nav a,[\s\S]*?\.quiet-link \{[\s\S]*?display: inline-flex;[\s\S]*?min-height: 2\.65rem;[\s\S]*?align-items: center;/);
+  assert.match(styles, /\.site-nav a \{[\s\S]*?display: inline-flex;[\s\S]*?min-height: 2\.65rem;[\s\S]*?align-items: center;/);
   assert.match(styles, /\.language-switch \{[\s\S]*?min-height: 2\.65rem;[\s\S]*?align-items: center;/);
   assert.match(styles, /\.language-switch a \{[\s\S]*?min-height: 2\.65rem;[\s\S]*?place-items: center;/);
   assert.match(styles, /\.product-switcher summary,[\s\S]*?\.header-action \{[\s\S]*?align-items: center;[\s\S]*?min-height: 2\.65rem;/);

@@ -11,7 +11,6 @@ export const siteUrls = {
   aithema: "https://aithema.inspr.at",
   aithemaPreview: "https://start.augmentoring.com",
   identity: "https://auth.inspr.at",
-  signIn: "https://inspr.at/login",
   author: "https://github.com/markus-barta",
   agpl: "https://www.gnu.org/licenses/agpl-3.0.html",
   imprint: "https://amt.inspr.at/impressum/",

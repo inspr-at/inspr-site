@@ -366,8 +366,7 @@
     font-size: 0.82rem;
   }
 
-  .site-nav a,
-  .quiet-link {
+  .site-nav a {
     display: inline-flex;
     min-height: 2.65rem;
     align-items: center;
@@ -377,8 +376,7 @@
     transition: color 160ms ease;
   }
 
-  .site-nav a:hover,
-  .quiet-link:hover {
+  .site-nav a:hover {
     color: var(--accent-strong);
   }
 
@@ -2839,8 +2837,7 @@
     padding-top: 0.65rem;
   }
 
-  .site-brand small,
-  .quiet-link {
+  .site-brand small {
     display: none;
   }
 

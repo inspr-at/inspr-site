@@ -9,7 +9,6 @@ interface Props {
   logo: string;
   active: "inspr" | "paimos" | "pharos" | "janus";
   nav: Array<{ label: string; href: string; current?: boolean }>;
-  showSignIn?: boolean;
   showProductSwitcher?: boolean;
   primaryAction?: { label: string; href: string };
   locale?: "en" | "de";
@@ -29,7 +28,6 @@ const {
   logo,
   active,
   nav,
-  showSignIn = false,
   showProductSwitcher = true,
   primaryAction,
   locale = "en",
@@ -40,7 +38,6 @@ const {
 const labels = locale === "de"
   ? {
       primary: "Hauptnavigation",
-      signIn: "Anmelden",
       sections: "Bereiche",
       mobile: "Navigation für Mobilgeräte",
       products: "Produkte",
@@ -51,7 +48,6 @@ const labels = locale === "de"
     }
   : {
       primary: "Primary navigation",
-      signIn: "Sign in",
       sections: "Sections",
       mobile: "Mobile navigation",
       products: "Products",
@@ -90,7 +86,6 @@ const productHref = (href: string) =>
     </nav>
 
     <div class="site-header__actions">
-      {showSignIn && <a class="quiet-link" href={siteUrls.signIn} target="_blank" rel="noopener noreferrer">{labels.signIn}</a>}
       {detailsSlider && (
         <DetailsControl
           label={detailsSlider.label}

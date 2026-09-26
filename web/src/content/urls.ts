@@ -1,7 +1,7 @@
 export const siteUrls = {
   business:
     import.meta.env.PUBLIC_BUSINESS_URL?.replace(/\/$/, "") ||
-    "https://amt.inspr.at",
+    "https://augmentoring.com",
   inspr: "https://www.inspr.at",
   overview: "https://www.inspr.at/overview/",
   overviewGerman: "https://www.inspr.at/de/ueberblick/",
@@ -13,8 +13,8 @@ export const siteUrls = {
   identity: "https://auth.inspr.at",
   author: "https://github.com/markus-barta",
   agpl: "https://www.gnu.org/licenses/agpl-3.0.html",
-  imprint: "https://amt.inspr.at/impressum/",
-  privacy: "https://amt.inspr.at/datenschutz/",
+  imprint: "https://augmentoring.com/impressum/",
+  privacy: "https://augmentoring.com/datenschutz/",
 } as const;
 
 export const productTaxonomy = {

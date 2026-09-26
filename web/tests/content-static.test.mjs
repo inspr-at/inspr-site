@@ -91,6 +91,16 @@ test("each product route renders its canonical content through ProductPage", asy
   }
 });
 
+test("business and legal links point at the live Augmentoring site", async () => {
+  const urls = await source("content/urls.ts");
+
+  // INSPR-481: amt.inspr.at was the Augmentoring preview host and has no DNS.
+  assert.doesNotMatch(urls, /amt\.inspr\.at/);
+  assert.match(urls, /"https:\/\/augmentoring\.com",/);
+  assert.match(urls, /imprint: "https:\/\/augmentoring\.com\/impressum\/",/);
+  assert.match(urls, /privacy: "https:\/\/augmentoring\.com\/datenschutz\/",/);
+});
+
 test("microsites keep an accessible mobile section menu", async () => {
   const header = await source("components/MicrositeHeader.astro");
   const styles = await source("styles/microsites.css");

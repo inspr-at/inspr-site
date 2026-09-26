@@ -14,6 +14,7 @@
     "test:content": "node --test tests/*-static.test.mjs",
     "test:browser": "playwright test",
     "check": "astro check",
+    "links:check": "node scripts/check-links.mjs",
     "captures:check": "node scripts/sync-paimos-captures.mjs --check"
   },
   "dependencies": {

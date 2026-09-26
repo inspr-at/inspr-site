@@ -6,8 +6,9 @@ const docsUrl = (document: string) =>
   `${repositoryUrl}/blob/main/docs/${document}`;
 
 // German edition of the Paimos product page, served at paimos.inspr.at/de/.
-// Facts, links, icons and structure mirror ../paimos.ts; only language-visible
-// values differ. Keep both files in sync when product claims change.
+// This edition is PAIMOS AEON, release Paimos 7. Facts, links, icons and
+// structure mirror ../paimos.ts; only language-visible values differ.
+// Keep both files in sync when product claims change.
 export const paimosContentDe = {
   slug: "paimos",
   name: "Paimos",
@@ -18,34 +19,34 @@ export const paimosContentDe = {
   license: {
     name: "AGPL-3.0-only",
     url: `${repositoryUrl}/blob/main/LICENSE`,
-    note: "Das Paimos-Repository deklariert die SPDX-Lizenz AGPL-3.0-only. Sie können den Code prüfen, selbst betreiben, forken und unter diesen Bedingungen verändern.",
+    note: "Das Repository von PAIMOS AEON deklariert die SPDX-Lizenz AGPL-3.0-only. Sie können es prüfen, selbst betreiben, forken und unter diesen Bedingungen verändern.",
   },
   seo: {
-    title: "Paimos | Projektkontext für Menschen und KI-Agenten",
+    title: "PAIMOS AEON | Projektkontext für Menschen und KI-Agenten",
     description:
-      "Selbst gehostetes Projektmanagement, das Arbeit, Repository-Kontext, KI-Ausführungskontrollen, Laufnachweise und Kundenabnahme in einem Projektbild zusammenhält.",
+      "Selbst gehostete, mehrmandantenfähige Projektarbeit für Menschen und KI-Agenten: ein Arbeitsbaum, gemeinsames Projektwissen, abgegrenzte Agentenberechtigungen und eine Append-only-Aufzeichnung dessen, was geschehen ist.",
   },
   hero: {
     sheet: {
       repo: "github.com/inspr-at/paimos",
-      runtime: "Selbst gehostet, ein Container, Anmeldung per OIDC.",
-      gate: "Der Staging-Stand wird im selben Projektmodell geprüft, aus dem der Agent gearbeitet hat; die Freigabe wird am Ticket festgehalten.",
-      artefact: "Tickets, Spezifikationen, Wissen und Laufnachweise, berechtigungsbewusst.",
+      runtime: "Selbst gehostet: ein Anwendungscontainer und Postgres, Anmeldung per OIDC.",
+      gate: "Agenten fragen jede Berechtigung an. Eine Person genehmigt sie, bevor sie besteht, und die Entscheidung ist ein Ereignis im Protokoll.",
+      artefact: "Arbeitsbaum, Wissen, Arbeitsaufträge und Laufaufzeichnungen, je Mandant und berechtigungsbewusst.",
       interfaces: "UI, CLI, HTTP-API",
-      maturity: "veröffentlicht, AGPL-3.0-only",
+      maturity: "Paimos 7 · AEON, veröffentlicht, AGPL-3.0-only",
       command: 'paimos issue create -p PROJ --title "…"',
     },
-    eyebrow: "Projektkontext, geteilt",
+    eyebrow: "Paimos 7 · AEON",
     title: "Ein gemeinsames Projektbild.",
     depths: {
       simple:
-        "Paimos ist Projektmanagement, das Sie selbst betreiben, gebaut für Teams, die mit KI-Helfern arbeiten. Plan, Hintergrund und der Nachweis, was passiert ist, liegen an einem Ort. So sieht ein Mensch immer, was getan wurde und warum.",
+        "Paimos ist Projektarbeit, die Sie selbst betreiben, gebaut für Teams, in denen Menschen und KI-Helfer nebeneinander arbeiten. Plan, Hintergrundwissen und die Aufzeichnung dessen, was geschehen ist, liegen an einem Ort, und eine Person entscheidet, was ein Agent tun darf.",
       technical:
-        "Paimos ist selbst gehostetes, berechtigungsbewusstes Projektmanagement: Tickets, Repository-Kontext, Runbooks, Ausführungsentscheidungen und Laufnachweise in einem Modell, erreichbar über UI, CLI und API. Agenten handeln mit Kontext, Menschen prüfen das Ergebnis.",
+        "PAIMOS AEON ist selbst gehostete, mehrmandantenfähige Projektarbeit: ein dynamischer Arbeitsbaum, eine gemeinsame Wissensebene, Arbeitsaufträge, Agentenläufe und abgegrenzte Berechtigungen über einem Append-only-Ereignisprotokoll, erreichbar über UI, CLI und HTTP-API.",
     },
     lead:
-      "Paimos ist selbst gehostetes Projektmanagement für Engineering- und Delivery-Teams, die mit KI-Agenten arbeiten. Es hält Tickets, Repository-Kontext, Betriebswissen, Ausführungsentscheidungen und Laufnachweise zusammen. So kann ein Agent mit Kontext handeln, und ein Mensch sieht, was passiert ist.",
-    alt: "Abstrakte Projekt-Agora, in der Menschen und KI-Teilnehmer um eine gemeinsame Arbeitsfläche stehen",
+      "PAIMOS AEON ist die siebte Generation von Paimos: selbst gehostete Projektarbeit für Teams, die mit KI-Agenten arbeiten. Menschen und Agenten teilen einen Arbeitsbaum und einen Bestand an Projektwissen, Agenten fragen an, bevor sie eine Berechtigung erhalten, und jede Änderung landet in einem Append-only-Ereignisprotokoll.",
+    alt: "Abstrakte Projekt-Agora, in der Menschen und KI-Teilnehmer um eine gemeinsame Betriebsfläche stehen",
     primaryLabel: "So funktioniert es",
     primaryHref: "#model",
   },
@@ -53,111 +54,151 @@ export const paimosContentDe = {
     "Augmentoring stellt Paimos für Teams bereit, integriert und betreibt es.",
   proof: [
     "Selbst gehostet",
-    "CLI, MCP und REST",
-    "Mensch und Agent in einer Historie",
-    "Prüfbarer Quellcode und Release-Nachweise",
+    "CLI und HTTP-API",
+    "Menschen und Agenten in einem Ereignisprotokoll",
+    "AGPL-Quellcode und Releases mit Prüfsummen",
   ],
   specs: {
     eyebrow: "Eckdaten",
     title: "Was Sie tatsächlich bekommen.",
     lead:
-      "Das Fähigkeitsraster auf einen Blick: Sicherheitslage, betriebliche Garantien und offene Schnittstellen, bevor der Fließtext jede Zusage im Detail erklärt.",
+      "Das Fähigkeitsraster auf einen Blick: Sicherheitslage, betriebliche Form und offene Schnittstellen, bevor der Fließtext jede einzeln ausformuliert.",
     leadEli10:
-      "Dasselbe Raster in einfachen Worten: was jede Zusage für Ihr Unternehmen, Ihr Budget und Ihre Rechtsabteilung bedeutet. Ganz ohne IT-Wörterbuch. Drehen Sie einfach eine Karte um.",
+      "Dasselbe Raster in einfachen Worten: was jede Zusage für Ihr Unternehmen, Ihr Budget und Ihre Rechtsabteilung bedeutet. Ganz ohne IT-Wörterbuch. Drehen Sie eine beliebige Karte um.",
     items: [
       {
-        label: "Spracheingabe",
-        icon: "mic",
+        label: "Agenten zuerst",
+        icon: "workflow",
         group: "ai",
-        note: "Sprechen Sie eine Änderung durch; Spezifikation, Auswirkungen auf bestehende Arbeit und der Ticket-Entwurf entstehen beim Reden. Danach korrigieren Sie und legen das Ticket ab.",
+        note: "Sitzungen von Codex, Claude, Pi, Cursor und Grok arbeiten im selben Projektmodell wie Personen, jede mit eigenem Schlüssel und eigenen Scopes.",
         noteEli10:
-          "Sie sagen einfach laut, was Sie wollen. Das Werkzeug schreibt die Beschreibung, zeigt, was sonst noch betroffen ist, und macht daraus eine ordentliche Aufgabe, die Sie vor dem Speichern korrigieren können.",
+          "KI-Helfer mehrerer Hersteller können in denselben Projekten arbeiten wie die Menschen in Ihrem Team. Jeder hat ein eigenes Kennzeichen, sodass Sie immer wissen, wer was getan hat.",
       },
       {
-        label: "Unternehmenstauglich",
-        icon: "layers-3",
-        group: "ops",
-        note: "SSO, Audit, Aufbewahrung und Projektberechtigungen sind Teil des Kerns, ohne separat lizenzierte Enterprise-Zusätze.",
+        label: "Abgegrenzte Berechtigungen",
+        icon: "user-round-check",
+        group: "security",
+        note: "Ein Agent fordert einen Scope an. Eine Person genehmigt oder lehnt ihn ab, bevor er abläuft. Der Schlüssel des Agenten bleibt stets die Obergrenze.",
         noteEli10:
-          "Die Konzernfunktionen (Firmen-Login, Änderungsprotokolle und Zugriffsregeln) sind schon eingebaut. Es gibt keine teure 'Enterprise-Edition', die man später kaufen müsste.",
+          "Ein KI-Helfer muss fragen, bevor er ein neues Recht erhält, und eine Person sagt ja oder nein. Er kann nie mehr verlangen, als sein Kennzeichen erlaubt.",
       },
       {
         label: "Selbst betreibbar",
         icon: "server",
         group: "ops",
-        note: "Ein Container auf Ihrem eigenen Server. Ihre Daten und ihr gesamter Weg bleiben unter Ihrer Kontrolle.",
+        note: "Ein Anwendungscontainer und eine Postgres-Datenbank auf Ihrem eigenen Server. Anhänge bleiben auf Ihrer Festplatte.",
         noteEli10:
           "Es läuft auf Ihrem eigenen Server, wie die Kaffeemaschine in der eigenen Küche. Ihre Daten müssen nie bei einer fremden Firma wohnen.",
       },
       {
-        label: "Air-Gap-freundlich",
-        icon: "unplug",
+        label: "Mehrmandantenfähig",
+        icon: "layers-3",
         group: "ops",
-        note: "Der Kern läuft ohne ausgehende Verbindungen. Nur optionale gehostete KI braucht überhaupt Internet.",
+        note: "Jede Zeile ist pro Mandant geführt, und die Sicherheit auf Zeilenebene von Postgres hält Arbeitsbereiche innerhalb einer Installation auseinander.",
         noteEli10:
-          "Es funktioniert auch mit gezogenem Internetstecker. Nichts im Kern braucht heimlich 'die Cloud', was in strengen oder isolierten Netzen hilfreich ist.",
+          "Mehrmandantenfähig heißt: Mehrere Teams oder Unternehmen können eine Installation teilen, und die Datenbank selbst hält ihre Daten auseinander, nicht nur die Anwendung.",
+      },
+      {
+        label: "Ereignisprotokoll mit Rückgängig",
+        icon: "rotate-ccw",
+        group: "work",
+        note: "Jede Änderung ist ein Append-only-Ereignis. Rückgängig schreibt ein ausgleichendes Ereignis, statt die Historie umzuschreiben.",
+        noteEli10:
+          "Das Werkzeug führt ein Tagebuch, aus dem niemand Seiten herausreißen kann. Etwas zurücknehmen fügt eine neue Zeile an. Die alte Zeile bleibt lesbar.",
       },
       {
         label: "Keine Telemetrie",
         icon: "eye-off",
         group: "security",
-        note: "Keine Analytik, kein Tracking, kein Nachhausetelefonieren. Nichts über Ihre Nutzung verlässt Ihre Instanz.",
+        note: "Keine Analytik, kein Tracking, kein Nachhausetelefonieren. Zählungen von Agentenläufen zu Tokens und Kosten bleiben in Ihrer Datenbank.",
         noteEli10:
-          "Das Werkzeug meldet nichts nach Hause. Niemand, auch nicht die Hersteller, sieht, wie Ihr Team es nutzt. Weniger Erklärungsbedarf gegenüber Datenschutzbeauftragten.",
-      },
-      {
-        label: "NIS2-orientiert",
-        icon: "shield-check",
-        group: "security",
-        note: "Zugriffskontrolle, Audit, Vorfalls-Metadaten und Aufbewahrung folgen NIS2-Praxis: echte Kontrollen, kein Zertifikat.",
-        noteEli10:
-          "Gebaut entlang der neuen EU-Cybersicherheitsregeln für wichtige Unternehmen. Ihre Sicherheits- und Rechtsprüfungen starten bei 'passt größtenteils' statt bei 'oje'.",
-      },
-      {
-        label: "DSGVO-bewusst",
-        icon: "lock-keyhole",
-        group: "security",
-        note: "Export- und Lösch-Endpunkte pro Person, Aufbewahrung durch den Betreiber gesteuert. Gebaut mit Respekt vor den Menschen in Ihren Daten.",
-        noteEli10:
-          "Personenbezogene Daten lassen sich pro Person exportieren oder löschen, so wie es das EU-Datenschutzrecht erwartet. Datenschutz ist eingebaut, nicht angeschraubt.",
-      },
-      {
-        label: "Made in Austria",
-        icon: "mountain",
-        group: "place",
-        note: "Entworfen und gebaut in Österreich, in der EU, mit echten Menschen und EU-Normen hinter Ihrem Projekt-Betriebssystem.",
-        noteEli10:
-          "Gebaut in Österreich, unter EU-Recht: Ihre Zeitzone, Ihre Normen, Ihre Aufsichtsbehörden. Support, der an Ihrem Vormittag antwortet, nicht um drei Uhr früh.",
-      },
-      {
-        label: "Audit-Protokolle",
-        icon: "scroll-text",
-        group: "security",
-        note: "Zugriffsänderungen, KI-Aufrufe und Agentenläufe behalten prüfbare Metadaten. Sie können immer beantworten, wer was getan hat.",
-        noteEli10:
-          "Das Werkzeug führt Tagebuch: wer wann was geändert hat, auch die KI. Wenn jemand fragt 'wer war das?', haben Sie die Antwort.",
+          "Das Werkzeug meldet nichts nach Hause. Niemand, auch die Hersteller nicht, sieht, wie Ihr Team es nutzt. Gegenüber Datenschutzbeauftragten bleibt weniger zu erklären.",
       },
       {
         label: "Single Sign-on",
         icon: "key-round",
         group: "security",
-        note: "Generisches OIDC mit PKCE, mit ZITADEL validiert. Ihr Identitätsanbieter bleibt die maßgebliche Quelle.",
+        note: "OIDC mit PKCE und einem geprüften ID-Token. Ihr Identitätsanbieter bleibt die maßgebliche Quelle für Personen.",
         noteEli10:
-          "Alle melden sich mit dem Firmenkonto an, das sie ohnehin schon haben. Keine neuen Passwörter, die man erfinden, vergessen oder verlieren könnte.",
+          "Personen melden sich mit dem Firmenkonto an, das sie bereits haben. Keine neuen Passwörter, die man erfindet, vergisst oder preisgibt.",
       },
       {
-        label: "SBOM + signierte Releases",
+        label: "Zugriffsaudit",
+        icon: "scroll-text",
+        group: "security",
+        note: "Zugriffsänderungen werden als Ereignisse festgehalten und lassen sich über die Audit-API wieder auslesen.",
+        noteEli10:
+          "Wenn sich der Zugriff einer Person ändert, schreibt das Werkzeug es auf. Später können Sie nachsehen, wer was tun durfte und seit wann.",
+      },
+      {
+        label: "Wissensebene",
+        icon: "library",
+        group: "ai",
+        note: "Runbooks, Richtlinien, Erinnerungen, externe Systeme und verwandte Projekte, die Agenten vor der Arbeit per Slug lesen.",
+        noteEli10:
+          "Die Anleitungen und Hausregeln des Teams stehen neben der Arbeit. KI-Helfer lesen sie zuerst, wie ein neuer Kollege das Handbuch liest.",
+      },
+      {
+        label: "Hybride Suche",
+        icon: "scan-search",
+        group: "work",
+        note: "Volltext auf Deutsch und Englisch, verbunden mit optionaler Ähnlichkeit über pgvector, und reine lexikalische Suche, wenn keine Embeddings konfiguriert sind.",
+        noteEli10:
+          "Die Suche versteht Deutsch und Englisch und findet auch, was dasselbe bedeutet, aber anders formuliert ist.",
+      },
+      {
+        label: "Arbeitsaufträge und Läufe",
+        icon: "ticket-check",
+        group: "ai",
+        note: "Arbeitsaufträge tragen Abnahmekriterien, Nachweise und ein Budget. Läufe halten Modell, Ergebnis, Dauer, Tokens und Kosten fest, nie den Prompt-Text.",
+        noteEli10:
+          "Jeder Auftrag für einen KI-Helfer hat eine Prüfliste, eine Ausgabengrenze und einen Nachweis, was erledigt wurde. Das Werkzeug zählt die Kosten, ohne zu speichern, was gesagt wurde.",
+      },
+      {
+        label: "Stunden, Sätze und Angebote",
+        icon: "timer",
+        group: "work",
+        note: "Stunden, effektive Stundensätze, Kosteneinheiten und Angebote mit einem öffentlichen Abnahmelink und einem PDF, im selben System wie die Arbeit.",
+        noteEli10:
+          "Stundenlisten, Preise und Angebote stehen neben der Arbeit, zu der sie gehören. Ein Kunde kann ein Angebot über einen Link annehmen, ohne ein weiteres Werkzeug.",
+      },
+      {
+        label: "Import aus dem klassischen Paimos",
+        icon: "database-zap",
+        group: "ops",
+        note: "Importiert Projekte aus dem klassischen Paimos, einschließlich Wissen, Anhänge und Angebote.",
+        noteEli10:
+          "Teams, die das frühere Paimos verwendet haben, bringen ihre Projekte, Notizen, Dateien und Angebote mit, statt von vorn zu beginnen.",
+      },
+      {
+        label: "Skriptbar",
+        icon: "braces",
+        group: "work",
+        note: "Die aeon CLI, die auch als paimos antwortet, und eine HTTP-API, beschrieben durch einen Vertrag nach OpenAPI.",
+        noteEli10:
+          "Andere Software kann automatisch mit Paimos sprechen. Ihre IT kann es mit den Werkzeugen verdrahten, die Sie schon bezahlen, statt Dinge abzutippen.",
+      },
+      {
+        label: "INSPR-Übergaben",
+        icon: "route",
+        group: "ai",
+        note: "Nimmt belegte Anforderungseingänge aus Aithema entgegen und hält Stufenübergaben an Pharos für die Bereitstellung und an Janus für den Zugang fest.",
+        noteEli10:
+          "Es arbeitet mit den Schwesterprodukten zusammen: Anforderungen kommen aus Aithema, und erledigte Arbeit geht mit einer Aufzeichnung an Pharos und Janus weiter.",
+      },
+      {
+        label: "Releases mit Prüfsummen",
         icon: "file-check-2",
         group: "legal",
-        note: "Jedes getaggte Image ist cosign-signiert und trägt eine CycloneDX-SBOM. Jedes Release lässt sich bis zur Quelle zurückverfolgen.",
+        note: "Getaggte Releases veröffentlichen Binärdateien mit SHA256SUMS und ein Container-Image, gebaut mit Provenienz-Attestierungen.",
         noteEli10:
-          "Jedes Release kommt mit versiegelter Zutatenliste und fälschungssicherer Signatur, wie eine Medikamentenpackung für Software. Auditoren lieben das.",
+          "Jedes Release trägt Fingerabdrücke, damit Sie prüfen können, dass das Heruntergeladene genau dem entspricht, was aus dem Quellcode gebaut wurde.",
       },
       {
         label: "Vollständig prüfbar",
         icon: "scan-search",
         group: "legal",
-        note: "AGPL-Quellcode, eine offene API und ein selbstbeschreibendes Schema. Nichts an der Funktionsweise ist verborgen.",
+        note: "Quellcode unter AGPL und ein Vertrag nach OpenAPI. Nichts an der Funktionsweise ist verborgen.",
         noteEli10:
           "Nichts ist eine Blackbox. Ihre eigenen Fachleute, oder wen immer Sie beauftragen, können vor dem Vertrauen genau nachlesen, was die Software tut.",
       },
@@ -165,87 +206,31 @@ export const paimosContentDe = {
         label: "AGPL-3.0",
         icon: "git-branch",
         group: "legal",
-        note: "Frei prüfen, selbst betreiben, forken und verändern. Wer einen veränderten Dienst betreibt, muss dessen Nutzern den Quellcode zugänglich halten.",
+        note: "Frei prüfen, selbst betreiben, forken und verändern. Die Nutzer eines veränderten Dienstes behalten den Quellcode.",
         noteEli10:
           "Eine Standard-Open-Source-Lizenz, die Ihre Rechtsabteilung tatsächlich lesen kann: nutzen, ändern, behalten, und niemand kann Sie je einsperren.",
       },
       {
-        label: "Restore-getestet",
-        icon: "database-backup",
-        group: "ops",
-        note: "Backup und Wiederherstellung sind dokumentiert und geübt, nicht angenommen. Wiederherstellung ist eine Übung, keine Hoffnung.",
+        label: "Made in Austria",
+        icon: "mountain",
+        group: "place",
+        note: "Entworfen und gebaut in Österreich, in der EU, mit echten Menschen und EU-Normen hinter Ihrem Projektsystem.",
         noteEli10:
-          "Wir machen nicht nur Backups, wir üben auch das Zurückspielen. Feuerprobe statt Feuerhoffnung. Ihre Daten überstehen schlechte Tage.",
-      },
-      {
-        label: "Skriptbare API",
-        icon: "braces",
-        group: "work",
-        note: "Typisierte CLI, MCP und eine JSON-REST-API mit Probeläufen. Das gesamte Projektmodell lässt sich von überall steuern.",
-        noteEli10:
-          "Andere Software kann automatisch mit Paimos sprechen. Ihre IT kann es mit den Werkzeugen verdrahten, die Sie schon bezahlen, statt Dinge abzutippen.",
-      },
-      {
-        label: "Eingebaute KI-Hilfe",
-        icon: "sparkles",
-        group: "ai",
-        note: "Dreizehn fokussierte Aktionen: verfeinern, übersetzen, schätzen und zusammenfassen. An, wenn Sie es wollen, standardmäßig aus.",
-        noteEli10:
-          "Hilfreiche KI-Knöpfe zum Zusammenfassen, Übersetzen und Schätzen bleiben AUS, bis Sie es anders entscheiden. Sie bestimmen, wann KI Ihre Daten berührt.",
-      },
-      {
-        label: "Code-bewusste Agenten",
-        icon: "workflow",
-        group: "ai",
-        note: "Agenten erhalten verknüpfte Repositories, Wissen und Ticket-zu-Datei-Anker. Sie handeln mit Projektkontext, nicht blind.",
-        noteEli10:
-          "Die KI-Helfer bekommen den echten Kontext des Projekts (welcher Code, welche Regeln, welche Historie). Sie arbeiten wie eingewiesene Kollegen, nicht wie ratende Praktikanten.",
-      },
-      {
-        label: "Lokale Entwurfsanbieter",
-        icon: "hard-drive",
-        group: "ai",
-        note: "Zeigen Sie auf Ollama oder einen beliebigen OpenAI-kompatiblen Endpunkt. Die Modellinferenz bleibt auf Ihrer eigenen Hardware.",
-        noteEli10:
-          "Die KI kann auch auf Ihren eigenen Maschinen laufen. Ideen und Entwürfe müssen das Haus nie verlassen. Datensouveränitäts-Fans nicken zustimmend.",
-      },
-      {
-        label: "Kundenportal",
-        icon: "panels-top-left",
-        group: "work",
-        note: "Kunden sehen genau das, was Sie veröffentlichen, reichen Anfragen ein und nehmen Lieferungen ab. Interne Arbeit bleibt intern.",
-        noteEli10:
-          "Ein aufgeräumtes Fenster für Ihre Kunden: Sie sehen nur, was Sie freischalten, und können fertige Arbeit direkt dort abnehmen. Interner Austausch bleibt intern.",
-      },
-      {
-        label: "Zeit & Budgets",
-        icon: "timer",
-        group: "work",
-        note: "Schätzungen, Zeitbuchungen, Abgrenzungen und Budgets leben auf denselben Tickets wie die Arbeit: ein Modell vom Aufwand bis zur Rechnung.",
-        noteEli10:
-          "Stunden, Schätzungen und Budgets stehen auf denselben Tickets wie die Arbeit selbst. Eine Wahrheit von der ersten Schätzung bis zur letzten Rechnung, ohne Neben-Tabelle.",
-      },
-      {
-        label: "Undo & Redo",
-        icon: "rotate-ccw",
-        group: "work",
-        note: "Massenänderungen sind transaktional mit vollständiger Änderungshistorie. Änderungen sind umkehrbar, und Konflikte werden sichtbar statt überschrieben.",
-        noteEli10:
-          "Große Änderungen lassen sich zurücknehmen. Eine falsche Massenbearbeitung ist ein 'Hoppla', keine Katastrophe. Bearbeiten zwei Personen dasselbe, gibt es eine Warnung statt stillen Datenverlusts.",
+          "Gebaut in Österreich, unter EU-Recht: Ihre Zeitzone, Ihre Normen, Ihre Aufsichtsbehörden.",
       },
     ],
     glossary: [
       {
         id: "sso",
         term: "SSO / Single Sign-on",
-        matches: ["SSO", "Single Sign-on", "Firmenkonto", "Firmen-Login"],
-        body: "Ein Firmen-Login für viele Werkzeuge. Niemand muss mehr für jede App ein neues Passwort erfinden (und verlieren).",
+        matches: ["melden sich mit dem Firmenkonto an"],
+        body: "Ein Firmen-Login für viele Werkzeuge. Niemand muss für jede Anwendung ein neues Passwort erfinden und dann verlieren.",
       },
       {
         id: "oidc",
         term: "OIDC",
         matches: ["OIDC"],
-        body: "Der offene Standard, der Single Sign-on zwischen Ihrem Identitätssystem und Apps wie dieser möglich macht.",
+        body: "Der offene Standard, der Single Sign-on zwischen Ihrem Identitätssystem und Anwendungen wie dieser möglich macht.",
       },
       {
         id: "pkce",
@@ -254,76 +239,82 @@ export const paimosContentDe = {
         body: "Ein zusätzlicher Sicherheitsschritt im Login-Ablauf, der verhindert, dass gestohlene Login-Codes wiederverwendet werden.",
       },
       {
-        id: "zitadel",
-        term: "ZITADEL",
-        matches: ["ZITADEL"],
-        body: "Ein Open-Source-Identitätsanbieter: der 'Wer sind Sie?'-Dienst. Er ist das Referenzsystem, gegen das Paimos getestet wird.",
+        id: "id-token",
+        term: "ID-Token",
+        matches: ["ID-Token"],
+        body: "Die signierte Aussage Ihres Identitätsanbieters darüber, wer sich gerade angemeldet hat. Der Server prüft die Signatur selbst.",
       },
       {
         id: "identity-provider",
         term: "Identitätsanbieter",
         matches: ["Identitätsanbieter"],
-        body: "Das System, dem Ihre Benutzerkonten gehören (etwa Entra ID oder ZITADEL). Apps vertrauen ihm, statt eigene Passwörter zu horten.",
+        body: "Das System, dem Ihre Benutzerkonten gehören (etwa Entra ID oder ZITADEL). Anwendungen vertrauen ihm, statt eigene Passwörter zu verwahren.",
       },
       {
-        id: "sbom",
-        term: "SBOM",
-        matches: ["SBOM", "Zutatenliste"],
-        body: "Software Bill of Materials: die vollständige Zutatenliste einer Software. Sie wissen genau, was drinsteckt.",
+        id: "tenant",
+        term: "Mandant",
+        matches: ["Mandant", "Mehrmandantenfähig"],
+        body: "Ein eigener Arbeitsbereich in einer gemeinsamen Installation, etwa ein Unternehmen oder ein Team, mit eigenen Daten und eigenen Personen.",
       },
       {
-        id: "cosign",
-        term: "cosign",
-        matches: ["cosign-signiert", "fälschungssicherer Signatur"],
-        body: "Ein Werkzeug, das Software-Releases kryptografisch versiegelt. Manipuliert jemand das Release, bricht das Siegel.",
+        id: "rls",
+        term: "Sicherheit auf Zeilenebene",
+        matches: ["Sicherheit auf Zeilenebene"],
+        body: "Eine Funktion von Postgres, die jede einzelne Zeile gegen den aktuellen Arbeitsbereich prüft, sodass die Abfrage eines Mandanten die Daten eines anderen Mandanten nicht sieht.",
       },
       {
-        id: "cyclonedx",
-        term: "CycloneDX",
-        matches: ["CycloneDX"],
-        body: "Das Standardformat für solche Software-Zutatenlisten, damit Audit-Werkzeuge sie automatisch lesen können.",
+        id: "event-log",
+        term: "Append-only-Ereignisprotokoll",
+        matches: ["Append-only-Ereignis", "ausgleichendes Ereignis"],
+        body: "Eine Aufzeichnung, in der neue Einträge nur angefügt werden. Nichts wird an Ort und Stelle geändert, die Historie bleibt vollständig.",
       },
       {
-        id: "agpl",
-        term: "AGPL-3.0",
-        matches: ["AGPL"],
-        body: "Eine starke Open-Source-Lizenz: Alle dürfen die Software nutzen, lesen und verbessern, und Verbesserungen an einem öffentlichen Dienst müssen offen bleiben.",
+        id: "scope",
+        term: "Scope",
+        matches: ["Scope", "Scopes"],
+        body: "Ein genau benanntes Recht, etwa Läufe lesen oder Eingang schreiben. Ein Agentenschlüssel hält eine feste Menge von Scopes.",
       },
       {
-        id: "nis2",
-        term: "NIS2",
-        matches: ["NIS2"],
-        body: "Die EU-Cybersicherheitsrichtlinie für wichtige Organisationen. Sie verlangt belegbare Sicherheitspraxis, keine Versprechen.",
+        id: "slug",
+        term: "Slug",
+        matches: ["Slug"],
+        body: "Ein kurzer, stabiler Name für einen Eintrag, etwa deploy-checklist, den Agenten und Links statt eines Titels verwenden können.",
       },
       {
-        id: "gdpr",
-        term: "DSGVO",
-        matches: ["DSGVO", "EU-Datenschutzrecht"],
-        body: "Das Datenschutzrecht der EU. Menschen dürfen unter anderem eine Kopie ihrer Daten oder deren Löschung verlangen.",
+        id: "pgvector",
+        term: "pgvector",
+        matches: ["pgvector"],
+        body: "Eine Erweiterung für Postgres, die Text mit ähnlicher Bedeutung findet, nicht nur dieselben Wörter.",
       },
       {
-        id: "telemetry",
-        term: "Telemetrie",
-        matches: ["Telemetrie", "Nachhausetelefonieren", "meldet nichts nach Hause"],
-        body: "Nutzungsdaten, die eine App an ihren Hersteller sendet. Paimos sendet keine.",
-      },
-      {
-        id: "air-gap",
-        term: "Air-Gap",
-        matches: ["Air-Gap", "gezogenem Internetstecker"],
-        body: "Der Betrieb eines Systems ohne Verbindung zum offenen Internet, üblich in Hochsicherheitsumgebungen.",
+        id: "postgres",
+        term: "Postgres",
+        matches: ["Postgres-Datenbank"],
+        body: "PostgreSQL, eine weit verbreitete Open-Source-Datenbank. Paimos speichert darin alles außer den Anhangsdateien.",
       },
       {
         id: "container",
         term: "Container",
-        matches: ["Container"],
+        matches: ["Anwendungscontainer"],
         body: "Eine genormte Transportkiste für Software. Wenn Ihre IT Container betreibt (die meisten tun das), kann sie auch dieses System betreiben.",
+      },
+      {
+        id: "telemetry",
+        term: "Telemetrie",
+        matches: ["Nachhausetelefonieren", "meldet nichts nach Hause"],
+        body: "Nutzungsdaten, die eine Anwendung an ihren Hersteller sendet. Paimos sendet keine.",
       },
       {
         id: "api",
         term: "API",
-        matches: ["API", "REST"],
+        matches: ["HTTP-API"],
         body: "Die Steckdose, über die andere Software automatisch mit dieser Software spricht. Kein Mensch muss Daten abtippen.",
+      },
+      {
+        id: "openapi",
+        term: "OpenAPI",
+        matches: ["OpenAPI"],
+        body: "Eine standardisierte, maschinenlesbare Beschreibung einer API, sodass Werkzeuge sie prüfen und Clients daraus erzeugen können.",
       },
       {
         id: "cli",
@@ -332,34 +323,22 @@ export const paimosContentDe = {
         body: "Die Kommandozeile: der Weg, auf dem Entwickler und Skripte das Werkzeug mit getippten Befehlen steuern.",
       },
       {
-        id: "mcp",
-        term: "MCP",
-        matches: ["MCP"],
-        body: "Model Context Protocol: der Standardstecker, über den KI-Assistenten Werkzeuge wie dieses sicher nutzen können.",
+        id: "sha256sums",
+        term: "SHA256SUMS",
+        matches: ["SHA256SUMS", "Fingerabdrücke"],
+        body: "Eine Liste kryptografischer Fingerabdrücke, einer je Release-Datei. Eine veränderte Datei passt nicht mehr zu ihrem Fingerabdruck.",
       },
       {
-        id: "ollama",
-        term: "Ollama",
-        matches: ["Ollama", "OpenAI-kompatiblen Endpunkt"],
-        body: "Software, mit der KI-Modelle auf den eigenen Rechnern laufen statt gemietet in einer fremden Cloud.",
+        id: "provenance",
+        term: "Provenienz-Attestierung",
+        matches: ["Provenienz-Attestierungen"],
+        body: "Eine signierte Aufzeichnung am Container-Image, wie und aus welchem Quellcode das Image gebaut wurde.",
       },
       {
-        id: "inference",
-        term: "Inferenz",
-        matches: ["Modellinferenz"],
-        body: "Der Moment, in dem ein KI-Modell tatsächlich 'denkt'. Wo das passiert, entscheidet, wohin Ihre Daten reisen.",
-      },
-      {
-        id: "retention",
-        term: "Aufbewahrung",
-        matches: ["Aufbewahrung"],
-        body: "Wie lange Daten behalten werden, bevor sie gelöscht werden. Hier legen Sie als Betreiber diese Fristen fest.",
-      },
-      {
-        id: "mutation-history",
-        term: "Änderungshistorie",
-        matches: ["Änderungshistorie"],
-        body: "Ein Protokoll jeder vorgenommenen Änderung. Genau das macht sicheres Undo und Redo möglich.",
+        id: "agpl",
+        term: "AGPL-3.0",
+        matches: ["AGPL"],
+        body: "Eine starke Open-Source-Lizenz: Alle dürfen die Software nutzen, lesen und verbessern, und Verbesserungen an einem öffentlichen Dienst müssen offen bleiben.",
       },
     ],
   },
@@ -368,37 +347,37 @@ export const paimosContentDe = {
     title: "Fragmente brechen KI-Arbeit.",
     depths: {
       simple:
-        "Das Ticket, der Code, die Anleitung und der Chat mit einem KI-Helfer kennen je einen Teil der Geschichte. Keiner davon kann sagen, wer was getan hat, mit welcher Erlaubnis und was zurückkam.",
+        "Das Ticket, die Anleitung und der Chat mit einem KI-Helfer kennen je einen Teil der Geschichte. Keines davon kann Ihnen sagen, wer was getan hat, mit welcher Erlaubnis, und was zurückkam.",
       technical:
-        "Tickets tragen Absicht, Repositories den Ort, Runbooks das Verfahren und Chat-Transkripte die Versuche. Kein einzelnes System hält Akteur, gelieferten Kontext, erteilte Befugnis und zurückgegebene Nachweise für eine Arbeitseinheit fest.",
+        "Tickets tragen die Absicht, Runbooks das Verfahren und Chat-Transkripte die Versuche. Kein einzelnes System zeichnet für eine Arbeitseinheit Akteur, gelieferten Kontext, erteilte Befugnis und zurückgegebene Nachweise auf.",
     },
     lead:
-      "Ein Ticket sagt, was sich ändern soll. Das Repository sagt, wo. Ein Runbook sagt, wie. Ein Chatfenster sagt, was ein Agent versucht hat. Keines dieser Systeme allein kann beantworten, wer gehandelt hat, welchen Kontext es gab, welche Befugnis bestand und was zurückkam.",
+      "Ein Ticket sagt, was sich ändern soll. Ein Runbook sagt, wie. Ein Chatfenster sagt, was ein Agent versucht hat. Keines dieser Systeme allein kann beantworten, wer gehandelt hat, welchen Kontext es erhalten hat, was es tun durfte und was zurückkam.",
     visualAlt:
-      "Getrennte Stationen für Arbeit, Repository, Wissen und Nachweise laufen in einem gemeinsamen transparenten Projektregister zusammen, genutzt von einem Menschen und einem KI-Agenten.",
+      "Getrennte Stationen für Arbeit, Repository, Wissen und Nachweise laufen in einem gemeinsamen transparenten Projektregister zusammen, genutzt von einer Person und einem KI-Agenten.",
     visualCaption:
-      "Ein Projektregister verbindet Arbeit, Kontext, Ausführung und Nachweise.",
+      "Eine Projektaufzeichnung verbindet Arbeit, Kontext, Befugnis und Nachweise.",
     items: [
       {
         title: "Kontext ist verstreut",
         icon: "unplug",
         body:
-          "Anforderungen, Code, Runbooks, Projektkonventionen und Betriebswissen leben oft in verschiedenen Werkzeugen oder auf dem Rechner einer einzelnen Person. Jeder neue Lauf beginnt damit, das Projekt zu rekonstruieren.",
+          "Anforderungen, Projektkonventionen und Betriebswissen liegen oft in verschiedenen Werkzeugen oder auf dem Rechner einer einzelnen Person. Jede neue Agentensitzung beginnt damit, das Projekt zu rekonstruieren.",
         meta: "Der Agent sieht eine Aufgabe, nicht das System darum herum.",
       },
       {
-        title: "Ausführung ist undurchsichtig",
+        title: "Befugnis ist implizit",
         icon: "eye-off",
         body:
-          "Ein Modellentwurf, ein lokaler Coding-Agent und ein Runner mit Deploy-Rechten haben sehr unterschiedliche Befugnisse. Verschwinden diese Unterschiede hinter einem generischen KI-Knopf, werden Prüfung und Verantwortung zum Ratespiel.",
-        meta: "Anbieter, Kontext und Befugnis müssen explizit sein.",
+          "Wenn die Rechte eines Agenten das sind, was sein Token gerade erlaubt, hat sie niemand entschieden und niemand kann sie nachprüfen. Prüfung und Verantwortung werden zum Ratespiel.",
+        meta: "Berechtigungen brauchen eine Anfrage, eine Person und eine Aufzeichnung.",
       },
       {
         title: "Lieferung verliert ihre Nachweise",
         icon: "file-warning",
         body:
-          "Arbeit kann vom Prompt zum Pull Request wandern, ohne dass Tests, Version, Entscheidungen oder das kundenwirksame Ergebnis in die Projektakte zurückkehren. 'Fertig' wird zur Behauptung statt zu einem prüfbaren Zustand.",
-        meta: "Der Kreis schließt sich erst, wenn Nachweise zurückkommen.",
+          "Arbeit kann vom Prompt zum Ergebnis gelangen, ohne dass Kriterien, Nachweise oder Kosten in die Projektaufzeichnung zurückkehren. Erledigt wird zur Behauptung statt zu einem prüfbaren Zustand.",
+        meta: "Der Kreis ist unvollständig, bis Nachweise zurückkommen.",
       },
     ],
   },
@@ -411,12 +390,12 @@ export const paimosContentDe = {
     title: "Das Projekt ist die Steuerungsebene.",
     depths: {
       simple:
-        "Paimos legt Arbeit, Hintergrund, Getanes und Beleg an einen Ort. Menschen und KI-Helfer sehen dasselbe Bild, und Menschen entscheiden.",
+        "Paimos legt die Arbeit, den Hintergrund, das Getane und den Beleg an einen Ort. Menschen und KI-Helfer sehen dasselbe Bild, und Menschen entscheiden.",
       technical:
-        "Paimos verbindet Arbeitseinheiten, Kontext, Ausführung und Nachweise in einem berechtigungsbewussten Modell. Menschen planen und prüfen im selben Projektmodell, aus dem Agenten lesen und in das sie zurückberichten; Befugnis und Nachweis bleiben an der Arbeit.",
+        "Paimos verbindet Arbeitsbaum, Wissen, Arbeitsaufträge, Läufe und Berechtigungen in einem mandantenbezogenen Modell über einem Append-only-Ereignisprotokoll. Menschen planen und geben in demselben Modell frei, aus dem Agenten lesen und in das sie zurückberichten.",
     },
     lead:
-      "Paimos verbindet Arbeit, Kontext, Ausführung und Nachweise in einem berechtigungsbewussten System. Menschen planen und prüfen im selben Projektmodell, aus dem Agenten lesen und in das sie zurückberichten.",
+      "Paimos verbindet Arbeit, Kontext, Befugnis und Nachweise in einem berechtigungsbewussten System. Menschen planen und geben in demselben Projektmodell frei, aus dem Agenten lesen und in das sie zurückberichten.",
     steps: [
       {
         number: "01",
@@ -425,9 +404,9 @@ export const paimosContentDe = {
         visual: { x: 24, y: 18 },
         icon: "folder-kanban",
         body:
-          "Beginnen Sie sprechend oder schreibend. Die Spracheingabe macht aus einer gesprochenen Idee eine lebende Spezifikation mit den Auswirkungen auf bestehende Arbeit daneben und legt das Ticket ab, sobald Sie zufrieden sind. Von dort: Epics, Tickets und Aufgaben mit typisierten Abhängigkeiten, Sprints, Releases, Schätzungen, Zeit und kundenwirksamem Lieferstatus.",
-        meta: "Von gesprochener Absicht zum abgelegten Ticket",
-        signal: "Hierarchie, Abhängigkeiten und Lieferstatus",
+          "Formen Sie die Arbeit in einem dynamischen Baum: Epics, Tickets und Aufgaben, mit Arten und Bezeichnungen, die Ihr Arbeitsbereich festlegt. Typisierte Beziehungen, Releases und gespeicherte Ansichten halten ein großes Projekt lesbar. Anforderungen aus Aithema treffen als Entwürfe mit Belegen ein, die eine Person annimmt.",
+        meta: "Von angenommenen Anforderungen zu einem geplanten Baum",
+        signal: "Arbeitsbaum, Beziehungen und Releases",
         reference: {
           label: "Planungshierarchie",
           href: docsUrl("PLANNING_HIERARCHY.md"),
@@ -436,14 +415,14 @@ export const paimosContentDe = {
       },
       {
         number: "02",
-        simple: "Halten Sie den Code, die Anleitungen und das Projektwissen zusammen.",
+        simple: "Halten Sie die Anleitungen und das Projektwissen zusammen.",
         title: "Kontext",
         visual: { x: 22, y: 68 },
         icon: "book-open-check",
         body:
-          "Verknüpfen Sie Repositories und dauerhaftes Wissen. Ergänzen Sie Runbooks, Richtlinien, externe Systeme, Agentendefinitionen und Ticket-zu-Datei-Anker.",
+          "Schreiben Sie Runbooks, Richtlinien, Erinnerungen, externe Systeme und verwandte Projekte in die Wissensebene des Projekts. Agenten lesen Einträge per Slug, und der Graph zeigt, wie sie verbunden sind.",
         meta: "Projektwissen überlebt den aktuellen Rechner und die aktuelle Agentenlaufzeit",
-        signal: "Repositories, Wissen und Code-Anker",
+        signal: "Wissenseinträge, Verknüpfungen und Graph",
         reference: {
           label: "Agenten-Integration",
           href: docsUrl("AGENT_INTEGRATION.md"),
@@ -452,49 +431,44 @@ export const paimosContentDe = {
       },
       {
         number: "03",
-        simple: "Wählen Sie, wie die Arbeit ausgeführt wird, und verfolgen Sie ihren Fortschritt.",
+        simple: "Geben Sie einem Agenten einen Auftrag, und entscheiden Sie, was er tun darf.",
         title: "Ausführen",
         visual: { x: 50, y: 40 },
         icon: "play",
         body:
-          "Wählen Sie Anbieter, Ausführungsprofil, Aufwand, Prompt-Voreinstellung, Kontextpaket und Agent, bevor die Arbeit beginnt. Wechseln Sie dann in den Agent Mode und begleiten Sie aktive Lieferungen per Sprache oder Text, während Projektumfang, kontextbezogene Befehle und Befugnis sichtbar bleiben.",
-        meta: "Explizite Befugnis vor der Arbeit; ruhige Aufsicht währenddessen",
-        signal: "Anbieter, Profil, Befugnis und aktueller Lieferstatus",
+          "Legen Sie die Arbeit in einen Arbeitsauftrag mit Abnahmekriterien und einem Budget. Eine registrierte Agentensitzung beansprucht den Lauf. Braucht sie eine Berechtigung, fragt sie an, und die Anfrage wartet unter Needs you, bis eine Person entscheidet.",
+        meta: "Explizite Befugnis vor der Arbeit, ruhige Aufsicht, solange der Lauf dauert",
+        signal: "Arbeitsaufträge, Läufe und Freigaben",
         reference: {
-          label: "Ausführungsanbieter",
-          href: docsUrl("IMPLEMENT_THIS_PROVIDERS.md"),
+          label: "Agenten-Integration",
+          href: docsUrl("AGENT_INTEGRATION.md"),
           external: true,
         },
       },
       {
         number: "04",
-        simple: "Prüfen Sie die Ergebnisse und die Aufzeichnungen darüber, was passiert ist.",
+        simple: "Prüfen Sie die Ergebnisse und die Aufzeichnung dessen, was geschehen ist.",
         title: "Nachweise",
         visual: { x: 77, y: 69 },
         icon: "file-check-2",
         body:
-          "Laufstatus, Anbieteridentität, sichere Provenienz, Testergebnisse, Version und optionales Deploy-Ergebnis bleiben an der Projekthistorie hängen.",
+          "Ein Arbeitsauftrag ist erst erledigt, wenn jedes Kriterium abgehakt ist, Nachweise angehängt sind und kein Lauf mehr aktiv ist. Laufaufzeichnungen halten Modell, Ergebnis, Dauer, Tokens und Kosten fest, ohne den Prompt-Text zu speichern.",
         meta: "Was lief und was zurückkam, bleibt prüfbar",
-        signal: "Status, Tests, Version und sichere Provenienz",
-        reference: {
-          label: "Agenten-Schnittstelle",
-          href: docsUrl("AGENT_INTERFACE.md"),
-          external: true,
-        },
+        signal: "Kriterien, Nachweise und Laufaufzeichnungen",
       },
       {
         number: "05",
-        simple: "Teilen Sie die ausgewählten Ergebnisse mit Ihrem Kunden und halten Sie dessen Abnahme fest.",
-        title: "Abnehmen",
+        simple: "Geben Sie das Ergebnis weiter, mit der Freigabe einer Person bei jedem Schritt.",
+        title: "Übergabe",
         visual: { x: 50, y: 78 },
         icon: "badge-check",
         body:
-          "Veröffentlichen Sie nur ausgewählte Arbeit im Kundenportal, erzeugen Sie Lieferberichte und schließen Sie den Kreis mit expliziter Abnahme.",
-        meta: "Interne Wahrheit und Kundenkommunikation bleiben verbunden",
-        signal: "Ausgewählte Lieferung und explizite Abnahme",
+          "Ein Release bewegt sich auf seinem Weg von Build über Deploy bis Access. Stufenübergaben an Pharos und Janus werden mit ihren Ergebnissen festgehalten, und Kunden können Angebote über einen öffentlichen Link annehmen.",
+        meta: "Interne Wahrheit und die nächste Stufe bleiben verbunden",
+        signal: "Festgehaltene Stufenübergaben und Annahme",
         reference: {
-          label: "Kundenportal",
-          href: docsUrl("CUSTOMER_PORTAL.md"),
+          label: "Release-Verifikation",
+          href: docsUrl("RELEASE.md"),
           external: true,
         },
       },
@@ -511,11 +485,11 @@ export const paimosContentDe = {
         "Paimos bietet genug Struktur für echte Lieferung, ohne das Werkzeug in eine Prozessberatung zu verwandeln. Das Arbeitsmodell ist explizit, durchsuchbar und über Oberfläche, CLI oder API nutzbar.",
       items: [
         {
-          title: "Eine Hierarchie, die lesbar bleibt",
+          title: "Ein dynamischer Arbeitsbaum",
           icon: "list-tree",
           body:
-            "Epics, Tickets und Aufgaben bilden die Kernhierarchie. Sprints, Releases und Kostenstellen ergänzen Planungs- und kaufmännischen Kontext, ohne jedes Projekt in dieselbe Zeremonie zu zwingen.",
-          meta: "Epic, Ticket, Aufgabe, Sprint, Release und Kostenstelle",
+            "Jeder Eintrag ist ein Knoten in einem Baum. Epics, Tickets und Aufgaben sind Arten, die Ihr Arbeitsbereich festlegt, sodass das Modell zum Projekt passt, nicht umgekehrt.",
+          meta: "Arten und Bezeichnungen sind Konfiguration des Arbeitsbereichs",
           reference: {
             label: "Planungshierarchie",
             href: docsUrl("PLANNING_HIERARCHY.md"),
@@ -523,40 +497,35 @@ export const paimosContentDe = {
           },
         },
         {
-          title: "Ein Projektlebenszyklus mit Biss",
-          body:
-            "Aktive Projekte bleiben in der täglichen Arbeitsfläche. Eingefrorene Projekte bewahren bestehende Arbeit, nehmen aber nichts Neues an; archivierte Projekte bleiben als abgeschlossene Historie erreichbar, statt die aktuelle Planung zu verstellen.",
-          meta: "Aktiv als Standard; eingefroren und archiviert nur durch explizite Entscheidung",
-          reference: {
-            label: "Agenten-Schnittstelle",
-            href: docsUrl("AGENT_INTERFACE.md"),
-            external: true,
-          },
-        },
-        {
           title: "Beziehungen mit Bedeutung",
           icon: "git-compare-arrows",
           body:
-            "Gruppen, Sprint-Zugehörigkeit, Abhängigkeiten, Auswirkungen, Folgeaufgaben, Blockaden und verwandte Verknüpfungen sind typisierte Beziehungen statt Prosa in einer Beschreibung.",
-          meta: "Sieben Beziehungstypen mit gerichteter Darstellung",
+            "Blockiert, bezieht sich, setzt um, zitiert und dupliziert sind typisierte Beziehungen, keine Prosa, die in einer Beschreibung versteckt ist.",
+          meta: "Fünf Beziehungstypen für die Arbeit",
         },
         {
-          title: "Ansichten für den Alltag",
+          title: "Ansichten für die tägliche Arbeit",
           body:
-            "Gespeicherte Filter, konfigurierbare Spalten, Sortierung, Volltextsuche, angeheftete Ansichten und Teiltreffer bei Ticket-Schlüsseln halten große Projekthistorien benutzbar.",
-          meta: "Ansichten und Filter bleiben pro Person erhalten",
+            "Gespeicherte Filter, Sortierung und einstellbare Spalten für eine Liste oder eine Gliederung, dazu eine Tastatursuche über den ganzen Arbeitsbereich.",
+          meta: "Gespeicherte Ansichten und eine Suche",
         },
         {
           title: "Massenänderung mit Rückweg",
           body:
-            "Atomare Anlege- und Änderungsoperationen tragen strukturierte Automatisierung. Undo und Redo nutzen Änderungshistorie und Konflikterkennung, statt neuere Arbeit still zu überschreiben.",
-          meta: "Transaktionale Massenoperationen und explizite Konflikte",
+            "Eine Massenbearbeitung läuft in einer Transaktion, schreibt je Eintrag ein Ereignis und lässt sich als ein Schritt rückgängig machen, solange diese Einträge unverändert sind. Einträge, die sich nicht ändern lassen, werden mit einer Begründung übersprungen.",
+          meta: "Transaktionale Massenoperationen und explizite Überspringungen",
         },
         {
-          title: "Aufwand, Zeit und Lieferstatus",
+          title: "Releases und Wege",
           body:
-            "Schätzungen, Zeitbuchungen, Abgrenzungen, Satz- und Budgetfelder, Releases und der Weg von Lieferung zu Abnahme halten Umsetzung und kaufmännischen Fortschritt im selben Modell.",
-          meta: "Vom Backlog bis abgenommen und verrechnet",
+            "Releases sind Teil des Baums. Die Wegansicht eines Projekts zeigt seine Stufe von Inspire bis Live und genau eine nächste Aktion, abgeleitet aus festgehaltenen Entscheidungen und nicht geraten.",
+          meta: "Acht Stufen, eine nächste Aktion",
+        },
+        {
+          title: "Stunden und kaufmännischer Kontext",
+          body:
+            "Stunden, effektive Stundensätze, Kosteneinheiten und Angebote stehen im selben System wie die Arbeit, sodass Aufwand und kaufmännischer Stand keine Nebentabelle brauchen.",
+          meta: "Vom Aufwand zum angenommenen Angebot",
         },
       ],
     },
@@ -565,61 +534,44 @@ export const paimosContentDe = {
       eyebrow: "Kontext",
       title: "Geben Sie Agenten das Projekt.",
       lead:
-        "Ein Coding-Agent muss wissen, welches Repository zählt, welche Regeln gelten und wohin die Änderung gehört. Paimos stellt diesen Kontext als strukturierte, berechtigungsbewusste Projektdaten bereit.",
+        "Ein Agent muss wissen, welche Regeln gelten, was das Team schon gelernt hat und wohin die Arbeit gehört. Paimos stellt diesen Kontext als strukturierte, berechtigungsbewusste Projektdaten bereit.",
       items: [
-        {
-          title: "Verknüpfte Repositories",
-          icon: "git-branch",
-          body:
-            "Projekte führen ihr Repository-Inventar und die Standard-Branches. Ein Agent kann die richtige Quelle auflösen, bevor er zu suchen oder zu ändern beginnt.",
-          meta: "Projektkontext über mehrere Repositories",
-        },
         {
           title: "Dauerhafte Wissensebene",
           icon: "library",
           body:
-            "Erinnerungen, Runbooks, Richtlinien, externe Systeme und verwandte Projekte werden projekteigenes Wissen statt einer losen Sammlung maschinenlokaler Dateien.",
-          meta: "Durchstöberbar, durchsuchbar und wiederverwendbar",
+            "Runbooks, Richtlinien, Erinnerungen, externe Systeme und verwandte Projekte werden projekteigenes Wissen statt einer losen Sammlung maschinenlokaler Dateien.",
+          meta: "Durchstöberbar, durchsuchbar und verknüpfbar",
         },
         {
-          title: "Kanonische Agentendefinitionen",
+          title: "Stabile Namen für Agenten",
           body:
-            "Projekt-Agenten tragen Beschreibungen, Bootstrap-Schritte und nicht verhandelbare Regeln. Adapter-Werkzeuge können diese Definitionen für verschiedene Agentenumgebungen rendern, ohne die Quelle zu duplizieren.",
-          meta: "Projekt-Metadaten oberhalb der aktuellen Laufzeit",
-        },
-        {
-          title: "Dauerhafte Agenten-Übergaben",
-          body:
-            "Claude-Code-, Codex- und optionale Grok-Build-Sitzungen können projektbezogene Nachrichten über ein dauerhaftes Register austauschen, während die herstellereigenen Endpunkte der Zustellweg bleiben. Absender-Erlaubnislisten, typisierte Aktionssperren und ein Rahmen für nicht vertrauenswürdige Daten halten jeden zugestellten Inhalt in einer expliziten Sicherheitsgrenze.",
-          meta: "Zuordenbare Verläufe, ohne Paimos zum Inferenz-Proxy zu machen",
+            "Agenten lesen einen Eintrag über seine Art und seinen Slug, zum Beispiel paimos knowledge get runbook deploy-checklist, sodass derselbe Verweis aus jedem Harness und aus der CLI funktioniert.",
+          meta: "Ein Verweis, jedes Harness",
           reference: {
-            label: "Agenten-Nachrichtensicherheit",
-            href: docsUrl("AGENT_MESSAGE_SECURITY.md"),
+            label: "Agenten-Integration",
+            href: docsUrl("AGENT_INTEGRATION.md"),
             external: true,
           },
         },
         {
-          title: "Explizite Orchestrator-Einrichtung",
+          title: "Wissensgraph",
+          icon: "waypoints",
           body:
-            "Ist für ein Projekt kein Orchestrator verknüpft, kann ein berechtigter Super-Admin den lokalen CLI-Alias und den kanonischen Agenten wählen und dann einen vollständig sichtbaren Terminal-Befehl ohne Geheimnisse kopieren. Hat das Projekt noch keinen kanonischen Agenten, öffnet eine Aktion den vorhandenen Agenten-Editor in einem neuen Tab; die ursprüngliche Ansicht wartet auf eine ausdrückliche Aktualisierung. Nicht verfügbare Abfragen bieten nur einen erneuten Versuch, konfigurierte Projekte können das Gesprächsfenster öffnen, ohne etwas zu senden. Der Browser führt den Befehl nie aus, erhält kein Geheimnis und errät keinen Agenten.",
-          meta: "Ein ehrlicher nächster Schritt für jeden Einrichtungszustand",
-          reference: {
-            label: "API der Orchestrator-Verknüpfung",
-            href: docsUrl("api-minimal.md#instance-orchestrator-pin"),
-            external: true,
-          },
+            "Wechseln Sie beim Wissen eines Projekts von den Einträgen zum Graphen, um zu sehen, wie Runbooks, Richtlinien, Erinnerungen und Arbeitseinträge einander verknüpfen.",
+          meta: "Einträge und Graph, ein Schalter",
         },
         {
-          title: "Ticket-zu-Datei-Anker",
+          title: "Hybrider Abruf",
           body:
-            "Repository-Scanner können Tickets an konkrete Dateien und Symbole heften. Aktualitätsprüfungen und Provenienz helfen Agenten, deklarierten von abgeleitetem Kontext zu unterscheiden.",
-          meta: "Das Ticket kann auf den Code zeigen, den es regelt",
+            "Die Suche führt deutschen und englischen Volltext mit optionaler Ähnlichkeit über pgvector zusammen. Ohne Embeddings-Endpunkt bleibt sie lexikalisch und funktioniert weiter.",
+          meta: "Fällt auf Volltext zurück, nie auf ein leeres Ergebnis",
         },
         {
-          title: "Graph- und Mischabruf",
+          title: "Belegter Eingang",
           body:
-            "Lexikalische, lokal-vektorielle und Graph-Pfade fügen sich zu einer Abrufoberfläche mit gereihten Treffern und Provenienz. Fehlen Vektoren, greifen die verbleibenden Strategien weiter.",
-          meta: "Kontextabruf mit prüfbaren Strategie-Metadaten",
+            "Der Eingang aus Aithema trifft als Quellen, Transkriptabschnitte und Entwürfe mit Belegen ein. Ein Vorschlag ändert das Projekt nie von allein. Eine Person nimmt einen Entwurf an.",
+          meta: "Anforderungen mit ihren Quellen",
         },
       ],
     },
@@ -628,90 +580,68 @@ export const paimosContentDe = {
       eyebrow: "Ausführung",
       title: "Befugnis vor Aktion.",
       lead:
-        "Ein gehosteter Modellentwurf ist kein lokaler Agent mit Repository-Zugriff. Paimos hält Anbieter, Modell, Kontext, Ausführungsort und Befugnis sichtbar, statt sie zu einer mehrdeutigen Aktion zu verschmelzen.",
+        "Ein Agent mit einem Token ist kein Agent mit einer Berechtigung. Paimos hält Schlüssel, Scopes, Freigaben, Budgets und Läufe explizit, statt sie zu einer mehrdeutigen Aktion zu verschmelzen.",
       items: [
         {
-          title: "Eingebaute KI-Unterstützung",
-          icon: "sparkles",
+          title: "Fünf Agenten-Harnesses",
+          icon: "workflow",
           body:
-            "Dreizehn Aktionen decken Aufgaben wie Textverfeinerung, Übersetzung, Spezifikation, Teilaufgaben-Erzeugung, Aufwandsschätzung, Duplikaterkennung sowie Kunden- oder Management-Zusammenfassungen ab.",
-          meta: "Vom Admin steuerbare Prompts mit Nutzungs- und Kostendaten",
+            "Sitzungen von Codex, Claude, Pi, Cursor und Grok registrieren sich beim Projekt und erscheinen während der Arbeit im Arbeitsbereich für Agenten: woran sie arbeiten, in welchem Tempo sie vorankommen und was sie von Ihnen brauchen.",
+          meta: "Ein Arbeitsbereich für jeden Harness",
         },
         {
-          title: "Gemeinsame Ausführungskontrollen",
+          title: "Abgegrenzte Schlüssel und Freigaben",
           icon: "sliders-horizontal",
           body:
-            "Profile, Aufwand, Prompt-Voreinstellungen und Kontextpakete verwenden dieselben Konzepte für In-App-KI-Aktionen und Implement-this-Läufe. Projektvorgaben und Richtlinien können die verfügbaren Optionen einschränken.",
-          meta: "Ein Steuerungsvokabular für Aktionen und Läufe",
+            "Ein Agentenschlüssel hält eine feste Menge von Scopes. Ein Agent darf nur einen Scope innerhalb dieser Obergrenze anfragen, und nichts wird gewährt, ehe eine Person vor dem Ablauf zustimmt. Der Widerruf schließt die Freigabe.",
+          meta: "Der Schlüssel ist die Obergrenze; eine Person ist das Tor",
         },
         {
-          title: "Vertrauenswürdige lokale Runner",
+          title: "Arbeitsaufträge mit Budgets",
           body:
-            "Claude-Code- und Codex-Runner arbeiten in einem explizit gewählten lokalen Checkout. Sie dürfen bearbeiten und testen, wenn ihre ausgewiesene Befugnis das erlaubt. Abgeschlossene Läufe können Repository, Branch und den vom Runner gemeldeten Commit-Bereich neben dem Ergebnis ausweisen.",
-          meta: "Code-Nachweise kehren zurück; die Repository-Hoheit bleibt lokal",
-          reference: {
-            label: "Nachweise aus Agentenläufen",
-            href: docsUrl("AGENT_INTEGRATION.md"),
-            external: true,
-          },
+            "Arbeitsaufträge tragen Abnahmekriterien, Nachweise und ein Budget über alle ihre Läufe. Ist das Budget aufgebraucht, stoppt die weitere Zuweisung und der Auftrag wird als blockiert markiert. Die bereits entstandene Nutzung bleibt in der Aufzeichnung.",
+          meta: "Ausgabengrenzen, die den nächsten Lauf stoppen",
         },
         {
-          title: "Entwurfsanbieter bleiben Entwurf",
+          title: "Abgegrenzte Läufe",
           body:
-            "OpenRouter und OpenAI-kompatible lokale Endpunkte können Pläne oder Review-Notizen vorbereiten. Sie können keine Repository-Änderungen, lokalen Tests oder Deploy-Befugnisse beanspruchen.",
-          meta: "Vorschlag und Ausführung bleiben getrennte Vertrauensgrenzen",
+            "Läufe werden eingereiht und vom zugewiesenen Agenten oder unter einer aktiven Freigabe beansprucht. Der Anspruch ist abgegrenzt, sodass nicht zwei Bearbeiter glauben können, denselben Lauf zu besitzen.",
+          meta: "Ein Lauf, ein Inhaber",
         },
         {
-          title: "Deploy bleibt eine bewusste Entscheidung",
+          title: "Inhaltsfreie Telemetrie",
           body:
-            "Bereitstellung ist nur über einen vertrauenswürdigen lokalen Runner möglich und verlangt unabhängige Runner-Flags, einen Deploy-Befehl und ein Ziel auf Laufebene. Sie folgt nie stillschweigend aus der Modellwahl.",
-          meta: "Drei explizite Tore vor dem Deploy",
-        },
-        {
-          title: "Sichere Provenienz",
-          body:
-            "Laufaufzeichnungen erfassen Anbieter, Modell, Profil, Aufwand, Prompt-Referenz, Kontextquelle, Agent, Runner, Status, Tests und Version, ohne Prompt-Inhalte, Antwortinhalte, API-Schlüssel oder lokale Umgebungswerte zu protokollieren.",
-          meta: "Genug Nachweis zum Prüfen, ohne Geheimnisse zu Logs zu machen",
+            "Laufaufzeichnungen halten das angeforderte und das wirksame Modell, das Ergebnis, die Dauer, die Tokens und die Kosten fest. Sie speichern keine Prompts, keine Antworten und keine lokalen Umgebungswerte.",
+          meta: "Genug Nachweis zum Prüfen, ohne Geheimnisse zu Protokollen zu machen",
         },
       ],
     },
     {
       id: "customer-delivery",
-      eyebrow: "Lieferung",
-      title: "Lieferung bleibt verbunden.",
+      eyebrow: "Kaufmännisches",
+      title: "Das Kaufmännische bleibt verbunden.",
       lead:
-        "Interne Umsetzung und Kundenkommunikation dürfen nicht in getrennte Wirklichkeiten driften. Paimos macht aus ausgewähltem Projektstand eine bewusste, prüfbare Kundenoberfläche.",
+        "Aufwand, Preise und Angebote sollen nicht von der Arbeit abdriften, die sie beschreiben. Paimos hält sie im selben Mandanten und unter denselben Berechtigungen.",
       items: [
         {
-          title: "Sichtbarkeit ist Opt-in",
-          icon: "eye",
+          title: "Stunden und Sätze",
+          icon: "timer",
           body:
-            "Interne Bearbeiter markieren explizit, welche Tickets kundensichtbar sind. Verborgene Tickets geben über Portal-Endpunkte keine identifizierenden Details preis; von Kunden eingereichte Anfragen sind bewusst sichtbar.",
-          meta: "Internes Wissen bleibt intern, bis es bewusst veröffentlicht wird",
+            "Erfassen Sie Stunden je Zeitraum und sehen Sie effektive Stundensätze neben der Arbeit, zu der sie gehören.",
+          meta: "Aufwand im selben Modell wie die Arbeit",
         },
         {
-          title: "Ein fokussiertes externes Portal",
-          icon: "panels-top-left",
+          title: "Kosteneinheiten",
           body:
-            "Externe Nutzer sehen die Projekte und Tickets, auf die sie Zugriff haben, können Anfragen einreichen und den Lieferstatus prüfen, ohne den internen Arbeitsbereich zu betreten.",
-          meta: "Projektzugriff plus explizite Ticket-Sichtbarkeit",
+            "Kosteneinheiten tragen die Sätze, aus denen die Preise der Angebote kommen. Sie sind kein System für die Rechnungsstellung.",
+          meta: "Eine Preisquelle, klar benannt",
         },
         {
-          title: "Berichte aus dem Projektstand",
+          title: "Angebote mit öffentlicher Annahme",
+          icon: "badge-check",
           body:
-            "Projektberichte kombinieren ausgewählte Tickets, technische oder kundengerechte Zusammenfassungen und konfigurierbare Spalten zu stabilen JSON- und PDF-Ständen.",
-          meta: "Ein Liefernachweis aus demselben System wie die Arbeit",
-        },
-        {
-          title: "Abnahme hinterlässt Nachweise",
-          body:
-            "Kurzlinks und QR-Codes führen zur expliziten Abnahme. Enthaltene Lieferpositionen lassen sich gesammelt abnehmen, und ein signierter Bericht kann am Stand hängen bleiben.",
-          meta: "Von geliefert zu abgenommen ohne Parallel-Tabelle",
-          reference: {
-            label: "Kundenportal",
-            href: docsUrl("CUSTOMER_PORTAL.md"),
-            external: true,
-          },
+            "Angebote werden entworfen, ausgestellt und über einen öffentlichen Link geteilt, auf dem der Kunde sie lesen, ein PDF herunterladen und annehmen kann. Öffentliches Lesen und die Annahme sind in der Häufigkeit begrenzt.",
+          meta: "Von ausgestellt zu angenommen, ohne parallele Tabelle",
         },
       ],
     },
@@ -720,30 +650,30 @@ export const paimosContentDe = {
     eyebrow: "Für Teams",
     title: "Schnell arbeiten. Verantwortlich bleiben.",
     lead:
-      "Paimos ist dort am nützlichsten, wo Softwarelieferung, KI-gestützte Arbeit und Kundenverantwortung zusammentreffen. Jede Rolle sieht dieselbe Projektwahrheit aus einem anderen Blickwinkel.",
+      "Paimos ist dort am nützlichsten, wo Softwarelieferung, KI-gestützte Arbeit und Kundenverantwortung zusammentreffen. Jede Rolle sieht dieselbe Projektwahrheit aus einem anderen betrieblichen Blickwinkel.",
     items: [
       {
         title: "Engineering-Teams",
         body:
-          "Geben Sie Menschen und Agenten dieselbe Arbeitshierarchie, denselben Repository-Kontext und dieselbe Ausführungshistorie. Weniger Kontext-Rekonstruktion, ohne KI-Zugriff zum unsichtbaren Seitenkanal zu machen.",
-        meta: "Planen, umsetzen, testen und prüfen in einem Projektmodell",
+          "Geben Sie Menschen und Agenten denselben Arbeitsbaum, dasselbe Wissen und dieselbe Laufhistorie. Weniger Rekonstruktion von Kontext, ohne den Zugang der Agenten zu einem unsichtbaren Seitenkanal zu machen.",
+        meta: "Planen, delegieren, prüfen und übergeben in einem Projektmodell",
       },
       {
         title: "Delivery- und Projektleitung",
         body:
-          "Verfolgen Sie Abhängigkeiten, Aufwand, Zeit, Releases und kundensichtbare Ergebnisse, während interne Notizen, Runbooks und offene Arbeit dem externen Portal fernbleiben.",
+          "Verfolgen Sie Beziehungen, Releases, Stunden und die Budgets der Arbeitsaufträge, während Agenten arbeiten, und sehen Sie auf dem Weg jedes Projekts die eine nächste Aktion.",
         meta: "Operative Lieferung ohne zweite Berichtswahrheit",
       },
       {
         title: "Kundenbetreuung",
         body:
-          "Verbinden Sie Umsetzungsarbeit mit Kundenanfragen, Berichten und Abnahme. Die Grenze zwischen internem Ausführungskontext und ausgewählter externer Kommunikation bleibt klar.",
-        meta: "Ein bewusster Weg von der Arbeit zur Abnahme",
+          "Verbinden Sie Arbeit und Aufwand mit Angeboten, die Ihre Kunden über einen Link annehmen, ohne ihnen Zugang zum internen Arbeitsbereich zu geben.",
+        meta: "Ein bewusster Weg von der Arbeit zur Annahme",
       },
       {
         title: "Plattform- und Sicherheitsteams",
         body:
-          "Identität, Projektberechtigungen, Audit, Aufbewahrung, Anbieter-Richtlinien und Deploy-Entscheidungen bleiben in Betreiberhand. Prüfen Sie den Code und verifizieren Sie Release-Artefakte vor der Bereitstellung.",
+          "Halten Sie Identität, Mandantentrennung, Scopes der Agenten und Freigaben in Betreiberhand. Prüfen Sie den Code und verifizieren Sie die Prüfsummen eines Releases vor der Bereitstellung.",
         meta: "Selbst gehostete Kontrolle mit dokumentierten Vertrauensgrenzen",
       },
     ],
@@ -752,51 +682,57 @@ export const paimosContentDe = {
     eyebrow: "Architektur",
     title: "Kompakt genug zum Verstehen.",
     lead:
-      "Paimos bevorzugt einen kleinen, prüfbaren Betriebs-Fußabdruck gegenüber einer verteilten Plattform aus Pflichtdiensten.",
+      "Paimos bevorzugt einen kleinen, prüfbaren Betriebs-Fußabdruck: ein Anwendungsprozess und eine Datenbank, statt einer verteilten Plattform aus Pflichtdiensten.",
     paragraphs: [
-      "Ein einzelner Go-Prozess liefert die Vue-Anwendung und die JSON-API auf einem Port. SQLite im WAL-Modus ist die maßgebliche Datenhaltung, mit additiven Migrationen beim Start.",
-      "S3-kompatibler Speicher ist optional für Anhänge, SMTP optional für Passwort-Reset-Mails. OIDC und Modellanbieter kommen nur ins System, wenn ein Betreiber sie konfiguriert. Fehlende optionale Dienste schalten ihr Feature ab, statt den Start der Kernanwendung zu verhindern.",
-      "Dieser Standard ist einfach zu betreiben, zu sichern und wiederherzustellen. Es ist heute eine Ein-Knoten-Architektur, keine hochverfügbare Mehr-Knoten-Steuerungsebene.",
+      "Eine einzelne Go-Binärdatei stellt die Vue-Anwendung und die JSON-API bereit. Postgres 18 mit pgvector ist die maßgebliche Datenhaltung. Jede Zeile trägt ihren Mandanten, und die Sicherheit auf Zeilenebene setzt die Trennung durch. Die Migrationen sind eingebettet und werden beim Start angewendet.",
+      "Anhänge werden auf der lokalen Festplatte gespeichert. Personen melden sich über einen OIDC-Identitätsanbieter an, den der Server erreichen kann. Agenten nutzen abgegrenzte API-Schlüssel. Ein Embeddings-Endpunkt und Webhook-Weckrufe sind optional und laufen nur, wenn ein Betreiber sie konfiguriert.",
+      "Das Ereignisprotokoll ist die Historie: Jede Änderung wird angefügt, Rückgängig ist ein ausgleichendes Ereignis, und der Posteingang der Agenten sowie die laufende Bearbeitung von Angeboten übertragen Aktualisierungen an geöffnete Seiten.",
     ],
     flow: [
-      "Browser, CLI, MCP und REST",
+      "Browser, CLI und HTTP-API",
       "Ein Go-Dienst",
       "Vue-Oberfläche und JSON-API",
-      "SQLite im WAL-Modus",
-      "Optional S3, SMTP, OIDC und Modellanbieter",
+      "Postgres 18 mit pgvector, Sicherheit auf Zeilenebene",
+      "OIDC für Personen; optionale Embeddings und Webhooks",
     ],
     facts: [
-      "Ein Anwendungsprozess und eine primäre Datendatei",
-      "Kein verpflichtendes Redis, keine Message-Queue, keine externe Datenbank",
-      "Deployment-Pfad über Docker Compose",
-      "Automatische additive Schema-Migrationen",
-      "Optionale Dienste fallen kontrolliert aus",
-      "Branding- und Identitätseinstellungen in Betreiberhand",
+      "Ein Anwendungsprozess und eine Datenbank",
+      "Kein verpflichtendes Redis, keine Message-Queue, kein Objektspeicher",
+      "Container-Image und Release-Binärdateien",
+      "Eingebettete Migrationen beim Start",
+      "Mandantentrennung in der Datenbank durchgesetzt",
+      "Append-only-Ereignisprotokoll mit Rückgängig",
     ],
   },
   trust: {
     eyebrow: "Vertrauen",
     title: "Vertrauen hinterlässt Nachweise.",
     lead:
-      "Paimos belegt öffentliche Aussagen mit Code, Tests, signierten Artefakten, Runbooks und einer expliziten Liste der Grenzen. Das Ziel ist prüfbares Verhalten, kein Compliance-Theater.",
+      "Paimos belegt öffentliche Aussagen mit Code, Tests, Release-Prüfsummen und einer expliziten Liste der Grenzen. Das Ziel ist prüfbares Verhalten, kein Compliance-Theater.",
     items: [
       {
-        title: "Identität und lokale Autorisierung",
+        title: "Identität und Autorisierung",
         body:
-          "Generisches OIDC mit Authorization Code und PKCE übernimmt die Identität. Abgleich über verifizierte E-Mail und Einladung als einziger Weg sind der Standard. Rollen und Projektberechtigungen bleiben lokal; lokaler Login und TOTP stehen als Alternative bereit.",
-        meta: "ZITADEL ist der validierte Referenz-Identitätsanbieter",
+          "Personen melden sich über OIDC an, mit Authorization Code, PKCE und einem ID-Token, den der Server prüft. Agenten nutzen abgegrenzte API-Schlüssel, die nur als Hashes gespeichert sind. Jede API-Route deklariert die Berechtigung, die sie braucht.",
+        meta: "INSPR betreibt es mit ZITADEL",
       },
       {
-        title: "Audit und Aufbewahrung",
+        title: "Mandantentrennung",
         body:
-          "Sitzungsänderungen werden standardmäßig auditiert. Zugriffsänderungen, Vorfälle, KI-Aufrufe und Agentenläufe tragen prüfbare Metadaten, während Aufbewahrungsfristen sowie Export- und Löschpfade pro Person in Betreiberhand bleiben.",
-        meta: "Inhalte und Geheimnisse bleiben aus KI-Audit-Einträgen draußen",
+          "Jede Zeile trägt ihren Mandanten, und die Sicherheit auf Zeilenebene von Postgres prüft jede Zeile. Die Trennung bleibt bestehen, auch wenn die Anwendung das Filtern vergisst.",
+        meta: "Trennung unterhalb der Anwendung durchgesetzt",
+      },
+      {
+        title: "Berechtigungen der Agenten",
+        body:
+          "Ein Agent beantragt nur für sich selbst und nur innerhalb seines Schlüssels. Eine Person entscheidet, bevor die Anfrage abläuft. Genehmigung, Ablehnung und Widerruf sind Ereignisse im Protokoll.",
+        meta: "Standardmäßig wird nichts gewährt",
       },
       {
         title: "Release-Integrität",
         body:
-          "Getaggte Container-Images werden schlüssellos mit cosign über GitHub OIDC signiert. CycloneDX-SBOMs für Go- und Frontend-Abhängigkeiten hängen als Attestierungen am selben Image-Digest.",
-        meta: "Ein Release lässt sich zu Quell- und Abhängigkeitsnachweisen zurückverfolgen",
+          "Getaggte Releases veröffentlichen Binärdateien mit SHA256SUMS und ein Container-Image auf GHCR, gebaut mit Provenienz-Attestierungen. Eine cosign-Signatur oder eine SBOM gibt es noch nicht.",
+        meta: "Ein Release lässt sich auf den Build aus dem Quellcode zurückverfolgen",
         reference: {
           label: "Release-Verifikation",
           href: docsUrl("RELEASE.md"),
@@ -806,19 +742,13 @@ export const paimosContentDe = {
       {
         title: "Datenkontrolle",
         body:
-          "Paimos enthält keine Analytik, keine Tracking-Pixel, keine erzwungene Telemetrie und keine verpflichtende Cloud-Abhängigkeit. Gehostete KI-Anbieter erhalten Projektinhalte nur, wenn ein Betreiber sie aktiviert und auswählt.",
-        meta: "Self-Hosting hält den Standard-Datenpfad in Betreiberhand",
+          "Paimos enthält keine Analytik, keine Tracking-Pixel und keine Telemetrie an den Hersteller. Die Nutzung der Läufe bleibt in Ihrer Datenbank, und ausgehende Aufrufe gehen nur an den Identitätsanbieter und an die optionalen Dienste, die Sie konfigurieren.",
+        meta: "Selbstbetrieb hält den Standard-Datenpfad in Betreiberhand",
       },
       {
-        title: "Sicherheitskontrollen mit konkretem Umfang",
+        title: "Benannte Grenzen",
         body:
-          "Projektzugriffsprüfungen, CSRF-Schutz, ratenbegrenzte Anmeldung, gehashte API-Schlüssel, gehärtete Anhang-Auslieferung, Aufbewahrungsläufe sowie DSGVO-Export- und Lösch-Endpunkte sind Teil der ausgelieferten Implementierung.",
-        meta: "NIS2-orientierte Kontrollen und DSGVO-bewusster Betrieb, keine Zertifizierungsbehauptungen",
-      },
-      {
-        title: "Betrieblicher Beleg",
-        body:
-          "Backup-, Restore-, Upgrade- und Vorfallspfade sind dokumentiert und geübt. Die öffentlichen Nachweise benennen auch, wo die aktuelle Referenzbasis oder Review-Abdeckung noch klein ist.",
+          "Die öffentlichen Nachweise benennen auch, was noch fehlt: Aufbewahrung, Export und Löschung pro Person und ein vollständiger Satz an MCP-Werkzeugen. Die unten genannten Grenzen sind Teil der Vertrauensgeschichte.",
         meta: "Grenzen bleiben Teil der Vertrauensgeschichte",
       },
     ],
@@ -827,91 +757,73 @@ export const paimosContentDe = {
     eyebrow: "Integrationen",
     title: "Offene Schnittstellen zuerst.",
     lead:
-      "Paimos legt sein Projektmodell über dokumentierte Schnittstellen offen und ergänzt gezielte Import- und Anbieterpfade dort, wo Teams bereits Systeme im Einsatz haben.",
+      "Paimos legt sein Projektmodell über dokumentierte Schnittstellen offen und ergänzt danach gezielte Pfade für Import, Agenten und die Produktfamilie.",
     items: [
       {
-        name: "paimos CLI",
+        name: "aeon und paimos CLI",
         status: "Eingebaut",
         description:
-          "Typisierte Befehle, dateibasierte Mehrzeileneingaben, JSON-Ausgabe, Probeläufe, idempotente Übergänge und deklaratives Massen-Apply für Agenten, Skripte und CI.",
+          "Eine Binärdatei für Tickets, Wissen, Suche, Projekte, Beziehungen, Anhänge und Agentensitzungen. Aufgerufen als paimos, behält es die klassische Befehlsform.",
       },
       {
-        name: "MCP",
+        name: "HTTP-API und OpenAPI",
         status: "Eingebaut",
         description:
-          "Eine kuratierte stdio-Fassade für interaktive Agenten-Clients. Massenabläufe bleiben in der CLI, damit der Werkzeugkontext begrenzt bleibt.",
-      },
-      {
-        name: "REST, OpenAPI und Schema",
-        status: "Eingebaut",
-        description:
-          "JSON-API, OpenAPI-Dokument und selbstbeschreibendes Schema legen Routen, Enums, Übergänge und Feldformen für eigene und externe Clients offen.",
+          "Eine JSON-API, deren Vertrag eine OpenAPI-3.1-Datei im Quellcode ist. aeon schema gibt die Knotenarten aus, die ein laufender Server kennt.",
       },
       {
         name: "Generisches OIDC",
-        status: "Unterstützt",
+        status: "Für Personen erforderlich",
         description:
-          "Authorization Code mit PKCE, Abgleich über verifizierte E-Mail und lokale Projektautorisierung. ZITADEL ist der validierte Referenzanbieter.",
+          "Authorization Code mit PKCE und einem geprüften ID-Token. INSPR betreibt es mit ZITADEL.",
       },
       {
-        name: "Jira",
+        name: "Codex, Claude, Pi, Cursor und Grok",
+        status: "Agenten-Harnesses",
+        description:
+          "Lokale Agentensitzungen registrieren sich bei einem Projekt, beanspruchen Läufe, fragen Berechtigungen an und melden inhaltsfreie Telemetrie.",
+      },
+      {
+        name: "aeon-agentd",
+        status: "Lokaler Daemon",
+        description:
+          "Startet und beaufsichtigt Agentensitzungen auf einem Entwicklerrechner und meldet je Harness-Anmeldung ein Konto für das Arbeitstempo an.",
+      },
+      {
+        name: "MCP",
+        status: "Früh",
+        description:
+          "Ein stdio-Server für interaktive Agenten-Clients. Heute antwortet er mit whoami. Werkzeuge für Tickets, Wissen und Suche kommen noch. Dafür nutzen Sie die CLI oder die API.",
+      },
+      {
+        name: "Klassisches Paimos",
         status: "Import",
         description:
-          "Projekterkennung, Feld- und Beziehungszuordnung, Vorschau und asynchroner Ticket-Import in ein neues oder bestehendes Paimos-Projekt.",
+          "Importiert Projekte aus dem klassischen Paimos, einschließlich Wissenseinträgen, Anhängen und Angeboten.",
       },
       {
-        name: "Mite",
-        status: "Import",
+        name: "Aithema",
+        status: "Familie",
         description:
-          "Auf DE und AT ausgerichteter Zeitbuchungs-Import mit Benutzerzuordnung, Vorschau, Fortsetzungsdatum und Aufräumfunktionen.",
+          "Speichert belegte Anforderungseingänge: Quellen, Transkriptabschnitte und Entwürfe, die eine Person annimmt.",
       },
       {
-        name: "HubSpot",
-        status: "Referenz-CRM",
+        name: "Pharos und Janus",
+        status: "Familie",
         description:
-          "Kunden- und Kontaktimport, Remote-Suche, manueller Neuabgleich und Direktlinks. Paimos schreibt keine Änderungen nach HubSpot zurück.",
+          "Stufenübergaben zeichnen die Bereitstellung über Pharos und den Zugang über Janus auf, mit den Ergebnissen auf dem Weg des Releases.",
       },
       {
-        name: "HTTP-CRM-Sidecar",
-        status: "Erweiterbar",
-        description:
-          "Ein HMAC-signierter JSON-Vertrag lässt Betreiber ein anderes CRM aus beliebiger Sprache anbinden: Import, Abgleich, Suche und Direktlinks.",
-      },
-      {
-        name: "CSV",
-        status: "Eingebaut",
-        description:
-          "Import und Export pro Projekt und projektübergreifend, mit Validierung, bevor Daten übernommen werden.",
-      },
-      {
-        name: "S3-kompatibler Speicher",
+        name: "Embeddings-Endpunkt",
         status: "Optional",
         description:
-          "MinIO oder ein anderer kompatibler Objektspeicher kann Anhänge halten. Ohne konfigurierten Speicher schaltet sich die Anhangsfunktion sauber ab.",
+          "Jeder OpenAI-kompatible Embeddings-Endpunkt, auch einer auf Ihrer eigenen Hardware, ergänzt die Suche nach Bedeutung. Ohne ihn bleibt die Suche Volltext.",
       },
       {
-        name: "SMTP",
+        name: "Webhook-Weckrufe",
         status: "Optional",
         description:
-          "Ausgehende E-Mail trägt die Passwort-Reset-Zustellung. Das Kernsystem hängt nicht von einem Maildienst ab.",
-      },
-      {
-        name: "OpenRouter",
-        status: "Optionaler Entwurfsanbieter",
-        description:
-          "Gehostete Modelle können In-App-Hilfe leisten und Pläne entwerfen. Sie erhalten nur den für die Anfrage gewählten Kontext und haben keinen lokalen Shell- oder Deploy-Pfad.",
-      },
-      {
-        name: "OpenAI-kompatible lokale Modelle",
-        status: "Optionaler Entwurfsanbieter",
-        description:
-          "Ollama, LM Studio, llama.cpp oder ein internes Gateway können Entwurfsunterstützung über einen kompatiblen Chat-Completions-Endpunkt liefern.",
-      },
-      {
-        name: "Claude Code und Codex",
-        status: "Vertrauenswürdige lokale Runner",
-        description:
-          "Entwicklereigene Runner können explizit zugewiesene Arbeit in einem freigegebenen lokalen Checkout übernehmen, Dateien bearbeiten, Tests ausführen und das Ergebnis zurückmelden.",
+          "Weckt den Prozess eines Agenten, wenn in seinem Projekt-Posteingang eine Nachricht eintrifft, statt regelmäßig nachzufragen.",
       },
     ],
   },
@@ -919,17 +831,16 @@ export const paimosContentDe = {
     eyebrow: "Betriebliche Eignung",
     title: "Nichts vorgaukeln.",
     lead:
-      "Eine brauchbare Deployment-Entscheidung hängt an den Grenzen genauso wie an der Funktionsliste. Diese Grenzen beschreiben das aktuelle Produkt, keine künftige Roadmap.",
+      "Eine brauchbare Entscheidung für den Einsatz hängt an den Grenzen genauso wie an der Funktionsliste. Diese Grenzen beschreiben das aktuelle Release und keine künftige Roadmap.",
     items: [
-      "Das Standard-Deployment ist ein kompaktes Ein-Knoten-System aus Go und SQLite. Es ist keine hochverfügbare Mehr-Knoten-Steuerungsebene.",
-      "Gehostete und lokale Modellanbieter sind reine Entwurfsanbieter. Repository-Änderungen, Tests und Deployment verlangen einen explizit vertrauenswürdigen lokalen Runner.",
-      "Deployment läuft nur über lokale Runner und ist dreifach abgesichert. Die Modellwahl verleiht nie Deploy-Befugnis.",
-      "Ein generischer OIDC-Anbieter wird unterstützt, SAML nicht. Die aktuelle OIDC-Implementierung vertraut dem TLS-geschützten Userinfo-Austausch, statt das ID-Token lokal über JWKS zu prüfen.",
-      "Nur das jeweils neueste Release erhält Sicherheitskorrekturen. Ein LTS-Programm gibt es nicht.",
+      "Personen melden sich nur über einen OIDC-Identitätsanbieter an, den der Server erreichen kann. Lokale Anmeldung mit Passwort, TOTP und SAML gibt es nicht.",
+      "Aufbewahrungsfristen und Endpunkte für Export oder Löschung pro Person gibt es noch nicht.",
+      "Der MCP-Server ist früh und antwortet heute nur mit whoami. Für Tickets, Wissen und Suche nutzen Sie die CLI oder die HTTP-API.",
+      "Der Zugang für Kunden beschränkt sich auf öffentliche Angebotslinks mit Annahme und einem PDF. Ein allgemeines Kundenportal gibt es in diesem Release nicht.",
+      "Der Eingang aus Aithema ist eine API. Eine Oberfläche für Sprache oder Mikrofon gibt es in der Anwendung nicht.",
+      "Releases tragen SHA256SUMS und eine Build-Provenienz, keine cosign-Signaturen und keine SBOM.",
       "Paimos hat noch keine unabhängige Sicherheitsprüfung durch Dritte abgeschlossen.",
-      "Die dokumentierte Nachweisbasis umfasst derzeit eine aktive Produktionsumgebung und ein historisches Deployment eines zweiten Betreibers.",
-      "Es gibt keinen veröffentlichten Skalierungs-Benchmark. Eine Produktionsübernahme sollte repräsentative Projekte, Nutzerzahlen, Parallelität und Anhangsvolumen prüfen.",
-      "CRM-Abgleich funktioniert über Pull und Import. Webhooks vom CRM zu Paimos werden nicht unterstützt, und pro Deployment lässt sich ein generisches HTTP-CRM-Sidecar konfigurieren.",
+      "Es gibt keinen veröffentlichten Skalierungs-Benchmark. Eine Produktionsübernahme sollte repräsentative Projekte, Nutzerzahlen, Agenten und das Anhangsvolumen prüfen.",
       "Paimos hat eine responsive Weboberfläche, aber keine native Mobil-App.",
     ],
   },
@@ -937,7 +848,7 @@ export const paimosContentDe = {
     eyebrow: "Open Source",
     title: "Offen durch Architektur, nicht durch Kampagne.",
     body:
-      "Paimos steht unter AGPL-3.0-only. Sie können es prüfen, selbst betreiben, forken und unter diesen Bedingungen verändern. Wer eine veränderte Version als Netzwerkdienst betreibt, muss dessen Nutzern den zugehörigen Quellcode zugänglich halten. Open Source ist nicht die Heldengeschichte, aber es hält das Produkt, seine Vertrauensgrenzen und seine Zukunft prüfbar.",
+      "PAIMOS AEON steht unter AGPL-3.0-only. Sie können es prüfen, selbst betreiben, forken und unter diesen Bedingungen verändern. Wenn Sie eine veränderte Fassung als Netzwerkdienst betreiben, behalten dessen Nutzer das Recht, den zugehörigen Quellcode zu erhalten. Open Source ist nicht die Hauptaussage. Es hält das Produkt, seine Vertrauensgrenzen und seine Zukunft prüfbar.",
     links: [
       {
         label: "GitHub-Repository",
@@ -945,7 +856,7 @@ export const paimosContentDe = {
         external: true,
       },
       {
-        label: "Releases und Verifikation",
+        label: "Releases und Prüfsummen",
         href: `${repositoryUrl}/releases`,
         external: true,
       },
@@ -968,54 +879,54 @@ export const paimosContentDe = {
   },
   faq: [
     {
-      question: "Ist Paimos ein Chatbot in einem Projektwerkzeug?",
+      question: "Was ist PAIMOS AEON?",
       answer:
-        "Nein. KI-Aktionen und Agenten arbeiten im Projektmodell mit, aber Paimos bleibt ein Projektmanagement- und Kontextsystem. Arbeitsstand, Berechtigungen, Anbieterwahl und Nachweise bleiben explizit.",
+        "Die siebte Generation von Paimos, veröffentlicht unter dem Namen AEON. Diese Generation ersetzt die Codebasis des klassischen Paimos durch ein mehrmandantenfähiges System aus Go und Postgres, gebaut für Menschen und Agenten, die gemeinsam arbeiten. Projekte des klassischen Paimos lassen sich importieren, samt Wissen und Anhängen.",
     },
     {
-      question: "Kann ein KI-Modell ein Repository automatisch ändern?",
+      question: "Ist Paimos ein Chatbot in einem Projektwerkzeug?",
       answer:
-        "Gehostete und lokale Modellanbieter sind reine Entwurfsanbieter. Repository-Änderungen und Tests verlangen einen vertrauenswürdigen lokalen Runner. Deployment verlangt zusätzliche unabhängige Freischaltungen und ein Ziel auf Laufebene.",
+        "Nein. Agenten nehmen am Projektmodell teil, mit eigenen Schlüsseln, Scopes und Laufaufzeichnungen, doch Paimos bleibt ein System für Projektarbeit und Kontext. Arbeitsstand, Berechtigungen und Nachweise bleiben explizit.",
+    },
+    {
+      question: "Kann ein Agent sich selbst mehr Rechte geben?",
+      answer:
+        "Nein. Ein Agent kann nur einen Scope innerhalb seines Schlüssels anfragen, und eine Person entscheidet. Genehmigung, Ablehnung und Widerruf werden als Ereignisse festgehalten.",
     },
     {
       question: "Braucht Paimos einen KI-Anbieter?",
       answer:
-        "Nein. KI-Unterstützung ist standardmäßig aus. Projektmanagement, Kontext, Berichte, API und Portal funktionieren ohne gehosteten oder lokalen Modellanbieter.",
+        "Nein. Planung, Wissen, Suche, Stunden und Angebote funktionieren ohne jedes Modell. Agenten bringen ihren eigenen Harness mit, und ein Embeddings-Endpunkt ist optional.",
     },
     {
       question: "Können wir unseren Identitätsanbieter verwenden?",
       answer:
-        "Paimos unterstützt einen generischen OIDC-Anbieter mit Authorization Code und PKCE. ZITADEL ist die validierte Referenz. Lokaler Login und TOTP bleiben verfügbar. SAML wird derzeit nicht unterstützt.",
+        "Ja, jeden OIDC-Anbieter, der Authorization Code mit PKCE unterstützt. INSPR betreibt es mit ZITADEL. Eine lokale Anmeldung mit Passwort gibt es nicht, und SAML wird nicht unterstützt.",
     },
     {
-      question: "Können Kunden interne Arbeit sehen?",
+      question: "Kann eine Installation mehreren Teams dienen?",
       answer:
-        "Nur wenn interne Bearbeiter sie explizit kundensichtbar markieren. Von Kunden eingereichte Anfragen sind bewusst sichtbar. Andere Portal-Sichtbarkeit ist Opt-in, und Endpunkte verborgener Tickets vermeiden es, deren Existenz preiszugeben.",
+        "Ja. Paimos ist mehrmandantenfähig: Jede Zeile trägt ihren Mandanten, und die Sicherheit auf Zeilenebene von Postgres hält die Arbeitsbereiche auseinander.",
     },
     {
       question: "Ist Paimos nur in der Cloud verfügbar?",
       answer:
-        "Nein. Paimos ist selbst gehostet und hat keine verpflichtende SaaS-Abhängigkeit. S3-kompatible Anhänge, SMTP, OIDC und Modellanbieter sind optionale Betreiberentscheidungen.",
+        "Nein. Paimos ist selbst gehostet: ein Anwendungscontainer und eine Postgres-Datenbank. Für die Anmeldung von Personen braucht es einen erreichbaren OIDC-Anbieter. Alles Weitere außerhalb davon ist optional.",
     },
     {
       question: "Was kann ein Agent aus einem Projekt lesen?",
       answer:
-        "Im Rahmen des Projektzugriffs des Aufrufenden kann ein Agent Tickets, verknüpfte Repositories, Wissenseinträge, kanonische Agentendefinitionen, Ticket-zu-Datei-Anker, Graph-Beziehungen und gereihte Mischabruf-Ergebnisse lesen.",
-    },
-    {
-      question: "Welche Größenordnung unterstützt Paimos?",
-      answer:
-        "Paimos ist als kompaktes Ein-Knoten-System ausgelegt. Es gibt noch keine veröffentlichte Leistungskurve; ein Produktions-Rollout sollte repräsentative Datenmengen, Parallelität und Anhangsnutzung testen.",
+        "Im Rahmen der Scopes seines Schlüssels und der Berechtigungen des Projekts kann ein Agent den Arbeitsbaum, die Beziehungen, Wissenseinträge per Slug, Suchergebnisse sowie seine eigenen Arbeitsaufträge und Läufe lesen.",
     },
     {
       question: "Wie verhält sich der kommerzielle Weg zum offenen Produkt?",
       answer:
-        "Das Repository bleibt das Produkt. Augmentoring kann Architektur, Rollout, Integration und laufenden Betrieb rund um denselben offenen Code anbieten, ohne ihn durch eine geschlossene Ausgabe zu ersetzen.",
+        "Das Repository bleibt das Produkt. Augmentoring kann Architektur, Einführung, Integration und laufenden Betrieb rund um dieselbe offene Codebasis leisten, ohne sie durch eine geschlossene Ausgabe zu ersetzen.",
     },
   ],
   finalCta: {
-    title: "Betreiben Sie es auf Ihre Art.",
+    title: "Betreiben Sie es auf Ihre Weise.",
     body:
-      "Setzen Sie Paimos aus dem öffentlichen Quellcode auf und behalten Sie das gesamte Betriebsmodell in der eigenen Hand. Wenn Sie Architektur, Rollout, Integration oder laufenden Betrieb brauchen, bietet Augmentoring den kommerziellen Weg rund um dasselbe offene Produkt.",
+      "Stellen Sie Paimos aus dem öffentlichen Quellcode bereit und behalten Sie das gesamte Betriebsmodell unter Ihrer Kontrolle. Wenn Sie Architektur, Einführung, Integration oder laufenden Betrieb brauchen, bietet Augmentoring den kommerziellen Weg rund um dasselbe offene Produkt.",
   },
 } satisfies ProductContent;

@@ -1,12 +1,13 @@
 #!/usr/bin/env node
-// PAI-695 — site-owned publication gate for PAIMOS marketing captures.
-// With --capture-dir it validates and copies a newly generated set. With
-// --check it re-verifies the committed assets, hashes, provenance and the
-// hotspot-to-DOM landmark contract used by PaimosProductSurface.astro.
+// PAI-695, INSPR-478: site-owned publication gate for PAIMOS AEON marketing
+// captures. With --capture-dir it proves the public release tag, validates
+// and copies a newly generated set. With --check it re-verifies the committed
+// assets, hashes, provenance and the hotspot-to-landmark contract used by
+// PaimosProductSurface.astro.
 
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
-import { copyFileSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -15,17 +16,25 @@ const webRoot = resolve(scriptDir, "..");
 const assetDir = join(webRoot, "src/assets/products/paimos");
 const componentPath = join(webRoot, "src/components/PaimosProductSurface.astro");
 const manifestPath = join(assetDir, "capture-manifest.json");
-const assetNames = [
-  "product-surface.png",
-  "ui-session-home.png",
-  "ui-agent-mode.png",
-  "ui-issues.png",
-  "ui-board.png",
-  "ui-search.png",
-  "ui-voice-intake.png",
+// Annotated surfaces: each tab of PaimosProductSurface.astro shows one
+// screen, and hotspot N must land on landmark N of screen N.
+const surfaces = [
+  { name: "surface-ticket.png", landmark: "issueContext" },
+  { name: "surface-agents.png", landmark: "executionControl" },
+  { name: "surface-knowledge.png", landmark: "applicableMemories" },
 ];
-const videoNames = ["loop-issue-workbench.mp4", "loop-search-navigate.mp4"];
-const landmarkOrder = ["issueContext", "executionControl", "applicableMemories"];
+const galleryNames = [
+  "ui-projects.png",
+  "ui-work-tree.png",
+  "ui-search.png",
+  "ui-knowledge-graph.png",
+  "ui-releases.png",
+];
+const assetNames = [...surfaces.map(({ name }) => name), ...galleryNames];
+// Dark renditions are kept as spare assets; the page shows the light set.
+const spareDir = "dark";
+const videoNames = ["loop-ticket-agents.mp4", "loop-search-navigate.mp4"];
+const sourceRepositories = ["inspr-at/aeon", "inspr-at/paimos"];
 
 function fail(message) {
   throw new Error(`Paimos capture gate: ${message}`);
@@ -52,25 +61,42 @@ function readJson(path) {
   }
 }
 
+// Aeon releases are tagged vYYMMDDHHMMSS.MINOR.PATCH (INSPR Calendar
+// Versioning v2). The tag is stored verbatim; it is never inferred.
 function verifyRelease(releaseKind, release) {
-  if (releaseKind === "semver") {
-    if (!/^\d+\.\d+\.\d+$/.test(release)) fail("legacy release is not semver");
-    return;
-  }
-  if (releaseKind !== "calendar") fail("release kind must be semver or calendar");
-  const match = release.match(/^(\d{2})\.(\d{2})\.(\d{2})(?:\.(\d{2})\.(\d{2}))?$/);
-  if (!match) fail("calendar release is not yy.mm.dd[.hh.mm]");
-  const [, yy, month, day, hour = "00", minute = "00"] = match;
-  const instant = new Date(Date.UTC(2000 + Number(yy), Number(month) - 1, Number(day), Number(hour), Number(minute)));
+  if (releaseKind !== "inspr-calendar-v2") fail("release kind must be inspr-calendar-v2");
+  const match = release.match(/^(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})\.\d+\.\d+$/);
+  if (!match) fail("release is not YYMMDDHHMMSS.MINOR.PATCH");
+  const [, yy, month, day, hour, minute, second] = match.map(Number);
+  const instant = new Date(Date.UTC(2000 + yy, month - 1, day, hour, minute, second));
   if (
-    instant.getUTCFullYear() !== 2000 + Number(yy) ||
-    instant.getUTCMonth() !== Number(month) - 1 ||
-    instant.getUTCDate() !== Number(day) ||
-    instant.getUTCHours() !== Number(hour) ||
-    instant.getUTCMinutes() !== Number(minute)
+    instant.getUTCFullYear() !== 2000 + yy ||
+    instant.getUTCMonth() !== month - 1 ||
+    instant.getUTCDate() !== day ||
+    instant.getUTCHours() !== hour ||
+    instant.getUTCMinutes() !== minute ||
+    instant.getUTCSeconds() !== second
   ) {
-    fail("calendar release is not a real date and time");
+    fail("release is not a real date and time");
   }
+}
+
+// The importer proves that the public tag exists and names the captured commit.
+function verifyPublicTag(repository, tag, sourceCommit) {
+  const result = spawnSync(
+    "git",
+    ["ls-remote", `https://github.com/${repository}.git`, `refs/tags/${tag}`, `refs/tags/${tag}^{}`],
+    { encoding: "utf8" },
+  );
+  if (result.error || result.status !== 0) {
+    fail(`cannot read tags of ${repository}: ${result.error?.message ?? result.stderr.trim()}`);
+  }
+  const refs = new Map(
+    result.stdout.trim().split("\n").filter(Boolean).map((line) => line.split("\t").reverse()),
+  );
+  const commit = refs.get(`refs/tags/${tag}^{}`) ?? refs.get(`refs/tags/${tag}`);
+  if (!commit) fail(`${repository} has no public tag ${tag}`);
+  if (commit !== sourceCommit) fail(`${tag} resolves to ${commit}, not ${sourceCommit}`);
 }
 
 function desktopHotspots() {
@@ -79,7 +105,8 @@ function desktopHotspots() {
   const contractEnd = source.indexOf(".product-surface__frame figcaption", contractStart);
   if (contractStart < 0 || contractEnd < 0) fail("component framing contract is missing");
   const contract = source.slice(contractStart, contractEnd);
-  return [1, 2, 3].map((number) => {
+  return surfaces.map((_, index) => {
+    const number = index + 1;
     const rule = contract.match(
       new RegExp(`\\.product-surface__hotspot--${number}\\s*\\{[^}]*top:\\s*([0-9.]+)%[^}]*left:\\s*([0-9.]+)%`, "s"),
     );
@@ -89,33 +116,31 @@ function desktopHotspots() {
 }
 
 function verifyFraming(layout) {
-  if (layout?.schemaVersion !== 1) fail("unsupported layout metadata schema");
+  if (layout?.schemaVersion !== 2) fail("unsupported layout metadata schema");
   const viewport = layout.viewport;
   if (viewport?.width !== 1600 || viewport?.height !== 1000 || viewport?.deviceScaleFactor !== 2) {
     fail("capture viewport must be 1600×1000 @2x");
   }
-  if (layout.framing?.anchor !== "TASKS") fail("TASKS framing anchor is missing");
-  if (layout.framing.tasksTop < 0.04 || layout.framing.tasksTop > 0.12) {
-    fail(`TASKS framing drifted to ${(layout.framing.tasksTop * 100).toFixed(1)}%`);
-  }
+  if (layout.theme !== "light") fail("the published surfaces must be the light theme");
 
   const hotspots = desktopHotspots();
-  for (const [index, name] of landmarkOrder.entries()) {
-    const box = layout.landmarks?.[name];
-    if (![box?.x, box?.y, box?.width, box?.height].every(Number.isFinite)) {
-      fail(`landmark ${name} is missing`);
+  for (const [index, { name, landmark }] of surfaces.entries()) {
+    const box = layout.landmarks?.[landmark];
+    if (box?.screen !== name) fail(`landmark ${landmark} must be measured on ${name}`);
+    if (![box.x, box.y, box.width, box.height].every(Number.isFinite)) {
+      fail(`landmark ${landmark} is missing`);
+    }
+    if (box.x < 0 || box.y < 0 || box.x + box.width > 1 || box.y + box.height > 1) {
+      fail(`landmark ${landmark} lies outside ${name}`);
     }
     const point = hotspots[index];
-    const xPadding = 0.04;
-    const yPadding = name === "applicableMemories" ? 0.09 : 0.075;
+    const padding = 0.04;
     const inside =
-      point.x >= box.x - xPadding &&
-      point.x <= box.x + box.width + xPadding &&
-      point.y >= box.y - yPadding &&
-      point.y <= box.y + box.height + yPadding;
-    if (!inside) {
-      fail(`hotspot ${index + 1} no longer lands on ${name}`);
-    }
+      point.x >= box.x - padding &&
+      point.x <= box.x + box.width + padding &&
+      point.y >= box.y - padding &&
+      point.y <= box.y + box.height + padding;
+    if (!inside) fail(`hotspot ${index + 1} no longer lands on ${landmark}`);
   }
 }
 
@@ -193,14 +218,24 @@ function verifyVideo(path, expected) {
 
 function verifyCommitted() {
   const manifest = readJson(manifestPath);
-  if (manifest.schemaVersion !== 3) fail("unsupported capture manifest schema");
+  if (manifest.schemaVersion !== 4) fail("unsupported capture manifest schema");
+  if (manifest.product !== "PAIMOS AEON") fail("captures must come from PAIMOS AEON");
+  if (!sourceRepositories.includes(manifest.sourceRepository)) fail("unknown source repository");
   verifyRelease(manifest.releaseKind, manifest.release);
+  if (manifest.tag !== `v${manifest.release}`) fail("tag must be v<release>");
   if (!/^[0-9a-f]{40}$/.test(manifest.sourceCommit)) fail("manifest source commit is invalid");
+  if (manifest.data !== "synthetic") fail("captures must use synthetic demo data");
   if (manifest.assets?.length !== assetNames.length) fail(`manifest must contain all ${assetNames.length} captures`);
   for (const name of assetNames) {
     const expected = manifest.assets.find((asset) => asset.name === name);
     if (!expected) fail(`manifest is missing ${name}`);
     verifyAsset(join(assetDir, name), expected);
+  }
+  if (manifest.spares?.length !== assetNames.length) fail("manifest must list a dark spare for every capture");
+  for (const name of assetNames) {
+    const expected = manifest.spares.find((asset) => asset.name === `${spareDir}/${name}`);
+    if (!expected) fail(`manifest is missing ${spareDir}/${name}`);
+    verifyAsset(join(assetDir, spareDir, name), expected);
   }
   if (manifest.videos?.length !== videoNames.length) fail("manifest must contain both product loops");
   const videos = videoNames.map((name) => {
@@ -211,7 +246,10 @@ function verifyCommitted() {
   const videoBytes = videos.reduce((total, video) => total + video.bytes, 0);
   if (videoBytes > 3 * 1024 * 1024) fail("combined product loops exceed the 3 MiB page-weight budget");
   verifyFraming(manifest.layout);
-  console.log(`✓ verified ${assetNames.length} stills + ${videoNames.length} product loops for v${manifest.release}`);
+  console.log(
+    `✓ verified ${assetNames.length} stills + ${assetNames.length} dark spares + ` +
+    `${videoNames.length} product loops for ${manifest.sourceRepository}@${manifest.tag}`,
+  );
 }
 
 function valueAfter(flag) {
@@ -226,20 +264,47 @@ if (process.argv.includes("--check")) {
   const release = valueAfter("--release");
   const releaseKind = valueAfter("--release-kind");
   const sourceCommit = valueAfter("--source-commit");
+  const sourceRepository = valueAfter("--source-repository");
   if (!captureDirArg) fail("--capture-dir is required");
   const captureDir = resolve(captureDirArg);
   verifyRelease(releaseKind, release);
   if (!/^[0-9a-f]{40}$/.test(sourceCommit)) fail("--source-commit must be a full Git object id");
+  if (!sourceRepositories.includes(sourceRepository)) {
+    fail(`--source-repository must be one of ${sourceRepositories.join(", ")}`);
+  }
+  const tag = `v${release}`;
+  verifyPublicTag(sourceRepository, tag, sourceCommit);
 
   const layout = readJson(join(captureDir, "capture-surface.json"));
   verifyFraming(layout);
   const assets = assetNames.map((name) => verifyAsset(join(captureDir, name), { name }));
+  const spares = assetNames.map((name) => ({
+    ...verifyAsset(join(captureDir, spareDir, name), { name }),
+    name: `${spareDir}/${name}`,
+  }));
   const videos = videoNames.map((name) => verifyVideo(join(captureDir, name), { name }));
-  for (const name of assetNames) copyFileSync(join(captureDir, name), join(assetDir, name));
+  mkdirSync(join(assetDir, spareDir), { recursive: true });
+  for (const name of assetNames) {
+    copyFileSync(join(captureDir, name), join(assetDir, name));
+    copyFileSync(join(captureDir, spareDir, name), join(assetDir, spareDir, name));
+  }
   for (const name of videoNames) copyFileSync(join(captureDir, name), join(assetDir, name));
   writeFileSync(
     manifestPath,
-    `${JSON.stringify({ schemaVersion: 3, releaseKind, release, sourceCommit, assets, videos, layout }, null, 2)}\n`,
+    `${JSON.stringify({
+      schemaVersion: 4,
+      product: "PAIMOS AEON",
+      sourceRepository,
+      releaseKind,
+      release,
+      tag,
+      sourceCommit,
+      data: "synthetic",
+      assets,
+      spares,
+      videos,
+      layout,
+    }, null, 2)}\n`,
   );
   verifyCommitted();
 }

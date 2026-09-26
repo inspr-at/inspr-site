@@ -337,9 +337,9 @@ test("all four microsites render claim visuals and accessible workflow controls"
     "assets/products/paimos/context-ledger.png",
     "assets/products/pharos/fleet-gate.png",
     "assets/products/janus/value-boundary.png",
-    "assets/products/paimos/product-surface.png",
-    "assets/products/paimos/ui-session-home.png",
-    "assets/products/paimos/ui-agent-mode.png",
+    "assets/products/paimos/surface-ticket.png",
+    "assets/products/paimos/surface-agents.png",
+    "assets/products/paimos/surface-knowledge.png",
   ];
   for (const asset of assets) {
     const metadata = await stat(new URL(asset, sourceUrl));
@@ -466,33 +466,43 @@ test("Paimos screenshot tabs use neutral tabpanel hosts", async () => {
 
 test("Paimos public evidence keeps release and capture provenance honest", async () => {
   const content = await source("content/paimos.ts");
+  const german = await source("content/de/paimos.ts");
   const productPage = await source("components/ProductPage.astro");
   const surface = await source("components/PaimosProductSurface.astro");
 
+  // INSPR-478: the page presents PAIMOS 7 (AEON). The repository keeps the
+  // canonical inspr-at/paimos name, which the Aeon codebase takes over.
+  for (const edition of [content, german]) {
+    assert.match(edition, /const repositoryUrl = "https:\/\/github\.com\/inspr-at\/paimos";/);
+    assert.match(edition, /eyebrow: "Paimos 7 · AEON"/);
+    assert.match(edition, /title: "PAIMOS AEON \| /);
+    assert.doesNotMatch(edition, /inspr-at\/aeon/);
+    assert.doesNotMatch(edition, /—/);
+    // Documents the Aeon repository does not ship must not be linked.
+    for (const retired of ["IMPLEMENT_THIS_PROVIDERS", "CUSTOMER_PORTAL", "AGENT_INTERFACE", "AGENT_MESSAGE_SECURITY", "api-minimal"]) {
+      assert.doesNotMatch(edition, new RegExp(retired));
+    }
+    // Classic-only claims stay retired.
+    for (const classic of [/SQLite/, /cosign-signed/, /CycloneDX/, /Air-gap/, /HubSpot/, /Jira/, /OpenRouter/, /TOTP (?:available|verfügbar)/]) {
+      assert.doesNotMatch(edition, classic);
+    }
+  }
+  const linked = [...new Set([...content.matchAll(/docsUrl\("([^"]+)"\)/g)].map(([, name]) => name))].sort();
+  assert.deepEqual(linked, ["AGENT_INTEGRATION.md", "PLANNING_HIERARCHY.md", "RELEASE.md"]);
+
   assert.match(surface, /import captureManifest from .*capture-manifest\.json/);
-  assert.match(surface, /import uiSessionHome from .*ui-session-home\.png/);
-  assert.match(surface, /import uiAgentMode from .*ui-agent-mode\.png/);
-  assert.match(surface, /title: copy\("Workspace home", "Arbeitsbereich"\)/);
-  assert.match(surface, /title: "Agent Mode"/);
-  assert.match(surface, /const captureRelease = `v\$\{captureManifest\.release\}`;/);
-  assert.match(surface, /figcaption: `Demo workspace, Paimos \$\{captureRelease\} — seeded synthetic data\.`/);
-  assert.match(surface, /figcaption: `Demo-Arbeitsbereich, Paimos \$\{captureRelease\}: synthetisch befüllte Demo-Daten\.`/);
+  for (const name of ["surface-ticket", "surface-agents", "surface-knowledge", "ui-projects", "ui-work-tree", "ui-search", "ui-knowledge-graph", "ui-releases"]) {
+    assert.match(surface, new RegExp(`from "\\.\\./assets/products/paimos/${name}\\.png"`));
+  }
+  assert.match(surface, /const captureRelease = captureManifest\.tag;/);
+  assert.match(surface, /figcaption: `Demo workspace, PAIMOS AEON \$\{captureRelease\}: seeded synthetic data\.`/);
+  assert.match(surface, /figcaption: `Demo-Arbeitsbereich, PAIMOS AEON \$\{captureRelease\}: synthetisch befüllte Demo-Daten\.`/);
   assert.match(surface, /<figcaption>\{labels\.figcaption\}<\/figcaption>/);
-  assert.match(surface, /Demo workspace, Paimos \$\{captureRelease\}/);
-  assert.match(surface, /Demo-Arbeitsbereich, Paimos \$\{captureRelease\}/);
   assert.doesNotMatch(surface, /current build/);
-  assert.match(surface, /seeded synthetic data/);
-  assert.match(content, /runner-declared before\/after commit range beside the outcome/);
-  assert.match(content, /repository authority remains local/);
-  assert.match(content, /label: "Agent run evidence"[\s\S]*?docsUrl\("AGENT_INTEGRATION\.md"\)/);
-  assert.match(content, /title: "Durable agent handoffs"/);
-  assert.match(content, /Sender allowlists, typed action holds and an untrusted-data frame/);
-  assert.match(content, /label: "Agent message security"[\s\S]*?docsUrl\("AGENT_MESSAGE_SECURITY\.md"\)/);
-  assert.match(content, /title: "Explicit orchestrator setup"/);
-  assert.match(content, /copy one fully visible, secret-free terminal command/);
-  assert.match(content, /one action opens its existing agent editor in a new tab/);
-  assert.match(content, /The browser never executes the command, receives a secret or guesses an agent/);
-  assert.match(content, /label: "Orchestrator binding API"[\s\S]*?docsUrl\("api-minimal\.md#instance-orchestrator-pin"\)/);
+  assert.doesNotMatch(surface, /github\.com\/inspr-at\/paimos\/blob/);
+  assert.match(content, /Run records keep requested and effective model, outcome, duration, tokens and cost\. They do not store prompts/);
+  assert.match(content, /The MCP server is early and answers only whoami today\./);
+  assert.match(content, /There is no local password login, no TOTP and no SAML\./);
   assert.match(productPage, /id="trust"/);
   assert.match(productPage, /id="limits"/);
 
@@ -503,6 +513,18 @@ test("Paimos public evidence keeps release and capture provenance honest", async
   assert.equal(captureCheck.status, 0, captureCheck.stderr || captureCheck.stdout);
 });
 
+test("Paimos annotated surface shows one capture per marker", async () => {
+  const surface = await source("components/PaimosProductSurface.astro");
+
+  assert.equal(surface.match(/data-surface-frame=\{index\}/g)?.length, 1);
+  assert.match(surface, /hidden=\{index !== 0\}/);
+  assert.match(surface, /frame\.hidden = Number\(frame\.dataset\.surfaceFrame\) !== activeIndex;/);
+  assert.match(surface, /\.product-surface__screen\[hidden\] \{\s*display: none;/);
+  for (const number of [1, 2, 3]) {
+    assert.match(surface, new RegExp(`\\.product-surface__hotspot--${number} \\{\\s*top: [0-9.]+%;\\s*left: [0-9.]+%;`));
+  }
+});
+
 test("Paimos capture publication rejects ambiguous or impossible release identities", async () => {
   const captureDir = await mkdtemp(join(tmpdir(), "inspr-paimos-captures-"));
   const script = "scripts/sync-paimos-captures.mjs";
@@ -511,7 +533,7 @@ test("Paimos capture publication rejects ambiguous or impossible release identit
   const verifyFailure = (releaseKind, release, expected) => {
     const result = spawnSync(
       process.execPath,
-      [script, "--capture-dir", captureDir, "--release-kind", releaseKind, "--release", release, "--source-commit", sourceCommit],
+      [script, "--capture-dir", captureDir, "--release-kind", releaseKind, "--release", release, "--source-commit", sourceCommit, "--source-repository", "inspr-at/aeon"],
       { cwd, encoding: "utf8" },
     );
     assert.notEqual(result.status, 0);
@@ -519,9 +541,10 @@ test("Paimos capture publication rejects ambiguous or impossible release identit
   };
 
   try {
-    verifyFailure("calendar", "26.02.30", /not a real date and time/);
-    verifyFailure("semver", "26.09.04.20.54", /legacy release is not semver/);
-    verifyFailure("guess", "26.09.04.20.54", /release kind must be semver or calendar/);
+    verifyFailure("inspr-calendar-v2", "260230120000.0.0", /not a real date and time/);
+    verifyFailure("inspr-calendar-v2", "26.09.26.06.46", /not YYMMDDHHMMSS\.MINOR\.PATCH/);
+    verifyFailure("calendar", "260926064658.0.0", /release kind must be inspr-calendar-v2/);
+    verifyFailure("semver", "5.17.0", /release kind must be inspr-calendar-v2/);
   } finally {
     await rm(captureDir, { recursive: true, force: true });
   }
@@ -533,13 +556,15 @@ test("Paimos product loops stay lazy, bounded and inside the PhotoSwipe gallery"
     await source("assets/products/paimos/capture-manifest.json"),
   );
 
-  assert.equal(manifest.schemaVersion, 3);
-  assert.equal(manifest.releaseKind, "calendar");
+  assert.equal(manifest.schemaVersion, 4);
+  assert.equal(manifest.product, "PAIMOS AEON");
+  assert.equal(manifest.releaseKind, "inspr-calendar-v2");
+  assert.equal(manifest.data, "synthetic");
 
-  assert.match(surface, /import loopIssueWorkbench from .*loop-issue-workbench\.mp4/);
+  assert.match(surface, /import loopTicketAgents from .*loop-ticket-agents\.mp4/);
   assert.match(surface, /import loopSearchNavigate from .*loop-search-navigate\.mp4/);
   assert.equal(surface.match(/kind: "video" as const/g)?.length, 1);
-  assert.equal(surface.match(/id: "(?:issue-workbench|search-navigate)-flow"/g)?.length, 2);
+  assert.equal(surface.match(/id: "(?:ticket-agents|search-navigate)-flow"/g)?.length, 2);
   assert.match(surface, /data-pswp-type=\{view\.kind === "video" \? "video" : undefined\}/);
   assert.match(surface, /loading="lazy"/);
   assert.doesNotMatch(surface, /<video[\s>]/);
@@ -552,11 +577,12 @@ test("Paimos product loops stay lazy, bounded and inside the PhotoSwipe gallery"
   assert.match(surface, /lightbox\.on\("contentDestroy"/);
   assert.match(surface, /video\.removeAttribute\("src"\)/);
 
-  assert.match(manifest.release, /^\d{2}\.\d{2}\.\d{2}(?:\.\d{2}\.\d{2})?$/);
+  assert.match(manifest.release, /^\d{12}\.\d+\.\d+$/);
+  assert.equal(manifest.tag, `v${manifest.release}`);
   assert.match(manifest.sourceCommit, /^[0-9a-f]{40}$/);
   assert.deepEqual(
     manifest.videos.map(({ name }) => name),
-    ["loop-issue-workbench.mp4", "loop-search-navigate.mp4"],
+    ["loop-ticket-agents.mp4", "loop-search-navigate.mp4"],
   );
   assert.ok(manifest.videos.every(({ durationSeconds }) =>
     durationSeconds >= 5 && durationSeconds <= 15

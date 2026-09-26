@@ -12,49 +12,49 @@
       "name": "surface-ticket.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "b52930a34037614e178f4d34ece416300b9b8d77ec7413096bea7a28e83b62a2"
+      "sha256": "b23b532ac7e1e064a54cadaf627ddfe279861f5da3d9ed6b56474ba9bb7c8765"
     },
     {
       "name": "surface-agents.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "cb735a22b8ff91d66f64a75291e5b89949fd639553fa710dd23a1dc734be5498"
+      "sha256": "0380a759712819b3532486161cd6b6032f405d3b2c666674d4a7bbc7cc81c7b0"
     },
     {
       "name": "surface-knowledge.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "04bd17a1fafd7e317b30e5acd66d39b6b3d8b5662d7fa6426efc7364cde5b117"
+      "sha256": "b1a9d368751ad99fed44412b43b884212f83766f6b1dffb2bafd220853e4a4a6"
     },
     {
       "name": "ui-projects.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "6685fd2004ca126239579a8dac4a0100d21f57b192c3216a81782a14d5b723b1"
+      "sha256": "9e306d0821a11635abfdfb16d9d0a868afbe4f32859a48844bd96670f9aa5f52"
     },
     {
       "name": "ui-work-tree.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "c4079bcd52b2e80e671c4f6fbe5cd4c0930dcf2ecbd524df851ed168722ec0b1"
+      "sha256": "767d3263afba8281189d751bdced2849a081804f26a131919465b33a1158e661"
     },
     {
       "name": "ui-search.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "9e660a09545333c9a901a3bfa5a575fec6f828e1932540683448b73a15c56c0f"
+      "sha256": "3ce71e37e955e9275f0969beaf1a10b86a478d0290b561c02fbc1201be5d8811"
     },
     {
       "name": "ui-knowledge-graph.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "8c0b3e98de96a3009ac3cf431905dfe98e340b67f367a822cda1718f3240101c"
+      "sha256": "765589f050cd66f306e35e5f5f6ad8cdae2316af9b381b61b73a9fefb172f788"
     },
     {
       "name": "ui-releases.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "81c3a90f1e9c9843ab0a431751f5014676c4224d9e206627ca103eefc639c8dc"
+      "sha256": "6abb2f367c90aacb5188c057322c4067ca76672dfcd0c5b231c135b6c7d64315"
     }
   ],
   "spares": [
@@ -62,49 +62,49 @@
       "name": "dark/surface-ticket.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "59dc7825c6fed726183f25fbdb0822b982fec3eaa1eabec6294dcaead149bb4a"
+      "sha256": "e811a8a9618b0664181cdf35cac64a8aa6973b83b0c8d70396d44eb1341e6a57"
     },
     {
       "name": "dark/surface-agents.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "fe8b5241701500d5b44d8bb1e7fd0b464dfcbcebd188e1fbed1d4947fda9f064"
+      "sha256": "4946eb678a4bf8c5fd47f9ba647c08fa543b0bf57454fe90c2416798a4bd7d39"
     },
     {
       "name": "dark/surface-knowledge.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "69699cb6e3b8ff1c03414ae30fb0aa440460cf7fb84d2709892591349df2f3e3"
+      "sha256": "c125c4860382ec67910f79aec0a835fcbb4ee094ea89ad96bac0e444b0d7db84"
     },
     {
       "name": "dark/ui-projects.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "4e2811881351ca0536f1a833cd164d4224479c7a0f45f2538dc5465e84d836cc"
+      "sha256": "5af4aa7e825a84a90ba30a91ed0bb3f950d80a37c533977d6ebcca64ef7779c9"
     },
     {
       "name": "dark/ui-work-tree.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "2568eb9fdea5c6523d3c414b90e0127e8290c9c860c2057cb57870f1732bc6c6"
+      "sha256": "b0cb30e1c6a28d3fc48c02fa4a52a7476865ad0a19192b69771acfced0222307"
     },
     {
       "name": "dark/ui-search.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "fffeabbc40500cb6621c3153424430c04e0cc9efd88d6045df731d55278c9e49"
+      "sha256": "06f52203197f1232d00ba649f8162e778ae9a15f5eaaa0701f14cefaf4dd8e70"
     },
     {
       "name": "dark/ui-knowledge-graph.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "be431897732ef8d89a719e84dadb67fe757fbe8e2343bba15f94542456463ac2"
+      "sha256": "86286ce535aaa0b4b474b8785ba197938e0047356abfb2dae6bec659cbccd238"
     },
     {
       "name": "dark/ui-releases.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "c5fbff094a079b9967e6e43032d4cd155fe30fad7cb4aa45f92a8b8c0ebe7a71"
+      "sha256": "ed97ca143f154d92f3098feef3c4ec101cc72e091afeae4c9e9df3d92c2df088"
     }
   ],
   "videos": [
@@ -112,22 +112,23 @@
       "name": "loop-ticket-agents.mp4",
       "width": 1280,
       "height": 800,
-      "durationSeconds": 10.375,
-      "bytes": 346310,
-      "sha256": "66d0929d112ceeb05d98659ffd4abb15698f533b8d526d254c01fafdfcadf0af"
+      "durationSeconds": 8.125,
+      "bytes": 368111,
+      "sha256": "184063bc05ed103dbe5d5e123161baa33ceb2ce0320e117a6dc8e3357094016c"
     },
     {
       "name": "loop-search-navigate.mp4",
       "width": 1280,
       "height": 800,
-      "durationSeconds": 7.25,
-      "bytes": 315217,
-      "sha256": "9c527c9b876e76fd693250d075845633449d29057ecc0de5939f7682583c1d73"
+      "durationSeconds": 6.458,
+      "bytes": 335638,
+      "sha256": "63aea2befbb3269a25cffdffd7fb0d6e0dc5987ac2ef6949efd81ac0914e33da"
     }
   ],
   "layout": {
     "schemaVersion": 2,
     "theme": "light",
+    "observedVersion": "260926085451.0.0",
     "viewport": {
       "width": 1600,
       "height": 1000,

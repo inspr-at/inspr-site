@@ -173,6 +173,12 @@ async function loop(browser, name, steps) {
   console.log(`✓ loop ${name}`);
 }
 
+// The gate compares this with the tag being published, so a capture from
+// any other build is rejected.
+const versionResponse = await fetch(`${baseUrl}/api/version`);
+if (!versionResponse.ok) throw new Error(`version probe failed with ${versionResponse.status}`);
+const observedVersion = (await versionResponse.json()).version;
+
 mkdirSync(join(out, "dark"), { recursive: true });
 const browser = await chromium.launch();
 try {
@@ -204,7 +210,7 @@ try {
 
   writeFileSync(
     join(out, "capture-surface.json"),
-    `${JSON.stringify({ schemaVersion: 2, theme: "light", viewport: { ...viewport, deviceScaleFactor }, landmarks }, null, 2)}\n`,
+    `${JSON.stringify({ schemaVersion: 2, theme: "light", observedVersion, viewport: { ...viewport, deviceScaleFactor }, landmarks }, null, 2)}\n`,
   );
   console.log(`✓ capture set written to ${out}`);
 } finally {

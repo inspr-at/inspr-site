@@ -30,7 +30,7 @@ export const paimosContentDe = {
     sheet: {
       repo: "github.com/inspr-at/paimos",
       runtime: "Selbst gehostet: ein Anwendungscontainer und Postgres, Anmeldung per OIDC.",
-      gate: "Agenten fragen jede Berechtigung an. Eine Person genehmigt sie, bevor sie besteht, und die Entscheidung ist ein Ereignis im Protokoll.",
+      gate: "Ein Agent arbeitet innerhalb der Scopes seines Schlüssels. Geschützte Schritte brauchen eine Freigabe, die eine Person genehmigt, und die Entscheidung ist ein Ereignis im Protokoll.",
       artefact: "Arbeitsbaum, Wissen, Arbeitsaufträge und Laufaufzeichnungen, je Mandant und berechtigungsbewusst.",
       interfaces: "UI, CLI, HTTP-API",
       maturity: "Paimos 7 · AEON, veröffentlicht, AGPL-3.0-only",
@@ -45,7 +45,7 @@ export const paimosContentDe = {
         "PAIMOS AEON ist selbst gehostete, mehrmandantenfähige Projektarbeit: ein dynamischer Arbeitsbaum, eine gemeinsame Wissensebene, Arbeitsaufträge, Agentenläufe und abgegrenzte Berechtigungen über einem Append-only-Ereignisprotokoll, erreichbar über UI, CLI und HTTP-API.",
     },
     lead:
-      "PAIMOS AEON ist die siebte Generation von Paimos: selbst gehostete Projektarbeit für Teams, die mit KI-Agenten arbeiten. Menschen und Agenten teilen einen Arbeitsbaum und einen Bestand an Projektwissen, Agenten fragen an, bevor sie eine Berechtigung erhalten, und jede Änderung landet in einem Append-only-Ereignisprotokoll.",
+      "PAIMOS AEON ist die siebte Generation von Paimos: selbst gehostete Projektarbeit für Teams, die mit KI-Agenten arbeiten. Menschen und Agenten teilen einen Arbeitsbaum und einen Bestand an Projektwissen, Agenten arbeiten mit abgegrenzten Schlüsseln und fragen vor geschützten Schritten eine Person, und jede Änderung landet in einem Append-only-Ereignisprotokoll.",
     alt: "Abstrakte Projekt-Agora, in der Menschen und KI-Teilnehmer um eine gemeinsame Betriebsfläche stehen",
     primaryLabel: "So funktioniert es",
     primaryHref: "#model",
@@ -78,9 +78,9 @@ export const paimosContentDe = {
         label: "Abgegrenzte Berechtigungen",
         icon: "user-round-check",
         group: "security",
-        note: "Ein Agent fordert einen Scope an. Eine Person genehmigt oder lehnt ihn ab, bevor er abläuft. Der Schlüssel des Agenten bleibt stets die Obergrenze.",
+        note: "Jeder Agentenschlüssel trägt feste Scopes, die die Obergrenze bilden. Geschützte Schritte brauchen eine Freigabe, die der Agent anfragt und eine Person vor dem Ablauf genehmigt.",
         noteEli10:
-          "Ein KI-Helfer muss fragen, bevor er ein neues Recht erhält, und eine Person sagt ja oder nein. Er kann nie mehr verlangen, als sein Kennzeichen erlaubt.",
+          "Jeder KI-Helfer hat ein Kennzeichen, das festlegt, was er darf. Für die heiklen Schritte muss er fragen, und eine Person sagt ja oder nein. Er bekommt nie mehr, als sein Kennzeichen erlaubt.",
       },
       {
         label: "Selbst betreibbar",
@@ -332,7 +332,7 @@ export const paimosContentDe = {
         id: "provenance",
         term: "Provenienz-Attestierung",
         matches: ["Provenienz-Attestierungen"],
-        body: "Eine signierte Aufzeichnung am Container-Image, wie und aus welchem Quellcode das Image gebaut wurde.",
+        body: "Eine Aufzeichnung am Container-Image, wie und aus welchem Quellcode das Image gebaut wurde.",
       },
       {
         id: "agpl",
@@ -370,7 +370,7 @@ export const paimosContentDe = {
         icon: "eye-off",
         body:
           "Wenn die Rechte eines Agenten das sind, was sein Token gerade erlaubt, hat sie niemand entschieden und niemand kann sie nachprüfen. Prüfung und Verantwortung werden zum Ratespiel.",
-        meta: "Berechtigungen brauchen eine Anfrage, eine Person und eine Aufzeichnung.",
+        meta: "Befugnis braucht eine Grenze, eine Person und eine Aufzeichnung.",
       },
       {
         title: "Lieferung verliert ihre Nachweise",
@@ -436,7 +436,7 @@ export const paimosContentDe = {
         visual: { x: 50, y: 40 },
         icon: "play",
         body:
-          "Legen Sie die Arbeit in einen Arbeitsauftrag mit Abnahmekriterien und einem Budget. Eine registrierte Agentensitzung beansprucht den Lauf. Braucht sie eine Berechtigung, fragt sie an, und die Anfrage wartet unter Needs you, bis eine Person entscheidet.",
+          "Legen Sie die Arbeit in einen Arbeitsauftrag mit Abnahmekriterien und einem Budget. Eine registrierte Agentensitzung beansprucht den Lauf und arbeitet innerhalb der Scopes ihres Schlüssels. Für einen geschützten Schritt fragt sie eine Freigabe an, und die Anfrage wartet unter Needs you, bis eine Person entscheidet.",
         meta: "Explizite Befugnis vor der Arbeit, ruhige Aufsicht, solange der Lauf dauert",
         signal: "Arbeitsaufträge, Läufe und Freigaben",
         reference: {
@@ -546,7 +546,7 @@ export const paimosContentDe = {
         {
           title: "Stabile Namen für Agenten",
           body:
-            "Agenten lesen einen Eintrag über seine Art und seinen Slug, zum Beispiel paimos knowledge get runbook deploy-checklist, sodass derselbe Verweis aus jedem Harness und aus der CLI funktioniert.",
+            "Agenten lesen einen Eintrag über seine Art und seinen Slug, zum Beispiel paimos knowledge get runbook deploy-checklist --project KEY, sodass derselbe Verweis aus jedem Harness und aus der CLI funktioniert.",
           meta: "Ein Verweis, jedes Harness",
           reference: {
             label: "Agenten-Integration",
@@ -565,7 +565,7 @@ export const paimosContentDe = {
           title: "Hybrider Abruf",
           body:
             "Die Suche führt deutschen und englischen Volltext mit optionaler Ähnlichkeit über pgvector zusammen. Ohne Embeddings-Endpunkt bleibt sie lexikalisch und funktioniert weiter.",
-          meta: "Fällt auf Volltext zurück, nie auf ein leeres Ergebnis",
+          meta: "Volltextsuche bleibt immer verfügbar",
         },
         {
           title: "Belegter Eingang",
@@ -593,8 +593,8 @@ export const paimosContentDe = {
           title: "Abgegrenzte Schlüssel und Freigaben",
           icon: "sliders-horizontal",
           body:
-            "Ein Agentenschlüssel hält eine feste Menge von Scopes. Ein Agent darf nur einen Scope innerhalb dieser Obergrenze anfragen, und nichts wird gewährt, ehe eine Person vor dem Ablauf zustimmt. Der Widerruf schließt die Freigabe.",
-          meta: "Der Schlüssel ist die Obergrenze; eine Person ist das Tor",
+            "Ein Agentenschlüssel hält eine feste Menge von Scopes, die bei jedem Aufruf zusammen mit den Berechtigungen seiner Rolle geprüft werden. Geschützte Schritte, etwa den Lauf eines anderen Agenten zu beanspruchen, Anforderungen vorzuschlagen oder ein Tor im Ablauf zu passieren, brauchen zusätzlich eine Freigabe: Der Agent fragt innerhalb seines Schlüssels an, eine Person genehmigt vor dem Ablauf der Anfrage, und der Widerruf schließt die Freigabe.",
+          meta: "Der Schlüssel ist die Obergrenze; eine Person gibt die heiklen Schritte frei",
         },
         {
           title: "Arbeitsaufträge mit Budgets",
@@ -725,8 +725,8 @@ export const paimosContentDe = {
       {
         title: "Berechtigungen der Agenten",
         body:
-          "Ein Agent beantragt nur für sich selbst und nur innerhalb seines Schlüssels. Eine Person entscheidet, bevor die Anfrage abläuft. Genehmigung, Ablehnung und Widerruf sind Ereignisse im Protokoll.",
-        meta: "Standardmäßig wird nichts gewährt",
+          "Der alltägliche Zugriff ergibt sich aus den Scopes des Agentenschlüssels, geschnitten mit seiner Rolle. Für geschützte Schritte beantragt ein Agent eine Freigabe nur für sich selbst und nur innerhalb seines Schlüssels. Eine Person entscheidet, bevor die Anfrage abläuft. Genehmigung, Ablehnung und Widerruf sind Ereignisse im Protokoll.",
+        meta: "Geschützte Schritte werden nie standardmäßig gewährt",
       },
       {
         title: "Release-Integrität",
@@ -817,7 +817,7 @@ export const paimosContentDe = {
         name: "Embeddings-Endpunkt",
         status: "Optional",
         description:
-          "Jeder OpenAI-kompatible Embeddings-Endpunkt, auch einer auf Ihrer eigenen Hardware, ergänzt die Suche nach Bedeutung. Ohne ihn bleibt die Suche Volltext.",
+          "Ein OpenAI-kompatibler Embeddings-Endpunkt, der Vektoren mit 1.536 Dimensionen liefert, auch einer auf Ihrer eigenen Hardware, ergänzt die Suche nach Bedeutung. Ohne ihn bleibt die Suche Volltext.",
       },
       {
         name: "Webhook-Weckrufe",
@@ -836,7 +836,7 @@ export const paimosContentDe = {
       "Personen melden sich nur über einen OIDC-Identitätsanbieter an, den der Server erreichen kann. Lokale Anmeldung mit Passwort, TOTP und SAML gibt es nicht.",
       "Aufbewahrungsfristen und Endpunkte für Export oder Löschung pro Person gibt es noch nicht.",
       "Der MCP-Server ist früh und antwortet heute nur mit whoami. Für Tickets, Wissen und Suche nutzen Sie die CLI oder die HTTP-API.",
-      "Der Zugang für Kunden beschränkt sich auf öffentliche Angebotslinks mit Annahme und einem PDF. Ein allgemeines Kundenportal gibt es in diesem Release nicht.",
+      "Kunden können die an sie gerichteten Angebote lesen, annehmen und herunterladen, über einen öffentlichen Link oder angemeldet als Empfänger. Ein allgemeines Kundenportal gibt es in diesem Release nicht.",
       "Der Eingang aus Aithema ist eine API. Eine Oberfläche für Sprache oder Mikrofon gibt es in der Anwendung nicht.",
       "Releases tragen SHA256SUMS und eine Build-Provenienz, keine cosign-Signaturen und keine SBOM.",
       "Paimos hat noch keine unabhängige Sicherheitsprüfung durch Dritte abgeschlossen.",
@@ -891,7 +891,7 @@ export const paimosContentDe = {
     {
       question: "Kann ein Agent sich selbst mehr Rechte geben?",
       answer:
-        "Nein. Ein Agent kann nur einen Scope innerhalb seines Schlüssels anfragen, und eine Person entscheidet. Genehmigung, Ablehnung und Widerruf werden als Ereignisse festgehalten.",
+        "Nein. Schlüssel und Rolle eines Agenten legen fest, was er darf. Für geschützte Schritte kann er nur eine Freigabe innerhalb seines Schlüssels anfragen, und eine Person entscheidet. Genehmigung, Ablehnung und Widerruf werden als Ereignisse festgehalten.",
     },
     {
       question: "Braucht Paimos einen KI-Anbieter?",

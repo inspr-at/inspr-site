@@ -66,7 +66,8 @@ function readJson(path) {
 // verbatim; it is never inferred.
 function verifyRelease(releaseKind, release) {
   if (releaseKind !== "inspr-calendar-v2") fail("release kind must be inspr-calendar-v2");
-  const match = release.match(/^(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})\.0\.0$/);
+  // Same grammar as aeon scripts/verify-release.mjs validCalendarVersion.
+  const match = release.match(/^([1-9][0-9])(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])([01][0-9]|2[0-3])([0-5][0-9])([0-5][0-9])\.0\.0$/);
   if (!match) fail("release is not YYMMDDHHMMSS.0.0");
   const [, yy, month, day, hour, minute, second] = match.map(Number);
   const instant = new Date(Date.UTC(2000 + yy, month - 1, day, hour, minute, second));
@@ -181,7 +182,7 @@ function verifyAsset(path, expected, committed = false) {
 function verifyVideo(path, expected, committed = false) {
   if (committed) {
     requireDigest(expected);
-    if (!Number.isInteger(expected.bytes)) fail(`${expected.name} byte size is missing from the manifest`);
+    if (!Number.isInteger(expected.bytes) || expected.bytes <= 0) fail(`${expected.name} byte size is missing from the manifest`);
   }
   const bytes = readFileSync(path);
   const ftyp = bytes.indexOf(Buffer.from("ftyp"));
@@ -233,7 +234,9 @@ function verifyVideo(path, expected, committed = false) {
 
   const digest = sha256(path);
   if (expected.sha256 && digest !== expected.sha256) fail(`${expected.name} hash does not match manifest`);
-  if (expected.bytes && bytes.length !== expected.bytes) fail(`${expected.name} byte size does not match manifest`);
+  if ((committed || expected.bytes !== undefined) && bytes.length !== expected.bytes) {
+    fail(`${expected.name} byte size does not match manifest`);
+  }
   return {
     name: expected.name,
     width: video.width,
@@ -290,8 +293,10 @@ function valueAfter(flag) {
 }
 
 if (process.argv.includes("--check")) {
-  // --remote also re-proves the public tag; the build check stays offline.
-  verifyCommitted(valueAfter("--manifest") || manifestPath, process.argv.includes("--remote"));
+  // The public tag is re-proved against the recorded commit on every check,
+  // so the build (CI and deploy.sh) cannot publish a false provenance.
+  // --offline exists only for hermetic unit tests of the other rules.
+  verifyCommitted(valueAfter("--manifest") || manifestPath, !process.argv.includes("--offline"));
 } else {
   const captureDirArg = valueAfter("--capture-dir");
   const release = valueAfter("--release");

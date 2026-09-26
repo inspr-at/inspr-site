@@ -506,7 +506,8 @@ test("Paimos public evidence keeps release and capture provenance honest", async
   assert.match(productPage, /id="trust"/);
   assert.match(productPage, /id="limits"/);
 
-  const captureCheck = spawnSync(process.execPath, ["scripts/sync-paimos-captures.mjs", "--check"], {
+  // Offline here; npm run build re-proves the public tag.
+  const captureCheck = spawnSync(process.execPath, ["scripts/sync-paimos-captures.mjs", "--check", "--offline"], {
     cwd: fileURLToPath(new URL("..", import.meta.url)),
     encoding: "utf8",
   });
@@ -545,6 +546,7 @@ test("Paimos capture publication rejects ambiguous or impossible release identit
     verifyFailure("inspr-calendar-v2", "26.09.26.06.46", /not YYMMDDHHMMSS\.0\.0/);
     verifyFailure("inspr-calendar-v2", "260926085451.1.2", /not YYMMDDHHMMSS\.0\.0/);
     verifyFailure("inspr-calendar-v2", "260926085451.00.0", /not YYMMDDHHMMSS\.0\.0/);
+    verifyFailure("inspr-calendar-v2", "060926085451.0.0", /not YYMMDDHHMMSS\.0\.0/);
     verifyFailure("calendar", "260926064658.0.0", /release kind must be inspr-calendar-v2/);
     verifyFailure("semver", "5.17.0", /release kind must be inspr-calendar-v2/);
   } finally {
@@ -561,7 +563,7 @@ test("Paimos capture check fails closed on a tampered manifest", async () => {
     mutate(manifest);
     const path = join(dir, "capture-manifest.json");
     await writeFile(path, JSON.stringify(manifest));
-    const result = spawnSync(process.execPath, ["scripts/sync-paimos-captures.mjs", "--check", "--manifest", path], { cwd, encoding: "utf8" });
+    const result = spawnSync(process.execPath, ["scripts/sync-paimos-captures.mjs", "--check", "--offline", "--manifest", path], { cwd, encoding: "utf8" });
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, expected);
   };
@@ -570,6 +572,7 @@ test("Paimos capture check fails closed on a tampered manifest", async () => {
     await check((m) => m.assets.forEach((asset) => delete asset.sha256), /hash is missing from the manifest/);
     await check((m) => m.spares.forEach((asset) => delete asset.sha256), /hash is missing from the manifest/);
     await check((m) => m.videos.forEach((video) => delete video.bytes), /byte size is missing from the manifest/);
+    await check((m) => m.videos.forEach((video) => { video.bytes = 0; }), /byte size is missing from the manifest/);
     await check((m) => delete m.layout.observedVersion, /did not report the release being published/);
     await check((m) => { m.release = "260926085452.0.0"; m.tag = "v260926085452.0.0"; }, /did not report the release being published/);
   } finally {

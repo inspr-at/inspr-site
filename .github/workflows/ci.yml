@@ -37,7 +37,8 @@ jobs:
           cache-dependency-path: web/package-lock.json
 
       # audit-hero-loops.mjs and sync-paimos-captures.mjs --check probe the
-      # product loops with ffprobe.
+      # product loops with ffprobe. The capture check also re-proves the public
+      # PAIMOS AEON release tag against the recorded commit (git ls-remote).
       - name: ensure ffprobe
         run: command -v ffprobe >/dev/null || sudo apt-get install -y --no-install-recommends ffmpeg
 

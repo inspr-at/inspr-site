@@ -1,6 +1,10 @@
 import { productTaxonomy, siteUrls } from "./urls";
 import type { ProductContent } from "./types";
 
+// PAIMOS 7, release name AEON (brand.json in the product repository). The
+// Aeon codebase takes over inspr-at/paimos at the cutover; the classic code
+// moves to inspr-at/paimos-legacy. Every claim below is checked against the
+// Aeon source, not carried over from classic Paimos.
 const repositoryUrl = "https://github.com/inspr-at/paimos";
 const docsUrl = (document: string) =>
   `${repositoryUrl}/blob/main/docs/${document}`;
@@ -15,33 +19,33 @@ export const paimosContent = {
   license: {
     name: "AGPL-3.0-only",
     url: `${repositoryUrl}/blob/main/LICENSE`,
-    note: "The Paimos repository declares SPDX license AGPL-3.0-only. Inspect it, self-host it, fork it and modify it under those terms.",
+    note: "The PAIMOS AEON repository declares SPDX license AGPL-3.0-only. Inspect it, self-host it, fork it and modify it under those terms.",
   },
   seo: {
-    title: "Paimos | Project context for people and AI agents",
+    title: "PAIMOS AEON | Project context for people and AI agents",
     description:
-      "Self-hosted project management that keeps work, repository context, AI execution controls, run evidence and customer acceptance in one project picture.",
+      "Self-hosted, multi-tenant project work for people and AI agents: one work tree, shared project knowledge, scoped agent permissions and an append-only record of what happened.",
   },
   hero: {
     sheet: {
       repo: "github.com/inspr-at/paimos",
-      runtime: "Self-hosted, one container, sign-in via OIDC.",
-      gate: "The staged result is reviewed in the same project model the agent worked from; the approval is recorded on the ticket.",
-      artefact: "Tickets, specs, knowledge and run evidence, permission-aware.",
+      runtime: "Self-hosted: one application container and Postgres, sign-in via OIDC.",
+      gate: "Agents ask for each permission; a person approves it before it exists, and the decision is an event in the log.",
+      artefact: "Work tree, knowledge, work orders and run records, per tenant and permission-aware.",
       interfaces: "UI, CLI, HTTP API",
-      maturity: "released, AGPL-3.0-only",
+      maturity: "Paimos 7 · AEON, released, AGPL-3.0-only",
       command: 'paimos issue create -p PROJ --title "…"',
     },
-    eyebrow: "Project context, shared",
+    eyebrow: "Paimos 7 · AEON",
     title: "One shared project picture.",
     depths: {
       simple:
-        "Paimos is project management you run yourself, built for teams that work with AI helpers. It keeps the plan, the context and the record of what happened in one place, so a person can always see what was done and why.",
+        "Paimos is project work you run yourself, built for teams where people and AI helpers work side by side. The plan, the background knowledge and the record of what happened live in one place, and a person decides what an agent may do.",
       technical:
-        "Paimos is self-hosted, permission-aware project management: issues, repository context, runbooks, execution choices and run evidence in one model, exposed through UI, CLI and API so agents act with context and humans audit the result.",
+        "PAIMOS AEON is self-hosted, multi-tenant project work: one dynamic work tree, a shared knowledge plane, work orders, agent runs and scoped permissions over an append-only event log, exposed through UI, CLI and HTTP API.",
     },
     lead:
-      "Paimos is self-hosted project management for engineering and delivery teams that work with AI agents. It keeps issues, repository context, operating knowledge, execution choices and run evidence together, so an agent can act with context and a human can see what happened.",
+      "PAIMOS AEON is the seventh generation of Paimos: self-hosted project work for teams that work with AI agents. People and agents share one work tree and one body of project knowledge, agents ask before they gain a permission, and every change lands in an append-only event log.",
     alt: "Abstract project agora with people and AI participants around a shared operating surface",
     primaryLabel: "See how it works",
     primaryHref: "#model",
@@ -50,111 +54,151 @@ export const paimosContent = {
     "Augmentoring deploys, integrates and operates Paimos for teams.",
   proof: [
     "Self-hosted",
-    "CLI, MCP and REST",
-    "Human and agent work in one history",
-    "Inspectable source and release evidence",
+    "CLI and HTTP API",
+    "People and agents in one event log",
+    "AGPL source and checksummed releases",
   ],
   specs: {
     eyebrow: "Specs",
     title: "What you actually get.",
     lead:
-      "The capability grid at a glance: security posture, operational guarantees and open surfaces, before the prose spells each one out.",
+      "The capability grid at a glance: security posture, operational shape and open surfaces, before the prose spells each one out.",
     leadEli10:
       "The same grid, in plain words: what each promise means for your company, your budget and your legal team. No IT dictionary required. Flip any card.",
     items: [
       {
-        label: "Voice intake",
-        icon: "mic",
+        label: "Agents first",
+        icon: "workflow",
         group: "ai",
-        note: "Talk through a change; the specification, its impact on existing work and the draft ticket assemble as you speak, then you edit and file it.",
+        note: "Codex, Claude, Pi, Cursor and Grok sessions work in the same project model as people, each with its own key and scopes.",
         noteEli10:
-          "You can just say what you want out loud. It writes the description for you, shows what else it touches, and turns it into a proper task you can correct before saving.",
+          "AI helpers from several makers can work in the same projects as your people. Each one has its own badge, so you always know who did what.",
       },
       {
-        label: "Enterprise-capable",
-        icon: "layers-3",
-        group: "ops",
-        note: "SSO, audit, retention and project permissions ship in the core, with no enterprise add-ons to license.",
+        label: "Scoped permissions",
+        icon: "user-round-check",
+        group: "security",
+        note: "An agent asks for a scope; a person approves or denies it before it expires. The agent's key is always the ceiling.",
         noteEli10:
-          "The big-company features (company login, change records and access rules) are already inside. There is no extra 'enterprise edition' to buy later.",
+          "An AI helper has to ask before it gets a new right, and a person says yes or no. It can never ask for more than its badge allows.",
       },
       {
         label: "Self-hostable",
         icon: "server",
         group: "ops",
-        note: "One container on your own server. Your data and its whole path stay under your control.",
+        note: "One application container and a Postgres database on your own server. Attachments stay on your disk.",
         noteEli10:
           "It runs on your own server, like a coffee machine in your own kitchen. Your data never has to live at somebody else's company.",
       },
       {
-        label: "Air-gap friendly",
-        icon: "unplug",
+        label: "Multi-tenant",
+        icon: "layers-3",
         group: "ops",
-        note: "The core runs with zero outbound calls. Only optional hosted AI ever needs the internet.",
+        note: "Every row carries its tenant, and Postgres row-level security keeps workspaces apart inside one installation.",
         noteEli10:
-          "It keeps working with the internet unplugged. Nothing in the core secretly needs 'the cloud', which is useful for strict or isolated networks.",
+          "Several teams or companies can share one installation, and the database itself keeps their data apart, not just the app.",
+      },
+      {
+        label: "Event log with undo",
+        icon: "rotate-ccw",
+        group: "work",
+        note: "Every change is an append-only event. Undo writes a compensating event instead of rewriting history.",
+        noteEli10:
+          "The tool keeps a diary that nobody can tear pages out of. Taking something back adds a new line; the old line stays readable.",
       },
       {
         label: "Zero telemetry",
         icon: "eye-off",
         group: "security",
-        note: "No analytics, tracking or phone-home. Nothing about your usage leaves your instance.",
+        note: "No analytics, tracking or phone-home. Agent run counts for tokens and cost stay in your database.",
         noteEli10:
           "The tool does not report home. Nobody, including the makers, sees how your team uses it. Less to explain to privacy officers.",
-      },
-      {
-        label: "NIS2-aligned",
-        icon: "shield-check",
-        group: "security",
-        note: "Access control, audit, incident metadata and retention map to NIS2 practices: real controls, not a certificate.",
-        noteEli10:
-          "Built to match the EU's new cyber-security rules for important companies. Your security and legal reviews start from 'mostly yes' instead of 'oh no'.",
-      },
-      {
-        label: "GDPR-conscious",
-        icon: "lock-keyhole",
-        group: "security",
-        note: "Per-person export and erase endpoints, operator-set retention. Built to respect the people in your data.",
-        noteEli10:
-          "Personal data can be exported or deleted per person, the way EU privacy law expects. Privacy is built in, not bolted on.",
-      },
-      {
-        label: "Made in Austria",
-        icon: "mountain",
-        group: "place",
-        note: "Designed and built in Austria, in the EU, with real people and EU norms behind your project OS.",
-        noteEli10:
-          "Built in Austria, under EU law: your time zone, your norms, your regulators. Support that answers in your morning, not yours at 3 a.m.",
-      },
-      {
-        label: "Audit trails",
-        icon: "scroll-text",
-        group: "security",
-        note: "Access changes, AI calls and agent runs keep reviewable metadata. You can always answer who did what.",
-        noteEli10:
-          "The tool keeps a diary: who changed what and when, including what the AI did. When someone asks 'who did this?', you have the answer.",
       },
       {
         label: "Single sign-on",
         icon: "key-round",
         group: "security",
-        note: "Generic OIDC with PKCE, ZITADEL-validated. Your identity provider stays the source of truth.",
+        note: "OIDC with PKCE and a verified ID token. Your identity provider stays the source of truth for people.",
         noteEli10:
           "People sign in with the company account they already have. No new passwords to invent, forget or leak.",
       },
       {
-        label: "SBOM + signed releases",
+        label: "Access audit",
+        icon: "scroll-text",
+        group: "security",
+        note: "Access changes are recorded as events and can be read back through the audit API.",
+        noteEli10:
+          "When someone's access changes, the tool writes it down. Later you can check who was allowed to do what, and since when.",
+      },
+      {
+        label: "Knowledge plane",
+        icon: "library",
+        group: "ai",
+        note: "Runbooks, guidelines, memory, external systems and related projects that agents read by slug before they work.",
+        noteEli10:
+          "The team's how-tos and house rules live next to the work. AI helpers read them first, like a new colleague reading the handbook.",
+      },
+      {
+        label: "Hybrid search",
+        icon: "scan-search",
+        group: "work",
+        note: "German and English full text, fused with optional pgvector similarity, and plain lexical search when no embeddings are configured.",
+        noteEli10:
+          "Search understands German and English and can also find things that mean the same but are worded differently.",
+      },
+      {
+        label: "Work orders and runs",
+        icon: "ticket-check",
+        group: "ai",
+        note: "Work orders carry acceptance criteria, evidence and a budget. Runs record model, outcome, duration, tokens and cost, never prompt text.",
+        noteEli10:
+          "Each job for an AI helper has a checklist, a spending limit and proof of what was done. The tool counts the cost without storing what was said.",
+      },
+      {
+        label: "Hours, rates and quotes",
+        icon: "timer",
+        group: "work",
+        note: "Hours, effective hourly rates, cost units and quotes with a public acceptance link and a PDF, in the same system as the work.",
+        noteEli10:
+          "Time sheets, prices and offers sit next to the work they belong to. A customer can accept an offer through a link, no extra tool needed.",
+      },
+      {
+        label: "Classic import",
+        icon: "database-zap",
+        group: "ops",
+        note: "Imports classic Paimos projects, including knowledge, attachments and offers.",
+        noteEli10:
+          "Teams that used the earlier Paimos bring their projects, notes, files and offers along instead of starting over.",
+      },
+      {
+        label: "Scriptable",
+        icon: "braces",
+        group: "work",
+        note: "The aeon CLI, which also answers as paimos, and an HTTP API described by one OpenAPI contract.",
+        noteEli10:
+          "Other software can talk to it automatically. Your IT team can wire it into the tools you already pay for, instead of retyping things.",
+      },
+      {
+        label: "INSPR handoffs",
+        icon: "route",
+        group: "ai",
+        note: "Takes cited requirements intake from Aithema and records stage handoffs to Pharos for deployment and Janus for access.",
+        noteEli10:
+          "It works hand in hand with its sister products: requirements come in from Aithema, and finished work is handed on to Pharos and Janus with a record.",
+      },
+      {
+        label: "Checksummed releases",
         icon: "file-check-2",
         group: "legal",
-        note: "Every tagged image is cosign-signed with a CycloneDX SBOM. Trace any release back to its source.",
+        note: "Tagged releases publish binaries with SHA256SUMS and a container image built with provenance attestations.",
         noteEli10:
-          "Every release ships with a sealed ingredients list and a tamper-proof signature, like medicine packaging but for software. Auditors love this.",
+          "Every release comes with fingerprints, so you can check that what you downloaded is exactly what was built from the source.",
       },
       {
         label: "Fully inspectable",
         icon: "scan-search",
         group: "legal",
-        note: "AGPL source, an open API and a self-describing schema. Nothing about how it works is hidden.",
+        note: "AGPL source and one OpenAPI contract. Nothing about how it works is hidden.",
         noteEli10:
           "Nothing is a black box. Your own experts, or anyone you hire, can read exactly what the software does before you trust it.",
       },
@@ -167,75 +211,19 @@ export const paimosContent = {
           "A standard open-source licence your legal team can actually read: use it, change it, keep it, and nobody can ever lock you in.",
       },
       {
-        label: "Restore-tested",
-        icon: "database-backup",
-        group: "ops",
-        note: "Backup and restore are documented and exercised, not assumed. Recovery is a drill, not a hope.",
+        label: "Made in Austria",
+        icon: "mountain",
+        group: "place",
+        note: "Designed and built in Austria, in the EU, with real people and EU norms behind your project system.",
         noteEli10:
-          "We do not just make backups; we practise restoring them. Fire drill, not fire hope. Your data survives bad days.",
-      },
-      {
-        label: "Scriptable API",
-        icon: "braces",
-        group: "work",
-        note: "Typed CLI, MCP and a JSON REST API with dry-runs. Drive the whole project model from anywhere.",
-        noteEli10:
-          "Other software can talk to it automatically. Your IT team can wire it into the tools you already pay for, instead of retyping things.",
-      },
-      {
-        label: "Built-in AI assist",
-        icon: "sparkles",
-        group: "ai",
-        note: "Thirteen focused actions: refine, translate, estimate and summarise. On when you want it, off by default.",
-        noteEli10:
-          "Helpful AI buttons for summarising, translating and estimating are switched OFF until you decide otherwise. You stay in charge of when AI touches your data.",
-      },
-      {
-        label: "Code-aware agents",
-        icon: "workflow",
-        group: "ai",
-        note: "Agents receive linked repos, knowledge and issue-to-file anchors. They act with project context, not blind.",
-        noteEli10:
-          "The AI helpers are handed the project's real context (which code, which rules and which history) so they work like briefed colleagues, not guessing interns.",
-      },
-      {
-        label: "Local draft providers",
-        icon: "hard-drive",
-        group: "ai",
-        note: "Point at Ollama or any OpenAI-compatible endpoint. Keep model inference on your own hardware.",
-        noteEli10:
-          "The AI can also run on your own machines, so ideas and drafts never have to leave the building. Data-sovereignty people approve.",
-      },
-      {
-        label: "Customer portal",
-        icon: "panels-top-left",
-        group: "work",
-        note: "Customers see exactly what you publish, submit requests and accept deliveries. Internal work stays internal.",
-        noteEli10:
-          "A tidy window for your customers: they see only what you choose to publish, and can approve finished work right there. Internal chatter stays internal.",
-      },
-      {
-        label: "Time & budgets",
-        icon: "timer",
-        group: "work",
-        note: "Estimates, time entries, accruals and budgets live on the same tickets as the work, creating one model from effort to invoice.",
-        noteEli10:
-          "Hours, estimates and budgets live on the same tickets as the work itself. One truth runs from first estimate to final invoice, with no side spreadsheet.",
-      },
-      {
-        label: "Undo & redo",
-        icon: "rotate-ccw",
-        group: "work",
-        note: "Bulk edits are transactional with full mutation history. Changes are reversible, and conflicts surface instead of overwriting.",
-        noteEli10:
-          "Big changes can be taken back. A wrong bulk edit is an 'oops', not a disaster, and two people editing the same thing get a warning instead of silent data loss.",
+          "Built in Austria, under EU law: your time zone, your norms, your regulators.",
       },
     ],
     glossary: [
       {
         id: "sso",
         term: "SSO / Single sign-on",
-        matches: ["SSO", "sign in with the company account", "company login"],
+        matches: ["sign in with the company account"],
         body: "One company login for many tools. People stop inventing (and losing) a new password for every app.",
       },
       {
@@ -251,10 +239,10 @@ export const paimosContent = {
         body: "An extra safety step in the login handshake that stops stolen login codes from being reused.",
       },
       {
-        id: "zitadel",
-        term: "ZITADEL",
-        matches: ["ZITADEL"],
-        body: "An open-source identity provider: the 'who are you?' service. It is the reference system Paimos is tested against.",
+        id: "id-token",
+        term: "ID token",
+        matches: ["ID token"],
+        body: "The signed statement from your identity provider that says who just signed in. The server checks the signature itself.",
       },
       {
         id: "identity-provider",
@@ -263,64 +251,70 @@ export const paimosContent = {
         body: "The system that owns your user accounts (like Entra ID or ZITADEL). Apps trust it instead of keeping their own passwords.",
       },
       {
-        id: "sbom",
-        term: "SBOM",
-        matches: ["SBOM", "ingredients list"],
-        body: "Software Bill of Materials: the full ingredients list of a piece of software, so you know exactly what is inside.",
+        id: "tenant",
+        term: "Tenant",
+        matches: ["tenant", "Multi-tenant"],
+        body: "One separate workspace inside a shared installation, such as one company or one team, with its own data and people.",
       },
       {
-        id: "cosign",
-        term: "cosign",
-        matches: ["cosign-signed", "tamper-proof signature"],
-        body: "A tool that puts a cryptographic seal on software releases. If anyone tampers with the release, the seal breaks.",
+        id: "rls",
+        term: "Row-level security",
+        matches: ["row-level security"],
+        body: "A Postgres feature that checks every single row against the current workspace, so one tenant's query cannot see another tenant's data.",
       },
       {
-        id: "cyclonedx",
-        term: "CycloneDX",
-        matches: ["CycloneDX"],
-        body: "The standard file format for those software ingredients lists, so audit tools can read them automatically.",
+        id: "event-log",
+        term: "Append-only event log",
+        matches: ["append-only event", "compensating event"],
+        body: "A record where new entries are only ever added. Nothing is edited in place, so history stays complete.",
       },
       {
-        id: "agpl",
-        term: "AGPL-3.0",
-        matches: ["AGPL"],
-        body: "A strong open-source licence: anyone may use, read and improve the software, and improvements to a public service must stay open too.",
+        id: "scope",
+        term: "Scope",
+        matches: ["scope", "scopes"],
+        body: "One precisely named right, such as reading runs or writing intake. An agent key holds a fixed set of scopes.",
       },
       {
-        id: "nis2",
-        term: "NIS2",
-        matches: ["NIS2"],
-        body: "The EU's cyber-security directive for important organisations. It asks for provable security practices, not promises.",
+        id: "slug",
+        term: "Slug",
+        matches: ["slug"],
+        body: "A short, stable name for an entry, like deploy-checklist, that agents and links can use instead of a title.",
       },
       {
-        id: "gdpr",
-        term: "GDPR",
-        matches: ["GDPR", "EU privacy law"],
-        body: "The EU's privacy law. Among other things, people may ask for a copy of their data or its deletion.",
+        id: "pgvector",
+        term: "pgvector",
+        matches: ["pgvector"],
+        body: "A Postgres extension that finds text with similar meaning, not just the same words.",
       },
       {
-        id: "telemetry",
-        term: "Telemetry",
-        matches: ["telemetry", "phone-home", "report home"],
-        body: "Usage data an app sends back to its maker. Paimos sends none.",
-      },
-      {
-        id: "air-gap",
-        term: "Air-gap",
-        matches: ["Air-gap", "internet unplugged"],
-        body: "Running a system with no connection to the outside internet, common in high-security environments.",
+        id: "postgres",
+        term: "Postgres",
+        matches: ["Postgres database"],
+        body: "PostgreSQL, a widely used open-source database. Paimos stores everything except attachment files in it.",
       },
       {
         id: "container",
         term: "Container",
-        matches: ["container"],
+        matches: ["application container"],
         body: "A standard shipping box for software. If your IT runs containers (most do), they can run this.",
+      },
+      {
+        id: "telemetry",
+        term: "Telemetry",
+        matches: ["phone-home", "report home"],
+        body: "Usage data an app sends back to its maker. Paimos sends none.",
       },
       {
         id: "api",
         term: "API",
-        matches: ["API", "REST"],
+        matches: ["HTTP API"],
         body: "The plug socket other software uses to talk to this software automatically. No humans retyping data.",
+      },
+      {
+        id: "openapi",
+        term: "OpenAPI",
+        matches: ["OpenAPI"],
+        body: "A standard, machine-readable description of an API, so tools can check and generate clients from it.",
       },
       {
         id: "cli",
@@ -329,34 +323,22 @@ export const paimosContent = {
         body: "The command-line interface: how developers and scripts drive the tool with typed commands.",
       },
       {
-        id: "mcp",
-        term: "MCP",
-        matches: ["MCP"],
-        body: "Model Context Protocol: the standard plug that lets AI assistants use tools like this one safely.",
+        id: "sha256sums",
+        term: "SHA256SUMS",
+        matches: ["SHA256SUMS", "fingerprints"],
+        body: "A list of cryptographic fingerprints, one per release file. A changed file no longer matches its fingerprint.",
       },
       {
-        id: "ollama",
-        term: "Ollama",
-        matches: ["Ollama", "OpenAI-compatible endpoint"],
-        body: "Software for running AI models on your own computers instead of renting them in someone else's cloud.",
+        id: "provenance",
+        term: "Provenance attestation",
+        matches: ["provenance attestations"],
+        body: "A signed record, attached to the container image, of how and from which source the image was built.",
       },
       {
-        id: "inference",
-        term: "Inference",
-        matches: ["model inference"],
-        body: "The moment an AI model actually 'thinks'; where that happens decides where your data travels.",
-      },
-      {
-        id: "retention",
-        term: "Retention",
-        matches: ["retention"],
-        body: "How long data is kept before it is deleted. Here you, the operator, set those windows.",
-      },
-      {
-        id: "mutation-history",
-        term: "Mutation history",
-        matches: ["mutation history"],
-        body: "A record of every change made, which is what makes safe undo and redo possible.",
+        id: "agpl",
+        term: "AGPL-3.0",
+        matches: ["AGPL"],
+        body: "A strong open-source licence: anyone may use, read and improve the software, and improvements to a public service must stay open too.",
       },
     ],
   },
@@ -365,36 +347,36 @@ export const paimosContent = {
     title: "Fragments break AI work.",
     depths: {
       simple:
-        "The ticket, the code, the how-to and the chat with an AI helper each know one part of the story. None of them can tell you who did what, with what permission, and what came back.",
+        "The ticket, the how-to and the chat with an AI helper each know one part of the story. None of them can tell you who did what, with what permission, and what came back.",
       technical:
-        "Tickets carry intent, repositories carry location, runbooks carry procedure and chat transcripts carry attempts. No single system records actor, supplied context, granted authority and returned evidence for one unit of work.",
+        "Tickets carry intent, runbooks carry procedure and chat transcripts carry attempts. No single system records actor, supplied context, granted authority and returned evidence for one unit of work.",
     },
     lead:
-      "A ticket says what should change. The repository says where. A runbook says how. A chat window says what an agent tried. None of those systems alone can answer who acted, which context they received, what authority they had and what came back.",
+      "A ticket says what should change. A runbook says how. A chat window says what an agent tried. None of those systems alone can answer who acted, which context they received, what they were allowed to do and what came back.",
     visualAlt:
       "Separate work, repository, knowledge and evidence stations converging into one shared transparent project ledger used by a person and an AI agent.",
     visualCaption:
-      "One project record connects work, context, execution and evidence.",
+      "One project record connects work, context, authority and evidence.",
     items: [
       {
         title: "Context is scattered",
         icon: "unplug",
         body:
-          "Requirements, code, runbooks, project conventions and operational knowledge often live in different tools or on one developer's machine. Every new run starts by reconstructing the project.",
+          "Requirements, project conventions and operational knowledge often live in different tools or on one developer's machine. Every new agent session starts by reconstructing the project.",
         meta: "The agent sees a task, not the system around it.",
       },
       {
-        title: "Execution is opaque",
+        title: "Authority is implicit",
         icon: "eye-off",
         body:
-          "A model draft, a local coding agent and a deploy-capable runner have very different authority. When those differences are hidden behind one generic AI button, review and accountability become guesswork.",
-        meta: "Provider, context and capability need to be explicit.",
+          "When an agent's rights are whatever its token happens to allow, nobody decided them and nobody can review them. Review and accountability become guesswork.",
+        meta: "Permissions need a request, a person and a record.",
       },
       {
         title: "Delivery loses its evidence",
         icon: "file-warning",
         body:
-          "Work can move from prompt to pull request without its tests, version, decisions or customer-facing result returning to the project record. Done becomes a claim instead of a reviewable state.",
+          "Work can move from prompt to result without its criteria, evidence or cost returning to the project record. Done becomes a claim instead of a reviewable state.",
         meta: "The loop is incomplete until evidence comes back.",
       },
     ],
@@ -410,10 +392,10 @@ export const paimosContent = {
       simple:
         "Paimos puts the work, the background, what was done and the proof in one place. People and AI helpers look at the same picture, and people decide.",
       technical:
-        "Paimos joins work items, context, execution and evidence in one permission-aware model. Humans plan and review in the same project model agents read from and report back into, so authority and evidence stay attached to the work.",
+        "Paimos joins the work tree, knowledge, work orders, runs and permissions in one tenant-scoped model over an append-only event log. People plan and approve in the same model agents read from and report back into.",
     },
     lead:
-      "Paimos connects work, context, execution and evidence in one permission-aware system. People plan and review in the same project model that agents read from and report back to.",
+      "Paimos connects work, context, authority and evidence in one permission-aware system. People plan and approve in the same project model that agents read from and report back to.",
     steps: [
       {
         number: "01",
@@ -422,9 +404,9 @@ export const paimosContent = {
         visual: { x: 24, y: 18 },
         icon: "folder-kanban",
         body:
-          "Start by talking, or start by typing. Voice intake turns a spoken idea into a live specification with its impact on existing work beside it, and files the ticket when you are happy. From there: epics, tickets and tasks with typed dependencies, sprints, releases, estimates, time and customer-facing delivery state.",
-        meta: "From spoken intent to a filed ticket",
-        signal: "Hierarchy, dependencies and delivery state",
+          "Shape the work in one dynamic tree: epics, tickets and tasks, with kinds and labels your workspace configures. Typed relations, releases and saved views keep a large project legible. Requirements from Aithema arrive as cited drafts that a person accepts.",
+        meta: "From accepted requirements to a planned tree",
+        signal: "Work tree, relations and releases",
         reference: {
           label: "Planning hierarchy",
           href: docsUrl("PLANNING_HIERARCHY.md"),
@@ -433,14 +415,14 @@ export const paimosContent = {
       },
       {
         number: "02",
-        simple: "Keep the code, instructions and project knowledge together.",
+        simple: "Keep the instructions and project knowledge together.",
         title: "Context",
         visual: { x: 22, y: 68 },
         icon: "book-open-check",
         body:
-          "Link repositories and durable knowledge. Add runbooks, guidelines, external systems, agent definitions and issue-to-file anchors.",
+          "Write runbooks, guidelines, memory, external systems and related projects into the project's knowledge plane. Agents read entries by slug, and the graph shows how they connect.",
         meta: "Project knowledge survives the current machine and agent runtime",
-        signal: "Repositories, knowledge and code anchors",
+        signal: "Knowledge entries, links and graph",
         reference: {
           label: "Agent integration",
           href: docsUrl("AGENT_INTEGRATION.md"),
@@ -449,49 +431,44 @@ export const paimosContent = {
       },
       {
         number: "03",
-        simple: "Choose how the work runs and follow its progress.",
+        simple: "Give an agent a job, and decide what it may do.",
         title: "Run",
         visual: { x: 50, y: 40 },
         icon: "play",
         body:
-          "Choose the provider, execution profile, effort, prompt preset, context pack and agent before work begins. Then switch to Agent Mode to supervise active deliveries by voice or text while project scope, contextual commands and capability stay visible.",
+          "Put work into a work order with acceptance criteria and a budget. A registered agent session claims the run; when it needs a permission, it asks, and the request waits under Needs you until a person decides.",
         meta: "Explicit authority before work; calm supervision while it runs",
-        signal: "Provider, profile, capability and live delivery state",
+        signal: "Work orders, runs and approvals",
         reference: {
-          label: "Execution providers",
-          href: docsUrl("IMPLEMENT_THIS_PROVIDERS.md"),
+          label: "Agent integration",
+          href: docsUrl("AGENT_INTEGRATION.md"),
           external: true,
         },
       },
       {
         number: "04",
-        simple: "Review the results and the records of what happened.",
+        simple: "Review the results and the record of what happened.",
         title: "Evidence",
         visual: { x: 77, y: 69 },
         icon: "file-check-2",
         body:
-          "Keep run status, provider identity, safe provenance, test results, version and optional deploy outcome attached to the project history.",
+          "A work order is done only when every criterion is checked, evidence is attached and no run is still live. Run records keep model, outcome, duration, tokens and cost without storing prompt text.",
         meta: "What ran and what returned remain reviewable",
-        signal: "Status, tests, version and safe provenance",
-        reference: {
-          label: "Agent interface",
-          href: docsUrl("AGENT_INTERFACE.md"),
-          external: true,
-        },
+        signal: "Criteria, evidence and run records",
       },
       {
         number: "05",
-        simple: "Share the selected results with your customer and record their acceptance.",
-        title: "Accept",
+        simple: "Hand the result on, with a person's approval at each step.",
+        title: "Hand off",
         visual: { x: 50, y: 78 },
         icon: "badge-check",
         body:
-          "Publish only selected work to the customer portal, produce delivery reports and close the loop with explicit acceptance.",
-        meta: "Internal truth and customer communication stay connected",
-        signal: "Selected delivery and explicit acceptance",
+          "A release moves through its journey from Build to Deploy and Access. Stage handoffs to Pharos and Janus are recorded with their results, and quotes can be accepted by customers through a public link.",
+        meta: "Internal truth and the next stage stay connected",
+        signal: "Recorded stage handoffs and acceptance",
         reference: {
-          label: "Customer portal",
-          href: docsUrl("CUSTOMER_PORTAL.md"),
+          label: "Release verification",
+          href: docsUrl("RELEASE.md"),
           external: true,
         },
       },
@@ -508,11 +485,11 @@ export const paimosContent = {
         "Paimos provides enough structure for real delivery without turning the tool into a process consultancy. The work model is explicit, searchable and usable from the interface, CLI or API.",
       items: [
         {
-          title: "A hierarchy that stays legible",
+          title: "One dynamic work tree",
           icon: "list-tree",
           body:
-            "Epics, tickets and tasks form the core hierarchy. Sprints, releases and cost units add planning and commercial context without forcing every project into the same ceremony.",
-          meta: "Epic, ticket, task, sprint, release and cost unit",
+            "Every item is a node in one tree. Epics, tickets and tasks are kinds your workspace configures, so the model fits the project instead of the other way round.",
+          meta: "Kinds and labels are workspace configuration",
           reference: {
             label: "Planning hierarchy",
             href: docsUrl("PLANNING_HIERARCHY.md"),
@@ -520,40 +497,35 @@ export const paimosContent = {
           },
         },
         {
-          title: "A project lifecycle with teeth",
-          body:
-            "Active projects stay in the everyday work surface. Frozen projects preserve existing work without accepting new issues; archived projects remain reachable as retired history instead of crowding current planning.",
-          meta: "Active by default; frozen and archived by explicit choice",
-          reference: {
-            label: "Agent interface",
-            href: docsUrl("AGENT_INTERFACE.md"),
-            external: true,
-          },
-        },
-        {
           title: "Relations with meaning",
           icon: "git-compare-arrows",
           body:
-            "Groups, sprint membership, dependencies, impacts, follow-ups, blocks and related links are typed relations rather than prose hidden in a description.",
-          meta: "Seven relation types with directional rendering",
+            "Blocks, relates, implements, cites and duplicates are typed relations rather than prose hidden in a description.",
+          meta: "Five work relation types",
         },
         {
           title: "Views for daily work",
           body:
-            "Saved filters, configurable columns, sorting, full-text search, pinned views and partial issue-key matching keep large project histories usable.",
-          meta: "Per-user views and filter persistence",
+            "Saved filters, sorting and configurable columns over a list or an outline, plus a keyboard search across the workspace.",
+          meta: "Saved views and one search",
         },
         {
           title: "Bulk change with recovery",
           body:
-            "Atomic create and update operations support structured automation. Undo and redo use mutation history and conflict detection instead of silently overwriting newer work.",
-          meta: "Transactional bulk operations and explicit conflicts",
+            "A bulk edit runs in one transaction, writes one event per item and can be undone as one step while those items are unchanged. Items that cannot change are skipped with a reason.",
+          meta: "Transactional bulk operations and explicit skips",
         },
         {
-          title: "Effort, time and delivery state",
+          title: "Releases and journeys",
           body:
-            "Estimates, time entries, accruals, rate and budget fields, releases and the delivery-to-acceptance lifecycle keep implementation and commercial progress in the same model.",
-          meta: "From backlog to accepted and invoiced",
+            "Releases are part of the tree. A project's journey view shows its stage from Inspire to Live and exactly one next action, derived from recorded decisions rather than guessed.",
+          meta: "Eight stages, one next action",
+        },
+        {
+          title: "Hours and business context",
+          body:
+            "Hours, effective hourly rates, cost units and quotes live in the same system as the work, so effort and commercial state do not need a side spreadsheet.",
+          meta: "From effort to accepted quote",
         },
       ],
     },
@@ -562,61 +534,44 @@ export const paimosContent = {
       eyebrow: "Context",
       title: "Give agents the project.",
       lead:
-        "A coding agent needs to know which repository matters, which rules apply and where the change belongs. Paimos exposes that context as structured, permission-aware project data.",
+        "An agent needs to know which rules apply, what the team already learned and where the work belongs. Paimos exposes that context as structured, permission-aware project data.",
       items: [
-        {
-          title: "Linked repositories",
-          icon: "git-branch",
-          body:
-            "Projects carry their repository inventory and default branches, so an agent can resolve the correct source before it starts searching or editing.",
-          meta: "Multi-repository project context",
-        },
         {
           title: "Durable knowledge plane",
           icon: "library",
           body:
-            "Memories, runbooks, guidelines, external systems and related projects become project-owned knowledge instead of a loose collection of machine-local files.",
-          meta: "Browsable, searchable and reusable context",
+            "Runbooks, guidelines, memory, external systems and related projects become project-owned knowledge instead of a loose collection of machine-local files.",
+          meta: "Browsable, searchable and linkable",
         },
         {
-          title: "Canonical agent definitions",
+          title: "Stable names for agents",
           body:
-            "Project agents carry descriptions, bootstrap steps and non-negotiable rules. Adapter tooling can render those definitions for different agent harnesses without duplicating the source.",
-          meta: "Project metadata upstream of the current runtime",
-        },
-        {
-          title: "Durable agent handoffs",
-          body:
-            "Claude Code, Codex and opt-in Grok Build sessions can exchange project-scoped messages through a durable ledger while vendor-native endpoints remain the delivery path. Sender allowlists, typed action holds and an untrusted-data frame keep every delivered body inside an explicit security boundary.",
-          meta: "Attributable threads without turning Paimos into an inference proxy",
+            "Agents read an entry by its kind and slug, for example paimos knowledge get runbook deploy-checklist, so the same reference works from every harness and from the CLI.",
+          meta: "One reference, every harness",
           reference: {
-            label: "Agent message security",
-            href: docsUrl("AGENT_MESSAGE_SECURITY.md"),
+            label: "Agent integration",
+            href: docsUrl("AGENT_INTEGRATION.md"),
             external: true,
           },
         },
         {
-          title: "Explicit orchestrator setup",
+          title: "Knowledge graph",
+          icon: "waypoints",
           body:
-            "When a project has no orchestrator binding, an authorized super admin can choose the local CLI alias and canonical agent, then copy one fully visible, secret-free terminal command. If the project has no canonical agent yet, one action opens its existing agent editor in a new tab and the original screen waits for an explicit refresh. Unavailable reads offer only a retry; configured projects can open the talk panel without sending. The browser never executes the command, receives a secret or guesses an agent.",
-          meta: "A truthful next action for every setup state",
-          reference: {
-            label: "Orchestrator binding API",
-            href: docsUrl("api-minimal.md#instance-orchestrator-pin"),
-            external: true,
-          },
+            "Switch a project's knowledge from entries to a graph to see how runbooks, guidelines, memory and work items link to each other.",
+          meta: "Entries and Graph, one switch",
         },
         {
-          title: "Issue-to-file anchors",
+          title: "Hybrid retrieval",
           body:
-            "Repository scanners can attach issues to concrete files and symbols. Staleness checks and provenance help agents distinguish declared context from derived context.",
-          meta: "The ticket can point at the code it governs",
+            "Search fuses German and English full text with optional pgvector similarity. Without an embeddings endpoint it stays lexical and keeps working.",
+          meta: "Degrades to full text, never to nothing",
         },
         {
-          title: "Graph and mixed retrieval",
+          title: "Cited intake",
           body:
-            "Lexical, local-vector and graph paths compose into one retrieval surface with ranked hits and provenance. Retrieval degrades to the remaining strategies when vectors are absent.",
-          meta: "Context retrieval with inspectable strategy metadata",
+            "Aithema intake arrives as sources, transcript turns and drafts with citations. A proposal never changes the project on its own; a person accepts one draft.",
+          meta: "Requirements with their sources attached",
         },
       ],
     },
@@ -625,90 +580,68 @@ export const paimosContent = {
       eyebrow: "Execution",
       title: "Authority before action.",
       lead:
-        "A hosted model draft is not a local agent with repository access. Paimos keeps provider, model, context, execution location and capability visible instead of collapsing them into one ambiguous action.",
+        "An agent with a token is not an agent with permission. Paimos keeps keys, scopes, approvals, budgets and runs explicit instead of collapsing them into one ambiguous action.",
       items: [
         {
-          title: "Built-in AI assistance",
-          icon: "sparkles",
+          title: "Five agent harnesses",
+          icon: "workflow",
           body:
-            "Thirteen actions cover tasks such as text refinement, translation, specification, subtask generation, effort estimation, duplicate detection and customer or executive summaries.",
-          meta: "Admin-tunable prompts with usage and cost metadata",
+            "Codex, Claude, Pi, Cursor and Grok sessions register with the project and show up in the Agents workspace while they work: what they are on, how they pace and what they need from you.",
+          meta: "One workspace for every harness",
         },
         {
-          title: "Shared execution controls",
+          title: "Scoped keys and approvals",
           icon: "sliders-horizontal",
           body:
-            "Profiles, effort, prompt presets and context packs use the same concepts across in-app AI actions and Implement-this runs. Project defaults and policies can narrow the available choices.",
-          meta: "One control vocabulary across actions and runs",
+            "An agent key holds a fixed set of scopes. An agent may ask only for a scope within that ceiling, and nothing is granted until a person approves it before it expires. Revoking closes the grant.",
+          meta: "The key is the ceiling; a person is the gate",
         },
         {
-          title: "Trusted local runners",
+          title: "Work orders with budgets",
           body:
-            "Claude Code and Codex runners operate in an explicitly selected local checkout. They may edit and test when their advertised capability allows it. Completed runs can report the repository, branch and runner-declared before/after commit range beside the outcome.",
-          meta: "Code evidence returns; repository authority remains local",
-          reference: {
-            label: "Agent run evidence",
-            href: docsUrl("AGENT_INTEGRATION.md"),
-            external: true,
-          },
+            "Work orders carry acceptance criteria, evidence and a budget across all their runs. When the budget is spent, new dispatch stops and the order is marked blocked, while the usage already incurred stays on record.",
+          meta: "Spending limits that stop the next run",
         },
         {
-          title: "Draft providers stay drafts",
+          title: "Fenced runs",
           body:
-            "OpenRouter and OpenAI-compatible local endpoints can prepare plans or review notes. They cannot claim repository edits, local tests or deployment authority.",
-          meta: "Suggestion and execution remain separate trust boundaries",
+            "Runs are queued and claimed by the assigned agent or under a live grant. A claim is fenced, so two workers cannot both believe they own the same run.",
+          meta: "One run, one owner",
         },
         {
-          title: "Deploy remains deliberate",
+          title: "Content-free telemetry",
           body:
-            "Deployment is available only through a trusted local runner and requires independent runner flags, a deploy command and a run-level target. It is never implied by choosing a model.",
-          meta: "Three explicit gates before deploy",
-        },
-        {
-          title: "Safe provenance",
-          body:
-            "Run records capture provider, model, profile, effort, prompt reference, context source, agent, runner, status, tests and version without logging prompt bodies, response bodies, API keys or local environment values.",
+            "Run records keep requested and effective model, outcome, duration, tokens and cost. They do not store prompts, responses or local environment values.",
           meta: "Enough evidence to review, without turning secrets into logs",
         },
       ],
     },
     {
       id: "customer-delivery",
-      eyebrow: "Delivery",
-      title: "Keep delivery connected.",
+      eyebrow: "Business",
+      title: "Keep the business side connected.",
       lead:
-        "Internal implementation and customer communication should not drift into separate realities. Paimos turns selected project state into a deliberate, reviewable customer surface.",
+        "Effort, prices and offers should not drift away from the work they describe. Paimos keeps them in the same tenant, under the same permissions.",
       items: [
         {
-          title: "Visibility is opt-in",
-          icon: "eye",
+          title: "Hours and rates",
+          icon: "timer",
           body:
-            "Internal editors explicitly mark which issues are customer-visible. Hidden issues return no identifying detail through portal endpoints, while customer-submitted requests are visible by design.",
-          meta: "Internal knowledge stays internal unless deliberately published",
+            "Record hours per period and see effective hourly rates next to the work they belong to.",
+          meta: "Effort in the same model as the work",
         },
         {
-          title: "A focused external portal",
-          icon: "panels-top-left",
+          title: "Cost units",
           body:
-            "External users see the projects and issues they are allowed to access, can submit requests and can review delivery state without entering the internal workspace.",
-          meta: "Project access plus explicit issue visibility",
+            "Cost units carry the rates that quotes are priced from. They are not an invoicing system.",
+          meta: "A pricing source, stated plainly",
         },
         {
-          title: "Reports built from project state",
+          title: "Quotes with public acceptance",
+          icon: "badge-check",
           body:
-            "Project reports can combine selected issues, technical or customer-facing summaries and configurable columns into stable JSON and PDF snapshots.",
-          meta: "A delivery record derived from the same system of work",
-        },
-        {
-          title: "Acceptance leaves evidence",
-          body:
-            "Short links and QR codes lead to explicit acceptance. Included delivery items can be accepted as a batch, and a signed report artifact can remain attached to the snapshot.",
-          meta: "From delivered to accepted without a parallel spreadsheet",
-          reference: {
-            label: "Customer portal",
-            href: docsUrl("CUSTOMER_PORTAL.md"),
-            external: true,
-          },
+            "Quotes are drafted, issued and shared through a public link where the customer can read them, download a PDF and accept. Public reads and acceptance are rate-limited.",
+          meta: "From issued to accepted without a parallel spreadsheet",
         },
       ],
     },
@@ -722,25 +655,25 @@ export const paimosContent = {
       {
         title: "Engineering teams",
         body:
-          "Give people and agents the same work hierarchy, repository context and execution history. Reduce context reconstruction without turning AI access into an invisible side channel.",
-        meta: "Plan, implement, test and review in one project model",
+          "Give people and agents the same work tree, knowledge and run history. Reduce context reconstruction without turning agent access into an invisible side channel.",
+        meta: "Plan, delegate, review and hand off in one project model",
       },
       {
         title: "Delivery and project leads",
         body:
-          "Track dependencies, effort, time, releases and customer-visible outcomes while keeping internal notes, runbooks and unresolved work out of the external portal.",
+          "Track relations, releases, hours and work-order budgets while agents work, and see the one next action on every project's journey.",
         meta: "Operational delivery without a second reporting truth",
       },
       {
         title: "Client service teams",
         body:
-          "Connect implementation work to customer requests, reports and acceptance. Preserve a clear boundary between internal execution context and selected external communication.",
+          "Connect work and effort to quotes your customers accept through a link, without giving them access to the internal workspace.",
         meta: "A deliberate path from work to acceptance",
       },
       {
         title: "Platform and security teams",
         body:
-          "Keep identity, project permissions, audit, retention, provider policy and deployment choices under operator control. Inspect the code and verify release artifacts before deployment.",
+          "Keep identity, tenant isolation, agent scopes and approvals under operator control. Inspect the code and verify release checksums before deployment.",
         meta: "Self-hosted control with documented trust boundaries",
       },
     ],
@@ -749,51 +682,57 @@ export const paimosContent = {
     eyebrow: "Architecture",
     title: "Compact enough to understand.",
     lead:
-      "Paimos favors a small, inspectable operational footprint over a distributed platform assembled from mandatory services.",
+      "Paimos favors a small, inspectable operational footprint: one application process and one database, instead of a distributed platform assembled from mandatory services.",
     paragraphs: [
-      "A single Go process serves the Vue application and JSON API on one port. SQLite in WAL mode is the system of record, with additive migrations applied at startup.",
-      "S3-compatible storage is optional for attachments, and SMTP is optional for password reset email. OIDC and model providers enter the system only when an operator configures them. Missing optional services degrade their feature instead of preventing the core application from starting.",
-      "This default is straightforward to deploy, back up and restore. It is a single-node architecture today, not a multi-node high-availability control plane.",
+      "A single Go binary serves the Vue application and the JSON API. Postgres 18 with pgvector is the system of record; every row carries its tenant, and row-level security enforces the separation. Migrations are embedded and applied at startup.",
+      "Attachments are stored on local disk. People sign in through an OIDC identity provider the server can reach; agents use scoped API keys. An embeddings endpoint and webhook wakes are optional and run only when an operator configures them.",
+      "The event log is the history: every change is appended, undo is a compensating event, and the agent inbox and live quote editing stream updates to open pages.",
     ],
     flow: [
-      "Browser, CLI, MCP and REST",
+      "Browser, CLI and HTTP API",
       "One Go service",
       "Vue interface and JSON API",
-      "SQLite in WAL mode",
-      "Optional S3, SMTP, OIDC and model providers",
+      "Postgres 18 with pgvector, row-level security",
+      "OIDC for people; optional embeddings and webhooks",
     ],
     facts: [
-      "One application process and one primary data file",
-      "No mandatory Redis, message queue or external database",
-      "Docker Compose deployment path",
-      "Automatic additive schema migrations",
-      "Optional services fail gracefully",
-      "Operator-controlled branding and identity settings",
+      "One application process and one database",
+      "No mandatory Redis, message queue or object store",
+      "Container image and release binaries",
+      "Embedded migrations applied at startup",
+      "Tenant isolation enforced in the database",
+      "Append-only event log with undo",
     ],
   },
   trust: {
     eyebrow: "Trust",
     title: "Trust leaves evidence.",
     lead:
-      "Paimos backs public claims with code, tests, signed artifacts, runbooks and an explicit list of limits. The goal is reviewable behavior, not compliance theatre.",
+      "Paimos backs public claims with code, tests, release checksums and an explicit list of limits. The goal is reviewable behavior, not compliance theatre.",
     items: [
       {
-        title: "Identity and local authorization",
+        title: "Identity and authorization",
         body:
-          "Generic OIDC with authorization code and PKCE handles identity. Verified-email matching and invite-only provisioning are the default. Roles and project permissions stay local, with local login and TOTP available as an alternative.",
-        meta: "ZITADEL is the validated reference identity provider",
+          "People sign in through OIDC with authorization code, PKCE and an ID token the server verifies. Agents use scoped API keys that are stored only as hashes. Every API route declares the permission it needs.",
+        meta: "INSPR runs it against ZITADEL",
       },
       {
-        title: "Audit and retention",
+        title: "Tenant isolation",
         body:
-          "Session mutations are audited by default. Access changes, incidents, AI calls and agent runs have reviewable metadata, while retention windows and per-subject export and erase paths remain operator-controlled.",
-        meta: "Bodies and secrets are excluded from AI audit records",
+          "Every row carries its tenant, and Postgres row-level security checks each one. Isolation does not depend on the application remembering to filter.",
+        meta: "Separation enforced below the application",
+      },
+      {
+        title: "Agent permissions",
+        body:
+          "An agent proposes only for itself and only within its key. A person decides before the request expires, and approval, denial and revocation are events in the log.",
+        meta: "Nothing is granted by default",
       },
       {
         title: "Release integrity",
         body:
-          "Tagged container images are signed keylessly with cosign through GitHub OIDC. CycloneDX SBOMs for Go and frontend dependencies are attached as attestations against the same image digest.",
-        meta: "A release can be traced back to source and dependency evidence",
+          "Tagged releases publish binaries with SHA256SUMS and a container image on GHCR built with provenance attestations. There is no cosign signature or SBOM yet.",
+        meta: "A release can be traced back to its source build",
         reference: {
           label: "Release verification",
           href: docsUrl("RELEASE.md"),
@@ -803,19 +742,13 @@ export const paimosContent = {
       {
         title: "Data control",
         body:
-          "Paimos includes no analytics, tracking pixels, forced telemetry or mandatory cloud dependency. Hosted AI providers receive project content only when an operator enables and selects them.",
+          "Paimos includes no analytics, tracking pixels or telemetry to its maker. Run usage stays in your database, and outbound calls happen only to the identity provider and to the optional services you configure.",
         meta: "Self-hosting keeps the default data path under operator control",
       },
       {
-        title: "Security controls with concrete scope",
+        title: "Stated limits",
         body:
-          "Project access checks, CSRF protection, rate-limited authentication, hashed API keys, hardened attachment serving, retention sweeps and GDPR export and erase endpoints are part of the shipped implementation.",
-        meta: "NIS2-aligned controls and GDPR-conscious operations, not certification claims",
-      },
-      {
-        title: "Operational proof",
-        body:
-          "Backup, restore, upgrade and incident paths are documented and exercised. Public evidence also states where the current reference base or review coverage is still small.",
+          "Public evidence also states what is not there yet: retention, per-person export and erase, and a full MCP tool set. The limits below are part of the trust story.",
         meta: "Limits remain part of the trust story",
       },
     ],
@@ -824,91 +757,73 @@ export const paimosContent = {
     eyebrow: "Integrations",
     title: "Open surfaces first.",
     lead:
-      "Paimos exposes its own project model through documented interfaces, then adds focused import and provider paths where teams already have operational systems.",
+      "Paimos exposes its own project model through documented interfaces, then adds focused import, agent and family paths.",
     items: [
       {
-        name: "paimos CLI",
+        name: "aeon and paimos CLI",
         status: "Built in",
         description:
-          "Typed commands, file-first multiline inputs, JSON output, dry runs, idempotent transitions and declarative bulk apply for agents, scripts and CI.",
+          "One binary for issues, knowledge, search, projects, relations, attachments and agent sessions. Invoked as paimos, it keeps the classic command shape.",
       },
       {
-        name: "MCP",
+        name: "HTTP API and OpenAPI",
         status: "Built in",
         description:
-          "A curated stdio facade for interactive agent clients. Bulk workflows remain in the CLI so tool context stays bounded.",
-      },
-      {
-        name: "REST, OpenAPI and schema",
-        status: "Built in",
-        description:
-          "A JSON API, OpenAPI document and self-describing schema expose routes, enums, transitions and field shapes to first-party and external clients.",
+          "A JSON API whose contract is one OpenAPI 3.1 file in the source. aeon schema prints the node kinds a running server knows.",
       },
       {
         name: "Generic OIDC",
-        status: "Supported",
+        status: "Required for people",
         description:
-          "Authorization code with PKCE, verified-email matching and local project authorization. ZITADEL is the validated reference provider.",
+          "Authorization code with PKCE and a verified ID token. INSPR runs it against ZITADEL.",
       },
       {
-        name: "Jira",
+        name: "Codex, Claude, Pi, Cursor and Grok",
+        status: "Agent harnesses",
+        description:
+          "Local agent sessions register with a project, claim runs, ask for permissions and report content-free telemetry.",
+      },
+      {
+        name: "aeon-agentd",
+        status: "Local daemon",
+        description:
+          "Starts and supervises agent sessions on a developer machine and enrolls one account per harness sign-in for pacing.",
+      },
+      {
+        name: "MCP",
+        status: "Early",
+        description:
+          "A stdio server for interactive agent clients. Today it answers whoami; issue, knowledge and search tools are still arriving, so use the CLI or API for those.",
+      },
+      {
+        name: "Classic Paimos",
         status: "Import",
         description:
-          "Project discovery, field and relation mapping, previews and asynchronous issue import into a new or existing Paimos project.",
+          "Imports projects from classic Paimos, including knowledge entries, attachments and offers.",
       },
       {
-        name: "Mite",
-        status: "Import",
+        name: "Aithema",
+        status: "Family",
         description:
-          "DE and AT-oriented time-entry import with user mapping, preview, resume date and cleanup support.",
+          "Stores cited requirements intake: sources, transcript turns and drafts that a person accepts.",
       },
       {
-        name: "HubSpot",
-        status: "Reference CRM",
+        name: "Pharos and Janus",
+        status: "Family",
         description:
-          "Customer and contact import, remote search, manual re-sync and deep links. Paimos does not write changes back to HubSpot.",
+          "Stage handoffs record deployment through Pharos and access through Janus, with their results on the release journey.",
       },
       {
-        name: "HTTP CRM sidecar",
-        status: "Extensible",
-        description:
-          "An HMAC-signed JSON contract lets an operator bridge another CRM from any language for import, sync, search and deep links.",
-      },
-      {
-        name: "CSV",
-        status: "Built in",
-        description:
-          "Per-project and cross-project import and export, with validation before data is committed.",
-      },
-      {
-        name: "S3-compatible storage",
+        name: "Embeddings endpoint",
         status: "Optional",
         description:
-          "MinIO or another compatible object store can hold attachments. The attachment surface disables cleanly when storage is not configured.",
+          "Any OpenAI-compatible embeddings endpoint, including one on your own hardware, adds meaning-based search. Without it, search stays full text.",
       },
       {
-        name: "SMTP",
+        name: "Webhook wakes",
         status: "Optional",
         description:
-          "Outbound email supports password-reset delivery. The core project system does not depend on an email service.",
-      },
-      {
-        name: "OpenRouter",
-        status: "Optional draft provider",
-        description:
-          "Hosted models can provide in-app assistance and draft plans. They receive only the context selected for that request and have no local shell or deploy path.",
-      },
-      {
-        name: "OpenAI-compatible local models",
-        status: "Optional draft provider",
-        description:
-          "Ollama, LM Studio, llama.cpp or an internal gateway can provide draft assistance through a compatible chat-completions endpoint.",
-      },
-      {
-        name: "Claude Code and Codex",
-        status: "Trusted local runners",
-        description:
-          "Developer-owned runners can claim explicitly targeted work in an allowlisted local checkout, edit files, run tests and report the result back.",
+          "Wake an agent's process when a message arrives in its project inbox, instead of polling.",
       },
     ],
   },
@@ -916,17 +831,16 @@ export const paimosContent = {
     eyebrow: "Operational fit",
     title: "No pretending.",
     lead:
-      "A useful deployment decision depends on the boundaries as much as the feature list. These limits describe the current product rather than a future roadmap.",
+      "A useful deployment decision depends on the boundaries as much as the feature list. These limits describe the current release rather than a future roadmap.",
     items: [
-      "The default deployment is a compact single-node Go and SQLite system. It is not a multi-node high-availability control plane.",
-      "Hosted and local-model providers are draft-only. Repository edits, tests and deployment require an explicitly trusted local runner.",
-      "Deployment is local-runner-only and triple-gated. Selecting a model never grants deploy authority.",
-      "One generic OIDC provider is supported. SAML is not. The current OIDC implementation trusts the TLS-protected userinfo round trip rather than verifying the ID token locally through JWKS.",
-      "Only the latest release receives security fixes. There is no LTS program.",
+      "People sign in only through an OIDC identity provider the server can reach. There is no local password login, no TOTP and no SAML.",
+      "There are no retention windows and no per-person export or erase endpoints yet.",
+      "The MCP server is early and answers only whoami today. Use the CLI or HTTP API for issues, knowledge and search.",
+      "Customer-facing access is limited to public quote links with acceptance and a PDF. There is no general customer portal in this release.",
+      "Aithema intake is an API. There is no voice or microphone interface in the app.",
+      "Releases carry SHA256SUMS and build provenance, not cosign signatures or an SBOM.",
       "Paimos has not yet completed an independent third-party security review.",
-      "The documented evidence base currently contains one active production proving ground and one historical second-operator deployment.",
-      "There is no published scale benchmark. Production adoption should validate representative projects, users, concurrency and attachment volume.",
-      "CRM synchronization is pull and import based. CRM-to-Paimos webhooks are not supported, and one generic HTTP CRM sidecar can be configured per deployment.",
+      "There is no published scale benchmark. Production adoption should validate representative projects, users, agents and attachment volume.",
       "Paimos has a responsive web interface but no native mobile application.",
     ],
   },
@@ -934,7 +848,7 @@ export const paimosContent = {
     eyebrow: "Open source",
     title: "Open by architecture, not by campaign.",
     body:
-      "Paimos is licensed under AGPL-3.0-only. You can inspect it, self-host it, fork it and modify it under those terms. If you operate a modified version as a network service, its users retain the right to receive the corresponding source. Open source is not the hero claim, but it keeps the product, its trust boundaries and its future inspectable.",
+      "PAIMOS AEON is licensed under AGPL-3.0-only. You can inspect it, self-host it, fork it and modify it under those terms. If you operate a modified version as a network service, its users retain the right to receive the corresponding source. Open source is not the hero claim, but it keeps the product, its trust boundaries and its future inspectable.",
     links: [
       {
         label: "GitHub repository",
@@ -942,7 +856,7 @@ export const paimosContent = {
         external: true,
       },
       {
-        label: "Releases and verification",
+        label: "Releases and checksums",
         href: `${repositoryUrl}/releases`,
         external: true,
       },
@@ -965,44 +879,44 @@ export const paimosContent = {
   },
   faq: [
     {
-      question: "Is Paimos a chatbot inside a project tool?",
+      question: "What is PAIMOS AEON?",
       answer:
-        "No. AI actions and agents participate in the project model, but Paimos remains a project management and context system. Work state, permissions, provider choices and evidence stay explicit.",
+        "The seventh generation of Paimos, released under the name AEON. It replaces the classic Paimos codebase with a multi-tenant Go and Postgres system built for people and agents working together. Classic projects can be imported, including knowledge and attachments.",
     },
     {
-      question: "Can an AI model change a repository automatically?",
+      question: "Is Paimos a chatbot inside a project tool?",
       answer:
-        "Hosted and local-model providers are draft-only. Repository edits and tests require a trusted local runner. Deployment requires additional independent opt-ins and a run-level target.",
+        "No. Agents participate in the project model with their own keys, scopes and run records, but Paimos remains a project work and context system. Work state, permissions and evidence stay explicit.",
+    },
+    {
+      question: "Can an agent grant itself more rights?",
+      answer:
+        "No. An agent can only ask for a scope within its key, and a person decides. Approval, denial and revocation are recorded as events.",
     },
     {
       question: "Does Paimos require an AI provider?",
       answer:
-        "No. AI assistance is off by default. Core project management, context, reporting, API and portal functions work without a hosted or local model provider.",
+        "No. Planning, knowledge, search, hours and quotes work without any model. Agents bring their own harness, and an embeddings endpoint is optional.",
     },
     {
       question: "Can we use our identity provider?",
       answer:
-        "Paimos supports one generic OIDC provider using authorization code and PKCE. ZITADEL is the validated reference. Local login and TOTP remain available. SAML is not currently supported.",
+        "Yes, any OIDC provider that supports authorization code with PKCE. INSPR runs it against ZITADEL. There is no local password login and SAML is not supported.",
     },
     {
-      question: "Can customers see internal work?",
+      question: "Can one installation serve several teams?",
       answer:
-        "Not unless an internal editor explicitly marks it customer-visible. Customer-submitted requests are visible by design. Other portal visibility is opt-in, and hidden issue endpoints avoid disclosing the issue's existence.",
+        "Yes. Paimos is multi-tenant: every row carries its tenant and Postgres row-level security keeps workspaces apart.",
     },
     {
       question: "Is Paimos cloud-only?",
       answer:
-        "No. Paimos is self-hosted and has no mandatory SaaS dependency. S3-compatible attachments, SMTP, OIDC and model providers are optional operator choices.",
+        "No. Paimos is self-hosted: one application container and a Postgres database. It needs a reachable OIDC provider for people to sign in; everything else outside it is optional.",
     },
     {
       question: "What can an agent read from a project?",
       answer:
-        "Subject to the caller's project access, an agent can read issues, linked repositories, knowledge entries, canonical agent definitions, issue-to-file anchors, graph relationships and ranked mixed-context retrieval results.",
-    },
-    {
-      question: "What scale does Paimos support?",
-      answer:
-        "Paimos is designed as a compact single-node system. There is no published performance envelope yet, so a production rollout should test representative data volume, user concurrency and attachment usage.",
+        "Subject to its key's scopes and the project's permissions, an agent can read the work tree, relations, knowledge entries by slug, search results and its own work orders and runs.",
     },
     {
       question: "How does the commercial path relate to the open product?",

@@ -1,16 +1,18 @@
 ---
 import { Image, getImage } from "astro:assets";
 import ContextIcon from "./ContextIcon.astro";
-import productSurface from "../assets/products/paimos/product-surface.png";
-import uiSessionHome from "../assets/products/paimos/ui-session-home.png";
-import uiIssues from "../assets/products/paimos/ui-issues.png";
-import uiBoard from "../assets/products/paimos/ui-board.png";
-import uiAgentMode from "../assets/products/paimos/ui-agent-mode.png";
+import surfaceTicket from "../assets/products/paimos/surface-ticket.png";
+import surfaceAgents from "../assets/products/paimos/surface-agents.png";
+import surfaceKnowledge from "../assets/products/paimos/surface-knowledge.png";
+import uiProjects from "../assets/products/paimos/ui-projects.png";
+import uiWorkTree from "../assets/products/paimos/ui-work-tree.png";
 import uiSearch from "../assets/products/paimos/ui-search.png";
-import uiVoiceIntake from "../assets/products/paimos/ui-voice-intake.png";
-import loopIssueWorkbench from "../assets/products/paimos/loop-issue-workbench.mp4";
+import uiKnowledgeGraph from "../assets/products/paimos/ui-knowledge-graph.png";
+import uiReleases from "../assets/products/paimos/ui-releases.png";
+import loopTicketAgents from "../assets/products/paimos/loop-ticket-agents.mp4";
 import loopSearchNavigate from "../assets/products/paimos/loop-search-navigate.mp4";
 import captureManifest from "../assets/products/paimos/capture-manifest.json";
+import { paimosContent } from "../content/paimos";
 
 interface Props {
   locale?: "en" | "de";
@@ -19,141 +21,123 @@ interface Props {
 const locale: "en" | "de" = Astro.props.locale === "de" ? "de" : "en";
 const copy = (english: string, german: string) => locale === "de" ? german : english;
 
-// This version describes the captured pixels, not the currently deployed
+// This tag describes the captured pixels, not the currently deployed
 // application. Keep it unchanged until the images themselves are regenerated.
-const captureRelease = `v${captureManifest.release}`;
+const captureRelease = captureManifest.tag;
+const docsUrl = (document: string) =>
+  `${paimosContent.repositoryUrl}/blob/main/docs/${document}`;
 
 // Provenance suffix for every gallery caption. The captured product UI is
 // English in both editions; only the editorial framing is localized.
 const provenanceCaption = copy(
-  `Demo workspace, Paimos ${captureRelease}.`,
-  `Demo-Arbeitsbereich, Paimos ${captureRelease}.`,
+  `Demo workspace, PAIMOS AEON ${captureRelease}.`,
+  `Demo-Arbeitsbereich, PAIMOS AEON ${captureRelease}.`,
 );
 
-// German product copy stays free of em dashes; the English separator is the
-// established caption style and remains unchanged.
-const captionSeparator = copy(" — ", ": ");
+// Site copy stays free of em dashes in both editions.
+const captionSeparator = ": ";
 
 const labels = locale === "de"
   ? {
       eyebrow: "Im Produkt",
-      title: "Ein echtes Ticket. Kontext inklusive.",
+      title: "Drei Flächen. Ein Projekt.",
       lead:
-        "Diese Paimos-Ticketwerkbank stammt aus einem synthetisch befüllten Demo-Build. Wählen Sie eine Markierung, um zu sehen, wie Absicht, Befugnis und abgerufenes Wissen auf einer Arbeitsfläche zusammentreffen, oder öffnen Sie die weiteren Ansichten unten.",
-      frameAlt:
-        "Paimos-Ticketwerkbank mit synthetischen Daten, Ausführungskontrollen, anwendbarem Wissen und Aktivitätsnachweisen",
-      figcaption: `Demo-Arbeitsbereich, Paimos ${captureRelease}: synthetisch befüllte Demo-Daten.`,
+        "Diese Ansichten stammen aus einem PAIMOS-AEON-Build mit synthetischen Demo-Daten. Wählen Sie eine Markierung, um zu sehen, wo Absicht, Befugnis und Projektwissen im Produkt liegen, oder öffnen Sie die weiteren Ansichten unten.",
+      figcaption: `Demo-Arbeitsbereich, PAIMOS AEON ${captureRelease}: synthetisch befüllte Demo-Daten.`,
       marker: "Markierung",
       markerInspect: "prüfen",
       annotationsAria: "Screenshot-Anmerkungen",
-      inspectImplementation: "Die Implementierung prüfen",
+      inspectImplementation: "Die Dokumentation lesen",
       pause: "Pausieren",
       resume: "Fortsetzen",
       pauseLabel: "Automatischen Ablauf pausieren",
       resumeLabel: "Automatischen Ablauf fortsetzen",
       viewsAria: "Weitere Produktansichten",
-      videoFallbackAria: "Paimos-Produktdemo",
+      videoFallbackAria: "PAIMOS-AEON-Produktdemo",
     }
   : {
       eyebrow: "Inside the product",
-      title: "A real issue. Context attached.",
+      title: "Three surfaces. One project.",
       lead:
-        "This Paimos issue workbench is captured from a seeded demo build with synthetic data. Select a marker to inspect how intent, authority and retrieved knowledge meet in one work surface — or open the other views below.",
-      frameAlt:
-        "Paimos issue workbench with synthetic data, execution controls, applicable memory and activity evidence",
-      figcaption: `Demo workspace, Paimos ${captureRelease} — seeded synthetic data.`,
+        "These views are captured from a PAIMOS AEON build with synthetic demo data. Select a marker to see where intent, authority and project knowledge live in the product, or open the other views below.",
+      figcaption: `Demo workspace, PAIMOS AEON ${captureRelease}: seeded synthetic data.`,
       marker: "Marker",
       markerInspect: "Inspect",
       annotationsAria: "Screenshot annotations",
-      inspectImplementation: "Inspect the implementation",
+      inspectImplementation: "Read the documentation",
       pause: "Pause",
       resume: "Resume",
       pauseLabel: "Pause automatic progression",
       resumeLabel: "Resume automatic progression",
       viewsAria: "More product views",
-      videoFallbackAria: "Paimos product demo",
+      videoFallbackAria: "PAIMOS AEON product demo",
     };
 
 // More views of the same demo workspace; each opens in a lightbox dialog.
-// Ordered deliberately: the AI-era surfaces lead, the classic ceremony
-// closes the row for the teams that still want it.
 const imageViews = [
   {
-    id: "session-home",
-    image: uiSessionHome,
+    id: "projects",
+    image: uiProjects,
     title: copy("Workspace home", "Arbeitsbereich"),
     caption: copy(
-      "See your projects and worker status, then set up the coordinator to begin working together.",
-      "Sehen Sie Ihre Projekte und den Worker-Status und richten Sie den Koordinator ein, um die gemeinsame Arbeit zu starten.",
+      "Every project with its open work, as a list or as cards.",
+      "Alle Projekte mit ihrer offenen Arbeit, als Liste oder als Karten.",
     ),
     alt: copy(
-      "Paimos workspace home showing demo projects, worker status and coordinator setup",
-      "Paimos-Arbeitsbereich mit Demo-Projekten, Worker-Status und Koordinator-Einrichtung",
+      "PAIMOS AEON workspace home listing synthetic demo projects with their open tickets",
+      "PAIMOS-AEON-Arbeitsbereich mit synthetischen Demo-Projekten und ihren offenen Tickets",
     ),
   },
   {
-    id: "voice-intake",
-    image: uiVoiceIntake,
-    title: copy("Voice intake", "Spracheingabe"),
+    id: "work-tree",
+    image: uiWorkTree,
+    title: copy("Work tree", "Arbeitsbaum"),
     caption: copy(
-      "Talk through an idea; the spec, the impact on existing work, and the ticket assemble as you speak.",
-      "Sprechen Sie eine Idee durch; Spezifikation, Auswirkungen auf bestehende Arbeit und das Ticket entstehen beim Reden.",
+      "Epics and their tickets in one outline, with status, priority and progress in view.",
+      "Epics und ihre Tickets in einer Gliederung, mit Status, Priorität und Fortschritt im Blick.",
     ),
     alt: copy(
-      "Paimos voice intake workbench: a live specification beside impact analysis, an understanding check and a ticket preview",
-      "Paimos-Spracheingabe: eine live entstehende Spezifikation neben Auswirkungsanalyse, Verständnisprüfung und Ticket-Vorschau",
+      "PAIMOS AEON project outline with synthetic epics expanded into their tickets",
+      "PAIMOS-AEON-Projektgliederung mit synthetischen Epics, aufgeklappt bis zu ihren Tickets",
     ),
   },
   {
     id: "search",
     image: uiSearch,
-    title: copy("Search the issue list", "Ticketliste durchsuchen"),
+    title: copy("Search", "Suche"),
     caption: copy(
-      "Filter issues across projects as you type, with matching titles highlighted and the result count kept visible.",
-      "Filtern Sie Tickets projektübergreifend beim Tippen; passende Titel werden hervorgehoben und die Trefferzahl bleibt sichtbar.",
+      "One search across the workspace, from anywhere, by keyboard.",
+      "Eine Suche über den ganzen Arbeitsbereich, von überall, per Tastatur.",
     ),
     alt: copy(
-      "Paimos Issues page filtered for email, showing two matching ACME tickets and the count “2 issues”",
-      "Nach „email“ gefilterte Paimos-Ticketliste mit zwei passenden ACME-Tickets und der Anzeige „2 issues“",
+      "PAIMOS AEON search dialog showing synthetic results across projects",
+      "PAIMOS-AEON-Suchdialog mit synthetischen Treffern aus mehreren Projekten",
     ),
   },
   {
-    id: "agent-mode",
-    image: uiAgentMode,
-    title: "Agent Mode",
+    id: "knowledge-graph",
+    image: uiKnowledgeGraph,
+    title: copy("Knowledge graph", "Wissensgraph"),
     caption: copy(
-      "The classic Agent Mode view, shown with synthetic deliveries, project scope and contextual controls.",
-      "Die klassische Agent-Mode-Ansicht mit synthetischen Lieferungen, Projektumfang und kontextbezogenen Kontrollen.",
+      "Switch from the entry list to the graph to see how project knowledge connects.",
+      "Wechseln Sie von der Eintragsliste zum Graphen und sehen Sie, wie Projektwissen zusammenhängt.",
     ),
     alt: copy(
-      "Paimos Agent Mode showing synthetic active deliveries, a project picker, contextual command hints and calm delivery cards",
-      "Paimos Agent Mode mit synthetischen aktiven Lieferungen, Projektauswahl, kontextbezogenen Befehlshinweisen und ruhigen Lieferkarten",
+      "PAIMOS AEON knowledge graph connecting synthetic runbooks, guidelines and memory entries",
+      "PAIMOS-AEON-Wissensgraph, der synthetische Runbooks, Richtlinien und Memory-Einträge verbindet",
     ),
   },
   {
-    id: "issues",
-    image: uiIssues,
-    title: copy("Issues", "Tickets"),
+    id: "releases",
+    image: uiReleases,
+    title: copy("Releases", "Releases"),
     caption: copy(
-      "The classic backlog — saved views, filters, undo — for teams that live in lists.",
-      "Das klassische Backlog mit gespeicherten Ansichten, Filtern und Undo, für Teams, die in Listen leben.",
+      "The release history of the running instance, inside the product.",
+      "Die Release-Historie der laufenden Instanz, direkt im Produkt.",
     ),
     alt: copy(
-      "Paimos issues list showing the demo backlog with type, status and action columns",
-      "Paimos-Ticketliste mit dem Demo-Backlog samt Typ-, Status- und Aktionsspalten",
-    ),
-  },
-  {
-    id: "board",
-    image: uiBoard,
-    title: copy("Sprint board", "Sprint-Board"),
-    caption: copy(
-      "Sprints, fully supported — for the teams that still run them. No judgement.",
-      "Sprints, voll unterstützt, für die Teams, die sie weiter fahren. Ganz ohne Urteil.",
-    ),
-    alt: copy(
-      "Paimos sprint board showing a demo sprint with done, in-progress and backlog tickets",
-      "Paimos-Sprint-Board mit einem Demo-Sprint aus erledigten, laufenden und offenen Tickets",
+      "PAIMOS AEON releases page listing calendar-versioned releases with their notes",
+      "PAIMOS-AEON-Release-Seite mit kalenderversionierten Releases und ihren Notizen",
     ),
   },
 ];
@@ -182,17 +166,17 @@ const fullViews = await Promise.all(
 const videoViews = await Promise.all(
   [
     {
-      id: "issue-workbench-flow",
-      video: loopIssueWorkbench,
-      image: productSurface,
-      title: copy("Issue to execution", "Vom Ticket zur Ausführung"),
+      id: "ticket-agents-flow",
+      video: loopTicketAgents,
+      image: surfaceTicket,
+      title: copy("Ticket to agents", "Vom Ticket zu den Agenten"),
       caption: copy(
-        "Open a real ticket and bring its execution boundary into view.",
-        "Öffnen Sie ein echtes Ticket und holen Sie seine Ausführungsgrenze ins Bild.",
+        "Open a ticket beside the work list, then follow the agents working on the project.",
+        "Öffnen Sie ein Ticket neben der Arbeitsliste und verfolgen Sie dann die Agenten, die am Projekt arbeiten.",
       ),
       alt: copy(
-        "Play a short seeded Paimos flow from issue context to the implementation controls",
-        "Kurzen synthetischen Paimos-Ablauf vom Ticketkontext zu den Umsetzungskontrollen abspielen",
+        "Play a short seeded PAIMOS AEON flow from a docked ticket to the Agents workspace",
+        "Kurzen synthetischen PAIMOS-AEON-Ablauf vom angedockten Ticket zum Agenten-Arbeitsbereich abspielen",
       ),
     },
     {
@@ -201,12 +185,12 @@ const videoViews = await Promise.all(
       image: uiSearch,
       title: copy("Search to context", "Von der Suche zum Kontext"),
       caption: copy(
-        "Search across projects, choose the result, and land on the work itself.",
-        "Suchen Sie über Projekte hinweg, wählen Sie das Ergebnis und landen Sie direkt bei der Arbeit.",
+        "Search the workspace, choose the result, and land on the work itself.",
+        "Durchsuchen Sie den Arbeitsbereich, wählen Sie das Ergebnis und landen Sie direkt bei der Arbeit.",
       ),
       alt: copy(
-        "Play a short seeded Paimos flow that searches across projects and opens the selected issue",
-        "Kurzen synthetischen Paimos-Ablauf abspielen, der über Projekte hinweg sucht und das gewählte Ticket öffnet",
+        "Play a short seeded PAIMOS AEON flow that searches the workspace and opens the selected ticket",
+        "Kurzen synthetischen PAIMOS-AEON-Ablauf abspielen, der den Arbeitsbereich durchsucht und das gewählte Ticket öffnet",
       ),
     },
   ].map(async (view) => {
@@ -229,45 +213,62 @@ const videoViews = await Promise.all(
 
 const galleryViews = [...videoViews, ...fullViews];
 
+// One screen per marker: the active tab shows its own capture, and the
+// capture gate proves that hotspot N lands on landmark N of screen N.
 const details = [
   {
-    label: copy("Issue context", "Ticketkontext"),
+    label: copy("Ticket context", "Ticketkontext"),
+    image: surfaceTicket,
+    alt: copy(
+      "PAIMOS AEON project work list with a synthetic ticket open in the docked side pane",
+      "PAIMOS-AEON-Arbeitsliste eines Projekts mit einem synthetischen Ticket im angedockten Seitenbereich",
+    ),
     title: copy(
-      "The issue stays the unit of intent.",
+      "The ticket stays the unit of intent.",
       "Das Ticket bleibt die Einheit der Absicht.",
     ),
     body: copy(
-      "Type, state, priority and project membership remain visible while agent work is prepared. The run starts from a real work item, not a detached chat.",
-      "Typ, Status, Priorität und Projektzugehörigkeit bleiben sichtbar, während Agentenarbeit vorbereitet wird. Der Lauf startet aus einem echten Arbeitselement, nicht aus einem losgelösten Chat.",
+      "A ticket opens beside the work list instead of replacing it. Its status, relations and history stay in view while you keep your place in the project.",
+      "Ein Ticket öffnet sich neben der Arbeitsliste, statt sie zu ersetzen. Status, Beziehungen und Verlauf bleiben sichtbar, während Sie Ihren Platz im Projekt behalten.",
     ),
     icon: "folder-kanban",
-    href: "https://github.com/inspr-at/paimos/blob/main/docs/AI_CONTROL_PLANE_UX.md",
+    href: docsUrl("PLANNING_HIERARCHY.md"),
   },
   {
-    label: copy("Execution boundary", "Ausführungsgrenze"),
+    label: copy("Agent authority", "Agentenbefugnis"),
+    image: surfaceAgents,
+    alt: copy(
+      "PAIMOS AEON Agents workspace with synthetic agent sessions, runs and a pending approval",
+      "PAIMOS-AEON-Agenten-Arbeitsbereich mit synthetischen Agentensitzungen, Läufen und einer offenen Freigabe",
+    ),
     title: copy(
-      "Authority is chosen before work starts.",
-      "Die Befugnis wird vor Arbeitsbeginn gewählt.",
+      "Agents ask. People decide.",
+      "Agenten fragen. Menschen entscheiden.",
     ),
     body: copy(
-      "The selected runner and deployment mode define what may happen. Draft providers can prepare work; trusted runners can edit and test; deployment remains separately deliberate.",
-      "Der gewählte Runner und der Deployment-Modus bestimmen, was passieren darf. Entwurfsanbieter können Arbeit vorbereiten; vertrauenswürdige Runner dürfen bearbeiten und testen; die Bereitstellung bleibt eine separate bewusste Entscheidung.",
+      "Codex, Claude, Pi, Cursor and Grok sessions report what they are working on and how they pace. When an agent needs a permission, the request waits under Needs you until a person answers.",
+      "Sitzungen von Codex, Claude, Pi, Cursor und Grok zeigen, woran sie arbeiten und in welchem Tempo. Braucht ein Agent eine Berechtigung, wartet die Anfrage unter Needs you, bis ein Mensch antwortet.",
     ),
     icon: "shield-check",
-    href: "https://github.com/inspr-at/paimos/blob/main/docs/IMPLEMENT_THIS_PROVIDERS.md",
+    href: docsUrl("AGENT_INTEGRATION.md"),
   },
   {
-    label: copy("Retrieved knowledge", "Abgerufenes Wissen"),
+    label: copy("Project knowledge", "Projektwissen"),
+    image: surfaceKnowledge,
+    alt: copy(
+      "PAIMOS AEON Knowledge view with synthetic runbooks, guidelines and memory, one entry open in the docked pane",
+      "PAIMOS-AEON-Wissensansicht mit synthetischen Runbooks, Richtlinien und Memory-Einträgen, ein Eintrag im angedockten Bereich geöffnet",
+    ),
     title: copy(
-      "Applicable memory returns with provenance.",
-      "Anwendbares Wissen kommt mit Provenienz zurück.",
+      "Agents read the project before they work.",
+      "Agenten lesen das Projekt, bevor sie arbeiten.",
     ),
     body: copy(
-      "Project knowledge, issue links and file anchors can be attached to the task. Agents receive relevant context without turning every run into a manual prompt-engineering exercise.",
-      "Projektwissen, Ticket-Verknüpfungen und Datei-Anker lassen sich an die Aufgabe heften. Agenten erhalten relevanten Kontext, ohne dass jeder Lauf zur manuellen Prompt-Bastelei wird.",
+      "Runbooks, guidelines, memory, external systems and related projects belong to the project. Agents read them by slug, and the graph shows how the entries connect.",
+      "Runbooks, Richtlinien, Memory, externe Systeme und verwandte Projekte gehören zum Projekt. Agenten lesen sie per Slug, und der Graph zeigt, wie die Einträge zusammenhängen.",
     ),
     icon: "book-open-check",
-    href: "https://github.com/inspr-at/paimos/blob/main/docs/agent-retrieval.md",
+    href: docsUrl("AGENT_INTEGRATION.md"),
   },
 ];
 
@@ -295,25 +296,27 @@ const hotspotLabel = (index: number, label: string) =>
 
   <div class="product-surface__grid">
     <figure class="product-surface__frame">
-      <Image
-        src={productSurface}
-        alt={labels.frameAlt}
-        widths={[720, 1080, 1440]}
-        sizes="(min-width: 64rem) 68vw, 100vw"
-        quality={86}
-        loading="lazy"
-      />
       {details.map((detail, index) => (
-        <button
-          type="button"
-          class:list={["product-surface__hotspot", `product-surface__hotspot--${index + 1}`]}
-          aria-label={hotspotLabel(index, detail.label)}
-          aria-pressed={index === 0 ? "true" : "false"}
-          aria-controls={`surface-panel-${index}`}
-          data-surface-trigger={index}
-        >
-          <span>{index + 1}</span>
-        </button>
+        <div class="product-surface__screen" data-surface-frame={index} hidden={index !== 0}>
+          <Image
+            src={detail.image}
+            alt={detail.alt}
+            widths={[720, 1080, 1440]}
+            sizes="(min-width: 64rem) 68vw, 100vw"
+            quality={86}
+            loading="lazy"
+          />
+          <button
+            type="button"
+            class:list={["product-surface__hotspot", `product-surface__hotspot--${index + 1}`]}
+            aria-label={hotspotLabel(index, detail.label)}
+            aria-pressed={index === 0 ? "true" : "false"}
+            aria-controls={`surface-panel-${index}`}
+            data-surface-trigger={index}
+          >
+            <span>{index + 1}</span>
+          </button>
+        </div>
       ))}
       <figcaption>{labels.figcaption}</figcaption>
     </figure>
@@ -461,7 +464,7 @@ const hotspotLabel = (index: number, label: string) =>
     video.playsInline = true;
     video.preload = "none";
     video.poster = content.data.videoPoster ?? "";
-    video.setAttribute("aria-label", content.data.videoLabel ?? "Paimos product demo");
+    video.setAttribute("aria-label", content.data.videoLabel ?? "PAIMOS AEON product demo");
     shell.append(video);
     content.element = shell;
   });
@@ -525,6 +528,7 @@ const hotspotLabel = (index: number, label: string) =>
       const controller = new AbortController();
       const triggers = [...root.querySelectorAll<HTMLButtonElement>("[data-surface-trigger]")];
       const panels = [...root.querySelectorAll<HTMLElement>("[data-surface-panel]")];
+      const frames = [...root.querySelectorAll<HTMLElement>("[data-surface-frame]")];
       const progress = root.querySelector<HTMLElement>("[data-surface-progress]");
       const toggle = root.querySelector<HTMLButtonElement>("[data-surface-toggle]");
       const toggleLabel = root.querySelector<HTMLElement>("[data-surface-toggle-label]");
@@ -632,6 +636,9 @@ const hotspotLabel = (index: number, label: string) =>
         });
         panels.forEach((panel) => {
           panel.hidden = Number(panel.dataset.surfacePanel) !== activeIndex;
+        });
+        frames.forEach((frame) => {
+          frame.hidden = Number(frame.dataset.surfaceFrame) !== activeIndex;
         });
 
         if (moveFocus && activeTab && document.activeElement !== activeTab) {
@@ -800,6 +807,15 @@ const hotspotLabel = (index: number, label: string) =>
     box-shadow: var(--shadow-md);
   }
 
+  .product-surface__screen {
+    position: absolute;
+    inset: 0;
+  }
+
+  .product-surface__screen[hidden] {
+    display: none;
+  }
+
   .product-surface__frame :global(img) {
     width: 100%;
     height: 100%;
@@ -852,23 +868,23 @@ const hotspotLabel = (index: number, label: string) =>
     font-weight: 700;
   }
 
-  /* Hotspot framing contract: the capture command keeps TASKS at the top,
-     records these three DOM landmarks in capture-manifest.json, and refuses
-     publication if a marker no longer lands on its target. 1 = issue chips,
-     2 = deploy mode + Implement controls, 3 = applicable memories. */
+  /* Hotspot framing contract: the capture command records one DOM landmark
+     per screen in capture-manifest.json, and the publication gate refuses a
+     set where marker N no longer lands on landmark N of screen N.
+     1 = docked ticket pane, 2 = Needs you approvals, 3 = knowledge entries. */
   .product-surface__hotspot--1 {
-    top: 28%;
-    left: 85%;
+    top: 30%;
+    left: 80%;
   }
 
   .product-surface__hotspot--2 {
-    top: 36%;
-    left: 90%;
+    top: 25%;
+    left: 45%;
   }
 
   .product-surface__hotspot--3 {
-    top: 84%;
-    left: 73%;
+    top: 37%;
+    left: 90%;
   }
 
   .product-surface__frame figcaption {
@@ -1219,16 +1235,6 @@ const hotspotLabel = (index: number, label: string) =>
   }
 
   @media (max-width: 42rem) {
-    .product-surface__hotspot--1 {
-      top: 22%;
-      left: 80%;
-    }
-
-    .product-surface__hotspot--2 {
-      top: 42%;
-      left: 88%;
-    }
-
     .product-surface__hotspot {
       width: 2.75rem;
       height: 2.75rem;

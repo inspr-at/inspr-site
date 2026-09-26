@@ -1,99 +1,159 @@
 {
-  "schemaVersion": 3,
-  "releaseKind": "calendar",
-  "release": "26.09.06.21.31",
-  "sourceCommit": "64feac0463534f4c7f3c4e801c3bcf8afb2e4d93",
+  "schemaVersion": 4,
+  "product": "PAIMOS AEON",
+  "sourceRepository": "inspr-at/aeon",
+  "releaseKind": "inspr-calendar-v2",
+  "release": "260926085451.0.0",
+  "tag": "v260926085451.0.0",
+  "sourceCommit": "ee81d74689ac5077470ae04329e6d39a324542bf",
+  "data": "synthetic",
   "assets": [
     {
-      "name": "product-surface.png",
+      "name": "surface-ticket.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "0173584451a93e09e6b5d31e848070d909e7bbea202169eb2cf63299a247c660"
+      "sha256": "b52930a34037614e178f4d34ece416300b9b8d77ec7413096bea7a28e83b62a2"
     },
     {
-      "name": "ui-session-home.png",
+      "name": "surface-agents.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "e7638e7f7cf245289a458f126bec87b1a05248fb4e34b661b2653ccef77ea9a7"
+      "sha256": "cb735a22b8ff91d66f64a75291e5b89949fd639553fa710dd23a1dc734be5498"
     },
     {
-      "name": "ui-agent-mode.png",
+      "name": "surface-knowledge.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "5376675ea1e1ca4769054cec71452b6b10bf70bf30d506a42aedaf4c051c754d"
+      "sha256": "04bd17a1fafd7e317b30e5acd66d39b6b3d8b5662d7fa6426efc7364cde5b117"
     },
     {
-      "name": "ui-issues.png",
+      "name": "ui-projects.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "2050103695304451a745515518036fedc349ce4953f67f26cbb4026e094edfb7"
+      "sha256": "6685fd2004ca126239579a8dac4a0100d21f57b192c3216a81782a14d5b723b1"
     },
     {
-      "name": "ui-board.png",
+      "name": "ui-work-tree.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "c4b33d4778e3c79abab0329f38fbbfb0c8fa5faee03b972cc1a38ad1311e0368"
+      "sha256": "c4079bcd52b2e80e671c4f6fbe5cd4c0930dcf2ecbd524df851ed168722ec0b1"
     },
     {
       "name": "ui-search.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "75cc2e753d31a30751cd367c3fd92fdbec4ff760dbcbacb7c04f33c006c567a8"
+      "sha256": "9e660a09545333c9a901a3bfa5a575fec6f828e1932540683448b73a15c56c0f"
     },
     {
-      "name": "ui-voice-intake.png",
+      "name": "ui-knowledge-graph.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "60e78fd35f58f85c2abb66cd7fd36780073b2201b919be339d2617b63b72dab7"
+      "sha256": "8c0b3e98de96a3009ac3cf431905dfe98e340b67f367a822cda1718f3240101c"
+    },
+    {
+      "name": "ui-releases.png",
+      "width": 3200,
+      "height": 2000,
+      "sha256": "81c3a90f1e9c9843ab0a431751f5014676c4224d9e206627ca103eefc639c8dc"
+    }
+  ],
+  "spares": [
+    {
+      "name": "dark/surface-ticket.png",
+      "width": 3200,
+      "height": 2000,
+      "sha256": "59dc7825c6fed726183f25fbdb0822b982fec3eaa1eabec6294dcaead149bb4a"
+    },
+    {
+      "name": "dark/surface-agents.png",
+      "width": 3200,
+      "height": 2000,
+      "sha256": "fe8b5241701500d5b44d8bb1e7fd0b464dfcbcebd188e1fbed1d4947fda9f064"
+    },
+    {
+      "name": "dark/surface-knowledge.png",
+      "width": 3200,
+      "height": 2000,
+      "sha256": "69699cb6e3b8ff1c03414ae30fb0aa440460cf7fb84d2709892591349df2f3e3"
+    },
+    {
+      "name": "dark/ui-projects.png",
+      "width": 3200,
+      "height": 2000,
+      "sha256": "4e2811881351ca0536f1a833cd164d4224479c7a0f45f2538dc5465e84d836cc"
+    },
+    {
+      "name": "dark/ui-work-tree.png",
+      "width": 3200,
+      "height": 2000,
+      "sha256": "2568eb9fdea5c6523d3c414b90e0127e8290c9c860c2057cb57870f1732bc6c6"
+    },
+    {
+      "name": "dark/ui-search.png",
+      "width": 3200,
+      "height": 2000,
+      "sha256": "fffeabbc40500cb6621c3153424430c04e0cc9efd88d6045df731d55278c9e49"
+    },
+    {
+      "name": "dark/ui-knowledge-graph.png",
+      "width": 3200,
+      "height": 2000,
+      "sha256": "be431897732ef8d89a719e84dadb67fe757fbe8e2343bba15f94542456463ac2"
+    },
+    {
+      "name": "dark/ui-releases.png",
+      "width": 3200,
+      "height": 2000,
+      "sha256": "c5fbff094a079b9967e6e43032d4cd155fe30fad7cb4aa45f92a8b8c0ebe7a71"
     }
   ],
   "videos": [
     {
-      "name": "loop-issue-workbench.mp4",
+      "name": "loop-ticket-agents.mp4",
       "width": 1280,
       "height": 800,
-      "durationSeconds": 5.25,
-      "bytes": 437215,
-      "sha256": "4d740bd98fd0b9af675ed15cf29ad566eba338945fa79a4ef21bea1872f396b8"
+      "durationSeconds": 10.375,
+      "bytes": 346310,
+      "sha256": "66d0929d112ceeb05d98659ffd4abb15698f533b8d526d254c01fafdfcadf0af"
     },
     {
       "name": "loop-search-navigate.mp4",
       "width": 1280,
       "height": 800,
-      "durationSeconds": 6.042,
-      "bytes": 199027,
-      "sha256": "2621eeb4ff5375189af73bbdfd1afa0f5f79e88285305b4c5063f3d68e481e50"
+      "durationSeconds": 7.25,
+      "bytes": 315217,
+      "sha256": "9c527c9b876e76fd693250d075845633449d29057ecc0de5939f7682583c1d73"
     }
   ],
   "layout": {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
+    "theme": "light",
     "viewport": {
       "width": 1600,
       "height": 1000,
       "deviceScaleFactor": 2
     },
-    "framing": {
-      "anchor": "TASKS",
-      "tasksTop": 0.0577
-    },
     "landmarks": {
       "issueContext": {
-        "x": 0.7625,
-        "y": 0.2754,
-        "width": 0.2265,
-        "height": 0.024
+        "screen": "surface-ticket.png",
+        "x": 0.6038,
+        "y": 0.066,
+        "width": 0.39,
+        "height": 0.884
       },
       "executionControl": {
-        "x": 0.9033,
-        "y": 0.3424,
-        "width": 0.0764,
-        "height": 0.0316
+        "screen": "surface-agents.png",
+        "x": 0.0193,
+        "y": 0.1856,
+        "width": 0.7421,
+        "height": 0.1978
       },
       "applicableMemories": {
-        "x": 0.1547,
-        "y": 0.6543,
-        "width": 0.8344,
-        "height": 0.14
+        "screen": "surface-knowledge.png",
+        "x": 0.5537,
+        "y": 0.066,
+        "width": 0.44,
+        "height": 0.884
       }
     }
   }

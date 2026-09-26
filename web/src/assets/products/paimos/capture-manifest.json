@@ -3,58 +3,58 @@
   "product": "PAIMOS AEON",
   "sourceRepository": "inspr-at/aeon",
   "releaseKind": "inspr-calendar-v2",
-  "release": "260926085451.0.0",
-  "tag": "v260926085451.0.0",
-  "sourceCommit": "ee81d74689ac5077470ae04329e6d39a324542bf",
+  "release": "260926095249.0.0",
+  "tag": "v260926095249.0.0",
+  "sourceCommit": "fd7edf5356dbea6e52f3dac874d1f0f7a9c3a6d9",
   "data": "synthetic",
   "assets": [
     {
       "name": "surface-ticket.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "b23b532ac7e1e064a54cadaf627ddfe279861f5da3d9ed6b56474ba9bb7c8765"
+      "sha256": "358d1338954de4ad22c9797a0ec4b6d9a761099c7cd77735d6cba50d42200bb7"
     },
     {
       "name": "surface-agents.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "0380a759712819b3532486161cd6b6032f405d3b2c666674d4a7bbc7cc81c7b0"
+      "sha256": "1289406ac0fac31895457292a1085816f2a45cdae7071432eb9c997ebb9e1e4e"
     },
     {
       "name": "surface-knowledge.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "b1a9d368751ad99fed44412b43b884212f83766f6b1dffb2bafd220853e4a4a6"
+      "sha256": "28028f4622c23c409b9e8cf640614a0dcce06c513eb198cb1c4a3f8b177296c5"
     },
     {
       "name": "ui-projects.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "9e306d0821a11635abfdfb16d9d0a868afbe4f32859a48844bd96670f9aa5f52"
+      "sha256": "f86249544e4b60b101bf6cee0bfb8b8df77bdcca618f8cf38470583da738a8dd"
     },
     {
       "name": "ui-work-tree.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "767d3263afba8281189d751bdced2849a081804f26a131919465b33a1158e661"
+      "sha256": "c2b5b74f40f2013a64d7f3f5464516aef6458fe747578978d4e6eb03638da7db"
     },
     {
       "name": "ui-search.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "3ce71e37e955e9275f0969beaf1a10b86a478d0290b561c02fbc1201be5d8811"
+      "sha256": "5027be7795244810f54cbfeb6918a0f7e71b3cc72852b03254564df4dc7eaae6"
     },
     {
       "name": "ui-knowledge-graph.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "765589f050cd66f306e35e5f5f6ad8cdae2316af9b381b61b73a9fefb172f788"
+      "sha256": "8ec4146ba8eb0599213e3d3c963e32f6b9ade652f1dd47441f487531f095d57e"
     },
     {
       "name": "ui-releases.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "6abb2f367c90aacb5188c057322c4067ca76672dfcd0c5b231c135b6c7d64315"
+      "sha256": "04ed4c031929d2f9fd61e089cb5050a6aec00cfe53a5314e458a3ee39a7ac3c5"
     }
   ],
   "spares": [
@@ -62,49 +62,49 @@
       "name": "dark/surface-ticket.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "e811a8a9618b0664181cdf35cac64a8aa6973b83b0c8d70396d44eb1341e6a57"
+      "sha256": "1b030b15ade7b4b3532edce2d5e1b3c69d4fa4cb7ea3cf68cc81365e60640145"
     },
     {
       "name": "dark/surface-agents.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "4946eb678a4bf8c5fd47f9ba647c08fa543b0bf57454fe90c2416798a4bd7d39"
+      "sha256": "8f19da530730497bc895584145bb50dc35877b4c2b33fac15db4bdc37ec6809f"
     },
     {
       "name": "dark/surface-knowledge.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "c125c4860382ec67910f79aec0a835fcbb4ee094ea89ad96bac0e444b0d7db84"
+      "sha256": "25c22150db1c59be7ef7268058113080a63ea4209d0e5f7203bcbc54a46d89c0"
     },
     {
       "name": "dark/ui-projects.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "5af4aa7e825a84a90ba30a91ed0bb3f950d80a37c533977d6ebcca64ef7779c9"
+      "sha256": "c878396aeada9b8b6c888eaf115ff948049b71f048e0ea6083b8acb6cf832cc7"
     },
     {
       "name": "dark/ui-work-tree.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "b0cb30e1c6a28d3fc48c02fa4a52a7476865ad0a19192b69771acfced0222307"
+      "sha256": "133e899ae2bd3f64d6e0974ecff2836710c3e4454a843c3f544e3d0310bfd537"
     },
     {
       "name": "dark/ui-search.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "06f52203197f1232d00ba649f8162e778ae9a15f5eaaa0701f14cefaf4dd8e70"
+      "sha256": "7717649727c3c608504757070fa2ec346159d06249024e19d9e05b4fcce54589"
     },
     {
       "name": "dark/ui-knowledge-graph.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "86286ce535aaa0b4b474b8785ba197938e0047356abfb2dae6bec659cbccd238"
+      "sha256": "c90f000d24bff54221f9f58c69be17846f559bf29afc6cd43e7b2f8d2dce485b"
     },
     {
       "name": "dark/ui-releases.png",
       "width": 3200,
       "height": 2000,
-      "sha256": "ed97ca143f154d92f3098feef3c4ec101cc72e091afeae4c9e9df3d92c2df088"
+      "sha256": "d2234ba65eb4f026b52873127f1385d464b013227d0d8ad91ec73c020bce7e14"
     }
   ],
   "videos": [
@@ -112,23 +112,23 @@
       "name": "loop-ticket-agents.mp4",
       "width": 1280,
       "height": 800,
-      "durationSeconds": 8.125,
-      "bytes": 368111,
-      "sha256": "184063bc05ed103dbe5d5e123161baa33ceb2ce0320e117a6dc8e3357094016c"
+      "durationSeconds": 8.292,
+      "bytes": 371746,
+      "sha256": "4e6ee4105b5fef7260106ce6a4a9efd1e41e9267e4f695a0450b4482e4c51740"
     },
     {
       "name": "loop-search-navigate.mp4",
       "width": 1280,
       "height": 800,
-      "durationSeconds": 6.458,
-      "bytes": 335638,
-      "sha256": "63aea2befbb3269a25cffdffd7fb0d6e0dc5987ac2ef6949efd81ac0914e33da"
+      "durationSeconds": 6.542,
+      "bytes": 364235,
+      "sha256": "588be75ed971731c55bd4e479091c2742fb1c962d0d5db705ffb55aaae6a784c"
     }
   ],
   "layout": {
     "schemaVersion": 2,
     "theme": "light",
-    "observedVersion": "260926085451.0.0",
+    "observedVersion": "260926095249.0.0",
     "viewport": {
       "width": 1600,
       "height": 1000,

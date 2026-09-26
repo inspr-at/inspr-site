@@ -542,12 +542,49 @@ test("Paimos capture publication rejects ambiguous or impossible release identit
 
   try {
     verifyFailure("inspr-calendar-v2", "260230120000.0.0", /not a real date and time/);
-    verifyFailure("inspr-calendar-v2", "26.09.26.06.46", /not YYMMDDHHMMSS\.MINOR\.PATCH/);
+    verifyFailure("inspr-calendar-v2", "26.09.26.06.46", /not YYMMDDHHMMSS\.0\.0/);
+    verifyFailure("inspr-calendar-v2", "260926085451.1.2", /not YYMMDDHHMMSS\.0\.0/);
+    verifyFailure("inspr-calendar-v2", "260926085451.00.0", /not YYMMDDHHMMSS\.0\.0/);
     verifyFailure("calendar", "260926064658.0.0", /release kind must be inspr-calendar-v2/);
     verifyFailure("semver", "5.17.0", /release kind must be inspr-calendar-v2/);
   } finally {
     await rm(captureDir, { recursive: true, force: true });
   }
+});
+
+test("Paimos capture check fails closed on a tampered manifest", async () => {
+  const cwd = fileURLToPath(new URL("..", import.meta.url));
+  const dir = await mkdtemp(join(tmpdir(), "inspr-paimos-manifest-"));
+  const committed = JSON.parse(await source("assets/products/paimos/capture-manifest.json"));
+  const check = async (mutate, expected) => {
+    const manifest = structuredClone(committed);
+    mutate(manifest);
+    const path = join(dir, "capture-manifest.json");
+    await writeFile(path, JSON.stringify(manifest));
+    const result = spawnSync(process.execPath, ["scripts/sync-paimos-captures.mjs", "--check", "--manifest", path], { cwd, encoding: "utf8" });
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, expected);
+  };
+
+  try {
+    await check((m) => m.assets.forEach((asset) => delete asset.sha256), /hash is missing from the manifest/);
+    await check((m) => m.spares.forEach((asset) => delete asset.sha256), /hash is missing from the manifest/);
+    await check((m) => m.videos.forEach((video) => delete video.bytes), /byte size is missing from the manifest/);
+    await check((m) => delete m.layout.observedVersion, /did not report the release being published/);
+    await check((m) => { m.release = "260926085452.0.0"; m.tag = "v260926085452.0.0"; }, /did not report the release being published/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("Paimos surface tabs show the screens their landmarks were measured on", async () => {
+  const surface = await source("components/PaimosProductSurface.astro");
+  const manifest = JSON.parse(await source("assets/products/paimos/capture-manifest.json"));
+  const imports = new Map([...surface.matchAll(/import (\w+) from "\.\.\/assets\/products\/paimos\/([\w-]+\.png)";/g)].map(([, b, f]) => [b, f]));
+  const details = surface.slice(surface.indexOf("const details = ["), surface.indexOf("\n];", surface.indexOf("const details = [")));
+  const shown = [...details.matchAll(/\n    image: (\w+),/g)].map(([, binding]) => imports.get(binding));
+  const measured = ["issueContext", "executionControl", "applicableMemories"].map((key) => manifest.layout.landmarks[key].screen);
+  assert.deepEqual(shown, measured);
 });
 
 test("Paimos product loops stay lazy, bounded and inside the PhotoSwipe gallery", async () => {

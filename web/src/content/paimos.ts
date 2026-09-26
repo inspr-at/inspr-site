@@ -30,7 +30,7 @@ export const paimosContent = {
     sheet: {
       repo: "github.com/inspr-at/paimos",
       runtime: "Self-hosted: one application container and Postgres, sign-in via OIDC.",
-      gate: "Agents ask for each permission; a person approves it before it exists, and the decision is an event in the log.",
+      gate: "An agent works within its key's scopes; gated steps need a grant a person approves, and the decision is an event in the log.",
       artefact: "Work tree, knowledge, work orders and run records, per tenant and permission-aware.",
       interfaces: "UI, CLI, HTTP API",
       maturity: "Paimos 7 · AEON, released, AGPL-3.0-only",
@@ -45,7 +45,7 @@ export const paimosContent = {
         "PAIMOS AEON is self-hosted, multi-tenant project work: one dynamic work tree, a shared knowledge plane, work orders, agent runs and scoped permissions over an append-only event log, exposed through UI, CLI and HTTP API.",
     },
     lead:
-      "PAIMOS AEON is the seventh generation of Paimos: self-hosted project work for teams that work with AI agents. People and agents share one work tree and one body of project knowledge, agents ask before they gain a permission, and every change lands in an append-only event log.",
+      "PAIMOS AEON is the seventh generation of Paimos: self-hosted project work for teams that work with AI agents. People and agents share one work tree and one body of project knowledge, agents work within scoped keys and ask a person before gated steps, and every change lands in an append-only event log.",
     alt: "Abstract project agora with people and AI participants around a shared operating surface",
     primaryLabel: "See how it works",
     primaryHref: "#model",
@@ -78,9 +78,9 @@ export const paimosContent = {
         label: "Scoped permissions",
         icon: "user-round-check",
         group: "security",
-        note: "An agent asks for a scope; a person approves or denies it before it expires. The agent's key is always the ceiling.",
+        note: "Each agent key carries fixed scopes, which are the ceiling. Gated steps need a grant the agent requests and a person approves before it expires.",
         noteEli10:
-          "An AI helper has to ask before it gets a new right, and a person says yes or no. It can never ask for more than its badge allows.",
+          "Each AI helper has a badge that says what it may do. For the sensitive steps it has to ask, and a person says yes or no. It can never get more than its badge allows.",
       },
       {
         label: "Self-hostable",
@@ -332,7 +332,7 @@ export const paimosContent = {
         id: "provenance",
         term: "Provenance attestation",
         matches: ["provenance attestations"],
-        body: "A signed record, attached to the container image, of how and from which source the image was built.",
+        body: "A record, attached to the container image, of how and from which source the image was built.",
       },
       {
         id: "agpl",
@@ -370,7 +370,7 @@ export const paimosContent = {
         icon: "eye-off",
         body:
           "When an agent's rights are whatever its token happens to allow, nobody decided them and nobody can review them. Review and accountability become guesswork.",
-        meta: "Permissions need a request, a person and a record.",
+        meta: "Authority needs a limit, a person and a record.",
       },
       {
         title: "Delivery loses its evidence",
@@ -436,7 +436,7 @@ export const paimosContent = {
         visual: { x: 50, y: 40 },
         icon: "play",
         body:
-          "Put work into a work order with acceptance criteria and a budget. A registered agent session claims the run; when it needs a permission, it asks, and the request waits under Needs you until a person decides.",
+          "Put work into a work order with acceptance criteria and a budget. A registered agent session claims the run and works within its key's scopes; for a gated step it asks for a grant, and the request waits under Needs you until a person decides.",
         meta: "Explicit authority before work; calm supervision while it runs",
         signal: "Work orders, runs and approvals",
         reference: {
@@ -546,7 +546,7 @@ export const paimosContent = {
         {
           title: "Stable names for agents",
           body:
-            "Agents read an entry by its kind and slug, for example paimos knowledge get runbook deploy-checklist, so the same reference works from every harness and from the CLI.",
+            "Agents read an entry by its kind and slug, for example paimos knowledge get runbook deploy-checklist --project KEY, so the same reference works from every harness and from the CLI.",
           meta: "One reference, every harness",
           reference: {
             label: "Agent integration",
@@ -565,7 +565,7 @@ export const paimosContent = {
           title: "Hybrid retrieval",
           body:
             "Search fuses German and English full text with optional pgvector similarity. Without an embeddings endpoint it stays lexical and keeps working.",
-          meta: "Degrades to full text, never to nothing",
+          meta: "Full-text search always stays available",
         },
         {
           title: "Cited intake",
@@ -593,8 +593,8 @@ export const paimosContent = {
           title: "Scoped keys and approvals",
           icon: "sliders-horizontal",
           body:
-            "An agent key holds a fixed set of scopes. An agent may ask only for a scope within that ceiling, and nothing is granted until a person approves it before it expires. Revoking closes the grant.",
-          meta: "The key is the ceiling; a person is the gate",
+            "An agent key holds a fixed set of scopes, checked together with the permissions of its role on every call. Gated steps, such as claiming another agent's run, proposing requirements or passing a journey gate, also need a grant: the agent asks within its key, a person approves before the request expires, and revoking closes the grant.",
+          meta: "The key is the ceiling; a person gates the sensitive steps",
         },
         {
           title: "Work orders with budgets",
@@ -725,8 +725,8 @@ export const paimosContent = {
       {
         title: "Agent permissions",
         body:
-          "An agent proposes only for itself and only within its key. A person decides before the request expires, and approval, denial and revocation are events in the log.",
-        meta: "Nothing is granted by default",
+          "Everyday access is the agent key's scopes intersected with its role. For gated steps an agent proposes a grant only for itself and only within its key; a person decides before the request expires, and approval, denial and revocation are events in the log.",
+        meta: "Gated steps are never granted by default",
       },
       {
         title: "Release integrity",
@@ -817,7 +817,7 @@ export const paimosContent = {
         name: "Embeddings endpoint",
         status: "Optional",
         description:
-          "Any OpenAI-compatible embeddings endpoint, including one on your own hardware, adds meaning-based search. Without it, search stays full text.",
+          "An OpenAI-compatible embeddings endpoint that returns 1,536-dimension vectors, including one on your own hardware, adds meaning-based search. Without it, search stays full text.",
       },
       {
         name: "Webhook wakes",
@@ -836,7 +836,7 @@ export const paimosContent = {
       "People sign in only through an OIDC identity provider the server can reach. There is no local password login, no TOTP and no SAML.",
       "There are no retention windows and no per-person export or erase endpoints yet.",
       "The MCP server is early and answers only whoami today. Use the CLI or HTTP API for issues, knowledge and search.",
-      "Customer-facing access is limited to public quote links with acceptance and a PDF. There is no general customer portal in this release.",
+      "Customers can read, accept and download the quotes addressed to them, through a public link or signed in as the recipient. There is no general customer portal in this release.",
       "Aithema intake is an API. There is no voice or microphone interface in the app.",
       "Releases carry SHA256SUMS and build provenance, not cosign signatures or an SBOM.",
       "Paimos has not yet completed an independent third-party security review.",
@@ -891,7 +891,7 @@ export const paimosContent = {
     {
       question: "Can an agent grant itself more rights?",
       answer:
-        "No. An agent can only ask for a scope within its key, and a person decides. Approval, denial and revocation are recorded as events.",
+        "No. An agent's key and role set what it may do. For gated steps it can only ask for a grant within its key, and a person decides. Approval, denial and revocation are recorded as events.",
     },
     {
       question: "Does Paimos require an AI provider?",

@@ -61,12 +61,13 @@ function readJson(path) {
   }
 }
 
-// Aeon releases are tagged vYYMMDDHHMMSS.MINOR.PATCH (INSPR Calendar
-// Versioning v2). The tag is stored verbatim; it is never inferred.
+// Aeon releases are tagged vYYMMDDHHMMSS.0.0 (INSPR Calendar Versioning v2;
+// aeon scripts/verify-release.mjs fixes the suffix). The tag is stored
+// verbatim; it is never inferred.
 function verifyRelease(releaseKind, release) {
   if (releaseKind !== "inspr-calendar-v2") fail("release kind must be inspr-calendar-v2");
-  const match = release.match(/^(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})\.\d+\.\d+$/);
-  if (!match) fail("release is not YYMMDDHHMMSS.MINOR.PATCH");
+  const match = release.match(/^(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})\.0\.0$/);
+  if (!match) fail("release is not YYMMDDHHMMSS.0.0");
   const [, yy, month, day, hour, minute, second] = match.map(Number);
   const instant = new Date(Date.UTC(2000 + yy, month - 1, day, hour, minute, second));
   if (
@@ -99,8 +100,26 @@ function verifyPublicTag(repository, tag, sourceCommit) {
   if (commit !== sourceCommit) fail(`${tag} resolves to ${commit}, not ${sourceCommit}`);
 }
 
+// The component must show surface N in tab N, or hotspot N would annotate
+// the wrong screen even though its coordinates still match.
+function verifyScreenOrder(source) {
+  const imports = new Map(
+    [...source.matchAll(/import (\w+) from "\.\.\/assets\/products\/paimos\/([\w-]+\.png)";/g)]
+      .map(([, binding, file]) => [binding, file]),
+  );
+  const start = source.indexOf("const details = [");
+  const end = source.indexOf("\n];", start);
+  if (start < 0 || end < 0) fail("component details are missing");
+  const shown = [...source.slice(start, end).matchAll(/\n    image: (\w+),/g)].map(([, binding]) => imports.get(binding));
+  const expected = surfaces.map(({ name }) => name);
+  if (JSON.stringify(shown) !== JSON.stringify(expected)) {
+    fail(`component shows ${JSON.stringify(shown)}, expected ${JSON.stringify(expected)}`);
+  }
+}
+
 function desktopHotspots() {
   const source = readFileSync(componentPath, "utf8");
+  verifyScreenOrder(source);
   const contractStart = source.indexOf("/* Hotspot framing contract:");
   const contractEnd = source.indexOf(".product-surface__frame figcaption", contractStart);
   if (contractStart < 0 || contractEnd < 0) fail("component framing contract is missing");
@@ -144,7 +163,12 @@ function verifyFraming(layout) {
   }
 }
 
-function verifyAsset(path, expected) {
+function requireDigest(expected) {
+  if (!/^[0-9a-f]{64}$/.test(expected.sha256 ?? "")) fail(`${expected.name} hash is missing from the manifest`);
+}
+
+function verifyAsset(path, expected, committed = false) {
+  if (committed) requireDigest(expected);
   const dimensions = pngDimensions(path);
   if (dimensions.width !== 3200 || dimensions.height !== 2000) {
     fail(`${expected.name} must be 3200×2000 (got ${dimensions.width}×${dimensions.height})`);
@@ -154,7 +178,11 @@ function verifyAsset(path, expected) {
   return { name: expected.name, ...dimensions, sha256: digest };
 }
 
-function verifyVideo(path, expected) {
+function verifyVideo(path, expected, committed = false) {
+  if (committed) {
+    requireDigest(expected);
+    if (!Number.isInteger(expected.bytes)) fail(`${expected.name} byte size is missing from the manifest`);
+  }
   const bytes = readFileSync(path);
   const ftyp = bytes.indexOf(Buffer.from("ftyp"));
   const moov = bytes.indexOf(Buffer.from("moov"));
@@ -216,8 +244,8 @@ function verifyVideo(path, expected) {
   };
 }
 
-function verifyCommitted() {
-  const manifest = readJson(manifestPath);
+function verifyCommitted(path = manifestPath, remote = false) {
+  const manifest = readJson(path);
   if (manifest.schemaVersion !== 4) fail("unsupported capture manifest schema");
   if (manifest.product !== "PAIMOS AEON") fail("captures must come from PAIMOS AEON");
   if (!sourceRepositories.includes(manifest.sourceRepository)) fail("unknown source repository");
@@ -225,23 +253,27 @@ function verifyCommitted() {
   if (manifest.tag !== `v${manifest.release}`) fail("tag must be v<release>");
   if (!/^[0-9a-f]{40}$/.test(manifest.sourceCommit)) fail("manifest source commit is invalid");
   if (manifest.data !== "synthetic") fail("captures must use synthetic demo data");
+  if (manifest.layout?.observedVersion !== manifest.release) {
+    fail("the captured instance did not report the release being published");
+  }
+  if (remote) verifyPublicTag(manifest.sourceRepository, manifest.tag, manifest.sourceCommit);
   if (manifest.assets?.length !== assetNames.length) fail(`manifest must contain all ${assetNames.length} captures`);
   for (const name of assetNames) {
     const expected = manifest.assets.find((asset) => asset.name === name);
     if (!expected) fail(`manifest is missing ${name}`);
-    verifyAsset(join(assetDir, name), expected);
+    verifyAsset(join(assetDir, name), expected, true);
   }
   if (manifest.spares?.length !== assetNames.length) fail("manifest must list a dark spare for every capture");
   for (const name of assetNames) {
     const expected = manifest.spares.find((asset) => asset.name === `${spareDir}/${name}`);
     if (!expected) fail(`manifest is missing ${spareDir}/${name}`);
-    verifyAsset(join(assetDir, spareDir, name), expected);
+    verifyAsset(join(assetDir, spareDir, name), expected, true);
   }
   if (manifest.videos?.length !== videoNames.length) fail("manifest must contain both product loops");
   const videos = videoNames.map((name) => {
     const expected = manifest.videos.find((video) => video.name === name);
     if (!expected) fail(`manifest is missing ${name}`);
-    return verifyVideo(join(assetDir, name), expected);
+    return verifyVideo(join(assetDir, name), expected, true);
   });
   const videoBytes = videos.reduce((total, video) => total + video.bytes, 0);
   if (videoBytes > 3 * 1024 * 1024) fail("combined product loops exceed the 3 MiB page-weight budget");
@@ -258,7 +290,8 @@ function valueAfter(flag) {
 }
 
 if (process.argv.includes("--check")) {
-  verifyCommitted();
+  // --remote also re-proves the public tag; the build check stays offline.
+  verifyCommitted(valueAfter("--manifest") || manifestPath, process.argv.includes("--remote"));
 } else {
   const captureDirArg = valueAfter("--capture-dir");
   const release = valueAfter("--release");
@@ -277,6 +310,9 @@ if (process.argv.includes("--check")) {
 
   const layout = readJson(join(captureDir, "capture-surface.json"));
   verifyFraming(layout);
+  if (layout.observedVersion !== release) {
+    fail(`the captured instance reported ${layout.observedVersion ?? "no version"}, not ${release}`);
+  }
   const assets = assetNames.map((name) => verifyAsset(join(captureDir, name), { name }));
   const spares = assetNames.map((name) => ({
     ...verifyAsset(join(captureDir, spareDir, name), { name }),

@@ -46,6 +46,7 @@ test("the level map: what Why hides, and where How adds verified facts", async (
   assert.match(authority, /<p class="aeon-proof" data-depth-min="standard">/);
   const journey = await source("components/AeonJourney.astro");
   assert.match(journey, /<p class="aeon-proof" data-depth-min="standard">/);
+  assert.match(journey, /<p class="aeon-stage__summary aeon-stage__detail" data-depth-min="standard" data-copy-slot>/);
   const deep = await source("components/AeonDeep.astro");
   assert.match(deep, /data-depth-min="technical"/, "the How facts show at How only");
   // The map is documented where the markup lives.
@@ -94,6 +95,11 @@ test("both editions carry Why, What and How for every slot, and no placeholders"
     assert.equal((text.match(/depthMax: "simple"/g) ?? []).length, 1, `${locale}: one Why-only question`);
     assert.equal((text.match(/depthMin: "technical"/g) ?? []).length, 2, `${locale}: two How-only questions`);
     assert.equal((text.match(/depthMin: "standard"/g) ?? []).length, 2, `${locale}: two figures from What up`);
+    // The Deploy stage: its target line shows from What up, recorded, not enforced.
+    const detail = text.match(/detail: \{\n\s+standard: "([^"]+)",\n\s+technical:\s*\n?\s*"([^"]+)",/);
+    assert.ok(detail, `${locale}: the Deploy stage has a target line`);
+    assert.match(detail[2], /not yet enforced|noch nicht durchgesetzt/, `${locale}: How says the target is not enforced`);
+    assert.doesNotMatch(text, /The approval names its target|Die Freigabe nennt ihr Ziel/, `${locale}: no unqualified target claim`);
   }
 });
 

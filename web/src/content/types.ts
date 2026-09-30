@@ -407,6 +407,11 @@ export type AeonContent = {
       decides: string;
       action?: string;
       note?: string;
+      /**
+       * INSPR-497: a line shown from What up (hidden at Why), with a How
+       * variant; `standard` is What, `technical` is How.
+       */
+      detail?: { standard: string; technical: string };
     }>;
     gateLabel: string;
     ui: {

@@ -558,7 +558,12 @@ export const paimosAeonContentDe = {
         name: "Deploy",
         gate: true,
         scope: "journey.deploy",
-        summary: "Pharos verantwortet Deploy. Es prüft die Identität des geprüften Artefakts, aktuelles Backup und Bereitschaft und verbraucht eine Startzulassung, bevor sich ein Host ändert. Die Freigabe nennt ihr Ziel, und ein Tor kann erneuert werden.",
+        summary: "Pharos verantwortet Deploy. Es prüft die Identität des geprüften Artefakts, aktuelles Backup und Bereitschaft und verbraucht eine Startzulassung, bevor sich ein Host ändert. Ein Tor kann erneuert werden.",
+        detail: {
+          standard: "Eine Deploy-Freigabe kann ihr Ziel benennen.",
+          technical:
+            "Eine Deploy-Freigabe kann ihr Ziel benennen (Hosts oder Umgebung, Dienst, Änderung, optional ein Image). Die Deployment-Karte und der Freigabeverlauf zeigen es als vom Agenten benannt; es wird festgehalten, aber noch nicht durchgesetzt.",
+        },
         decides: "Eine Person gibt die Bereitstellung frei.",
         action: "approve_deploy",
       },

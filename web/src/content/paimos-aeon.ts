@@ -565,7 +565,12 @@ export const paimosAeonContent = {
         name: "Deploy",
         gate: true,
         scope: "journey.deploy",
-        summary: "Pharos owns Deploy. It checks the reviewed artifact identity, current backup and readiness, and consumes one launch admission before a host changes. The approval names its target, and a gate can be renewed.",
+        summary: "Pharos owns Deploy. It checks the reviewed artifact identity, current backup and readiness, and consumes one launch admission before a host changes. A gate can be renewed.",
+        detail: {
+          standard: "A deploy approval can name its target.",
+          technical:
+            "A deploy approval can name its target (hosts or environment, service, change, optionally an image). The deployment card and the approval history show it as named by the agent; it is recorded, not yet enforced.",
+        },
         decides: "A person approves the deployment.",
         action: "approve_deploy",
       },

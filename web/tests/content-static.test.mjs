@@ -67,7 +67,10 @@ test("each product route renders its canonical content through ProductPage", asy
   const urls = await source("content/urls.ts");
 
   for (const { slug, exportName, canonical } of products) {
-    const route = await source(`pages/${slug}/index.astro`);
+    // INSPR-492: /paimos is the AEON page; the retired ProductPage for Paimos
+    // lives at /paimos-legacy with a www mount (asserted below).
+    const routeDir = slug === "paimos" ? "paimos-legacy" : slug;
+    const route = await source(`pages/${routeDir}/index.astro`);
 
     assert.match(
       route,
@@ -81,7 +84,9 @@ test("each product route renders its canonical content through ProductPage", asy
     );
     assert.match(
       route,
-      new RegExp(`<ProductPage content=\\{${exportName}\\} \\/>`),
+      slug === "paimos"
+        ? new RegExp(`<ProductPage content=\\{${exportName}\\} mount=\\{\\{ english: siteUrls\\.paimosLegacy, german: siteUrls\\.paimosLegacyGerman \\}\\} \\/>`)
+        : new RegExp(`<ProductPage content=\\{${exportName}\\} \\/>`),
       `${slug} must pass its content to ProductPage`,
     );
     assert.ok(
@@ -1035,6 +1040,8 @@ test("direct SSH deployment overrides preserve one pinned host identity", async 
       join(fixtureRoot, "web", "dist", "overview"),
       join(fixtureRoot, "web", "dist", "de", "ueberblick"),
       join(fixtureRoot, "web", "dist", "paimos", "de"),
+      join(fixtureRoot, "web", "dist", "paimos-aeon", "de"),
+      join(fixtureRoot, "web", "dist", "paimos-legacy", "de"),
       join(fixtureRoot, "web", "dist", "pharos", "de"),
       join(fixtureRoot, "web", "dist", "janus", "de"),
     ];
@@ -1057,6 +1064,10 @@ test("direct SSH deployment overrides preserve one pinned host identity", async 
       writeFile(join(fixtureRoot, "web", "dist", "de", "ueberblick", "index.html"), "fixture german overview\n"),
       writeFile(join(fixtureRoot, "web", "dist", "paimos", "index.html"), "fixture paimos\n"),
       writeFile(join(fixtureRoot, "web", "dist", "paimos", "de", "index.html"), "fixture german paimos\n"),
+      writeFile(join(fixtureRoot, "web", "dist", "paimos-aeon", "index.html"), "fixture paimos aeon\n"),
+      writeFile(join(fixtureRoot, "web", "dist", "paimos-aeon", "de", "index.html"), "fixture german paimos aeon\n"),
+      writeFile(join(fixtureRoot, "web", "dist", "paimos-legacy", "index.html"), "fixture paimos legacy\n"),
+      writeFile(join(fixtureRoot, "web", "dist", "paimos-legacy", "de", "index.html"), "fixture german paimos legacy\n"),
       writeFile(join(fixtureRoot, "web", "dist", "pharos", "index.html"), "fixture pharos\n"),
       writeFile(join(fixtureRoot, "web", "dist", "pharos", "de", "index.html"), "fixture german pharos\n"),
       writeFile(join(fixtureRoot, "web", "dist", "janus", "index.html"), "fixture janus\n"),

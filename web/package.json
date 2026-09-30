@@ -15,10 +15,11 @@
     "test:browser": "playwright test",
     "check": "astro check",
     "links:check": "node scripts/check-links.mjs",
-    "captures:check": "node scripts/sync-paimos-captures.mjs --check"
+    "captures:check": "node scripts/sync-paimos-captures.mjs --check && node scripts/check-aeon-captures.mjs"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.2.9",
+    "@fontsource-variable/geist": "^5.3.0",
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
     "@fontsource-variable/space-grotesk": "^5.2.10",
     "@fontsource/barlow-condensed": "^5.2.8",

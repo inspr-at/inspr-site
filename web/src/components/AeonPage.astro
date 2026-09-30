@@ -1,0 +1,1305 @@
+---
+/**
+ * INSPR-492: the PAIMOS AEON release page at www.inspr.at/paimos-aeon.
+ *
+ * An iteration on the product-page system rather than a new one: the shared
+ * header, hero loop, specs grid, source receipt and footer stay; the rest is
+ * AEON's own story, told around the gold era arc from its mark. The page is
+ * mounted below the www host, so every locale path and the brand link are
+ * scoped to /paimos-aeon/ instead of a product host root.
+ */
+import { Image, getImage } from "astro:assets";
+import MicrositeLayout from "../layouts/MicrositeLayout.astro";
+import MicrositeHeader from "./MicrositeHeader.astro";
+import MicrositeFooter from "./MicrositeFooter.astro";
+import ServiceRibbon from "./ServiceRibbon.astro";
+import DetailLevels from "./DetailLevels.astro";
+import ContextIcon from "./ContextIcon.astro";
+import SpecsGrid, { type LensImage } from "./SpecsGrid.astro";
+import HeroLoop from "./HeroLoop.astro";
+import ProvenanceReceipt from "./ProvenanceReceipt.astro";
+import AeonAuthority from "./AeonAuthority.astro";
+import AeonJourney from "./AeonJourney.astro";
+import AeonRulesPan from "./AeonRulesPan.astro";
+import AeonReleasePlaque from "./AeonReleasePlaque.astro";
+import type { AeonContent, AeonProof } from "../content/types";
+import { siteUrls } from "../content/urls";
+import captureManifest from "../assets/products/paimos-aeon/capture-manifest.json";
+import "@fontsource-variable/geist/index.css";
+import "../styles/aeon.css";
+
+import aeonMark from "../assets/products/paimos/logo.svg";
+import heroPoster from "../assets/products/paimos/hero.png";
+import heroLoop from "../assets/products/paimos/hero-loop.mp4";
+import sessionsDark from "../assets/products/paimos-aeon/sessions-dark.png";
+import ticketsShot from "../assets/products/paimos-aeon/tickets.png";
+import graphShot from "../assets/products/paimos-aeon/graph.png";
+import knowledgeShot from "../assets/products/paimos-aeon/knowledge.png";
+import usageShot from "../assets/products/paimos-aeon/usage.png";
+import rulesShot from "../assets/products/paimos-aeon/rules.png";
+
+interface Props {
+  content: AeonContent;
+  locale?: "en" | "de";
+}
+
+const { content } = Astro.props;
+const locale: "en" | "de" = Astro.props.locale === "de" ? "de" : "en";
+// The same files serve paimos.inspr.at/ (canonical) and www.inspr.at/paimos/,
+// so every in-page locale and home link is relative to the page itself.
+const englishUrl = siteUrls.paimos;
+const germanUrl = `${siteUrls.paimos}/de/`;
+const localLinks = locale === "de" ? { en: "../", de: "./", home: "./" } : { en: "./", de: "de/", home: "./" };
+
+const labels = locale === "de"
+  ? {
+      viewSource: "Quellcode ansehen",
+      proof: "Nachweis im Quellcode",
+      early: "Früh",
+      figuresAria: "AEON in Zahlen",
+      detailsDescription: "Wie viel Detail diese Seite zeigt",
+      detailsSimple: "Einfach",
+      detailsTechnical: "Technisch",
+      specsEli10: "Einfach erklärt",
+      specsFlipAll: "Alle umdrehen",
+      specsUnflipAll: "Alle zurückdrehen",
+      specsShuffle: "Eckdaten-Raster mischen",
+      lensLive: "Live-Bildschirm, aeon.barta.cm",
+      lensIllustration: "Illustration",
+      lensWeb: "Öffentliches Repository, github.com",
+      lensClose: "Schließen",
+      lensPrev: "Vorherige Fähigkeit",
+      lensNext: "Nächste Fähigkeit",
+      lensDialog: "Fähigkeit im Detail",
+      stepsAria: "Vom Schlüssel zur Freigabe",
+      tabsAria: "Bildschirme der Live-Instanz",
+      stagesAria: "Die acht Stufen einer Journey",
+      layersAria: "Die sechs Regel-Ebenen",
+      stopsAria: "Zu einem Teil der Regelansicht springen",
+      tourPause: "Tour pausieren",
+      tourPlay: "Tour abspielen",
+      panPause: "Bewegung pausieren",
+      panResume: "Bewegung fortsetzen",
+      panViewport: "Die Regelansicht von AEON, ziehbar",
+      panHint: "Ziehen, scrollen oder mit den Pfeiltasten bewegen. Die Knöpfe darunter springen zu einem Abschnitt.",
+      enterFull: "Vollbild",
+      exitFull: "Vollbild beenden",
+      layerLocked: "Gesperrte Untergrenze",
+      diagramAria: "Architektur von PAIMOS AEON",
+      horizonAria: "Release-Zeitleiste",
+      faqEyebrow: "Praktische Fragen",
+      faqTitle: "Kurz gefragt.",
+      ribbonAria: "Beispielhafte Ereignisse im Ereignisprotokoll",
+      releaseAria: "Aktuelles Release",
+      codename: "Codename",
+    }
+  : {
+      viewSource: "View the source",
+      proof: "Proof in the source",
+      early: "Early",
+      figuresAria: "AEON in figures",
+      detailsDescription: "How much detail this page shows",
+      detailsSimple: "Simple",
+      detailsTechnical: "Technical",
+      specsEli10: "ELI10 mode",
+      specsFlipAll: "Flip all",
+      specsUnflipAll: "Unflip all",
+      specsShuffle: "Shuffle the specs grid",
+      lensLive: "Live screen, aeon.barta.cm",
+      lensIllustration: "Illustration",
+      lensWeb: "Public repository, github.com",
+      lensClose: "Close",
+      lensPrev: "Previous capability",
+      lensNext: "Next capability",
+      lensDialog: "Capability in detail",
+      stepsAria: "From key to grant",
+      tabsAria: "Screens from the live instance",
+      stagesAria: "The eight stages of a journey",
+      layersAria: "The six rule layers",
+      stopsAria: "Jump to a part of the rules view",
+      tourPause: "Pause tour",
+      tourPlay: "Play tour",
+      panPause: "Pause motion",
+      panResume: "Resume motion",
+      panViewport: "The AEON rules view, draggable",
+      panHint: "Drag, scroll or use the arrow keys to move it. The buttons below jump to a section.",
+      enterFull: "Full screen",
+      exitFull: "Exit full screen",
+      layerLocked: "Locked floor",
+      diagramAria: "PAIMOS AEON architecture",
+      horizonAria: "Release timeline",
+      faqEyebrow: "Practical questions",
+      faqTitle: "In short.",
+      ribbonAria: "Illustrative events in the event log",
+      releaseAria: "Current release",
+      codename: "Codename",
+    };
+
+const proofHref = (proof: AeonProof) => {
+  const base = content.sourceTreeUrl.replace("/tree/", "/blob/");
+  // Directories resolve through /tree/, files through /blob/.
+  return /\.[a-z0-9]+$/i.test(proof.path)
+    ? `${base}/${proof.path}`
+    : `${content.sourceTreeUrl}/${proof.path}`;
+};
+
+// Full-resolution renditions for the lightbox; the captures are 2x.
+const lightbox = async (image: ImageMetadata) => {
+  const full = await getImage({ src: image, width: image.width, format: "webp", quality: 86 });
+  return { src: full.src, width: image.width, height: image.height };
+};
+const shotImages: Record<string, ImageMetadata> = {
+  tickets: ticketsShot,
+  graph: graphShot,
+  knowledge: knowledgeShot,
+  usage: usageShot,
+};
+const screens = await Promise.all(
+  content.theatre.screens.map(async (screen) => ({
+    ...screen,
+    image: shotImages[screen.id],
+    full: await lightbox(shotImages[screen.id]),
+  })),
+);
+const controlFull = await lightbox(sessionsDark);
+
+// The capability lens: one image per capability, keyed by the NN prefix of
+// src/assets/products/paimos-aeon/specs/NN-slug.{jpg,png,webp} in content
+// order (01 to 20). Each image's kind (live screen, generated scene or public
+// web page) comes from the capture manifest, the same record the capture gate
+// verifies, so the placard's source line cannot drift from provenance.
+const lensFiles = import.meta.glob<ImageMetadata>(
+  "../assets/products/paimos-aeon/specs/*.{png,jpg,jpeg,webp}",
+  { eager: true, import: "default" },
+);
+const lensKinds: Record<string, LensImage["kind"]> = { live: "live", generated: "art", "public-web": "web" };
+const lensImages: LensImage[] = content.specs.items.map((item, i) => {
+  const key = String(i + 1).padStart(2, "0");
+  const hit = Object.entries(lensFiles).find(([path]) => path.includes(`/specs/${key}-`));
+  if (!hit) throw new Error(`INSPR-492: missing lens image ${key} for "${item.label}" in src/assets/products/paimos-aeon/specs/`);
+  const name = hit[0].slice(hit[0].indexOf("paimos-aeon/") + "paimos-aeon/".length);
+  const recorded = captureManifest.files.find((file) => file.name === name);
+  const kind = recorded ? lensKinds[recorded.kind] : undefined;
+  if (!kind) throw new Error(`INSPR-492: lens image ${name} has no known kind in capture-manifest.json`);
+  return { image: hit[1], kind };
+});
+const captionTail = content.theatre.note;
+
+const ogImage = new URL(heroPoster.src, siteUrls.inspr).href;
+const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh): /, "");
+---
+
+<MicrositeLayout
+  title={content.seo.title}
+  description={content.seo.description}
+  canonical={content.canonicalUrl}
+  locale={locale}
+  alternateEnglish={englishUrl}
+  alternateGerman={germanUrl}
+  detectLocale={locale === "en"}
+  localePaths={{ en: localLinks.en, de: localLinks.de }}
+  ogImage={ogImage}
+  ogImageAlt={content.hero.alt}
+  favicon={aeonMark.src}
+  theme="paimos"
+>
+  <MicrositeHeader
+    name={content.name}
+    category={content.category}
+    logo={aeonMark.src}
+    active="paimos"
+    homeHref={localLinks.home}
+    nav={content.nav}
+    locale={locale}
+    languageLinks={{ en: localLinks.en, de: localLinks.de }}
+    detailsSlider={{
+      label: "Details",
+      description: labels.detailsDescription,
+      levels: [
+        { id: "simple", label: labels.detailsSimple },
+        { id: "standard", label: "Standard" },
+        { id: "technical", label: labels.detailsTechnical },
+      ],
+    }}
+  />
+
+  <main id="main-content" class="aeon">
+    <ServiceRibbon text={content.serviceIntro} locale={locale} />
+
+    <!-- Hero: the agora loop under the era arc. -->
+    <section class="aeon-hero" aria-labelledby="aeon-hero-title" data-section-pattern="era-hero">
+      <div class="aeon-hero__grid page-shell">
+        <div class="aeon-hero__copy">
+          <p class="eyebrow aeon-hero__eyebrow">
+            <span class="aeon-pulse" aria-hidden="true"></span>{content.hero.eyebrow} · <strong>{content.release.name}</strong>
+          </p>
+          <h1 id="aeon-hero-title">
+            <span class="aeon-hero__title-lead">{content.hero.titleLead}</span>
+            <em class="aeon-accent">{content.hero.titleAccent}</em>
+          </h1>
+          <p class="aeon-hero__lead">
+            <DetailLevels
+              simple={content.hero.depths.simple ?? content.hero.lead}
+              standard={content.hero.lead}
+              technical={content.hero.depths.technical ?? content.hero.lead}
+            />
+          </p>
+          <div class="button-row">
+            <a class="button" href={content.hero.primaryHref}>
+              {content.hero.primaryLabel} <span aria-hidden="true">↓</span>
+            </a>
+            <a class="button button--ghost" href={content.repositoryUrl} target="_blank" rel="noopener noreferrer">
+              {labels.viewSource} <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </div>
+
+        <figure class="aeon-hero__stage">
+          <svg class="aeon-hero__arc" viewBox="0 0 600 150" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="aeon-arc-gold" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0" stop-color="#d69b31" stop-opacity="0.15" />
+                <stop offset="0.5" stop-color="#e6b04c" />
+                <stop offset="1" stop-color="#d69b31" stop-opacity="0.15" />
+              </linearGradient>
+            </defs>
+            <!-- Apex at y 20 and ends at y 138: the whole stroke, glow included,
+                 stays inside the viewBox, so no browser can clip it. -->
+            <path class="aeon-hero__arc-glow" d="M30 138 A368 368 0 0 1 570 138" />
+            <path class="aeon-hero__arc-line" d="M30 138 A368 368 0 0 1 570 138" />
+          </svg>
+          <div class="product-hero__visual aeon-hero__visual">
+            <HeroLoop
+              id="paimos"
+              poster={heroPoster}
+              video={heroLoop}
+              alt={content.hero.alt}
+              sizes="(min-width: 64rem) 52vw, 100vw"
+              locale={locale}
+            />
+          </div>
+          <ul class="aeon-chips" aria-hidden="true" data-chips>
+            {content.hero.chips.map((chip, index) => (
+              <li
+                class:list={["aeon-chip", `aeon-chip--${chip.kind}`, index < 3 && `is-shown aeon-chip--slot-${index + 1}`]}
+                data-chip
+              >
+                <span class="aeon-chip__dot"></span>
+                <span class="aeon-chip__text">
+                  <strong>{chip.label}</strong>
+                  <small>{chip.detail}</small>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </figure>
+      </div>
+
+      <div class="page-shell">
+        <AeonReleasePlaque release={content.release} mark={aeonMark.src} label={labels.releaseAria} />
+      </div>
+
+      <div class="aeon-ribbon" role="group" aria-label={labels.ribbonAria} data-section-pattern="event-ribbon">
+        <p class="aeon-ribbon__label">{content.hero.ribbonLabel}</p>
+        <div class="aeon-ribbon__track">
+          <ol class="aeon-ribbon__list">
+            {content.hero.ribbon.map((event, index) => (
+              <li><span class="aeon-ribbon__seq">#{String(index + 1).padStart(3, "0")}</span>{event}</li>
+            ))}
+          </ol>
+          <ol class="aeon-ribbon__list" aria-hidden="true">
+            {content.hero.ribbon.map((event, index) => (
+              <li><span class="aeon-ribbon__seq">#{String(index + 1).padStart(3, "0")}</span>{event}</li>
+            ))}
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- Figures. -->
+    <section class="aeon-figures page-shell" aria-label={labels.figuresAria} data-section-pattern="figure-ledger">
+      <ol class="aeon-figures__list">
+        {content.figures.map((figure) => (
+          <li data-reveal>
+            <strong class="aeon-figures__value">{figure.value}</strong>
+            <span class="aeon-figures__label">{figure.label}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <!-- Screens from the live instance, with a lightbox gallery. -->
+    <section class="section aeon-theatre" id="screens" aria-labelledby="screens-title" data-section-pattern="screen-theatre" data-theatre>
+      <div class="page-shell">
+        <header class="aeon-theatre__head">
+          <div>
+            <p class="eyebrow">{content.theatre.eyebrow}</p>
+            <h2 id="screens-title">{content.theatre.title}</h2>
+          </div>
+          <p class="section-lead">{content.theatre.lead}</p>
+        </header>
+
+        <div class="aeon-theatre__bar">
+        <div class="aeon-tabs" role="tablist" aria-label={labels.tabsAria}>
+          {screens.map((screen, index) => (
+            <button
+              type="button"
+              role="tab"
+              id={`aeon-tab-${screen.id}`}
+              aria-controls={`aeon-panel-${screen.id}`}
+              aria-selected={index === 0 ? "true" : "false"}
+              tabindex={index === 0 ? "0" : "-1"}
+              class="aeon-tab"
+              data-theatre-tab
+            >
+              <span class="aeon-tab__index">{String(index + 1).padStart(2, "0")}</span>
+              <span>{screen.tab}</span>
+              <span class="aeon-tab__progress" aria-hidden="true"></span>
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          class="aeon-motion-toggle"
+          data-theatre-toggle
+          aria-pressed="false"
+          data-label-pause={labels.tourPause}
+          data-label-play={labels.tourPlay}
+          hidden
+        >
+          <span class="aeon-motion-toggle__icon" aria-hidden="true"></span>
+          <span data-theatre-toggle-label>{labels.tourPause}</span>
+        </button>
+        </div>
+
+        <div class="aeon-theatre__stage" data-aeon-gallery>
+          {screens.map((screen, index) => (
+            <div
+              class="aeon-theatre__panel"
+              role="tabpanel"
+              id={`aeon-panel-${screen.id}`}
+              aria-labelledby={`aeon-tab-${screen.id}`}
+              data-theatre-panel
+              hidden={index !== 0}
+            >
+              <a
+                class="aeon-window aeon-shot"
+                href={screen.full.src}
+                target="_blank"
+                rel="noopener"
+                data-aeon-shot
+                data-pswp-width={screen.full.width}
+                data-pswp-height={screen.full.height}
+                data-caption={`${screen.title} · ${captionTail}`}
+              >
+                <span class="aeon-window__bar" aria-hidden="true"><i></i><i></i><i></i><span>aeon.barta.cm</span></span>
+                <Image
+                  src={screen.image}
+                  alt={screen.alt}
+                  widths={[800, 1200, 1600, 2400]}
+                  sizes="(min-width: 90rem) 88rem, 94vw"
+                  format="webp"
+                  quality={84}
+                />
+                <span class="aeon-shot__zoom" aria-hidden="true">{content.theatre.openLabel} ⤢</span>
+              </a>
+              <p class="aeon-theatre__caption"><strong>{screen.title}</strong> {screen.body}</p>
+            </div>
+          ))}
+        </div>
+        <p class="aeon-theatre__note">{content.theatre.note}</p>
+      </div>
+    </section>
+
+    <SpecsGrid
+      specs={content.specs}
+      variant="aeon"
+      groupLabels={content.specGroups}
+      lens={{
+        images: lensImages,
+        labels: {
+          live: labels.lensLive,
+          illustration: labels.lensIllustration,
+          web: labels.lensWeb,
+          close: labels.lensClose,
+          prev: labels.lensPrev,
+          next: labels.lensNext,
+          dialog: labels.lensDialog,
+        },
+      }}
+      labels={{
+        eli10: labels.specsEli10,
+        flipAll: labels.specsFlipAll,
+        unflipAll: labels.specsUnflipAll,
+        shuffle: labels.specsShuffle,
+      }}
+    />
+
+    <!-- Control room: the live sessions view. -->
+    <section class="section section--ink aeon-control" id="control-room" aria-labelledby="control-title" data-section-pattern="control-room">
+      <div class="page-shell">
+        <header class="aeon-split-head">
+          <div>
+            <p class="eyebrow">{content.controlRoom.eyebrow}</p>
+            <h2 id="control-title">{content.controlRoom.title}</h2>
+          </div>
+          <p class="section-lead">
+            <DetailLevels
+              simple={content.controlRoom.depths.simple ?? content.controlRoom.lead}
+              standard={content.controlRoom.lead}
+              technical={content.controlRoom.depths.technical ?? content.controlRoom.lead}
+            />
+          </p>
+        </header>
+
+        <div class="aeon-control__shot" data-aeon-gallery data-reveal>
+          <a
+            class="aeon-window aeon-window--dark aeon-shot"
+            href={controlFull.src}
+            target="_blank"
+            rel="noopener"
+            data-aeon-shot
+            data-pswp-width={controlFull.width}
+            data-pswp-height={controlFull.height}
+            data-caption={`${content.controlRoom.title} · ${captionTail}`}
+          >
+            <span class="aeon-window__bar" aria-hidden="true"><i></i><i></i><i></i><span>/agents</span></span>
+            <Image
+              src={sessionsDark}
+              alt={content.controlRoom.screenAlt}
+              widths={[800, 1200, 1600, 2400]}
+              sizes="(min-width: 90rem) 88rem, 94vw"
+              format="webp"
+              quality={84}
+            />
+            <span class="aeon-shot__zoom" aria-hidden="true">{content.theatre.openLabel} ⤢</span>
+          </a>
+        </div>
+
+        <ul class="aeon-features">
+          {content.controlRoom.items.map((item) => (
+            <li class="aeon-feature" data-reveal>
+              <span class="aeon-feature__icon" aria-hidden="true">
+                <ContextIcon name={item.icon} size={20} strokeWidth={1.9} />
+              </span>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+              {item.caveat && <p class="aeon-feature__caveat">{item.caveat}</p>}
+            </li>
+          ))}
+        </ul>
+
+        <div class="aeon-pairing" data-reveal>
+          <div class="aeon-pairing__copy">
+            <p class="eyebrow">{content.controlRoom.pairing.eyebrow}</p>
+            <h3>{content.controlRoom.pairing.title}</h3>
+            <ul class="aeon-harnesses" aria-label={content.controlRoom.pairing.harnessesLabel}>
+              {content.controlRoom.pairing.harnesses.map((harness) => <li>{harness}</li>)}
+            </ul>
+          </div>
+          <ol class="aeon-terminal">
+            {content.controlRoom.pairing.steps.map((step, index) => (
+              <li>
+                <span class="aeon-terminal__step" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                <span class="aeon-terminal__body">
+                  <span>{step.label}</span>
+                  {step.command ? (
+                    <code><span aria-hidden="true">$ </span>{step.command}</code>
+                  ) : (
+                    <span class="aeon-code" aria-hidden="true"><i></i><i></i><i></i><b></b><i></i><i></i><i></i><b></b><i></i><i></i><i></i></span>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <p class="aeon-proof aeon-proof--ink">
+          <span class="aeon-proof__label">{labels.proof}</span>
+          {content.controlRoom.proof.map((proof) => (
+            <a href={proofHref(proof)} target="_blank" rel="noopener noreferrer">{proof.label} <span aria-hidden="true">↗</span></a>
+          ))}
+        </p>
+      </div>
+    </section>
+
+    <AeonAuthority content={content.authority} proofs={content.authority.proof.map((proof) => ({ label: proof.label, href: proofHref(proof) }))} labels={{ proof: labels.proof, steps: labels.stepsAria }} />
+
+    <!-- Rules: six layers, shown as the live rules view panning past. -->
+    <section class="section section--tint aeon-rules" id="rules" aria-labelledby="rules-title" data-section-pattern="rules-pan">
+      <div class="page-shell aeon-rules__grid">
+        <div>
+          <p class="eyebrow">{content.rules.eyebrow}</p>
+          <h2 id="rules-title">{content.rules.title}</h2>
+          <p class="section-lead">
+            <DetailLevels
+              simple={content.rules.depths.simple ?? content.rules.lead}
+              standard={content.rules.lead}
+              technical={content.rules.depths.technical ?? content.rules.lead}
+            />
+          </p>
+          <dl class="aeon-points">
+            {content.rules.points.map((point) => (
+              <div>
+                <dt>{point.title}</dt>
+                <dd>{point.body}</dd>
+              </div>
+            ))}
+          </dl>
+          <p class="aeon-early"><span class="aeon-badge aeon-badge--early">{labels.early}</span>{stripPrefix(content.rules.early)}</p>
+          <p class="aeon-proof">
+            <span class="aeon-proof__label">{labels.proof}</span>
+            {content.rules.proof.map((proof) => (
+              <a href={proofHref(proof)} target="_blank" rel="noopener noreferrer">{proof.label} <span aria-hidden="true">↗</span></a>
+            ))}
+          </p>
+        </div>
+
+        <AeonRulesPan
+          image={rulesShot}
+          alt={content.rules.screenAlt}
+          path="/settings/agent-rules"
+          stops={content.rules.stops}
+          labels={{
+            stops: labels.stopsAria,
+            viewport: labels.panViewport,
+            hint: labels.panHint,
+            enterFull: labels.enterFull,
+            exitFull: labels.exitFull,
+            pause: labels.panPause,
+            resume: labels.panResume,
+          }}
+        />
+      </div>
+    </section>
+
+    <AeonJourney content={content.delivery} proofs={content.delivery.proof.map((proof) => ({ label: proof.label, href: proofHref(proof) }))} labels={{ proof: labels.proof, stages: labels.stagesAria }} />
+
+    <!-- Architecture: the blueprint. -->
+    <section class="section section--ink aeon-blueprint" id="architecture" aria-labelledby="architecture-title" data-section-pattern="blueprint">
+      <div class="page-shell">
+        <header class="aeon-split-head">
+          <div>
+            <p class="eyebrow">{content.architecture.eyebrow}</p>
+            <h2 id="architecture-title">{content.architecture.title}</h2>
+          </div>
+          <p class="section-lead">
+            <DetailLevels
+              simple={content.architecture.depths.simple ?? content.architecture.lead}
+              standard={content.architecture.lead}
+              technical={content.architecture.depths.technical ?? content.architecture.lead}
+            />
+          </p>
+        </header>
+
+        <div class="aeon-diagram" role="group" aria-label={labels.diagramAria} data-reveal>
+          <div class="aeon-diagram__col aeon-diagram__col--clients">
+            <p class="aeon-diagram__label">{content.architecture.diagram.clientsLabel}</p>
+            <ul>{content.architecture.diagram.clients.map((item) => <li>{item}</li>)}</ul>
+          </div>
+          <div class="aeon-diagram__link" aria-hidden="true"><span></span></div>
+          <div class="aeon-diagram__col aeon-diagram__col--server">
+            <p class="aeon-diagram__label">{content.architecture.diagram.serverLabel}</p>
+            <ul>{content.architecture.diagram.server.map((item) => <li>{item}</li>)}</ul>
+          </div>
+          <div class="aeon-diagram__link aeon-diagram__link--live" aria-hidden="true">
+            <span></span><small>{content.architecture.diagram.live}</small>
+          </div>
+          <div class="aeon-diagram__col aeon-diagram__col--db">
+            <p class="aeon-diagram__label">{content.architecture.diagram.databaseLabel}</p>
+            <ul>{content.architecture.diagram.database.map((item) => <li>{item}</li>)}</ul>
+          </div>
+          <div class="aeon-diagram__daemon">
+            <div class="aeon-diagram__drop" aria-hidden="true"><span></span></div>
+            <div class="aeon-diagram__col aeon-diagram__col--daemon">
+              <p class="aeon-diagram__label">{content.architecture.diagram.daemonLabel}</p>
+              <p class="aeon-diagram__daemon-name">{content.architecture.diagram.daemon}</p>
+              <ul class="aeon-harnesses aeon-harnesses--ink">
+                {content.architecture.diagram.harnesses.map((harness) => <li>{harness}</li>)}
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <ol class="aeon-notes">
+          {content.architecture.notes.map((note, index) => (
+            <li data-reveal>
+              <span class="aeon-notes__index" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+              <h3>{note.title}</h3>
+              <p>{note.body}</p>
+              <a href={proofHref(note.proof)} target="_blank" rel="noopener noreferrer">{note.proof.label} <span aria-hidden="true">↗</span></a>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <!-- What is coming. -->
+    <section class="section aeon-horizon" id="next" aria-labelledby="horizon-title" data-section-pattern="release-horizon">
+      <div class="page-shell">
+        <header class="aeon-split-head">
+          <div>
+            <p class="eyebrow">{content.horizon.eyebrow}</p>
+            <h2 id="horizon-title">{content.horizon.title}</h2>
+          </div>
+          <p class="section-lead">{content.horizon.lead}</p>
+        </header>
+        <ol class="aeon-horizon__list" aria-label={labels.horizonAria}>
+          {content.horizon.releases.map((release) => (
+            <li class:list={["aeon-horizon__release", `aeon-horizon__release--${release.status}`]} data-reveal>
+              <span class="aeon-horizon__node" aria-hidden="true"></span>
+              <p class="aeon-horizon__meta">
+                <span class:list={["aeon-badge", `aeon-badge--${release.status}`]}>{release.statusLabel}</span>
+                <span>{release.when}</span>
+              </p>
+              <h3>
+                {release.label}
+              </h3>
+              <ul>{release.items.map((item) => <li><strong>{item.title}</strong> {item.body}</li>)}</ul>
+            </li>
+          ))}
+        </ol>
+        <div class="aeon-good" data-reveal>
+          <h3>{content.horizon.goodToKnow.title}</h3>
+          <ul>
+            {content.horizon.goodToKnow.items.map((item) => <li>{item}</li>)}
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section page-shell open-source" id="open-source" aria-labelledby="source-title" data-section-pattern="provenance-receipt">
+      <div>
+        <p class="eyebrow">{content.openSource.eyebrow}</p>
+        <h2 id="source-title">{content.openSource.title}</h2>
+        <p class="section-lead">{content.openSource.body}</p>
+      </div>
+      <ProvenanceReceipt links={content.openSource.links} locale={locale} />
+    </section>
+
+    <section class="section page-shell faq" aria-labelledby="faq-title" data-section-pattern="faq-accordion">
+      <header class="section-intro">
+        <p class="eyebrow">{labels.faqEyebrow}</p>
+        <h2 id="faq-title">{labels.faqTitle}</h2>
+      </header>
+      <div class="faq-list">
+        {content.faq.map((item) => (
+          <details>
+            <summary>{item.question}</summary>
+            <p>{item.answer}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+  </main>
+
+  <MicrositeFooter
+    name={content.name}
+    repositoryUrl={content.repositoryUrl}
+    licenseName="AGPL-3.0-only"
+    licenseUrl={`${content.repositoryUrl}/blob/${content.release.version}/LICENSE`}
+    ctaTitle={content.finalCta.title}
+    ctaBody={content.finalCta.body}
+    locale={locale}
+  />
+</MicrositeLayout>
+
+<script>
+  // The lightbox: PhotoSwipe, bundled by Astro into a hashed module so
+  // script-src 'self' covers it. Each [data-aeon-gallery] is one gallery.
+  import PhotoSwipeLightbox from "photoswipe/lightbox";
+  import "photoswipe/style.css";
+
+  const lightbox = new PhotoSwipeLightbox({
+    gallery: "[data-aeon-gallery]",
+    children: "a[data-aeon-shot]",
+    pswpModule: () => import("photoswipe"),
+    bgOpacity: 0.92,
+    padding: { top: 28, bottom: 64, left: 28, right: 28 },
+    wheelToZoom: true,
+  });
+  lightbox.on("uiRegister", () => {
+    lightbox.pswp?.ui?.registerElement({
+      name: "custom-caption",
+      order: 9,
+      isButton: false,
+      appendTo: "root",
+      onInit: (el, pswp) => {
+        pswp.on("change", () => {
+          const anchor = pswp.currSlide?.data?.element;
+          el.textContent = anchor?.getAttribute("data-caption") ?? "";
+        });
+      },
+    });
+  });
+  lightbox.on("beforeOpen", () => document.body.classList.add("lightbox-open"));
+  lightbox.on("destroy", () => document.body.classList.remove("lightbox-open"));
+  lightbox.init();
+</script>
+
+<script>
+  const reduceMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Reveal on scroll. Without IntersectionObserver or with reduced motion,
+  // everything is simply visible.
+  const initReveal = () => {
+    const items = [...document.querySelectorAll<HTMLElement>(".aeon [data-reveal]")];
+    if (!("IntersectionObserver" in window) || reduceMotion()) {
+      items.forEach((item) => item.classList.add("is-in"));
+      return;
+    }
+    document.documentElement.classList.add("aeon-reveal-ready");
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("is-in");
+        observer.unobserve(entry.target);
+      });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.12 });
+    items.forEach((item) => observer.observe(item));
+  };
+
+  // The capability lens (AEON specs). Hover or keyboard focus on a card puts
+  // its image, whole, across the viewport behind ghost tiles and a docked
+  // placard; click or tap opens the same lens as a dialog with prev/next,
+  // arrow keys, Escape, a focus trap and swipe. Also: the pointer light on
+  // the glass, a staggered entrance, the Chromium lens filter and the
+  // preload of all twenty images once the section comes near.
+  const initSpecsLens = () => {
+    const root = document.querySelector<HTMLElement>(".specs--aeon");
+    const lens = root?.querySelector<HTMLElement>("[data-specs-lens]");
+    const grid = root?.querySelector<HTMLElement>(".specs__grid");
+    if (!root || !lens || !grid) return;
+    const html = document.documentElement;
+    const placard = root.querySelector<HTMLElement>("[data-specs-placard]");
+    const tiles = [...root.querySelectorAll<HTMLElement>(".specs__tile[data-backdrop]")];
+    const tileById = new Map(tiles.map((tile) => [tile.dataset.backdrop ?? "", tile]));
+    const slides = new Map<string, HTMLElement>();
+    lens.querySelectorAll<HTMLElement>("[data-slide]").forEach((slide) => slides.set(slide.dataset.slide ?? "", slide));
+    const bodies = new Map<string, HTMLElement>();
+    placard?.querySelectorAll<HTMLElement>("[data-placard]").forEach((body) => bodies.set(body.dataset.placard ?? "", body));
+    const order = [...slides.keys()];
+    const closeBtn = lens.querySelector<HTMLButtonElement>("[data-lens-close]");
+    const prevBtn = lens.querySelector<HTMLButtonElement>("[data-lens-prev]");
+    const nextBtn = lens.querySelector<HTMLButtonElement>("[data-lens-next]");
+    const reduced = reduceMotion();
+    const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    const tileOf = (target: EventTarget | null) =>
+      target instanceof Element ? target.closest<HTMLElement>(".specs__tile[data-backdrop]") : null;
+
+    // Refraction: only Chromium takes an SVG filter as a backdrop-filter.
+    if ("userAgentData" in navigator && CSS.supports("backdrop-filter", "url(#aeon-lens)")) {
+      root.classList.add("has-lens");
+    }
+
+    // Entrance: tiles fade up as they scroll into view, in visual order.
+    if (!reduced && "IntersectionObserver" in window) {
+      root.classList.add("is-arming");
+      const observer = new IntersectionObserver((entries) => {
+        entries
+          .filter((entry) => entry.isIntersecting)
+          .map((entry) => entry.target as HTMLElement)
+          .sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
+          .forEach((tile, i) => {
+            tile.style.setProperty("--i", String(i));
+            tile.classList.add("is-in");
+            observer.unobserve(tile);
+          });
+      }, { threshold: 0.2, rootMargin: "0px 0px -4% 0px" });
+      tiles.forEach((tile) => observer.observe(tile));
+    }
+
+    // The light field only animates while the section is on screen.
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver((entries) => {
+        root.classList.toggle("is-offscreen", !entries.some((entry) => entry.isIntersecting));
+      }, { rootMargin: "20% 0px" }).observe(root);
+    }
+
+    // Pointer light on the glass, one rAF per frame at most.
+    if (fine) {
+      let frame = 0;
+      let pending: { tile: HTMLElement; x: number; y: number } | null = null;
+      const paint = () => {
+        frame = 0;
+        if (!pending) return;
+        const { tile, x, y } = pending;
+        pending = null;
+        const rect = tile.getBoundingClientRect();
+        tile.style.setProperty("--mx", `${(x - rect.left).toFixed(1)}px`);
+        tile.style.setProperty("--my", `${(y - rect.top).toFixed(1)}px`);
+      };
+      grid.addEventListener("pointermove", (event) => {
+        const tile = tileOf(event.target);
+        if (!tile) return;
+        pending = { tile, x: event.clientX, y: event.clientY };
+        if (!frame) frame = requestAnimationFrame(paint);
+      });
+    }
+
+    // Preload: once the section is within 1000px, fetch and decode every
+    // slide at the rendition the browser picks for this viewport.
+    let warmed = false;
+    const warm = () => {
+      if (warmed) return;
+      warmed = true;
+      lens.classList.add("is-warm");
+      lens.querySelectorAll<HTMLImageElement>("img").forEach((img) => {
+        img.loading = "eager";
+        img.decode().catch(() => {});
+      });
+    };
+    if ("IntersectionObserver" in window) {
+      const near = new IntersectionObserver((entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        warm();
+        near.disconnect();
+      }, { rootMargin: "1000px 0px" });
+      near.observe(root);
+    } else {
+      warm();
+    }
+
+    let current: string | null = null;
+    let modal = false;
+    let opener: HTMLElement | null = null;
+    let intentTimer = 0;
+    let leaveTimer = 0;
+    let endTimer = 0;
+    let enterTimer = 0;
+    let swapTimer = 0;
+    let suppressFocusUntil = 0;
+    let suppressHoverUntil = 0;
+    let inerted: Element[] = [];
+    const placardHome = placard?.nextSibling ?? null;
+    const leaveMs = reduced ? 0 : 1500;
+    const enterMs = reduced ? 0 : 5200;
+    const swapMs = reduced ? 0 : 500;
+
+    // The placard's label fades out, swaps, fades in; instant on first light.
+    const showBody = (id: string, fade: boolean) => {
+      window.clearTimeout(swapTimer);
+      const swap = () => {
+        bodies.forEach((body, key) => {
+          body.hidden = key !== id;
+        });
+      };
+      if (!fade || !placard) {
+        swap();
+        return;
+      }
+      placard.classList.add("is-swapping");
+      swapTimer = window.setTimeout(() => {
+        swap();
+        placard.classList.remove("is-swapping");
+        placard.classList.add("is-swapped");
+        swapTimer = window.setTimeout(() => placard.classList.remove("is-swapped"), swapMs);
+      }, swapMs);
+    };
+
+    const activate = async (id: string) => {
+      const slide = slides.get(id);
+      if (!slide) return;
+      const img = slide.querySelector<HTMLImageElement>(".specs__slide-img");
+      if (img) {
+        img.loading = "eager";
+        try {
+          await img.decode();
+        } catch {
+          // An undecodable image still swaps; the fill and placard carry it.
+        }
+      }
+      if (current !== id) return;
+      requestAnimationFrame(() => {
+        slides.forEach((other, key) => other.classList.toggle("is-active", key === id));
+      });
+    };
+
+    // In the dialog, the current slide's image is the content (a real alt),
+    // the others are hidden from AT, and the dialog is named and described
+    // by the placard's label and note, which live inside it while modal.
+    const describe = (id: string) => {
+      slides.forEach((slide, key) => {
+        const img = slide.querySelector<HTMLImageElement>(".specs__slide-img");
+        const on = modal && key === id;
+        slide.setAttribute("aria-hidden", String(!on));
+        if (img) img.alt = on ? img.dataset.alt ?? "" : "";
+      });
+      if (modal) {
+        lens.setAttribute("aria-labelledby", `specs-lens-title specs-lens-label-${id}`);
+        lens.setAttribute("aria-describedby", `specs-lens-note-${id}`);
+      }
+    };
+
+    const light = (id: string) => {
+      window.clearTimeout(leaveTimer);
+      window.clearTimeout(endTimer);
+      const tile = tileById.get(id);
+      if (!tile) return;
+      if (current !== id) {
+        const handover = current !== null;
+        if (current) tileById.get(current)?.classList.remove("is-lit");
+        current = id;
+        tile.classList.add("is-lit");
+        showBody(id, handover);
+        describe(id);
+        // Entering dissolves the page slowly; a handover, or the end of the
+        // dissolve, returns the ghosts to their 1s handover timing.
+        window.clearTimeout(enterTimer);
+        if (handover) {
+          html.classList.remove("aeon-lens-entering");
+        } else {
+          html.classList.add("aeon-lens-entering");
+          enterTimer = window.setTimeout(() => html.classList.remove("aeon-lens-entering"), enterMs);
+        }
+        // The placard docks in the bottom corner away from the lit card,
+        // and never over it.
+        if (placard) {
+          const rect = tile.getBoundingClientRect();
+          placard.classList.toggle("is-right", rect.left + rect.width / 2 < window.innerWidth / 2);
+          const box = placard.getBoundingClientRect();
+          const overlaps = box.left < rect.right && box.right > rect.left && box.top < rect.bottom && box.bottom > rect.top;
+          if (overlaps) placard.classList.toggle("is-right");
+        }
+        activate(id);
+      }
+      root.classList.add("is-lensing");
+      html.classList.add("aeon-lens");
+    };
+
+    const end = () => {
+      window.clearTimeout(intentTimer);
+      window.clearTimeout(leaveTimer);
+      if (modal || !current) return;
+      const tile = tileById.get(current);
+      current = null;
+      window.clearTimeout(enterTimer);
+      window.clearTimeout(swapTimer);
+      html.classList.remove("aeon-lens", "aeon-lens-entering");
+      placard?.classList.remove("is-swapping", "is-swapped");
+      // The card holds its place above the layer until the return is over.
+      endTimer = window.setTimeout(() => {
+        tile?.classList.remove("is-lit");
+        root.classList.remove("is-lensing");
+        slides.forEach((slide) => slide.classList.remove("is-active"));
+      }, leaveMs);
+    };
+
+    const step = (delta: number) => {
+      if (!current) return;
+      const index = order.indexOf(current);
+      light(order[(index + delta + order.length) % order.length]);
+    };
+
+    const openModal = (id: string, from: HTMLElement | null) => {
+      opener = from;
+      modal = true;
+      light(id);
+      // The dialog has its own 0.9s timing; no slow dissolve here.
+      window.clearTimeout(enterTimer);
+      html.classList.remove("aeon-lens-entering");
+      lens.classList.add("is-modal");
+      lens.setAttribute("role", "dialog");
+      lens.setAttribute("aria-modal", "true");
+      // The placard joins the dialog so its name and description are inside.
+      if (placard) lens.append(placard);
+      describe(id);
+      // Everything outside the dialog goes inert: every sibling on the way
+      // up from the layer to the body.
+      inerted = [];
+      for (let node: Element | null = lens; node && node !== document.body; node = node.parentElement) {
+        const parent: HTMLElement | null = node.parentElement;
+        if (!parent) break;
+        for (const sibling of Array.from(parent.children) as Element[]) {
+          if (sibling !== node && !sibling.hasAttribute("inert")) {
+            sibling.setAttribute("inert", "");
+            inerted.push(sibling);
+          }
+        }
+      }
+      root.classList.add("is-modal");
+      html.classList.add("aeon-lens-modal");
+      closeBtn?.focus({ preventScroll: true });
+    };
+
+    const closeModal = () => {
+      if (!modal) return;
+      modal = false;
+      lens.classList.remove("is-modal");
+      lens.removeAttribute("role");
+      lens.removeAttribute("aria-modal");
+      lens.removeAttribute("aria-labelledby");
+      lens.removeAttribute("aria-describedby");
+      inerted.forEach((node) => node.removeAttribute("inert"));
+      inerted = [];
+      if (placard) root.insertBefore(placard, placardHome);
+      if (current) describe(current);
+      root.classList.remove("is-modal");
+      html.classList.remove("aeon-lens-modal");
+      end();
+      // Closing returns to rest: neither the focus we hand back nor the
+      // browser's synthetic hover under a resting pointer relights it.
+      suppressFocusUntil = performance.now() + 400;
+      suppressHoverUntil = performance.now() + 700;
+      opener?.focus({ preventScroll: true });
+    };
+
+    // Hover: intent pause, then the image; sticky across the gaps, gone
+    // 700ms after the pointer leaves the grid.
+    if (fine) {
+      grid.addEventListener("pointerover", (event) => {
+        const tile = tileOf(event.target);
+        if (!tile || performance.now() < suppressHoverUntil) return;
+        window.clearTimeout(intentTimer);
+        intentTimer = window.setTimeout(() => light(tile.dataset.backdrop ?? ""), 80);
+      });
+      grid.addEventListener("pointerenter", () => window.clearTimeout(leaveTimer));
+      grid.addEventListener("pointerleave", () => {
+        window.clearTimeout(intentTimer);
+        window.clearTimeout(leaveTimer);
+        leaveTimer = window.setTimeout(end, 700);
+      });
+    }
+
+    // Keyboard: focus lights, leaving the grid ends.
+    grid.addEventListener("focusin", (event) => {
+      const tile = tileOf(event.target);
+      if (!tile || modal || performance.now() < suppressFocusUntil) return;
+      if (!(event.target instanceof Element) || !event.target.matches(":focus-visible")) return;
+      light(tile.dataset.backdrop ?? "");
+    });
+    grid.addEventListener("focusout", (event) => {
+      if (modal) return;
+      if (event.relatedTarget instanceof Node && grid.contains(event.relatedTarget)) return;
+      window.clearTimeout(leaveTimer);
+      leaveTimer = window.setTimeout(end, 700);
+    });
+
+    // Click or tap: the dialog.
+    grid.addEventListener("click", (event) => {
+      const button = event.target instanceof Element ? event.target.closest<HTMLElement>(".specs__lens-btn") : null;
+      const tile = tileOf(button);
+      if (!button || !tile) return;
+      openModal(tile.dataset.backdrop ?? "", button);
+    });
+    closeBtn?.addEventListener("click", closeModal);
+    prevBtn?.addEventListener("click", () => step(-1));
+    nextBtn?.addEventListener("click", () => step(1));
+
+    // Swipe between capabilities in the dialog.
+    let swipeX: number | null = null;
+    lens.addEventListener("pointerdown", (event) => {
+      if (!modal || event.pointerType === "mouse") return;
+      swipeX = event.clientX;
+    });
+    lens.addEventListener("pointerup", (event) => {
+      if (!modal || swipeX === null) return;
+      const dx = event.clientX - swipeX;
+      swipeX = null;
+      if (Math.abs(dx) > 40) step(dx < 0 ? 1 : -1);
+    });
+    lens.addEventListener("pointercancel", () => {
+      swipeX = null;
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        if (modal) closeModal();
+        else end();
+        return;
+      }
+      if (!modal) return;
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        step(-1);
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        step(1);
+      } else if (event.key === "Tab") {
+        // Focus trap over the dialog's three controls.
+        const ring = [closeBtn, prevBtn, nextBtn].filter((b): b is HTMLButtonElement => Boolean(b));
+        if (!ring.length) return;
+        const index = ring.indexOf(document.activeElement as HTMLButtonElement);
+        const next = event.shiftKey
+          ? ring[(index - 1 + ring.length) % ring.length]
+          : ring[(index + 1) % ring.length];
+        event.preventDefault();
+        next.focus();
+      }
+    });
+
+    // Scrolling the section out of view ends a hover lens.
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver((entries) => {
+        if (!modal && current && !entries.some((entry) => entry.isIntersecting)) end();
+      }, { threshold: 0 }).observe(grid);
+    }
+  };
+
+  // The screen theatre: accessible tabs with a guided tour that starts once
+  // in view and stops at the first interaction.
+  const initTheatre = () => {
+    const root = document.querySelector<HTMLElement>("[data-theatre]");
+    if (!root) return;
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>("[data-theatre-tab]")];
+    const panels = [...root.querySelectorAll<HTMLElement>("[data-theatre-panel]")];
+    const dwell = 7000;
+    let current = 0;
+    let timer = 0;
+    let playing = false;
+
+    const select = (index: number, focus = false) => {
+      current = (index + tabs.length) % tabs.length;
+      tabs.forEach((tab, i) => {
+        const selected = i === current;
+        tab.setAttribute("aria-selected", String(selected));
+        tab.tabIndex = selected ? 0 : -1;
+        tab.classList.remove("is-running");
+      });
+      panels.forEach((panel, i) => {
+        panel.hidden = i !== current;
+      });
+      if (focus) tabs[current].focus();
+      if (playing) schedule();
+    };
+
+    const schedule = () => {
+      window.clearTimeout(timer);
+      const tab = tabs[current];
+      tab.classList.remove("is-running");
+      void tab.offsetWidth;
+      tab.style.setProperty("--dwell", `${dwell}ms`);
+      tab.classList.add("is-running");
+      timer = window.setTimeout(() => select(current + 1), dwell);
+    };
+
+    // WCAG 2.2.2: the tour has a visible pause. Any interaction also stops it
+    // for good; only the toggle starts it again.
+    const toggle = root.querySelector<HTMLButtonElement>("[data-theatre-toggle]");
+    const toggleLabel = root.querySelector<HTMLElement>("[data-theatre-toggle-label]");
+    const syncToggle = () => {
+      if (!toggle || !toggleLabel) return;
+      toggle.setAttribute("aria-pressed", String(!playing));
+      toggleLabel.textContent = (playing ? toggle.dataset.labelPause : toggle.dataset.labelPlay) ?? "";
+    };
+
+    const stop = () => {
+      playing = false;
+      window.clearTimeout(timer);
+      tabs.forEach((tab) => tab.classList.remove("is-running"));
+      syncToggle();
+    };
+
+    toggle?.addEventListener("click", () => {
+      if (playing) {
+        stop();
+      } else {
+        playing = true;
+        schedule();
+        syncToggle();
+      }
+    });
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener("click", () => {
+        stop();
+        select(index);
+      });
+      tab.addEventListener("keydown", (event) => {
+        const keys: Record<string, number> = { ArrowRight: 1, ArrowLeft: -1 };
+        if (event.key in keys) {
+          event.preventDefault();
+          stop();
+          select(current + keys[event.key], true);
+        } else if (event.key === "Home" || event.key === "End") {
+          event.preventDefault();
+          stop();
+          select(event.key === "Home" ? 0 : tabs.length - 1, true);
+        }
+      });
+    });
+    root.addEventListener("pointerenter", (event) => {
+      if (!(event.target instanceof Element) || !event.target.closest("[data-theatre-toggle]")) stop();
+    });
+    root.addEventListener("focusin", (event) => {
+      if (!(event.target instanceof Element) || !event.target.closest("[data-theatre-toggle]")) stop();
+    });
+
+    if (!reduceMotion() && "IntersectionObserver" in window) {
+      const observer = new IntersectionObserver((entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          playing = true;
+          schedule();
+          syncToggle();
+          observer.disconnect();
+        }
+      }, { threshold: 0.5 });
+      observer.observe(root);
+      if (toggle) toggle.hidden = false;
+    }
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) stop();
+    });
+  };
+
+  // The hero's glass notes: a calm, continuous stream of what happens in AEON.
+  // At most three show at once, each in its own place and long enough to read.
+  const initChips = () => {
+    const list = document.querySelector<HTMLElement>("[data-chips]");
+    if (!list || reduceMotion()) return;
+    const chips = [...list.querySelectorAll<HTMLElement>("[data-chip]")];
+    const slots = [1, 2, 3, 4, 5, 6];
+    // A new note every 3.7 s with three on screen: each one stays about 11 s.
+    const CADENCE_MS = 3700;
+    const shown = new Map<HTMLElement, number>();
+    chips.forEach((chip, index) => { if (index < 3) shown.set(chip, index + 1); });
+    let next = 3;
+    let timer = 0;
+    const hide = (chip: HTMLElement) => {
+      chip.classList.remove("is-shown");
+      chip.classList.add("is-leaving");
+      window.setTimeout(() => {
+        chip.classList.remove("is-leaving");
+        slots.forEach((slot) => chip.classList.remove(`aeon-chip--slot-${slot}`));
+        shown.delete(chip);
+      }, 900);
+    };
+    const step = () => {
+      const oldest = [...shown.keys()][0];
+      if (oldest && shown.size >= 3) hide(oldest);
+      const used = new Set(shown.values());
+      const free = slots.filter((slot) => !used.has(slot) && slot !== (oldest ? shown.get(oldest) : 0));
+      const slot = free[Math.floor(Math.random() * free.length)] ?? 1;
+      const chip = chips[next % chips.length];
+      next += 1;
+      if (shown.has(chip)) return;
+      chip.classList.add(`aeon-chip--slot-${slot}`);
+      shown.set(chip, slot);
+      requestAnimationFrame(() => chip.classList.add("is-shown"));
+    };
+    // The notes, the event ribbon and their float follow the hero loop, whose
+    // visible Pause control (and its in-view and tab-visibility handling)
+    // therefore pauses all hero motion (WCAG 2.2.2).
+    const hero = list.closest<HTMLElement>(".aeon-hero");
+    const video = hero?.querySelector<HTMLVideoElement>("[data-hero-video]");
+    const run = () => {
+      window.clearInterval(timer);
+      timer = window.setInterval(step, CADENCE_MS);
+      hero?.classList.remove("is-paused");
+    };
+    const pause = () => {
+      window.clearInterval(timer);
+      hero?.classList.add("is-paused");
+    };
+    if (!video) return;
+    video.addEventListener("playing", run);
+    video.addEventListener("pause", pause);
+    if (video.paused) pause();
+    else run();
+  };
+
+  initReveal();
+  initChips();
+  initSpecsLens();
+  initTheatre();
+</script>

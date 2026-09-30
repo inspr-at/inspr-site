@@ -1,0 +1,268 @@
+---
+/**
+ * INSPR-492: Journey section of the PAIMOS AEON page.
+ *
+ * A glass rail with the eight stages. Selecting a stage (click, arrow keys,
+ * or the gentle walk that starts in view and stops at the first touch)
+ * opens its pane: what happens there, who decides, which gate scope applies
+ * and the next action the journey reports. Gates carry the gold era arc
+ * over their node, inside the button's own box. One row from 64rem, a
+ * vertical column below that with the pane under its stage. Without the
+ * script every pane is open, in order. Styles in aeon-journey.css.
+ */
+import DetailLevels from "./DetailLevels.astro";
+import type { AeonContent } from "../content/types";
+import "../styles/aeon-journey.css";
+
+interface Props {
+  content: AeonContent["delivery"];
+  proofs: Array<{ label: string; href: string }>;
+  labels: { proof: string; stages: string };
+}
+
+const { content, proofs, labels } = Astro.props;
+const total = content.stages.length;
+const stageOf = (n: number) => content.ui.stageOf.replace("{n}", String(n)).replace("{total}", String(total));
+---
+
+<!-- Delivery: the eight-stage journey. -->
+<section class="section aeon-journey" id="delivery" aria-labelledby="delivery-title" data-section-pattern="journey-rail">
+  <div class="aeon-journey__field" aria-hidden="true">
+    <i class="aeon-journey__orb aeon-journey__orb--glow"></i>
+    <i class="aeon-journey__orb aeon-journey__orb--gold"></i>
+  </div>
+  <div class="page-shell">
+    <header class="aeon-split-head">
+      <div>
+        <p class="eyebrow">{content.eyebrow}</p>
+        <h2 id="delivery-title">{content.title}</h2>
+      </div>
+      <p class="section-lead">
+        <DetailLevels
+          simple={content.depths.simple ?? content.lead}
+          standard={content.lead}
+          technical={content.depths.technical ?? content.lead}
+        />
+      </p>
+    </header>
+
+    <div class="aeon-rail" data-aeon-rail data-reveal>
+      <ol class="aeon-rail__stages" role="list" aria-label={labels.stages}>
+        {content.stages.map((stage, index) => (
+          <li
+            class:list={["aeon-stage", stage.gate && "aeon-stage--gate", index === 0 && "is-current"]}
+            role="listitem"
+            data-stage
+          >
+            <button
+              type="button"
+              class="aeon-stage__select"
+              aria-pressed={index === 0 ? "true" : "false"}
+              aria-controls={`journey-stage-${index + 1}`}
+            >
+              <span class="aeon-stage__node" aria-hidden="true">
+                {stage.gate && (
+                  <svg class="aeon-stage__arc" viewBox="0 0 40 21" focusable="false">
+                    <path d="M3 18.8 A17 17 0 0 1 37 18.8" />
+                  </svg>
+                )}
+                <i></i>
+              </span>
+              <span class="aeon-stage__index" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+              <span class="aeon-stage__name">{stage.name}</span>
+              <span class="visually-hidden">, {stageOf(index + 1)}{stage.gate ? `, ${content.gateLabel}` : ""}</span>
+              <span class="aeon-stage__progress" aria-hidden="true"></span>
+            </button>
+            <div class="aeon-stage__panel" id={`journey-stage-${index + 1}`}>
+              <div class="aeon-stage__story">
+                <p class="aeon-stage__kicker">
+                  <span>{stageOf(index + 1)}</span>
+                  {stage.gate && <span class="aeon-stage__gate-tag">{content.gateLabel}</span>}
+                </p>
+                <h3>{stage.name}</h3>
+                <p class="aeon-stage__summary">{stage.summary}</p>
+                {stage.note && <p class="aeon-stage__note">{stage.note}</p>}
+              </div>
+              <dl class="aeon-stage__facts">
+                <div>
+                  <dt>{content.ui.decides}</dt>
+                  <dd>{stage.decides}</dd>
+                </div>
+                <div>
+                  <dt>{content.ui.gate}</dt>
+                  <dd>
+                    {stage.scope ? (
+                      <code class="aeon-stage__code aeon-stage__code--gate">{stage.scope}</code>
+                    ) : (
+                      <span class="aeon-stage__none">{content.ui.noGate}</span>
+                    )}
+                  </dd>
+                </div>
+                {stage.action && (
+                  <div>
+                    <dt>{content.ui.nextAction}</dt>
+                    <dd><code class="aeon-stage__code">{stage.action}</code></dd>
+                  </div>
+                )}
+              </dl>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+    <div class="aeon-rail__foot">
+      <p class="aeon-rail__legend">
+        <svg viewBox="0 0 40 21" aria-hidden="true" focusable="false"><path d="M3 18.8 A17 17 0 0 1 37 18.8" /></svg>
+        {content.gateLabel}
+      </p>
+      <button
+        type="button"
+        class="aeon-rail__walk"
+        aria-pressed="false"
+        data-walk
+        data-pause={content.ui.pause}
+        data-resume={content.ui.resume}
+        hidden
+      >
+        <svg class="aeon-rail__walk-pause" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="3.5" y="3" width="3" height="10" rx="1" /><rect x="9.5" y="3" width="3" height="10" rx="1" /></svg>
+        <svg class="aeon-rail__walk-play" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M5 3.5 L12.5 8 L5 12.5 Z" /></svg>
+        <span data-walk-label>{content.ui.pause}</span>
+      </button>
+    </div>
+
+    <p class="aeon-proof">
+      <span class="aeon-proof__label">{labels.proof}</span>
+      {proofs.map((proof) => (
+        <a href={proof.href} target="_blank" rel="noopener noreferrer">{proof.label} <span aria-hidden="true">↗</span></a>
+      ))}
+    </p>
+  </div>
+</section>
+
+<script>
+  // The rail: one open pane at a time once the script runs. The walk only
+  // runs in the one-row layout, where the pane keeps its place; in the
+  // column the reader taps. Any pointer, key or focus inside stops the walk.
+  const initRail = () => {
+    const root = document.querySelector<HTMLElement>("[data-aeon-rail]");
+    if (!root) return;
+    const stages = [...root.querySelectorAll<HTMLElement>("[data-stage]")];
+    const buttons = stages.map((stage) => stage.querySelector<HTMLButtonElement>(".aeon-stage__select")!);
+    const panels = stages.map((stage) => stage.querySelector<HTMLElement>(".aeon-stage__panel")!);
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const oneRow = window.matchMedia("(min-width: 64rem)");
+    const dwell = 3400;
+    let current = 0;
+    let timer = 0;
+    let walking = false;
+
+    const select = (index: number, focus = false) => {
+      const previous = current;
+      current = (index + stages.length) % stages.length;
+      stages.forEach((stage, i) => {
+        stage.classList.toggle("is-current", i === current);
+        stage.classList.toggle("is-passed", i < current);
+        buttons[i].setAttribute("aria-pressed", String(i === current));
+        buttons[i].classList.remove("is-running");
+        panels[i].hidden = i !== current;
+      });
+      if (previous !== current) {
+        panels[current].classList.remove("is-fresh");
+        void panels[current].offsetWidth;
+        panels[current].classList.add("is-fresh");
+      }
+      if (focus) buttons[current].focus();
+      if (walking) schedule();
+    };
+
+    const schedule = () => {
+      window.clearTimeout(timer);
+      const button = buttons[current];
+      button.style.setProperty("--dwell", `${dwell}ms`);
+      void button.offsetWidth;
+      button.classList.add("is-running");
+      timer = window.setTimeout(() => select(current + 1), dwell);
+    };
+
+    // The walk control (WCAG 2.2.2): Pause halts the walk and the section's
+    // drifting orbs; Resume restarts them. Manual interaction stops the walk
+    // the same way, and only Resume restarts it.
+    const walk = root.parentElement?.querySelector<HTMLButtonElement>("[data-walk]") ?? null;
+    const section = root.closest<HTMLElement>(".aeon-journey");
+    const setWalkState = (paused: boolean) => {
+      section?.classList.toggle("is-paused", paused);
+      if (!walk) return;
+      walk.setAttribute("aria-pressed", String(paused));
+      const label = walk.querySelector("[data-walk-label]");
+      if (label) label.textContent = paused ? walk.dataset.resume ?? "" : walk.dataset.pause ?? "";
+    };
+
+    const stop = () => {
+      walking = false;
+      window.clearTimeout(timer);
+      buttons.forEach((button) => button.classList.remove("is-running"));
+      setWalkState(true);
+    };
+
+    const resume = () => {
+      walking = true;
+      setWalkState(false);
+      schedule();
+    };
+
+    buttons.forEach((button, index) => {
+      button.addEventListener("click", () => {
+        stop();
+        select(index);
+      });
+      button.addEventListener("keydown", (event) => {
+        const delta: Record<string, number> = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
+        if (event.key in delta) {
+          event.preventDefault();
+          stop();
+          select(current + delta[event.key], true);
+        } else if (event.key === "Home" || event.key === "End") {
+          event.preventDefault();
+          stop();
+          select(event.key === "Home" ? 0 : stages.length - 1, true);
+        }
+      });
+    });
+    root.addEventListener("pointerdown", stop);
+    root.addEventListener("focusin", stop);
+    walk?.addEventListener("click", () => {
+      if (walking) stop();
+      else resume();
+    });
+
+    select(0);
+    root.classList.add("is-ready");
+
+    if (!reduced && "IntersectionObserver" in window && walk) {
+      // Armed in the one-row layout: the walk starts once in view unless it
+      // was stopped first. The column layout has no walk and no control.
+      walking = oneRow.matches;
+      walk.hidden = !oneRow.matches;
+      setWalkState(!walking);
+      const observer = new IntersectionObserver((entries) => {
+        if (!entries.some((entry) => entry.isIntersecting) || !oneRow.matches) return;
+        observer.disconnect();
+        if (walking) resume();
+      }, { threshold: 0.4 });
+      observer.observe(root);
+      oneRow.addEventListener("change", () => {
+        if (!oneRow.matches) {
+          stop();
+          walk.hidden = true;
+        } else {
+          walk.hidden = false;
+        }
+      });
+    }
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) stop();
+    });
+  };
+
+  initRail();
+</script>

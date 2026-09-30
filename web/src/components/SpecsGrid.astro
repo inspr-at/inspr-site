@@ -1,0 +1,315 @@
+---
+/**
+ * The capability specs grid shared by the product pages: flip cards, the
+ * ELI10 wording, flip-all, shuffle and the live glossary line. Behaviour
+ * lives in public/scripts/specs-pin.js, which binds to the #specs section.
+ *
+ * The AEON variant is a different instrument, the capability lens: calm
+ * liquid-glass tiles in stable order over a full-bleed light field; hover or
+ * focus puts a card's image, whole, across the browser viewport behind ghost
+ * tiles and a docked placard; click or tap opens the same lens as a dialog
+ * with prev/next. Everything AEON-only sits behind `field`, so the other
+ * product pages render byte-identical markup. Behaviour: AeonPage.astro.
+ */
+import { getImage } from "astro:assets";
+import ContextIcon from "./ContextIcon.astro";
+import type { SpecsContent } from "../content/types";
+
+type SpecsGroup = SpecsContent["items"][number]["group"];
+
+export interface LensImage {
+  image: ImageMetadata;
+  /** "live" product screen, "art" generated scene, "web" public web page (placard source line). */
+  kind: "live" | "art" | "web";
+}
+
+export interface LensLabels {
+  live: string;
+  illustration: string;
+  web: string;
+  close: string;
+  prev: string;
+  next: string;
+  dialog: string;
+}
+
+interface Props {
+  specs: SpecsContent;
+  labels: { eli10: string; flipAll: string; unflipAll: string; shuffle: string };
+  /** The AEON page adds a catalogue line (group and number) to each card. */
+  variant?: "aeon";
+  groupLabels?: Record<SpecsGroup, string>;
+  /**
+   * AEON only: the capability lens. `images` holds one image per spec in
+   * content order (index 0 is spec 01) with its kind; `labels` the UI copy.
+   */
+  lens?: { images: LensImage[]; labels: LensLabels };
+}
+
+const { specs, labels, variant, groupLabels, lens } = Astro.props;
+const catalogue = variant === "aeon" && groupLabels;
+const sourceLabel = (kind?: LensImage["kind"]) =>
+  kind === "art" ? lens?.labels.illustration : kind === "web" ? lens?.labels.web : lens?.labels.live;
+const field = variant === "aeon";
+const pad = (n: number) => String(n).padStart(2, "0");
+
+// Lens renditions at build time: 1280, 1920 and 2560 wide as webp. The
+// browser picks by viewport width times devicePixelRatio through srcset and
+// sizes=100vw; the 1280 one also serves as the blurred cover fill.
+const slides = field && lens
+  ? await Promise.all(
+      lens.images.map(async ({ image }) => {
+        const [w1280, w1920, w2560] = await Promise.all(
+          [1280, 1920, 2560].map((width) => getImage({ src: image, width, format: "webp", quality: 80 })),
+        );
+        return {
+          src: w1920.src,
+          srcset: `${w1280.src} 1280w, ${w1920.src} 1920w, ${w2560.src} 2560w`,
+          fill: w1280.src,
+          width: image.width,
+          height: image.height,
+        };
+      }),
+    )
+  : null;
+
+// Generated bezel displacement map for the Chromium lens filter (see the
+// markup): 96px, R = x shift, G = y shift, 128 = none, refracting inward
+// along the card's edge like a thick slab.
+const lensMap =
+  "data:image/png;base64,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";
+
+// Cache-buster for the public/ scripts: unlike _astro assets they are not
+// content-hashed, and their 5-minute edge cache once served a stale script
+// against fresh HTML (dead controls). The release id changes per deploy.
+const scriptVersion = process.env.INSPR_RELEASE_ID ?? "dev";
+
+// Split a spec note into text/term segments so glossary terms become click
+// targets. Longest match strings win at any position; matching is exact and
+// case-sensitive (match strings carry the casing used in the notes).
+type NoteSegment = { text: string; termId?: string };
+const specGlossary = specs.glossary ?? [];
+// Definitions travel on the term spans (data-def); the only glossary UI is
+// the live help line under the grid that fills while a term is hovered.
+const defById = Object.fromEntries(specGlossary.map((g) => [g.id, g.body]));
+const termMatches = specGlossary
+  .flatMap((entry) => entry.matches.map((m) => ({ s: m, id: entry.id })))
+  .sort((a, b) => b.s.length - a.s.length);
+const termSplitter = termMatches.length
+  ? new RegExp(
+      `(${termMatches.map((m) => m.s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`,
+      "g",
+    )
+  : null;
+const segmentNote = (text: string): NoteSegment[] => {
+  if (!termSplitter) return [{ text }];
+  return text
+    .split(termSplitter)
+    .filter(Boolean)
+    .map((part) => {
+      const hit = termMatches.find((m) => m.s === part);
+      return hit ? { text: part, termId: hit.id } : { text: part };
+    });
+};
+---
+
+<section data-depth-min={field ? undefined : "standard"}
+  class:list={["section page-shell specs", variant && `specs--${variant}`]}
+  id="specs"
+  aria-labelledby="specs-title"
+  data-section-pattern="specs-grid"
+  data-eli10="false"
+>
+  {field && (
+    <div class="specs__field" aria-hidden="true">
+      <div class="specs__aurora">
+        <span class="specs__arcs"></span>
+        <span class="specs__orb specs__orb--gold"></span>
+        <span class="specs__orb specs__orb--glow"></span>
+        <span class="specs__orb specs__orb--teal"></span>
+      </div>
+      <div class="specs__scrim"></div>
+      <svg class="specs__lens-filter" width="0" height="0" focusable="false">
+        <filter id="aeon-lens" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+          <feImage href={lensMap} preserveAspectRatio="none" result="bezel" />
+          <feDisplacementMap in="SourceGraphic" in2="bezel" scale="26" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+      </svg>
+    </div>
+  )}
+  {/* The lens layer: fixed to the browser viewport. Each slide is the whole
+      image, contained, over a blurred cover fill of itself. display:none
+      until the section comes near (so the lazy images are not fetched), then
+      present but hidden, so all twenty load and decode ahead of the first
+      hover. In dialog mode the layer gains role=dialog and its controls. */}
+  {field && slides && lens && (
+    <div class="specs__lens" data-specs-lens tabindex="-1">
+      <span class="visually-hidden" id="specs-lens-title">{lens.labels.dialog}</span>
+      {slides.map((slide, i) => (
+        <figure class="specs__slide" data-slide={pad(i + 1)} aria-hidden="true">
+          <img
+            class="specs__slide-fill"
+            src={slide.fill}
+            alt=""
+            width={slide.width}
+            height={slide.height}
+            loading="lazy"
+            decoding="async"
+          />
+          <img
+            class="specs__slide-img"
+            src={slide.src}
+            srcset={slide.srcset}
+            sizes="100vw"
+            alt=""
+            data-alt={`${specs.items[i]?.label}, ${sourceLabel(lens.images[i]?.kind)}`}
+            width={slide.width}
+            height={slide.height}
+            loading="lazy"
+            decoding="async"
+          />
+        </figure>
+      ))}
+      <button type="button" class="specs__lens-nav specs__lens-nav--close" data-lens-close aria-label={lens.labels.close}>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      </button>
+      <button type="button" class="specs__lens-nav specs__lens-nav--prev" data-lens-prev aria-label={lens.labels.prev}>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+      </button>
+      <button type="button" class="specs__lens-nav specs__lens-nav--next" data-lens-next aria-label={lens.labels.next}>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+      </button>
+    </div>
+  )}
+  {/* The placard: a docked museum label for the lit capability. The note
+      follows the header's Details level through the shared variant spans. */}
+  {field && lens && (
+    <aside class="specs__placard" data-specs-placard aria-live="polite">
+      {specs.items.map((item, index) => (
+        <div class="specs__placard-body" data-placard={pad(index + 1)} hidden>
+          <span class="specs__placard-cat">
+            <span>{groupLabels?.[item.group]}</span>
+            <span aria-hidden="true">·</span>
+            <span>{pad(index + 1)}</span>
+          </span>
+          <strong class="specs__placard-label" id={`specs-lens-label-${pad(index + 1)}`}>{item.label}</strong>
+          <p class="specs__placard-note" id={`specs-lens-note-${pad(index + 1)}`}>
+            <span class="specs__variant specs__variant--tech">{item.note}</span>
+            <span class="specs__variant specs__variant--plain">{item.noteEli10}</span>
+          </p>
+          <span class="specs__placard-source">
+            {sourceLabel(lens.images[index]?.kind)}
+          </span>
+        </div>
+      ))}
+    </aside>
+  )}
+  <header class="section-intro">
+    <p class="eyebrow">{specs.eyebrow}</p>
+    <h2 id="specs-title">{specs.title}</h2>
+    {specs.lead && (
+      <p class="section-lead">
+        <span class="specs__variant specs__variant--tech">{specs.lead}</span>
+        {specs.leadEli10 && (
+          <span class="specs__variant specs__variant--plain">{specs.leadEli10}</span>
+        )}
+      </p>
+    )}
+  </header>
+
+  {!field && (
+    <div class="specs__controls">
+      <button type="button" class="specs__control" data-specs-eli10 aria-pressed="false">
+        {labels.eli10}
+      </button>
+      <button
+        type="button"
+        class="specs__control"
+        data-specs-flip-all
+        data-label-flip={labels.flipAll}
+        data-label-unflip={labels.unflipAll}
+        aria-pressed="false"
+      >
+        {labels.flipAll}
+      </button>
+      <button
+        type="button"
+        class="specs__control specs__control--shuffle"
+        data-specs-shuffle
+        aria-label={labels.shuffle}
+      >
+        ⤨
+      </button>
+    </div>
+  )}
+
+  <ul class="specs__grid">
+    {specs.items.map((item, index) => field ? (
+      <li class:list={["specs__tile", `specs__tile--${item.group}`]} data-backdrop={pad(index + 1)}>
+        <button type="button" class="specs__face specs__face--front specs__lens-btn" aria-haspopup="dialog">
+          <span class="specs__catalogue" aria-hidden="true">
+            <span>{groupLabels?.[item.group]}</span>
+            <span>{pad(index + 1)}</span>
+          </span>
+          <span class="specs__icon" aria-hidden="true">
+            <ContextIcon name={item.icon} size={34} strokeWidth={1.75} />
+          </span>
+          <span class="specs__label">{item.label}</span>
+        </button>
+      </li>
+    ) : (
+      <li class:list={["specs__tile", `specs__tile--${item.group}`]}>
+        <div class="specs__flip" role="button" tabindex="0" aria-pressed="false">
+          <span class="specs__face specs__face--front">
+            {catalogue && (
+              <span class="specs__catalogue" aria-hidden="true">
+                <span>{groupLabels[item.group]}</span>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+              </span>
+            )}
+            <span class="specs__icon" aria-hidden="true">
+              <ContextIcon name={item.icon} size={34} strokeWidth={1.75} />
+            </span>
+            <span class="specs__label">{item.label}</span>
+          </span>
+          <span class="specs__face specs__face--back">
+            <span class="specs__back-label">{item.label}</span>
+            <span class="specs__note">
+              <span class="specs__variant specs__variant--tech">
+                {segmentNote(item.note).map((seg) =>
+                  seg.termId ? (
+                    <span class="specs__term" data-def={defById[seg.termId]}>{seg.text}</span>
+                  ) : (
+                    seg.text
+                  ),
+                )}
+              </span>
+              <span class="specs__variant specs__variant--plain">
+                {segmentNote(item.noteEli10).map((seg) =>
+                  seg.termId ? (
+                    <span class="specs__term" data-def={defById[seg.termId]}>{seg.text}</span>
+                  ) : (
+                    seg.text
+                  ),
+                )}
+              </span>
+            </span>
+            <span class="specs__pin" aria-hidden="true">
+              <ContextIcon name={item.icon} size={13} strokeWidth={2} />
+            </span>
+          </span>
+        </div>
+      </li>
+    ))}
+  </ul>
+
+  {!field && specGlossary.length > 0 && (
+    <div class="specs__foot" aria-live="polite">
+      <p class="specs__live" data-specs-live>
+        <mark class="specs__live-term" data-gloss-live-term></mark>
+        <span class="specs__live-body" data-gloss-live-body></span>
+      </p>
+    </div>
+  )}
+  {!field && <script is:inline src={`/scripts/specs-pin.js?v=${scriptVersion}`} defer></script>}
+</section>

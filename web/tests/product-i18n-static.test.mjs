@@ -15,7 +15,8 @@ const products = [
     slug: "paimos",
     exportName: "paimosContentDe",
     host: "paimos.inspr.at",
-    germanHero: "Ein gemeinsames Projektbild.",
+    // INSPR-492: paimos.inspr.at serves the AEON page.
+    germanHero: "Ihre Agenten. Ihre Rechner.",
   },
   {
     slug: "pharos",
@@ -35,7 +36,9 @@ const countMatches = (text, pattern) => (text.match(pattern) ?? []).length;
 
 test("each product host serves a German edition through the shared page components", async () => {
   for (const { slug, exportName } of products) {
-    const route = await source(`pages/${slug}/de/index.astro`);
+    // INSPR-492: the retired Paimos ProductPage lives at /paimos-legacy.
+    const routeDir = slug === "paimos" ? "paimos-legacy" : slug;
+    const route = await source(`pages/${routeDir}/de/index.astro`);
     assert.match(
       route,
       /import ProductPage from "\.\.\/\.\.\/\.\.\/components\/ProductPage\.astro";/,
@@ -48,7 +51,9 @@ test("each product host serves a German edition through the shared page componen
     );
     assert.match(
       route,
-      new RegExp(`<ProductPage content=\\{${exportName}\\} locale="de" \\/>`),
+      slug === "paimos"
+        ? new RegExp(`<ProductPage content=\\{${exportName}\\} locale="de" mount=\\{\\{ english: siteUrls\\.paimosLegacy, german: siteUrls\\.paimosLegacyGerman \\}\\} \\/>`)
+        : new RegExp(`<ProductPage content=\\{${exportName}\\} locale="de" \\/>`),
       `${slug} German route must render ProductPage in German`,
     );
   }
@@ -200,9 +205,11 @@ test("product pages expose the shared locale contract with alternates and a lang
     assert.match(page, /locale=\{locale\}/);
   }
 
-  assert.match(productPage, /const englishUrl = siteUrls\[content\.slug\];/);
-  assert.match(productPage, /const germanUrl = `\$\{englishUrl\}\/de\/`;/);
-  assert.match(productPage, /languageLinks=\{\{ en: "\/", de: "\/de\/" \}\}/);
+  // Product hosts by default; an optional www mount (INSPR-492) scopes the
+  // retired Paimos page to its own path.
+  assert.match(productPage, /const englishUrl = mount\?\.english \?\? siteUrls\[content\.slug\];/);
+  assert.match(productPage, /const germanUrl = mount\?\.german \?\? `\$\{englishUrl\}\/de\/`;/);
+  assert.match(productPage, /languageLinks=\{mount \? \{ en: pathOf\(englishUrl\), de: pathOf\(germanUrl\) \} : \{ en: "\/", de: "\/de\/" \}\}/);
   assert.match(productPage, /<ServiceRibbon text=\{content\.serviceIntro\} locale=\{locale\} \/>/);
   assert.match(productPage, /content\.slug === "paimos" && <PaimosProductSurface locale=\{locale\} \/>/);
   assert.match(productPage, /<MicrositeFooter[\s\S]*?locale=\{locale\}/);
@@ -262,7 +269,9 @@ test("no product UI chrome or accessible label stays untranslated in German", as
   const surface = await source("components/PaimosProductSurface.astro");
   assert.match(surface, /data-pause-label=\{labels\.pause\}/);
   assert.match(surface, /root\.dataset\.resumeAccessibleLabel/);
-  assert.match(productPage, /data-label-flip=\{labels\.specsFlipAll\}/);
+  // The specs grid lives in the shared SpecsGrid component (INSPR-492).
+  assert.match(productPage, /flipAll: labels\.specsFlipAll,/);
+  assert.match(await source("components/SpecsGrid.astro"), /data-label-flip=\{labels\.flipAll\}/);
   assert.match(productPage, /data-count-label=\{labels\.integrationShown\}/);
   const specsPin = await webFile("public/scripts/specs-pin.js");
   assert.match(specsPin, /dataset\.labelUnflip/);
@@ -292,7 +301,7 @@ test("host discovery, deployment gates and audits cover the German editions", as
       `${slug} German page must be probed after promotion`,
     );
 
-    const german = await source(`content/de/${slug}.ts`);
+    const german = await source(`content/de/${slug === "paimos" ? "paimos-aeon" : slug}.ts`);
     assert.ok(german.includes(germanHero), `${slug} German hero must match the deploy probe phrase`);
     assert.match(audit, new RegExp(`name: "${slug}-de"`));
   }

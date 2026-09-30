@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 
 const routes = [
-  { path: "/paimos/", selector: "#feature-agent-context .feature-experience--evidence-stack" },
-  { path: "/paimos/de/", selector: "#feature-agent-context .feature-experience--evidence-stack" },
+  { path: "/paimos-legacy/", selector: "#feature-agent-context .feature-experience--evidence-stack" },
+  { path: "/paimos-legacy/de/", selector: "#feature-agent-context .feature-experience--evidence-stack" },
   { path: "/pharos/", selector: "#feature-backups .feature-experience--evidence-stack" },
   { path: "/pharos/de/", selector: "#feature-backups .feature-experience--evidence-stack" },
 ];

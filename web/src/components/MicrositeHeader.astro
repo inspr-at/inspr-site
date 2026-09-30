@@ -13,6 +13,8 @@ interface Props {
   primaryAction?: { label: string; href: string };
   locale?: "en" | "de";
   languageLinks?: { en: string; de: string };
+  /** Brand link target when the page is not mounted at its product host root. */
+  homeHref?: string;
   /** Three-position Details control: how deep the page explains itself. */
   detailsSlider?: {
     label: string;
@@ -32,6 +34,7 @@ const {
   primaryAction,
   locale = "en",
   languageLinks,
+  homeHref,
   detailsSlider,
 } = Astro.props;
 
@@ -58,6 +61,9 @@ const labels = locale === "de"
     };
 
 const languageChoiceHref = (href: string, choice: "en" | "de") => {
+  // Relative links (./, ../, de/) keep a page correct under every host that
+  // serves it, such as paimos.inspr.at/ and www.inspr.at/paimos/ (INSPR-492).
+  if (!/^(https?:)?\//.test(href)) return `${href}?lang=${choice}`;
   const isAbsolute = /^https?:\/\//.test(href);
   const url = new URL(href, siteUrls.inspr);
   url.searchParams.set("lang", choice);
@@ -73,7 +79,7 @@ const productHref = (href: string) =>
 
 <header class="site-header">
   <div class="site-header__bar page-shell">
-    <a class="site-brand" href={siteUrls[active]} aria-label={name}>
+    <a class="site-brand" href={homeHref ?? siteUrls[active]} aria-label={name}>
       <img src={logo} alt="" width="48" height="48" />
       <span>
         <strong>{name}</strong>

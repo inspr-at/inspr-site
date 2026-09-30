@@ -1,0 +1,268 @@
+---
+/**
+ * INSPR-492: Authority section of the PAIMOS AEON page.
+ *
+ * One frosted-glass instrument with four stations: the key sets the ceiling,
+ * the agent proposes, a person decides, the database enforces. A light walks
+ * the conduit from station to station; the third station is the human moment
+ * and carries the gold era arc over its node, inside its own pane. Every
+ * station reads in full without a click or a script; selecting one only
+ * moves the light. Behaviour lives in the script below, styles in
+ * aeon-authority.css.
+ */
+import DetailLevels from "./DetailLevels.astro";
+import type { AeonContent } from "../content/types";
+import "../styles/aeon-authority.css";
+
+interface Props {
+  content: AeonContent["authority"];
+  proofs: Array<{ label: string; href: string }>;
+  labels: { proof: string; steps: string };
+}
+
+const { content, proofs, labels } = Astro.props;
+const total = content.steps.length;
+const stepOf = (n: number) => content.ui.stepOf.replace("{n}", String(n)).replace("{total}", String(total));
+const kindOf = (token: string) =>
+  token.endsWith(".sql") ? "file" : token.startsWith("approval.") ? "event" : "scope";
+---
+
+<!-- Authority: key, proposal, decision, enforcement. -->
+<section class="section aeon-authority" id="authority" aria-labelledby="authority-title" data-section-pattern="authority-gate">
+  <div class="aeon-authority__field" aria-hidden="true">
+    <i class="aeon-authority__orb aeon-authority__orb--gold"></i>
+    <i class="aeon-authority__orb aeon-authority__orb--glow"></i>
+  </div>
+  <div class="page-shell">
+    <header class="aeon-split-head">
+      <div>
+        <p class="eyebrow">{content.eyebrow}</p>
+        <h2 id="authority-title">
+          {content.title}
+          <span class="aeon-accent">{content.titleAccent}</span>
+        </h2>
+      </div>
+      <p class="section-lead">
+        <DetailLevels
+          simple={content.depths.simple ?? content.lead}
+          standard={content.lead}
+          technical={content.depths.technical ?? content.lead}
+        />
+      </p>
+    </header>
+
+    <div class="aeon-instrument" data-aeon-instrument data-reveal>
+      <span class="aeon-instrument__light" aria-hidden="true"></span>
+      <ol class="aeon-instrument__stations" aria-label={labels.steps}>
+        {content.steps.map((step, index) => (
+          <li
+            class:list={["aeon-station", index === 2 && "aeon-station--person", index === 0 && "is-current"]}
+            data-station
+          >
+            <button type="button" class="aeon-station__select" aria-pressed={index === 0 ? "true" : "false"}>
+              <span class="aeon-station__node" aria-hidden="true">
+                {index === 2 && (
+                  <svg class="aeon-station__arc" viewBox="0 0 40 21" focusable="false">
+                    <path d="M3 18.8 A17 17 0 0 1 37 18.8" />
+                  </svg>
+                )}
+                <i></i>
+              </span>
+              <span class="aeon-station__label">{step.label}</span>
+              <span class="visually-hidden">, {stepOf(index + 1)}: {step.actor}</span>
+            </button>
+            <p class="aeon-station__actor">
+              <span class="aeon-station__index">{String(index + 1).padStart(2, "0")}</span>
+              {step.actor}
+            </p>
+            <h3>{step.title}</h3>
+            <p class="aeon-station__body">{step.body}</p>
+            <ul class="aeon-station__chips" aria-label={step.label}>
+              {step.tokens.map((token) => (
+                <li class:list={["aeon-chip-token", `aeon-chip-token--${kindOf(token)}`]}>
+                  <i aria-hidden="true"></i>
+                  <code>{token}</code>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ol>
+    </div>
+    <div class="aeon-instrument__foot">
+      <p class="aeon-instrument__caption">{content.ui.caption}</p>
+      <button
+        type="button"
+        class="aeon-instrument__walk"
+        aria-pressed="false"
+        data-walk
+        data-pause={content.ui.pause}
+        data-resume={content.ui.resume}
+        hidden
+      >
+        <svg class="aeon-instrument__walk-pause" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="3.5" y="3" width="3" height="10" rx="1" /><rect x="9.5" y="3" width="3" height="10" rx="1" /></svg>
+        <svg class="aeon-instrument__walk-play" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M5 3.5 L12.5 8 L5 12.5 Z" /></svg>
+        <span data-walk-label>{content.ui.pause}</span>
+      </button>
+    </div>
+
+    <p class="aeon-proof">
+      <span class="aeon-proof__label">{labels.proof}</span>
+      {proofs.map((proof) => (
+        <a href={proof.href} target="_blank" rel="noopener noreferrer">{proof.label} <span aria-hidden="true">↗</span></a>
+      ))}
+    </p>
+  </div>
+</section>
+
+<script>
+  // The instrument: a light that walks the conduit between the four
+  // stations. It walks by itself once the instrument is in view and stops
+  // on the first pointer, key or focus; a click or the arrow keys move it by
+  // hand. Without JavaScript, or with reduced motion, the stations simply
+  // stand there, lit up to the first one.
+  const initInstrument = () => {
+    const root = document.querySelector<HTMLElement>("[data-aeon-instrument]");
+    if (!root) return;
+    const stations = [...root.querySelectorAll<HTMLElement>("[data-station]")];
+    const buttons = stations.map((station) => station.querySelector<HTMLButtonElement>(".aeon-station__select")!);
+    const light = root.querySelector<HTMLElement>(".aeon-instrument__light")!;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const dwell = 2600;
+    let current = 0;
+    let timer = 0;
+    let walking = false;
+
+    const place = () => {
+      const node = stations[current].querySelector<HTMLElement>(".aeon-station__node i");
+      if (!node) return;
+      const a = root.getBoundingClientRect();
+      const b = node.getBoundingClientRect();
+      root.style.setProperty("--lx", `${b.left + b.width / 2 - a.left}px`);
+      root.style.setProperty("--ly", `${b.top + b.height / 2 - a.top}px`);
+    };
+
+    const select = (index: number, focus = false) => {
+      current = (index + stations.length) % stations.length;
+      stations.forEach((station, i) => {
+        station.classList.toggle("is-current", i === current);
+        station.classList.toggle("is-passed", i < current);
+        buttons[i].setAttribute("aria-pressed", String(i === current));
+      });
+      root.classList.toggle("is-on-person", stations[current].classList.contains("aeon-station--person"));
+      place();
+      if (focus) buttons[current].focus();
+      if (walking) schedule();
+    };
+
+    const schedule = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => select(current + 1), dwell);
+    };
+
+    // The walk control (WCAG 2.2.2): Pause halts the walk, the light's pulse
+    // and the section's drifting orbs; Resume restarts them. Any manual
+    // interaction stops the walk the same way, and nothing restarts it by
+    // itself; only Resume does.
+    const walk = root.parentElement?.querySelector<HTMLButtonElement>("[data-walk]") ?? null;
+    const section = root.closest<HTMLElement>(".aeon-authority");
+    const setWalkState = (paused: boolean) => {
+      section?.classList.toggle("is-paused", paused);
+      if (!walk) return;
+      walk.setAttribute("aria-pressed", String(paused));
+      const label = walk.querySelector("[data-walk-label]");
+      if (label) label.textContent = paused ? walk.dataset.resume ?? "" : walk.dataset.pause ?? "";
+    };
+
+    const stop = () => {
+      walking = false;
+      window.clearTimeout(timer);
+      root.classList.remove("is-walking");
+      setWalkState(true);
+    };
+
+    const resume = () => {
+      walking = true;
+      root.classList.add("is-walking");
+      setWalkState(false);
+      schedule();
+    };
+
+    buttons.forEach((button, index) => {
+      button.addEventListener("click", () => {
+        stop();
+        select(index);
+      });
+      button.addEventListener("keydown", (event) => {
+        const delta: Record<string, number> = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
+        if (event.key in delta) {
+          event.preventDefault();
+          stop();
+          select(current + delta[event.key], true);
+        } else if (event.key === "Home" || event.key === "End") {
+          event.preventDefault();
+          stop();
+          select(event.key === "Home" ? 0 : stations.length - 1, true);
+        }
+      });
+    });
+    // The whole pane is a target; the button carries the semantics.
+    stations.forEach((station, index) => {
+      station.addEventListener("click", (event) => {
+        if (event.target instanceof Element && event.target.closest("button, a, code")) return;
+        stop();
+        select(index);
+      });
+    });
+    root.addEventListener("pointerdown", stop);
+    root.addEventListener("focusin", stop);
+    walk?.addEventListener("click", () => {
+      if (walking) stop();
+      else resume();
+    });
+
+    // The specular rim follows a fine pointer; one frame at most.
+    if (window.matchMedia("(pointer: fine)").matches && !reduced) {
+      let frame = 0;
+      let last: PointerEvent | null = null;
+      root.addEventListener("pointermove", (event) => {
+        last = event;
+        if (frame) return;
+        frame = requestAnimationFrame(() => {
+          frame = 0;
+          if (!last) return;
+          const a = root.getBoundingClientRect();
+          root.style.setProperty("--mx", `${((last.clientX - a.left) / a.width) * 100}%`);
+          root.style.setProperty("--my", `${((last.clientY - a.top) / a.height) * 100}%`);
+        });
+      });
+    }
+
+    // Keep the light on its node when the layout changes.
+    if ("ResizeObserver" in window) {
+      new ResizeObserver(() => place()).observe(root);
+    }
+    window.addEventListener("load", place);
+    place();
+    root.classList.add("is-ready");
+
+    if (!reduced && "IntersectionObserver" in window && walk) {
+      // Armed: the walk starts once in view unless it was stopped first.
+      walking = true;
+      walk.hidden = false;
+      setWalkState(false);
+      const observer = new IntersectionObserver((entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        observer.disconnect();
+        if (walking) resume();
+      }, { threshold: 0.45 });
+      observer.observe(root);
+    }
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) stop();
+    });
+    light.classList.add("is-on");
+  };
+
+  initInstrument();
+</script>

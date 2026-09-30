@@ -28,6 +28,15 @@ const pages = [
     requiresFastStart: true,
   },
   {
+    slug: "paimos-legacy",
+    // The retired page keeps the Paimos loop (INSPR-492).
+    video: "paimos",
+    html: "paimos-legacy/index.html",
+    expectedDuration: 15.042,
+    expectedProfile: "Main",
+    requiresFastStart: true,
+  },
+  {
     slug: "pharos",
     html: "pharos/index.html",
     expectedDuration: 15.042,
@@ -113,7 +122,7 @@ async function auditMedia(assetPath, page) {
 
 for (const page of pages) {
   const html = await readFile(join(distRoot, page.html), "utf8");
-  const videos = [...html.matchAll(new RegExp(`<video[^>]*data-hero-video="${page.slug}"[^>]*>[\\s\\S]*?<\\/video>`, "g"))];
+  const videos = [...html.matchAll(new RegExp(`<video[^>]*data-hero-video="${page.video ?? page.slug}"[^>]*>[\\s\\S]*?<\\/video>`, "g"))];
   if (videos.length !== 1) {
     throw new Error(`${page.slug}: expected one hero video, found ${videos.length}`);
   }

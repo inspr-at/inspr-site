@@ -1,0 +1,7 @@
+---
+import ProductPage from "../../components/ProductPage.astro";
+import { paimosContent } from "../../content/paimos";
+import { siteUrls } from "../../content/urls";
+---
+
+<ProductPage content={paimosContent} mount={{ english: siteUrls.paimosLegacy, german: siteUrls.paimosLegacyGerman }} />

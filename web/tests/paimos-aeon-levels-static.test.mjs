@@ -107,11 +107,17 @@ test("no release numbers reach the reader: marketing names, and the version on h
   for (const { locale, file } of editions) {
     const text = await source(file);
     assert.doesNotMatch(text, /\bR\d{2}\b|14\.1|Release 1\d/i, `${locale}: no release numbers in visible copy`);
-    // A raw version only where a command or image tag needs it; running
-    // text uses the {version} chip. Strings only: the tag constant is code.
+    // Running text carries no version at all: no {version} token, no raw
+    // coordinate, no sequence number. A raw version stays only where a
+    // command or image tag needs it (`:<version>`). The plaque's hover chip
+    // and the footer chip are not running text. Strings only: the tag
+    // constant is code.
     const strings = text.replace(/const tag = "v260930115354\.0\.0";/, "");
     assert.doesNotMatch(strings, /"[^"\n]*260930115354[^"\n]*"/, `${locale}: no raw version in running text`);
-    assert.ok((text.match(/\{version\}/g) ?? []).length >= 2, `${locale}: the chip where the version matters`);
+    assert.doesNotMatch(text, /\{version\}/, `${locale}: no inline version chip in running text`);
+    assert.doesNotMatch(strings, /"[^"\n]*\b\d{12}\.0\.0\b[^"\n]*"/, `${locale}: no raw coordinate in any string`);
+    assert.doesNotMatch(strings, /\b(?:Sequence|Sequenz)\s+\d+\b/i, `${locale}: no sequence number in running text`);
+    assert.doesNotMatch(strings, /\b(?:sequence|Sequenz)\s*113\b/i, `${locale}: sequence 113 is not printed`);
     assert.match(text, /codename: "Hinged Hangar"/);
     assert.match(text, /label: "Intact Ion"/, `${locale}: the next release by its name`);
     assert.doesNotMatch(text, /label: "Release \d/);

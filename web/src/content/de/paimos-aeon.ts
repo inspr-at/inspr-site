@@ -632,7 +632,7 @@ export const paimosAeonContentDe = {
         { term: "Suche", body: "Hybride Rangfolge aus lexikalischer und Vektorsuche über einen HNSW-Index auf pgvector halfvec(1536); rein lexikalisch, solange AEON_EMBEDDING_URL nicht gesetzt ist." },
         { term: "Selbst betreiben", body: "Das Image ghcr.io/inspr-at/aeon:<version>, ohne latest-Tag, konfiguriert über AEON_*-Variablen. AEON_DATABASE_URL ist Pflicht; Anhänge liegen unter AEON_FILES_DIR." },
         { term: "Anmeldung und Secrets", body: "Personen melden sich per OIDC (Zitadel) an, ein Mandant je Sitzung. Server-Secrets kommen aus Dateien, und außerhalb der Entwicklung ist die Datei mit dem Sitzungsschlüssel Pflicht. Die Web-Anwendung lädt weder Analyse-Tools noch Laufzeit-Ressourcen Dritter." },
-        { term: "Releases", body: "INSPR-CalVer3 (YYMMDDhhmmss.0.0): dieses Release ist {version}, Kanal stable, Sequenz 113. Ein annotierter Git-Tag baut das GHCR-Image und einen Release-Entwurf auf GitHub mit SHA256SUMS; der Entwurf wird erst nach der Live-Prüfung veröffentlicht, wodurch auch der Homebrew-Tap aktualisiert wird." },
+        { term: "Releases", body: "Releases werden nach INSPR-CalVer3 (YYMMDDhhmmss.0.0) versioniert, im Kanal stable. Ein annotierter Git-Tag baut das GHCR-Image und einen Release-Entwurf auf GitHub mit SHA256SUMS; der Entwurf wird erst nach der Live-Prüfung veröffentlicht, wodurch auch der Homebrew-Tap aktualisiert wird." },
       ],
     },
     diagram: {
@@ -676,7 +676,7 @@ export const paimosAeonContentDe = {
     lead: "Hinged Hangar ist seit dem 30. September live. Was folgt, kann sich bis zum Release noch ändern.",
     depths: {
       simple: "Hinged Hangar ist heute live. Das kommt als Nächstes, und Pläne können sich bis zum Release noch ändern.",
-      technical: "Hinged Hangar ist {version}, Kanal stable, Sequenz 113. Was folgt, sind erfasste Tickets, keine Zusagen. Noch nicht enthalten: die meisten MCP-Werkzeuge, die Durchsetzung von Deploy-Zielen und Doktrin-Vorschläge als Pull Requests.",
+      technical: "Hinged Hangar ist ein Release im Kanal stable. Was folgt, sind erfasste Tickets, keine Zusagen. Noch nicht enthalten: die meisten MCP-Werkzeuge, die Durchsetzung von Deploy-Zielen und Doktrin-Vorschläge als Pull Requests.",
     },
     releases: [
       {

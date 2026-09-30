@@ -639,7 +639,7 @@ export const paimosAeonContent = {
         { term: "search", body: "Hybrid lexical and vector ranking over a pgvector halfvec(1536) HNSW index; lexical only unless AEON_EMBEDDING_URL is set." },
         { term: "self-hosting", body: "The image ghcr.io/inspr-at/aeon:<version>, with no latest tag, configured through AEON_* variables. AEON_DATABASE_URL is required; attachments live under AEON_FILES_DIR." },
         { term: "sign-in and secrets", body: "People sign in with OIDC (Zitadel), one tenant per session. Server secrets come from files, and the session key file is required outside development. The web app loads no analytics and no third-party runtime assets." },
-        { term: "releases", body: "INSPR-CalVer3 (YYMMDDhhmmss.0.0): this release is {version}, channel stable, sequence 113. An annotated Git tag builds the GHCR image and a draft GitHub release with SHA256SUMS; the draft is published only after live verification, which also updates the Homebrew tap." },
+        { term: "releases", body: "Releases are versioned INSPR-CalVer3 (YYMMDDhhmmss.0.0) on the stable channel. An annotated Git tag builds the GHCR image and a draft GitHub release with SHA256SUMS; the draft is published only after live verification, which also updates the Homebrew tap." },
       ],
     },
     diagram: {
@@ -683,7 +683,7 @@ export const paimosAeonContent = {
     lead: "Hinged Hangar went live on 30 September. What follows can still change before it lands.",
     depths: {
       simple: "Hinged Hangar is live today. This is what comes next, and plans can still change before a release lands.",
-      technical: "Hinged Hangar is {version}, channel stable, sequence 113. What follows are filed tickets, not commitments. Not shipped yet: most MCP tools, deploy-target enforcement and doctrine pull-request proposals.",
+      technical: "Hinged Hangar is a stable-channel release. What follows are filed tickets, not commitments. Not shipped yet: most MCP tools, deploy-target enforcement and doctrine pull-request proposals.",
     },
     releases: [
       {

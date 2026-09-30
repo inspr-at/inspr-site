@@ -376,4 +376,10 @@
       translate: none;
     }
   }
+
+  /* The hero's Pause control stops the plaque's light too (WCAG 2.2.2). */
+  .aeon-hero.is-paused .aeon-plaque-stage__orb,
+  .aeon-hero.is-paused .aeon-plaque__live i::after {
+    animation-play-state: paused;
+  }
 }

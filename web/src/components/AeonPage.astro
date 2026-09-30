@@ -24,6 +24,7 @@ import AeonRulesPan from "./AeonRulesPan.astro";
 import AeonReleasePlaque from "./AeonReleasePlaque.astro";
 import type { AeonContent, AeonProof } from "../content/types";
 import { siteUrls } from "../content/urls";
+import captureManifest from "../assets/products/paimos-aeon/capture-manifest.json";
 import "@fontsource-variable/geist/index.css";
 import "../styles/aeon.css";
 
@@ -65,6 +66,7 @@ const labels = locale === "de"
       specsShuffle: "Eckdaten-Raster mischen",
       lensLive: "Live-Bildschirm, aeon.barta.cm",
       lensIllustration: "Illustration",
+      lensWeb: "Öffentliches Repository, github.com",
       lensClose: "Schließen",
       lensPrev: "Vorherige Fähigkeit",
       lensNext: "Nächste Fähigkeit",
@@ -105,6 +107,7 @@ const labels = locale === "de"
       specsShuffle: "Shuffle the specs grid",
       lensLive: "Live screen, aeon.barta.cm",
       lensIllustration: "Illustration",
+      lensWeb: "Public repository, github.com",
       lensClose: "Close",
       lensPrev: "Previous capability",
       lensNext: "Next capability",
@@ -162,18 +165,23 @@ const controlFull = await lightbox(sessionsDark);
 
 // The capability lens: one image per capability, keyed by the NN prefix of
 // src/assets/products/paimos-aeon/specs/NN-slug.{jpg,png,webp} in content
-// order (01 to 20). Thirteen are live screens, seven generated scenes; the
-// placard's source line says which. A missing file fails the build.
+// order (01 to 20). Each image's kind (live screen, generated scene or public
+// web page) comes from the capture manifest, the same record the capture gate
+// verifies, so the placard's source line cannot drift from provenance.
 const lensFiles = import.meta.glob<ImageMetadata>(
   "../assets/products/paimos-aeon/specs/*.{png,jpg,jpeg,webp}",
   { eager: true, import: "default" },
 );
-const lensArt = new Set(["06", "09", "10", "12", "17", "18", "20"]);
+const lensKinds: Record<string, LensImage["kind"]> = { live: "live", generated: "art", "public-web": "web" };
 const lensImages: LensImage[] = content.specs.items.map((item, i) => {
   const key = String(i + 1).padStart(2, "0");
   const hit = Object.entries(lensFiles).find(([path]) => path.includes(`/specs/${key}-`));
   if (!hit) throw new Error(`INSPR-492: missing lens image ${key} for "${item.label}" in src/assets/products/paimos-aeon/specs/`);
-  return { image: hit[1], kind: lensArt.has(key) ? "art" : "live" };
+  const name = hit[0].slice(hit[0].indexOf("paimos-aeon/") + "paimos-aeon/".length);
+  const recorded = captureManifest.files.find((file) => file.name === name);
+  const kind = recorded ? lensKinds[recorded.kind] : undefined;
+  if (!kind) throw new Error(`INSPR-492: lens image ${name} has no known kind in capture-manifest.json`);
+  return { image: hit[1], kind };
 });
 const captionTail = content.theatre.note;
 
@@ -412,6 +420,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
         labels: {
           live: labels.lensLive,
           illustration: labels.lensIllustration,
+          web: labels.lensWeb,
           close: labels.lensClose,
           prev: labels.lensPrev,
           next: labels.lensNext,

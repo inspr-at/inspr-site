@@ -42,3 +42,28 @@ for (const path of routes) {
     await expect(tabs.nth(3)).toHaveAttribute("aria-selected", "true");
   });
 }
+
+// WCAG 2.2.2: the hero's Pause control must stop every looping animation in
+// the hero, including the release plaque's light (review gate, INSPR-492).
+test.describe("hero pause", () => {
+  test.use({ reducedMotion: "no-preference" });
+
+  test("pausing the hero halts every looping hero animation", async ({ page }) => {
+    await page.goto("/paimos/?lang=en", { waitUntil: "domcontentloaded" });
+    await page.evaluate(() => document.fonts.ready);
+    await page.evaluate(() => document.querySelector(".aeon-hero")?.classList.add("is-paused"));
+    await page.waitForTimeout(100);
+    const running = await page.evaluate(() => {
+      const hero = document.querySelector(".aeon-hero");
+      return document.getAnimations()
+        .filter((animation) => {
+          const target = animation.effect?.target;
+          return target instanceof Element && hero?.contains(target)
+            && animation.effect.getTiming().iterations === Infinity
+            && animation.playState === "running";
+        })
+        .map((animation) => `${animation.effect.target.className} ${animation.animationName ?? ""}`);
+    });
+    expect(running).toEqual([]);
+  });
+});

@@ -18,6 +18,7 @@ const walk = (dir) => readdirSync(dir).flatMap((entry) => {
 const onDisk = new Set(walk(root).filter((path) => path !== "capture-manifest.json" && !path.startsWith(".")));
 const recorded = new Map(manifest.files.map((file) => [file.name, file]));
 const problems = [];
+if (recorded.size !== manifest.files.length) problems.push("the manifest lists a file name more than once");
 
 for (const path of onDisk) if (!recorded.has(path)) problems.push(`${path}: published but not in the manifest`);
 for (const [name, file] of recorded) {
@@ -27,6 +28,7 @@ for (const [name, file] of recorded) {
   if (!["live", "generated", "public-web"].includes(file.kind)) problems.push(`${name}: unknown kind ${file.kind}`);
   if (file.kind === "live" && !(file.route && file.version && file.redaction)) problems.push(`${name}: live capture needs route, version and redaction`);
   if (file.kind === "generated" && !(file.generator && file.subject)) problems.push(`${name}: generated image needs generator and subject`);
+  if (file.kind === "public-web" && !(file.source && file.note)) problems.push(`${name}: public web capture needs source and note`);
 }
 
 if (problems.length) {

@@ -19,13 +19,14 @@ type SpecsGroup = SpecsContent["items"][number]["group"];
 
 export interface LensImage {
   image: ImageMetadata;
-  /** "live" for a product screen, "art" for a generated scene (placard source line). */
-  kind: "live" | "art";
+  /** "live" product screen, "art" generated scene, "web" public web page (placard source line). */
+  kind: "live" | "art" | "web";
 }
 
 export interface LensLabels {
   live: string;
   illustration: string;
+  web: string;
   close: string;
   prev: string;
   next: string;
@@ -47,6 +48,8 @@ interface Props {
 
 const { specs, labels, variant, groupLabels, lens } = Astro.props;
 const catalogue = variant === "aeon" && groupLabels;
+const sourceLabel = (kind?: LensImage["kind"]) =>
+  kind === "art" ? lens?.labels.illustration : kind === "web" ? lens?.labels.web : lens?.labels.live;
 const field = variant === "aeon";
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -159,7 +162,7 @@ const segmentNote = (text: string): NoteSegment[] => {
             srcset={slide.srcset}
             sizes="100vw"
             alt=""
-            data-alt={`${specs.items[i]?.label}, ${lens.images[i]?.kind === "art" ? lens.labels.illustration : lens.labels.live}`}
+            data-alt={`${specs.items[i]?.label}, ${sourceLabel(lens.images[i]?.kind)}`}
             width={slide.width}
             height={slide.height}
             loading="lazy"
@@ -195,7 +198,7 @@ const segmentNote = (text: string): NoteSegment[] => {
             <span class="specs__variant specs__variant--plain">{item.noteEli10}</span>
           </p>
           <span class="specs__placard-source">
-            {lens.images[index]?.kind === "art" ? lens.labels.illustration : lens.labels.live}
+            {sourceLabel(lens.images[index]?.kind)}
           </span>
         </div>
       ))}

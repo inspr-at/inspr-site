@@ -140,7 +140,7 @@ for (const { path, lang } of pages) {
     await page.goto(`${path}?lang=${lang}`, { waitUntil: "domcontentloaded" });
     // The slide whose standard note is longest.
     const index = await page.evaluate(() => {
-      const notes = [...document.querySelectorAll("[data-specs-carousel] .specs__slide-note .specs__variant--tech")];
+      const notes = [...document.querySelectorAll('[data-specs-carousel] .specs__slide-note [data-copy-level="standard"]')];
       return notes.reduce((best, note, i) => (note.textContent.length > notes[best].textContent.length ? i : best), 0);
     });
     const button = page.locator("#specs .specs__tile .specs__open").nth(index);

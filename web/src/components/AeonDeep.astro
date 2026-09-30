@@ -1,0 +1,29 @@
+---
+/**
+ * INSPR-497: verified technical facts under an AEON section, shown at the
+ * How level only. Terms are component, protocol or command names; every
+ * sentence comes from the AEON lead's fact sheet for the presented tag.
+ */
+import type { AeonDeep } from "../content/types";
+
+interface Props {
+  deep: AeonDeep;
+  id: string;
+  /** On the dark (ink) sections. */
+  ink?: boolean;
+}
+
+const { deep, id, ink = false } = Astro.props;
+---
+
+<aside class:list={["aeon-deep", ink && "aeon-deep--ink"]} aria-labelledby={id} data-depth-min="technical">
+  <h3 class="aeon-deep__title" id={id}>{deep.title}</h3>
+  <dl class="aeon-deep__list">
+    {deep.items.map((item) => (
+      <div class="aeon-deep__item">
+        <dt>{item.term}</dt>
+        <dd>{item.body}</dd>
+      </div>
+    ))}
+  </dl>
+</aside>

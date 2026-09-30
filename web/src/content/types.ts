@@ -64,11 +64,15 @@ export type SpecsContent = {
   title: string;
   lead?: string;
   leadEli10?: string;
+  /** AEON only (INSPR-497): the section lead at the How level. */
+  leadHow?: string;
   items: Array<{
     label: string;
     icon: string;
     note: string;
     noteEli10: string;
+    /** AEON only (INSPR-497): the card note at the How level. */
+    noteHow?: string;
     group: "security" | "ops" | "ai" | "legal" | "work" | "place";
   }>;
   glossary?: Array<{
@@ -261,6 +265,32 @@ export type AeonFeature = {
   caveat?: string;
 };
 
+/**
+ * INSPR-497: the AEON page at three levels. `simple` is Why (results, for
+ * readers without a technical background), `standard` is What (the page as
+ * before, and the no-JavaScript edition), `technical` is How (depth for
+ * developers and IT). A block with `depthMin` shows from that level up, one
+ * with `depthMax` up to that level.
+ */
+export type AeonDepthMin = "standard" | "technical";
+export type AeonDepthMax = "simple" | "standard";
+
+/** A copy slot at all three levels: the field itself is What. */
+export type AeonDepths = Required<Depths>;
+
+/** How only: verified technical facts under a section. */
+export type AeonDeep = {
+  title: string;
+  items: Array<{ term: string; body: string }>;
+};
+
+/** The AEON specs: every card carries a How note, and the lead a How line. */
+export type AeonSpecsContent = SpecsContent & {
+  leadEli10: string;
+  leadHow: string;
+  items: Array<SpecsContent["items"][number] & { noteHow: string }>;
+};
+
 /** The PAIMOS AEON release page at www.inspr.at/paimos-aeon (INSPR-492). */
 export type AeonContent = {
   name: string;
@@ -272,10 +302,8 @@ export type AeonContent = {
   release: {
     name: string;
     codename: string;
-    label: string;
     version: string;
     publishedAt: string;
-    publishedLabel: string;
     url: string;
   };
   seo: { title: string; description: string };
@@ -286,7 +314,7 @@ export type AeonContent = {
     titleLead: string;
     titleAccent: string;
     lead: string;
-    depths: Depths;
+    depths: AeonDepths;
     primaryLabel: string;
     primaryHref: string;
     alt: string;
@@ -294,22 +322,24 @@ export type AeonContent = {
     ribbonLabel: string;
     ribbon: string[];
   };
-  figures: Array<{ value: string; label: string }>;
+  figures: Array<{ value: string; label: string; depthMin?: AeonDepthMin }>;
   theatre: {
     eyebrow: string;
     title: string;
     lead: string;
+    depths: AeonDepths;
     note: string;
     openLabel: string;
     screens: Array<{ id: string; tab: string; title: string; body: string; alt: string }>;
   };
-  specs: SpecsContent;
+  specs: AeonSpecsContent;
   specGroups: Record<SpecsContent["items"][number]["group"], string>;
   controlRoom: {
     eyebrow: string;
     title: string;
     lead: string;
-    depths: Depths;
+    depths: AeonDepths;
+    deep: AeonDeep;
     items: AeonFeature[];
     screenAlt: string;
     pairing: {
@@ -326,7 +356,8 @@ export type AeonContent = {
     title: string;
     titleAccent: string;
     lead: string;
-    depths: Depths;
+    depths: AeonDepths;
+    deep: AeonDeep;
     /**
      * The four stations of the instrument, in order. `actor` names who acts
      * at that station; `tokens` are the scopes, events or files shown as
@@ -348,7 +379,8 @@ export type AeonContent = {
     eyebrow: string;
     title: string;
     lead: string;
-    depths: Depths;
+    depths: AeonDepths;
+    deep: AeonDeep;
     /** Section starts in the rules capture, as a fraction of its height. */
     stops: Array<{ label: string; at: number }>;
     points: Array<{ title: string; body: string }>;
@@ -360,7 +392,7 @@ export type AeonContent = {
     eyebrow: string;
     title: string;
     lead: string;
-    depths: Depths;
+    depths: AeonDepths;
     /**
      * The eight journey stages in order. Names stay English in every locale.
      * `scope` is the approval scope of the person-approved gate at that
@@ -394,7 +426,8 @@ export type AeonContent = {
     eyebrow: string;
     title: string;
     lead: string;
-    depths: Depths;
+    depths: AeonDepths;
+    deep: AeonDeep;
     diagram: {
       clients: string[];
       clientsLabel: string;
@@ -413,6 +446,7 @@ export type AeonContent = {
     eyebrow: string;
     title: string;
     lead: string;
+    depths: AeonDepths;
     releases: Array<{
       label: string;
       status: "coming" | "planned";
@@ -423,7 +457,19 @@ export type AeonContent = {
     }>;
     goodToKnow: { title: string; items: string[] };
   };
-  openSource: { eyebrow: string; title: string; body: string; links: LinkItem[] };
-  faq: Array<{ question: string; answer: string }>;
+  openSource: { eyebrow: string; title: string; body: string; depths: AeonDepths; links: LinkItem[] };
+  /**
+   * The answer is What; `depths` carries Why and How. `questionDepths`
+   * rewords the question where a level asks it differently. A question
+   * with `depthMin` or `depthMax` is asked only at those levels.
+   */
+  faq: Array<{
+    question: string;
+    answer: string;
+    depths: AeonDepths;
+    questionDepths?: Depths;
+    depthMin?: AeonDepthMin;
+    depthMax?: AeonDepthMax;
+  }>;
   finalCta: { title: string; body: string };
 };

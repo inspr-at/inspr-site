@@ -11,6 +11,7 @@
  * aeon-authority.css.
  */
 import DetailLevels from "./DetailLevels.astro";
+import AeonDeep from "./AeonDeep.astro";
 import type { AeonContent } from "../content/types";
 import "../styles/aeon-authority.css";
 
@@ -42,11 +43,11 @@ const kindOf = (token: string) =>
           <span class="aeon-accent">{content.titleAccent}</span>
         </h2>
       </div>
-      <p class="section-lead">
+      <p class="section-lead" data-copy-slot>
         <DetailLevels
-          simple={content.depths.simple ?? content.lead}
+          simple={content.depths.simple}
           standard={content.lead}
-          technical={content.depths.technical ?? content.lead}
+          technical={content.depths.technical}
         />
       </p>
     </header>
@@ -106,7 +107,9 @@ const kindOf = (token: string) =>
       </button>
     </div>
 
-    <p class="aeon-proof">
+    <AeonDeep deep={content.deep} id="authority-deep" />
+
+    <p class="aeon-proof" data-depth-min="standard">
       <span class="aeon-proof__label">{labels.proof}</span>
       {proofs.map((proof) => (
         <a href={proof.href} target="_blank" rel="noopener noreferrer">{proof.label} <span aria-hidden="true">↗</span></a>

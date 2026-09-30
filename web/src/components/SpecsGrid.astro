@@ -8,12 +8,14 @@
  * a full-bleed light field. Hovering or focusing a card fades its image in
  * as the section's background at 20%; clicking or tapping opens a
  * full-screen carousel (a dialog with prev/next, keys, swipe and a caption
- * that follows the Details level). Everything AEON-only sits behind `field`,
+ * that follows the Details level: Why, What or How, INSPR-497, as the lead
+ * does). Everything AEON-only sits behind `field`,
  * so the other product pages render byte-identical markup. Behaviour:
  * AeonPage.astro, initSpecsCarousel.
  */
 import { getImage } from "astro:assets";
 import ContextIcon from "./ContextIcon.astro";
+import DetailLevels from "./DetailLevels.astro";
 import type { SpecsContent } from "../content/types";
 
 type SpecsGroup = SpecsContent["items"][number]["group"];
@@ -172,9 +174,12 @@ const segmentNote = (text: string): NoteSegment[] => {
                 <span>{pad(i + 1)}</span>
               </span>
               <strong class="specs__slide-label" id={`specs-slide-label-${pad(i + 1)}`}>{specs.items[i]?.label}</strong>
-              <p class="specs__slide-note" id={`specs-slide-note-${pad(i + 1)}`}>
-                <span class="specs__variant specs__variant--tech">{specs.items[i]?.note}</span>
-                <span class="specs__variant specs__variant--plain">{specs.items[i]?.noteEli10}</span>
+              <p class="specs__slide-note" id={`specs-slide-note-${pad(i + 1)}`} data-copy-slot>
+                <DetailLevels
+                  simple={specs.items[i]?.noteEli10 ?? ""}
+                  standard={specs.items[i]?.note ?? ""}
+                  technical={specs.items[i]?.noteHow ?? specs.items[i]?.note ?? ""}
+                />
               </p>
               <span class="specs__slide-source">{sourceLabel(lens.images[i]?.kind)}</span>
             </figcaption>
@@ -203,7 +208,12 @@ const segmentNote = (text: string): NoteSegment[] => {
   <header class="section-intro">
     <p class="eyebrow">{specs.eyebrow}</p>
     <h2 id="specs-title">{specs.title}</h2>
-    {specs.lead && (
+    {specs.lead && field && (
+      <p class="section-lead" data-copy-slot>
+        <DetailLevels simple={specs.leadEli10 ?? specs.lead} standard={specs.lead} technical={specs.leadHow ?? specs.lead} />
+      </p>
+    )}
+    {specs.lead && !field && (
       <p class="section-lead">
         <span class="specs__variant specs__variant--tech">{specs.lead}</span>
         {specs.leadEli10 && (

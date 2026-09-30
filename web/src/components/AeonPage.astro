@@ -7,6 +7,28 @@
  * AEON's own story, told around the gold era arc from its mark. The page is
  * mounted below the www host, so every locale path and the brand link are
  * scoped to /paimos-aeon/ instead of a product host root.
+ *
+ * INSPR-497: the page at three levels (the header's Details switch). Level
+ * ids stay simple, standard and technical; the switch names them Why, What
+ * and How. What is the page as it was and the edition without JavaScript.
+ * Blocks carry data-depth-min / data-depth-max; copy that changes sits in a
+ * [data-copy-slot] with one child per level. The level map, pinned by
+ * tests/paimos-aeon-levels-static.test.mjs:
+ *
+ *   section          Why                     What        How
+ *   hero             lead: outcomes          as before   lead: the stack
+ *     event ribbon   hidden                  shown       shown
+ *   figures          3 (no log, no API)      all 5       all 5
+ *   screens          lead: in daily use      as before   lead: technical
+ *   specs            lead + card notes Why   as before   lead + card notes How
+ *   control room     no pairing, no proof    as before   + How facts
+ *   authority        no proof                as before   + How facts
+ *   rules            hidden                  as before   + How facts
+ *   delivery         no proof                as before   lead: technical
+ *   architecture     hidden                  as before   + How facts
+ *   what is coming   no "good to know"       as before   lead: technical
+ *   open source      lead: outcomes          as before   lead: technical
+ *   FAQ              answers Why, + servers  as before   answers How
  */
 import { Image, getImage } from "astro:assets";
 import MicrositeLayout from "../layouts/MicrositeLayout.astro";
@@ -22,6 +44,7 @@ import AeonAuthority from "./AeonAuthority.astro";
 import AeonJourney from "./AeonJourney.astro";
 import AeonRulesPan from "./AeonRulesPan.astro";
 import AeonReleasePlaque from "./AeonReleasePlaque.astro";
+import AeonDeep from "./AeonDeep.astro";
 import type { AeonContent, AeonProof } from "../content/types";
 import { siteUrls } from "../content/urls";
 import captureManifest from "../assets/products/paimos-aeon/capture-manifest.json";
@@ -237,7 +260,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
             <span class="aeon-hero__title-lead">{content.hero.titleLead}</span>
             <em class="aeon-accent">{content.hero.titleAccent}</em>
           </h1>
-          <p class="aeon-hero__lead">
+          <p class="aeon-hero__lead" data-copy-slot>
             <DetailLevels
               simple={content.hero.depths.simple ?? content.hero.lead}
               standard={content.hero.lead}
@@ -296,10 +319,10 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       </div>
 
       <div class="page-shell">
-        <AeonReleasePlaque release={content.release} mark={aeonMark.src} label={labels.releaseAria} />
+        <AeonReleasePlaque release={content.release} mark={aeonMark.src} label={labels.releaseAria} locale={locale} />
       </div>
 
-      <div class="aeon-ribbon" role="group" aria-label={labels.ribbonAria} data-section-pattern="event-ribbon">
+      <div class="aeon-ribbon" role="group" aria-label={labels.ribbonAria} data-section-pattern="event-ribbon" data-depth-min="standard">
         <p class="aeon-ribbon__label">{content.hero.ribbonLabel}</p>
         <div class="aeon-ribbon__track">
           <ol class="aeon-ribbon__list">
@@ -320,7 +343,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
     <section class="aeon-figures page-shell" aria-label={labels.figuresAria} data-section-pattern="figure-ledger">
       <ol class="aeon-figures__list">
         {content.figures.map((figure) => (
-          <li data-reveal>
+          <li data-reveal data-flip data-depth-min={figure.depthMin}>
             <strong class="aeon-figures__value">{figure.value}</strong>
             <span class="aeon-figures__label">{figure.label}</span>
           </li>
@@ -336,7 +359,13 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
             <p class="eyebrow">{content.theatre.eyebrow}</p>
             <h2 id="screens-title">{content.theatre.title}</h2>
           </div>
-          <p class="section-lead">{content.theatre.lead}</p>
+          <p class="section-lead" data-copy-slot>
+            <DetailLevels
+              simple={content.theatre.depths.simple}
+              standard={content.theatre.lead}
+              technical={content.theatre.depths.technical}
+            />
+          </p>
         </header>
 
         <div class="aeon-theatre__bar">
@@ -443,11 +472,11 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
             <p class="eyebrow">{content.controlRoom.eyebrow}</p>
             <h2 id="control-title">{content.controlRoom.title}</h2>
           </div>
-          <p class="section-lead">
+          <p class="section-lead" data-copy-slot>
             <DetailLevels
-              simple={content.controlRoom.depths.simple ?? content.controlRoom.lead}
+              simple={content.controlRoom.depths.simple}
               standard={content.controlRoom.lead}
-              technical={content.controlRoom.depths.technical ?? content.controlRoom.lead}
+              technical={content.controlRoom.depths.technical}
             />
           </p>
         </header>
@@ -489,7 +518,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
           ))}
         </ul>
 
-        <div class="aeon-pairing" data-reveal>
+        <div class="aeon-pairing" data-reveal data-depth-min="standard">
           <div class="aeon-pairing__copy">
             <p class="eyebrow">{content.controlRoom.pairing.eyebrow}</p>
             <h3>{content.controlRoom.pairing.title}</h3>
@@ -514,7 +543,9 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
           </ol>
         </div>
 
-        <p class="aeon-proof aeon-proof--ink">
+        <AeonDeep deep={content.controlRoom.deep} id="control-deep" ink />
+
+        <p class="aeon-proof aeon-proof--ink" data-depth-min="standard">
           <span class="aeon-proof__label">{labels.proof}</span>
           {content.controlRoom.proof.map((proof) => (
             <a href={proofHref(proof)} target="_blank" rel="noopener noreferrer">{proof.label} <span aria-hidden="true">↗</span></a>
@@ -526,16 +557,16 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
     <AeonAuthority content={content.authority} proofs={content.authority.proof.map((proof) => ({ label: proof.label, href: proofHref(proof) }))} labels={{ proof: labels.proof, steps: labels.stepsAria }} />
 
     <!-- Rules: six layers, shown as the live rules view panning past. -->
-    <section class="section section--tint aeon-rules" id="rules" aria-labelledby="rules-title" data-section-pattern="rules-pan">
+    <section class="section section--tint aeon-rules" id="rules" aria-labelledby="rules-title" data-section-pattern="rules-pan" data-depth-min="standard">
       <div class="page-shell aeon-rules__grid">
         <div>
           <p class="eyebrow">{content.rules.eyebrow}</p>
           <h2 id="rules-title">{content.rules.title}</h2>
-          <p class="section-lead">
+          <p class="section-lead" data-copy-slot>
             <DetailLevels
-              simple={content.rules.depths.simple ?? content.rules.lead}
+              simple={content.rules.depths.simple}
               standard={content.rules.lead}
-              technical={content.rules.depths.technical ?? content.rules.lead}
+              technical={content.rules.depths.technical}
             />
           </p>
           <dl class="aeon-points">
@@ -547,6 +578,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
             ))}
           </dl>
           <p class="aeon-early"><span class="aeon-badge aeon-badge--early">{labels.early}</span>{stripPrefix(content.rules.early)}</p>
+          <AeonDeep deep={content.rules.deep} id="rules-deep" />
           <p class="aeon-proof">
             <span class="aeon-proof__label">{labels.proof}</span>
             {content.rules.proof.map((proof) => (
@@ -576,18 +608,18 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
     <AeonJourney content={content.delivery} proofs={content.delivery.proof.map((proof) => ({ label: proof.label, href: proofHref(proof) }))} labels={{ proof: labels.proof, stages: labels.stagesAria }} />
 
     <!-- Architecture: the blueprint. -->
-    <section class="section section--ink aeon-blueprint" id="architecture" aria-labelledby="architecture-title" data-section-pattern="blueprint">
+    <section class="section section--ink aeon-blueprint" id="architecture" aria-labelledby="architecture-title" data-section-pattern="blueprint" data-depth-min="standard">
       <div class="page-shell">
         <header class="aeon-split-head">
           <div>
             <p class="eyebrow">{content.architecture.eyebrow}</p>
             <h2 id="architecture-title">{content.architecture.title}</h2>
           </div>
-          <p class="section-lead">
+          <p class="section-lead" data-copy-slot>
             <DetailLevels
-              simple={content.architecture.depths.simple ?? content.architecture.lead}
+              simple={content.architecture.depths.simple}
               standard={content.architecture.lead}
-              technical={content.architecture.depths.technical ?? content.architecture.lead}
+              technical={content.architecture.depths.technical}
             />
           </p>
         </header>
@@ -631,6 +663,8 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
             </li>
           ))}
         </ol>
+
+        <AeonDeep deep={content.architecture.deep} id="architecture-deep" ink />
       </div>
     </section>
 
@@ -642,7 +676,13 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
             <p class="eyebrow">{content.horizon.eyebrow}</p>
             <h2 id="horizon-title">{content.horizon.title}</h2>
           </div>
-          <p class="section-lead">{content.horizon.lead}</p>
+          <p class="section-lead" data-copy-slot>
+            <DetailLevels
+              simple={content.horizon.depths.simple}
+              standard={content.horizon.lead}
+              technical={content.horizon.depths.technical}
+            />
+          </p>
         </header>
         <ol class="aeon-horizon__list" aria-label={labels.horizonAria}>
           {content.horizon.releases.map((release) => (
@@ -659,7 +699,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
             </li>
           ))}
         </ol>
-        <div class="aeon-good" data-reveal>
+        <div class="aeon-good" data-reveal data-depth-min="standard">
           <h3>{content.horizon.goodToKnow.title}</h3>
           <ul>
             {content.horizon.goodToKnow.items.map((item) => <li>{item}</li>)}
@@ -672,7 +712,13 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       <div>
         <p class="eyebrow">{content.openSource.eyebrow}</p>
         <h2 id="source-title">{content.openSource.title}</h2>
-        <p class="section-lead">{content.openSource.body}</p>
+        <p class="section-lead" data-copy-slot>
+          <DetailLevels
+            simple={content.openSource.depths.simple}
+            standard={content.openSource.body}
+            technical={content.openSource.depths.technical}
+          />
+        </p>
       </div>
       <ProvenanceReceipt links={content.openSource.links} locale={locale} />
     </section>
@@ -684,9 +730,17 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       </header>
       <div class="faq-list">
         {content.faq.map((item) => (
-          <details>
-            <summary>{item.question}</summary>
-            <p>{item.answer}</p>
+          <details data-flip data-depth-min={item.depthMin} data-depth-max={item.depthMax}>
+            <summary data-copy-slot>
+              <DetailLevels
+                simple={item.questionDepths?.simple ?? item.question}
+                standard={item.question}
+                technical={item.questionDepths?.technical ?? item.question}
+              />
+            </summary>
+            <p data-copy-slot>
+              <DetailLevels simple={item.depths.simple} standard={item.answer} technical={item.depths.technical} />
+            </p>
           </details>
         ))}
       </div>

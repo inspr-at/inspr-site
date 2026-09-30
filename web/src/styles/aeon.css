@@ -947,15 +947,8 @@
     line-height: 1.2;
   }
 
-  /* The header's Details level drives the plain-language wording, in the
-     section lead and in the carousel captions. */
-  html[data-details-level="simple"] .specs--aeon .specs__variant--plain {
-    display: inline;
-  }
-
-  html[data-details-level="simple"] .specs--aeon .specs__variant--tech {
-    display: none;
-  }
+  /* The section lead and the carousel captions follow the header's level
+     through copy slots (Why, What, How: INSPR-497). */
 
   /* ── The carousel ── */
   .specs__carousel {
@@ -1990,6 +1983,80 @@
     color: var(--aeon-teal);
     content: "✓";
     font-weight: 700;
+  }
+
+  /* ── How: verified facts under a section (INSPR-497) ─────────────── */
+  /* A quiet spec sheet: a gold hairline, the title, then term and fact
+     rows. Shown at the How level only; the level engine moves it. */
+  .aeon-deep {
+    display: grid;
+    gap: 1rem;
+    margin-top: clamp(1.8rem, 4vw, 2.6rem);
+    padding-top: 1.1rem;
+    border-top: 1px solid color-mix(in srgb, var(--aeon-gold) 55%, transparent);
+  }
+
+  .aeon-deep__title {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 650;
+    letter-spacing: -0.015em;
+  }
+
+  .aeon-deep__list {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .aeon-deep__item {
+    display: grid;
+    gap: 0.3rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  @media (min-width: 48rem) {
+    .aeon-deep__item {
+      grid-template-columns: 13rem minmax(0, 1fr);
+      gap: 1.5rem;
+    }
+  }
+
+  .aeon-deep dt {
+    color: var(--aeon-gold-deep);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+  }
+
+  .aeon-deep dd {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.96rem;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+  }
+
+  .aeon-deep--ink .aeon-deep__title {
+    color: var(--night-text);
+  }
+
+  .aeon-deep--ink .aeon-deep__list,
+  .aeon-deep--ink .aeon-deep__item {
+    border-color: rgb(255 255 255 / 0.14);
+  }
+
+  .aeon-deep--ink dt {
+    color: var(--aeon-gold-bright);
+  }
+
+  .aeon-deep--ink dd {
+    color: color-mix(in srgb, var(--night-text) 78%, transparent);
   }
 
   /* ── Rules: the live rules view as an instrument ─────────────────── */

@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
-  chmod,
   mkdir,
   mkdtemp,
   readFile,
@@ -18,6 +17,7 @@ import {
   createReleaseMetadata,
   releaseManifest,
 } from "../release-metadata.mjs";
+import { FIXTURE_REVISION, createCheckout, createHost } from "./support/fake-host.mjs";
 
 const sourceUrl = new URL("../src/", import.meta.url);
 
@@ -255,7 +255,8 @@ test("apex and identity edge routes enforce HTTPS and HSTS", async () => {
   assert.doesNotMatch(deploy, /remote_hash\s+"docker-compose\.yml"/);
   assert.doesNotMatch(deploy, /\$ROOT\/docker-compose\.yml/);
   assert.match(deploy, /docker restart inspr-www/);
-  assert.match(deploy, /automatic web edge rollback needs operator attention/);
+  assert.match(deploy, /the Caddyfile of \$CURRENT_RELEASE could not be restored and re-bound/);
+  assert.match(deploy, /automatic rollback did not complete \(%s\); the failed %s may still be live and needs operator attention/);
 });
 
 test("identity edge rejects the deployed sibling-header spoof contract", () => {
@@ -893,6 +894,14 @@ test("one validated release identity is visible across the site family", async (
       INSPR_GIT_DIRTY: "0",
       INSPR_RELEASE_ID: releaseId,
       INSPR_DEPLOYED_AT: deployedAt,
+      INSPR_CALENDAR_VERSION: "260718153000.0.0",
+      INSPR_RELEASE_SEQUENCE: "1",
+      INSPR_CALENDAR_ANCHOR: JSON.stringify({
+        legacyScheme: "legacy",
+        lastLegacyVersion: null,
+        firstCalendarVersion: "260718153000.0.0",
+        firstCalendarSequence: 1,
+      }),
     },
     { revision: "ffffffffffffffffffffffffffffffffffffffff", dirty: true },
   );
@@ -1027,123 +1036,45 @@ test("direct SSH deployment overrides preserve one pinned host identity", async 
     assert.doesNotMatch(result.stdout, /building Astro|uploading immutable release/);
   }
 
-  const fixtureRoot = await mkdtemp(join(tmpdir(), "inspr-deploy-transport-"));
-  try {
-    const fakeBin = join(fixtureRoot, "fake-bin");
-    const transportLog = join(fixtureRoot, "transport.log");
-    const gitRevision = "0123456789abcdef0123456789abcdef01234567";
-    const releaseId = "20260719T000000Z-0123456789ab";
-    const fixtureDirectories = [
-      fakeBin,
-      join(fixtureRoot, "site"),
-      join(fixtureRoot, "web", "dist", "_astro"),
-      join(fixtureRoot, "web", "dist", "overview"),
-      join(fixtureRoot, "web", "dist", "de", "ueberblick"),
-      join(fixtureRoot, "web", "dist", "paimos", "de"),
-      join(fixtureRoot, "web", "dist", "paimos-aeon", "de"),
-      join(fixtureRoot, "web", "dist", "paimos-legacy", "de"),
-      join(fixtureRoot, "web", "dist", "pharos", "de"),
-      join(fixtureRoot, "web", "dist", "janus", "de"),
-    ];
-    await Promise.all(
-      fixtureDirectories.map((directory) => mkdir(directory, { recursive: true })),
-    );
-
-    await Promise.all([
-      writeFile(join(fixtureRoot, "deploy.sh"), deploy),
-      writeFile(join(fixtureRoot, "Caddyfile"), "fixture caddy configuration\n"),
-      // Deliberately differs from the historical remote hash below. Static
-      // release transport must not inspect or reconcile either snapshot.
-      writeFile(
-        join(fixtureRoot, "docker-compose.yml"),
-        "services:\n  legacy-local:\n    image: local-only\n",
-      ),
-      writeFile(join(fixtureRoot, "site", "index.html"), "fixture archive\n"),
-      writeFile(join(fixtureRoot, "web", "dist", "index.html"), "fixture umbrella\n"),
-      writeFile(join(fixtureRoot, "web", "dist", "overview", "index.html"), "fixture overview\n"),
-      writeFile(join(fixtureRoot, "web", "dist", "de", "ueberblick", "index.html"), "fixture german overview\n"),
-      writeFile(join(fixtureRoot, "web", "dist", "paimos", "index.html"), "fixture paimos\n"),
-      writeFile(join(fixtureRoot, "web", "dist", "paimos", "de", "index.html"), "fixture german paimos\n"),
-      writeFile(join(fixtureRoot, "web", "dist", "paimos-aeon", "index.html"), "fixture paimos aeon\n"),
-      writeFile(join(fixtureRoot, "web", "dist", "paimos-aeon", "de", "index.html"), "fixture german paimos aeon\n"),
-      writeFile(join(fixtureRoot, "web", "dist", "paimos-legacy", "index.html"), "fixture paimos legacy\n"),
-      writeFile(join(fixtureRoot, "web", "dist", "paimos-legacy", "de", "index.html"), "fixture german paimos legacy\n"),
-      writeFile(join(fixtureRoot, "web", "dist", "pharos", "index.html"), "fixture pharos\n"),
-      writeFile(join(fixtureRoot, "web", "dist", "pharos", "de", "index.html"), "fixture german pharos\n"),
-      writeFile(join(fixtureRoot, "web", "dist", "janus", "index.html"), "fixture janus\n"),
-      writeFile(join(fixtureRoot, "web", "dist", "janus", "de", "index.html"), "fixture german janus\n"),
-      writeFile(join(fixtureRoot, "web", "dist", "_astro", "fixture.css"), "body{}\n"),
-      writeFile(
-        join(fixtureRoot, "web", "dist", "release.json"),
-        `${JSON.stringify({
-          schemaVersion: 1,
-          package: { version: "1.0.0" },
-          source: { git: gitRevision.slice(0, 12), dirty: false },
-          deployment: {
-            releaseId,
-            deployedAt: "2026-07-19T00:00:00Z",
-          },
-        })}\n`,
-      ),
-    ]);
-
-    // The fake host advertises a deliberately divergent historical Compose
-    // hash if queried. The deploy must ignore it while still exercising the
-    // Caddyfile promotion path (scp + validate + restart).
-    const remoteComposeHash = createHash("sha256")
-      .update("services:\n  legacy-remote:\n    image: remote-only\n")
-      .digest("hex");
-    const loggingTransport = (name, respond = "cat >/dev/null") => `#!/bin/sh
-printf '%s' '${name}' >> "$TRANSPORT_LOG"
-for argument in "$@"; do
-  printf '\\t%s' "$argument" >> "$TRANSPORT_LOG"
-done
-printf '\\n' >> "$TRANSPORT_LOG"
-${respond}
-`;
-    const sshResponder = `command=$(cat)
-case "$command" in
-  *docker-compose.yml*) printf '%s\\n' '${remoteComposeHash}'; exit 97 ;;
-esac`;
-    for (const transport of ["ssh", "scp", "rsync"]) {
-      const executable = join(fakeBin, transport);
-      await writeFile(
-        executable,
-        loggingTransport(transport, transport === "ssh" ? sshResponder : undefined),
-      );
-      await chmod(executable, 0o755);
-    }
-
-    const fakeGit = join(fakeBin, "git");
-    await writeFile(
-      fakeGit,
-      `#!/bin/sh
-case "$*" in
-  *rev-parse*) printf '%s\\n' '${gitRevision}' ;;
-  *status*) exit 0 ;;
-  *) exit 92 ;;
-esac
-`,
-    );
-    await chmod(fakeGit, 0o755);
-
-    const fakePython = join(fakeBin, "python3");
-    await writeFile(fakePython, "#!/bin/sh\nexit 0\n");
-    await chmod(fakePython, 0o755);
-
-    const bracketedAlias = spawnSync("/bin/bash", [join(fixtureRoot, "deploy.sh")], {
-      cwd: fixtureRoot,
-      encoding: "utf8",
-      env: {
-        ...baseEnvironment,
-        PATH: `${fakeBin}:${baseEnvironment.PATH}`,
-        TRANSPORT_LOG: transportLog,
-        INSPR_AT_SSH_HOSTNAME: "100.64.0.4",
-        INSPR_AT_SSH_HOST_KEY_ALIAS: "[csb1.ts.barta.cm]:2222",
-        INSPR_AT_SSH_PORT: "2222",
-        SKIP_BUILD: "1",
-        SKIP_PROBE: "1",
+  // A local stand-in host runs deploy.sh's real remote steps. It refuses any
+  // command that touches docker-compose.yml (exit 97): static release
+  // transport must never inspect or reconcile a historical Compose file. The
+  // host Caddyfile differs so the promotion path (scp + validate + restart) runs.
+  const host = await createHost();
+  await writeFile(join(host.dir, "Caddyfile"), "historical host caddy configuration\n");
+  const checkout = await createCheckout(host, {
+    release: {
+      schemaVersion: 2,
+      package: { name: "web", version: "1.0.0" },
+      source: { git: FIXTURE_REVISION.slice(0, 12), dirty: false },
+      deployment: {
+        releaseId: "20260719T000000Z-0123456789ab",
+        deployedAt: "2026-07-19T00:00:00Z",
       },
+      version: {
+        scheme: "inspr-calver-3",
+        value: "260719000000.0.0",
+        channel: "stable",
+        sequence: 1,
+        anchor: {
+          legacyScheme: "legacy",
+          lastLegacyVersion: null,
+          firstCalendarVersion: "260719000000.0.0",
+          firstCalendarSequence: 1,
+        },
+      },
+    },
+  });
+  try {
+    const transportLog = checkout.transportLog;
+    await writeFile(
+      join(checkout.root, "docker-compose.yml"),
+      "services:\n  legacy-local:\n    image: local-only\n",
+    );
+    const bracketedAlias = checkout.run({
+      INSPR_AT_SSH_HOSTNAME: "100.64.0.4",
+      INSPR_AT_SSH_HOST_KEY_ALIAS: "[csb1.ts.barta.cm]:2222",
+      INSPR_AT_SSH_PORT: "2222",
     });
     assert.equal(
       bracketedAlias.status,
@@ -1207,7 +1138,8 @@ esac
       assert.ok(arguments_.some((argument) => argument.startsWith("csb1:")));
     }
   } finally {
-    await rm(fixtureRoot, { recursive: true, force: true });
+    await rm(host.root, { recursive: true, force: true });
+    await rm(checkout.root, { recursive: true, force: true });
   }
 });
 

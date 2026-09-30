@@ -1,6 +1,7 @@
 ---
 import { productLinks, siteUrls } from "../content/urls";
 import { releaseMetadata } from "../../release-metadata.mjs";
+import CalendarVersion from "./CalendarVersion.astro";
 
 interface Props {
   name: string;
@@ -141,6 +142,18 @@ const labels = locale === "de"
       aria-label={labels.releaseAria}
       data-release-id={releaseMetadata.releaseId}
     >
+      {releaseMetadata.calendarVersion && releaseMetadata.versionScheme && (
+        <div>
+          <dt>Version</dt>
+          <dd>
+            <CalendarVersion
+              value={releaseMetadata.calendarVersion}
+              scheme={releaseMetadata.versionScheme}
+              locale={locale}
+            />
+          </dd>
+        </div>
+      )}
       <div>
         <dt>Site</dt>
         <dd class="site-footer__release-token" title={`${labels.package} ${releaseMetadata.packageName}`}>v{releaseMetadata.version}</dd>

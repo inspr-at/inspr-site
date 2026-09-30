@@ -1,0 +1,7 @@
+{
+  "repository": "inspr-at/inspr",
+  "revision": "01b3080948c21899cbbacbfa3447da6799af1b56",
+  "schema": "inspr.calver-display.v3",
+  "configSha256": "bf6aa144cd73dc97dc941f0f0914138b04ae0a28fbead5123465b15b1f2a2fd9",
+  "manifestSha256": "d4dcb8c05d0fcad7d60183156166c5a30f21e6abc1ac0c274ee3e0791e5ea912"
+}

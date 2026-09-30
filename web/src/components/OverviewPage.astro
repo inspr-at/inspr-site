@@ -5,6 +5,8 @@ import MicrositeHeader from "./MicrositeHeader.astro";
 import DetailLevels from "./DetailLevels.astro";
 import OverviewStack from "./OverviewStack.astro";
 import MicrositeLayout from "../layouts/MicrositeLayout.astro";
+import CalendarVersion from "./CalendarVersion.astro";
+import { releaseMetadata } from "../../release-metadata.mjs";
 import "../styles/overview.css";
 
 import { productTaxonomy, siteUrls } from "../content/urls";
@@ -514,6 +516,16 @@ const steps = [
 
   <footer class="overview-footer page-shell">
     <p>© {new Date().getUTCFullYear()} <a href={siteUrls.author} rel="me">Markus Barta</a> · INSPR</p>
+    {releaseMetadata.calendarVersion && releaseMetadata.versionScheme && (
+      <p class="overview-footer__release" data-release-id={releaseMetadata.releaseId}>
+        <span>Version</span>
+        <CalendarVersion
+          value={releaseMetadata.calendarVersion}
+          scheme={releaseMetadata.versionScheme}
+          locale={locale}
+        />
+      </p>
+    )}
     <a href={fullSiteUrl}>{copy("Full site", "Ganze Website")} <span aria-hidden="true">→</span></a>
   </footer>
 </MicrositeLayout>

@@ -182,25 +182,129 @@ in nixcfg; release content and the bind-mounted `Caddyfile` change here.
 
 The deployment script:
 
-1. assigns one UTC deployment timestamp, Git revision and immutable release ID;
-2. builds and validates the static site with that release identity;
-3. uploads into an unreachable incoming directory;
-4. verifies the remote content byte-for-byte;
-5. seals the release under its unique build ID;
-6. validates a changed `Caddyfile` before promotion and restarts `inspr-www` to pick it up;
-7. switches one symlink atomically;
-8. verifies the release stamp and result through every public hostname; and
-9. preserves the previous release for rollback.
+1. assigns one UTC deployment timestamp, Git revision and immutable release ID,
+   and reserves the release's calendar version from that same timestamp;
+2. builds and validates the static site with that release identity, then
+   writes its release set (`web/dist/release-set.json`);
+3. takes the host's deployment lock and re-checks the calendar history;
+4. verifies that the live release and its `Caddyfile` are an exact rollback
+   target, and stops before any change if they are not;
+5. uploads into an unreachable incoming directory, with the `Caddyfile`
+   snapshot kept outside the served root;
+6. verifies the remote content and snapshot byte-for-byte against the
+   release set;
+7. seals the release in two phases (`pending`, rename, `sealed`) in the host
+   ledger under its unique build ID;
+8. validates a changed `Caddyfile` before promotion and restarts `inspr-www` to pick it up;
+9. switches one symlink atomically;
+10. verifies the release stamp and result through every public hostname; and
+11. records the promotion event, preserves the previous release for rollback
+    and releases the lock; a failure at any of these steps fails the run.
 
-Every current site displays the shared site-package version, short Git
-revision, immutable release ID and UTC deployment time in its footer. The
-deployment transaction supplies `INSPR_GIT_SHA`, `INSPR_GIT_DIRTY`,
-`INSPR_RELEASE_ID` and `INSPR_DEPLOYED_AT` only to the build process, which
-also records the allowlisted values in `web/dist/release.json`. A direct local
-build is labelled `local build` and never invents a deployment timestamp.
+Every current site displays the release's calendar version, the shared
+site-package version, short Git revision, immutable release ID and UTC
+deployment time in its footer. The deployment transaction supplies
+`INSPR_GIT_SHA`, `INSPR_GIT_DIRTY`, `INSPR_RELEASE_ID`, `INSPR_DEPLOYED_AT`,
+`INSPR_CALENDAR_VERSION`, `INSPR_RELEASE_SEQUENCE` and `INSPR_CALENDAR_ANCHOR`
+only to the build process, which also records the allowlisted values in
+`web/dist/release.json`. A direct local build is labelled `local build`, shows
+no calendar version and never invents a deployment timestamp.
 `SKIP_BUILD=1` accepts only a previously prepared deploy build with a valid
 release manifest. Production deployment also requires a clean working tree
 and re-checks the source revision after the build before any remote write.
+
+The site follows INSPR Calendar Versioning (`inspr-calver-3`, INSPR-493). A
+release version is `YYMMDDhhmmss.0.0` in UTC and is reserved only by
+`deploy.sh`, from the same second as the deployment timestamp. Before the
+build it reads every `releases/builds/*/release.json` on the host and every
+coordinate the release ledger has recorded, abandoned pending seals included,
+and requires the new version to be strictly later than all of them; a
+same-second collision waits for the next second and a skewed clock fails
+closed. The release sequence is one past the highest of them, so neither a
+rollback nor an interrupted seal leads to a reused version or sequence. The
+same check runs again
+before the first remote write, which also covers `SKIP_BUILD=1`, and the
+probes confirm that the live `release.json` declares the scheme and that the
+footers (including `/overview/` and `/de/ueberblick/`) render the version.
+`release.json` uses schema version 2 with an
+explicit `version` block (`scheme`, `value`, `channel` `stable`, `sequence`,
+and the legacy-to-calendar `anchor` recorded by the first calendar release);
+earlier schema-1 manifests stay unchanged as the legacy era. The build never
+reads a clock for the version, and `web/calendar-version.mjs` holds the
+grammar, real-date and history checks.
+
+Each calendar release is one immutable release set. After the build,
+`deploy.sh` writes `web/dist/release-set.json` (`web/release-set.mjs`): every
+output file with its path (the artifact coordinate), size and SHA-256, the
+`Caddyfile` the release is served with (routing and CSP, the `edge`
+artifact), the full source commit, the `web/package-lock.json` digest, the
+Node.js version and the version block. The `Caddyfile` is kept per release in
+`releases/configs/<id>/Caddyfile`, outside the served root. The host's own
+SHA-256 of every uploaded file and of that snapshot must match the set
+exactly (no missing, extra, altered or non-regular files) before sealing.
+Sealing is two-phase in `releases/events.tsv` on the host, an append-only
+ledger: `pending` records the digest before the build is renamed into
+`builds/`, `sealed` confirms it afterwards. An interrupted seal leaves either
+a removed upload whose identical retry completes, or a build that is never
+promoted or used for rollback and whose version stays used. Every record is
+checked against the ledger before it is appended: a second digest or
+coordinate for a release id, or a version for a second release, is refused
+with nothing written, so a retry must bring the identical release set and a
+changed one needs a rebuild with a new version.
+
+From the final history check through sealing, promotion and probes, one run
+holds `releases/.deploy.lock`, created atomically with `mkdir` and naming its
+owner (machine, process and release). A second deployment stops at the lock
+instead of racing for the same sequence. The lock is released on every exit,
+and a lock the run cannot release fails the run; if a killed run leaves one
+behind, `deploy.sh` refuses with the owner's name and never removes it: check
+that no deployment is running, then remove that directory on the host by hand.
+
+Before anything changes, the live release must verify against the digest the
+ledger confirmed for it, the shared asset pool (`releases/assets/_astro`,
+which Caddy serves) must hold each of its `_astro` files with the recorded
+bytes, and the live `Caddyfile` must be the one recorded for it; otherwise the
+run stops, because a failure could not be undone exactly. The same pool check
+runs before every rollback: a missing pool asset is restored from the
+release's own verified build, and an altered one is never replaced. A switch
+of `current` counts as made before its remote command runs, so one that
+completes while SSH reports a failure is rolled back as well.
+The pre-migration release has no release set: the first calendar deploy
+records a write-once legacy baseline for it under the lock
+(`releases/baselines/<id>.json`, every file's SHA-256 plus its `Caddyfile`
+snapshot, confirmed as a `baseline` ledger event), only after the container
+has shown that it serves that release healthy with that `Caddyfile`. A failed
+promotion verifies the previous release again against the digest the run
+verified it with and restores it together with its `Caddyfile`; an altered
+release is never relinked. The restore is reported and recorded as an
+`auto-rollback` event only when the relink, the `Caddyfile` restore and the
+restart succeeded and `inspr-www` serves that release (its own view of
+`current`) with that `Caddyfile` (its SHA-256); otherwise one error says the
+failed release may still be live and needs operator attention. Before the
+very first cutover of a host, the live `Caddyfile` is kept with its SHA-256
+and only those bytes are restored. To
+return production to one exact earlier release, run
+`ROLLBACK_TO=<YYMMDDhhmmss.0.0> ./deploy.sh` (or the legacy release's id):
+under the lock it verifies the target and the live release, validates the
+target's recorded `Caddyfile`, switches `Caddyfile` and `current` together,
+checks and probes the result, records a `rollback` event, and restores both if
+anything fails. A rollback never reserves a version or sequence, so release
+ordering stays unchanged; a fix is a new release with a later version.
+
+Footers render the version through one adapter,
+`web/src/components/CalendarVersion.astro`, around the shared INSPR renderer
+vendored in `web/src/vendor/calendar-version-display/`. The web default is the
+Pretty display; hovering or focusing it reveals the full version with the
+shared transition, and clicking it or pressing Enter copies the exact
+canonical version. Auto colours follow the page's `--secondary` branding
+token on the night footers and `--accent` on the light overview footer. The bundle is produced by `inspr-at/inspr`'s
+`scripts/versioning-bundle.mjs` and pinned in
+`web/scripts/calendar-version-bundle-pin.json` (source commit, config digest
+and reviewed manifest digest). `npm run build` first runs
+`npm run calendar-version:check`, which rejects missing, extra, altered,
+non-regular or untracked bundle files. To upgrade the presentation, vendor a
+new bundle into a fresh directory with that script, review the manifest
+digest independently, and change the pin in the same reviewed change.
 
 Run production deployment from the repository root with the configured SSH
 alias:

@@ -1,5 +1,12 @@
 import { execFileSync } from "node:child_process";
 import packageManifest from "./package.json" with { type: "json" };
+import {
+  CALENDAR_SCHEME,
+  RELEASE_CHANNEL,
+  canonicalAnchor,
+  parseSequence,
+  validateVersionBlock,
+} from "./calendar-version.mjs";
 
 const repositoryRoot = process.cwd();
 
@@ -47,6 +54,10 @@ export function createReleaseMetadata(
   const suppliedDirty = optionalValue(environment, "INSPR_GIT_DIRTY");
   const suppliedReleaseId = optionalValue(environment, "INSPR_RELEASE_ID");
   const suppliedDeployedAt = optionalValue(environment, "INSPR_DEPLOYED_AT");
+  // Reserved once by deploy.sh (INSPR-493); the build never derives it.
+  const suppliedCalendarVersion = optionalValue(environment, "INSPR_CALENDAR_VERSION");
+  const suppliedSequence = optionalValue(environment, "INSPR_RELEASE_SEQUENCE");
+  const suppliedAnchor = optionalValue(environment, "INSPR_CALENDAR_ANCHOR");
 
   if (suppliedRevision && !SHA_PATTERN.test(suppliedRevision)) {
     throw new Error("INSPR_GIT_SHA must be a 7-64 character hexadecimal revision");
@@ -69,13 +80,41 @@ export function createReleaseMetadata(
     suppliedRevision,
     suppliedReleaseId,
     suppliedDeployedAt,
+    suppliedCalendarVersion,
+    suppliedSequence,
+    suppliedAnchor,
   ];
   const hasDeploymentField = deploymentFields.some(Boolean) || Boolean(suppliedDirty);
   const hasCompleteDeployment = deploymentFields.every(Boolean);
   if (hasDeploymentField && !hasCompleteDeployment) {
     throw new Error(
-      "INSPR_GIT_SHA, INSPR_RELEASE_ID and INSPR_DEPLOYED_AT must be supplied together",
+      "INSPR_GIT_SHA, INSPR_RELEASE_ID, INSPR_DEPLOYED_AT, INSPR_CALENDAR_VERSION, " +
+        "INSPR_RELEASE_SEQUENCE and INSPR_CALENDAR_ANCHOR must be supplied together",
     );
+  }
+
+  let calendar = null;
+  if (hasCompleteDeployment) {
+    let anchor;
+    try {
+      anchor = JSON.parse(suppliedAnchor);
+    } catch {
+      throw new Error("INSPR_CALENDAR_ANCHOR must be a JSON migration anchor");
+    }
+    try {
+      calendar = validateVersionBlock(
+        {
+          scheme: CALENDAR_SCHEME,
+          value: suppliedCalendarVersion,
+          channel: RELEASE_CHANNEL,
+          sequence: parseSequence(suppliedSequence),
+          anchor: canonicalAnchor(anchor),
+        },
+        { deployedAt: suppliedDeployedAt },
+      );
+    } catch (error) {
+      throw new Error(`INSPR_CALENDAR_VERSION rejected: ${error.message}`);
+    }
   }
 
   const revision = suppliedRevision ?? fallbackGitState.revision;
@@ -95,14 +134,22 @@ export function createReleaseMetadata(
     releaseId: suppliedReleaseId ?? "local",
     deployedAt: suppliedDeployedAt,
     isDeployment: hasCompleteDeployment,
+    // A local build has no calendar version and never shows one.
+    calendarVersion: calendar?.value ?? null,
+    versionScheme: calendar?.scheme ?? null,
+    releaseChannel: calendar?.channel ?? null,
+    releaseSequence: calendar?.sequence ?? null,
+    versionAnchor: calendar ? Object.freeze(calendar.anchor) : null,
   });
 }
 
 export const releaseMetadata = createReleaseMetadata();
 
+// Schema 2 adds the explicit version block (INSPR-493). Schema 1 manifests
+// stay valid history for the legacy era and are never rewritten.
 export function releaseManifest(metadata = releaseMetadata) {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     package: {
       name: metadata.packageName,
       version: metadata.version,
@@ -115,5 +162,14 @@ export function releaseManifest(metadata = releaseMetadata) {
       releaseId: metadata.releaseId,
       deployedAt: metadata.deployedAt,
     },
+    version: metadata.calendarVersion
+      ? {
+          scheme: metadata.versionScheme,
+          value: metadata.calendarVersion,
+          channel: metadata.releaseChannel,
+          sequence: metadata.releaseSequence,
+          anchor: { ...metadata.versionAnchor },
+        }
+      : null,
   };
 }

@@ -1,0 +1,122 @@
+---
+/**
+ * The one adapter around the pinned INSPR calendar-version renderer
+ * (INSPR-493). Every surface that shows the release version uses it.
+ *
+ * The server renders the exact canonical version as plain text; the bundled
+ * module script then draws the shared display from the vendored
+ * display.json. Web surfaces default to Pretty; `display="semver"` selects
+ * the renderer's reduced SemVer display, the full canonical version, where a
+ * surface needs it (doctrine: "Web products default to Pretty with SemVer
+ * available as the reduced display"). Hover or keyboard focus reveals the full version with the
+ * shared ~1 s ease-in-out (instant under reduced motion); click, Enter or Space
+ * copies the canonical version, .0.0 included. Presentation, reveal and copy
+ * all come from the vendored bundle, never from handwritten CSS here.
+ */
+import schemes from "../vendor/calendar-version-display/schemes.json";
+import { CALENDAR_SCHEMES, isCalendarVersion } from "../../calendar-version.mjs";
+
+interface Props {
+  value: string;
+  scheme: string;
+  locale?: "en" | "de";
+  display?: "pretty" | "semver";
+}
+
+const { value, scheme, locale = "en", display = "pretty" } = Astro.props;
+if (display !== "pretty" && display !== "semver") {
+  throw new Error(`CalendarVersion: unknown display ${display}`);
+}
+
+// An unknown scheme is an error, never a fallback label.
+if (!Object.hasOwn(schemes.labels, scheme)) {
+  throw new Error(`CalendarVersion: unknown version scheme ${scheme}`);
+}
+const calendar = CALENDAR_SCHEMES.includes(scheme);
+if (calendar && !isCalendarVersion(value)) {
+  throw new Error(`CalendarVersion: invalid calendar version ${value}`);
+}
+
+// The renderer's own wording is German; English pages pass their own.
+const text = locale === "de"
+  ? {
+      copy: "Version kopieren",
+      copied: "Kopiert",
+      failed: "Kopieren nicht verfügbar. Die Version ist markiert: mit ⌘C oder Strg+C kopieren.",
+    }
+  : {
+      copy: "Copy version",
+      copied: "Copied",
+      failed: "Copy unavailable. The version is selected: press Command+C or Ctrl+C.",
+    };
+---
+
+{calendar
+  ? (
+      <span
+        class="calendar-version"
+        data-calendar-version={value}
+        data-version-scheme={scheme}
+        data-version-display={display}
+        data-copy-text={text.copy}
+        data-copied-text={text.copied}
+        data-failed-text={text.failed}
+      >{value}</span>
+    )
+  : <span class="calendar-version calendar-version--plain">{value}</span>}
+
+<script>
+  import * as pinned from "../vendor/calendar-version-display/version.js";
+  import display from "../vendor/calendar-version-display/display.json";
+
+  // The pinned renderer's API, typed here so the verified vendor files stay
+  // byte-for-byte as bundled (TypeScript would otherwise infer from the JS).
+  type RenderVersion = (
+    element: HTMLElement,
+    value: string,
+    scheme: string,
+    options: {
+      config: typeof display;
+      mode: "pretty" | "reduced";
+      brand: string;
+      interactive: boolean;
+      text: { copy: string; copied: string; failed: string };
+    },
+  ) => void;
+  const renderVersion = pinned.renderVersion as unknown as RenderVersion;
+
+  const HEX = /^#[0-9a-f]{6}$/i;
+
+  // Auto colours resolve from the page's branding tokens: an explicit
+  // --calendar-version-brand, else the product's --secondary brand colour,
+  // which keeps the tinted date legible on the night footer.
+  const brandOf = (host: HTMLElement) => {
+    const style = getComputedStyle(host);
+    for (const token of ["--calendar-version-brand", "--secondary"]) {
+      const value = style.getPropertyValue(token).trim();
+      if (HEX.test(value)) return value.toLowerCase();
+    }
+    return display.tint.default;
+  };
+
+  for (const host of document.querySelectorAll<HTMLElement>("[data-calendar-version]")) {
+    const { calendarVersion, versionScheme, versionDisplay, copyText, copiedText, failedText } = host.dataset;
+    if (!calendarVersion || !versionScheme || !copyText || !copiedText || !failedText) continue;
+    renderVersion(host, calendarVersion, versionScheme, {
+      config: display,
+      // Pretty by default; the renderer calls the SemVer display "reduced".
+      mode: versionDisplay === "semver" ? "reduced" : "pretty",
+      brand: brandOf(host),
+      interactive: true,
+      text: { copy: copyText, copied: copiedText, failed: failedText },
+    });
+  }
+</script>
+
+<style>
+  .calendar-version {
+    display: inline-block;
+    font-variant-ligatures: none;
+    white-space: nowrap;
+  }
+</style>

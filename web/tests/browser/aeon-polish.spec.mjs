@@ -253,7 +253,7 @@ test.describe("the phone theatre", () => {
     await page.goto("/paimos/?lang=en", { waitUntil: "networkidle" });
     const shownImage = page.locator(".aeon-theatre__panel:not([hidden]) .aeon-window img");
     await shownImage.scrollIntoViewIfNeeded();
-    await shownImage.evaluate((el) => el.decode());
+    await shownImage.evaluate((el) => el.decode().catch(() => undefined));
     const report = await page.evaluate(() => {
       const win = document.querySelector(".aeon-theatre__panel:not([hidden]) .aeon-window");
       const img = win.querySelector("img");
@@ -335,7 +335,7 @@ test.describe("the rules viewer is crisp on retina", () => {
           await expect(page.locator(".aeon-pan")).toHaveClass(/is-in/);
         }
         await page.waitForTimeout(1400);
-        await img.evaluate((el) => el.decode());
+        await img.evaluate((el) => el.decode().catch(() => undefined));
         const m = await img.evaluate((el, pick) => ({ pixels: new Function(`return (${pick})`)()(el), shown: el.getBoundingClientRect().width }), chosenPixels.toString());
         expect(m.pixels / (m.shown * scale), `${m.pixels}px candidate for ${m.shown}px at ${scale}x`).toBeGreaterThanOrEqual(0.9);
         expect(m.pixels / m.shown, "never less than one candidate pixel per css pixel").toBeGreaterThanOrEqual(minRatio * 0.9);
@@ -352,7 +352,7 @@ test.describe("the rules viewer is crisp on retina", () => {
       const img = page.locator(".aeon-pan__image");
       await page.locator(".aeon-pan__window").scrollIntoViewIfNeeded();
       await page.waitForTimeout(600);
-      await img.evaluate((el) => el.decode());
+      await img.evaluate((el) => el.decode().catch(() => undefined));
       const m = await img.evaluate((el, pick) => ({ pixels: new Function(`return (${pick})`)()(el), shown: el.getBoundingClientRect().width }), chosenPixels.toString());
       expect(m.pixels / (m.shown * 3), `${m.pixels}px candidate for ${m.shown}px at 3x`).toBeGreaterThanOrEqual(0.7);
     });

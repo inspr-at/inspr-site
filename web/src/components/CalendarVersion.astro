@@ -4,8 +4,11 @@
  * (INSPR-493). Every surface that shows the release version uses it.
  *
  * The server renders the exact canonical version as plain text; the bundled
- * module script then draws the shared Pretty display from the vendored
- * display.json. Hover or keyboard focus reveals the full version with the
+ * module script then draws the shared display from the vendored
+ * display.json. Web surfaces default to Pretty; `display="semver"` selects
+ * the renderer's reduced SemVer display, the full canonical version, where a
+ * surface needs it (doctrine: "Web products default to Pretty with SemVer
+ * available as the reduced display"). Hover or keyboard focus reveals the full version with the
  * shared ~1 s ease-in-out (instant under reduced motion); click, Enter or Space
  * copies the canonical version, .0.0 included. Presentation, reveal and copy
  * all come from the vendored bundle, never from handwritten CSS here.
@@ -17,9 +20,13 @@ interface Props {
   value: string;
   scheme: string;
   locale?: "en" | "de";
+  display?: "pretty" | "semver";
 }
 
-const { value, scheme, locale = "en" } = Astro.props;
+const { value, scheme, locale = "en", display = "pretty" } = Astro.props;
+if (display !== "pretty" && display !== "semver") {
+  throw new Error(`CalendarVersion: unknown display ${display}`);
+}
 
 // An unknown scheme is an error, never a fallback label.
 if (!Object.hasOwn(schemes.labels, scheme)) {
@@ -50,6 +57,7 @@ const text = locale === "de"
         class="calendar-version"
         data-calendar-version={value}
         data-version-scheme={scheme}
+        data-version-display={display}
         data-copy-text={text.copy}
         data-copied-text={text.copied}
         data-failed-text={text.failed}
@@ -92,11 +100,12 @@ const text = locale === "de"
   };
 
   for (const host of document.querySelectorAll<HTMLElement>("[data-calendar-version]")) {
-    const { calendarVersion, versionScheme, copyText, copiedText, failedText } = host.dataset;
+    const { calendarVersion, versionScheme, versionDisplay, copyText, copiedText, failedText } = host.dataset;
     if (!calendarVersion || !versionScheme || !copyText || !copiedText || !failedText) continue;
     renderVersion(host, calendarVersion, versionScheme, {
       config: display,
-      mode: "pretty",
+      // Pretty by default; the renderer calls the SemVer display "reduced".
+      mode: versionDisplay === "semver" ? "reduced" : "pretty",
       brand: brandOf(host),
       interactive: true,
       text: { copy: copyText, copied: copiedText, failed: failedText },

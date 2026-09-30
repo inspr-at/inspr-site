@@ -5,8 +5,15 @@
 // checks. deploy.sh therefore exercises its real remote steps: the lock, the
 // release-set listing, sealing, the ledger, symlink promotion and rollback.
 //
+// deploy.sh runs its remote steps with GNU coreutils (the production host,
+// csb1, is NixOS): `mv -T`, `base64 -w0` and friends. The fake host runs them
+// locally, so the tests need GNU coreutils first on PATH. Without them every
+// fake-host checkout stops with one clear message instead of cascading noise.
+//
 // Fault injection (environment of one run):
 //   FAKE_SSH_FAIL=<glob>        a remote command matching it fails (exit 255)
+//   FAKE_SSH_FAIL_AFTER=<glob>  the first remote command matching it runs, then
+//                               ssh reports failure (exit 255) anyway
 //   FAKE_CONTAINER_UNHEALTHY=1  the container check fails, unless `current`
 //                               points at FAKE_HEALTHY_CURRENT
 //   FAKE_CONTAINER_STALE=1      the container keeps seeing the `current` of its
@@ -24,6 +31,15 @@ const webRoot = fileURLToPath(new URL("../../", import.meta.url));
 const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url));
 export const FIXTURE_REVISION = "0123456789abcdef0123456789abcdef01234567";
 const realRsync = spawnSync("/bin/sh", ["-c", "command -v rsync"], { encoding: "utf8" }).stdout.trim();
+
+export const COREUTILS_MESSAGE = "the deploy tests need GNU coreutils (the production host is NixOS)";
+const GNU_TOOLS = ["mv", "cp", "base64", "sha256sum", "readlink", "sort", "wc"];
+// null when every tool deploy.sh's remote steps use is GNU coreutils.
+export const coreutilsProblem = (() => {
+  const other = GNU_TOOLS.filter((tool) =>
+    !/GNU coreutils/.test(spawnSync(tool, ["--version"], { encoding: "utf8" }).stdout ?? ""));
+  return other.length ? `${COREUTILS_MESSAGE}; not GNU on PATH: ${other.join(", ")}` : null;
+})();
 
 export const DOCUMENTS = Object.freeze([
   "index.html", "overview/index.html", "de/ueberblick/index.html",
@@ -44,6 +60,14 @@ esac
 if [ -n "\${FAKE_SSH_FAIL:-}" ]; then
   case "$command" in
     $FAKE_SSH_FAIL) exit 255 ;;
+  esac
+fi
+if [ -n "\${FAKE_SSH_FAIL_AFTER:-}" ] && [ ! -e "$TRANSPORT_LOG.failed-after" ]; then
+  case "$command" in
+    $FAKE_SSH_FAIL_AFTER)
+      : > "$TRANSPORT_LOG.failed-after"
+      printf '%s\\n' "$command" | /bin/bash -se >/dev/null 2>&1
+      exit 255 ;;
   esac
 fi
 printf '%s\\n' "$command" | /bin/bash -se`,
@@ -134,6 +158,7 @@ export async function seedBuild(host, id, manifest) {
 }
 
 export async function createCheckout(host, { release = null, caddyfile = "fixture caddy configuration\n" } = {}) {
+  if (coreutilsProblem) throw new Error(coreutilsProblem);
   const root = await mkdtemp(join(tmpdir(), "inspr-fake-checkout-"));
   const fakeBin = join(root, "fake-bin");
   const dist = join(root, "web", "dist");

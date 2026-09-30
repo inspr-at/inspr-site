@@ -18,6 +18,12 @@
 // its digest in the host's release ledger, and verifies a release against it
 // again before it becomes a rollback target and before any rollback.
 //
+// Caddy serves /_astro/* from the append-only shared pool
+// (releases/assets/_astro), not from the build's own _astro copy. Every
+// `_astro/` artifact a release enumerates must therefore also be in the pool
+// with the same bytes: verification checks both copies, and a pool asset that
+// is missing can be restored from the build's verified bytes.
+//
 // The pre-migration release has no release set. The first calendar deploy
 // records a legacy baseline for it: an external, write-once digest manifest
 // (releases/baselines/<id>.json) of its files and its edge snapshot, taken
@@ -94,14 +100,17 @@ function validateArtifactList(artifacts, keys) {
   }
 }
 
-export function validateReleaseSet(set) {
+// Existing release sets are immutable history: a reader accepts the
+// deprecated CalVer2 identifier in them (`history`), while a new release set
+// must declare CalVer3.
+export function validateReleaseSet(set, { history = false } = {}) {
   const keys = ["schema", "releaseId", "deployedAt", "version", "source", "dependencyLock", "toolchain", "edge", "artifacts"];
   if (!sameKeys(set, keys)) fail("unexpected manifest fields");
   if (set.schema !== RELEASE_SET_SCHEMA) fail(`unknown schema ${set.schema}`);
   if (typeof set.releaseId !== "string" || !RELEASE_ID.test(set.releaseId) || set.releaseId === "local") {
     fail("no deployable release id");
   }
-  validateVersionBlock(set.version, { deployedAt: set.deployedAt });
+  validateVersionBlock(set.version, { deployedAt: set.deployedAt, history });
   if (set.source?.repository !== SOURCE_REPOSITORY || !SOURCE.test(set.source?.revision ?? "") || set.source?.dirty !== false
     || Object.keys(set.source).length !== 3) fail("source provenance must name one clean full commit");
   if (set.dependencyLock?.path !== LOCKFILE || !SHA256.test(set.dependencyLock?.sha256 ?? "")
@@ -157,10 +166,17 @@ export const serializeReleaseSet = (set) => `${JSON.stringify(validateReleaseSet
 // Builds the baseline for a live legacy release from the host's listing of
 // it (remote_release_listing without a manifest) and its edge snapshot.
 export function createBaseline({ listing, releaseId }) {
-  const { manifest, files, others, edge } = parseRemoteListing(listing);
+  const { manifest, files, others, edge, pool } = parseRemoteListing(listing);
   if (manifest.length !== 0) fail("a release with a release set needs no legacy baseline");
   if (others.length) fail(`the release contains non-regular entries: ${others.slice(0, 3).join(", ")}`);
   if (!edge) fail("the release has no edge snapshot");
+  // Nothing verifies a legacy build's bytes yet, so a pool that lacks or
+  // alters one of its assets is not repaired from them: no baseline.
+  for (const [path, digest] of files) {
+    if (path.startsWith("_astro/") && pool.get(path) !== digest) {
+      fail(`the shared asset pool ${pool.get(path) ? "alters" : "lacks"} ${path} of this release`);
+    }
+  }
   const artifacts = [...files].map(([path, digest]) => ({ path, sha256: digest }))
     .sort((left, right) => (left.path < right.path ? -1 : left.path > right.path ? 1 : 0));
   return validateBaseline({ schema: BASELINE_SCHEMA, releaseId, edge: { path: EDGE_PATH, ...edge }, artifacts });
@@ -176,6 +192,7 @@ export function parseRemoteListing(text) {
   let manifest = null;
   let edge;
   const files = new Map();
+  const pool = new Map();
   const others = [];
   for (const line of String(text ?? "").split("\n")) {
     if (!line) continue;
@@ -191,6 +208,10 @@ export function parseRemoteListing(text) {
       edge = match ? { sha256: match[1], size: Number(match[2]) } : null;
     } else if (line.startsWith("other ")) {
       others.push(line.slice(6));
+    } else if (line.startsWith("pool")) {
+      const match = /^pool(?: ([a-f0-9]{64})|-missing) \.\/(_astro\/.+)$/.exec(line);
+      if (!match || pool.has(match[2])) fail(`unreadable listing line ${JSON.stringify(line.slice(0, 80))}`);
+      pool.set(match[2], match[1] ?? null);
     } else {
       const match = /^file ([a-f0-9]{64}) [ *]\.\/(.+)$/.exec(line);
       if (!match || files.has(match[2])) fail(`unreadable listing line ${JSON.stringify(line.slice(0, 80))}`);
@@ -199,22 +220,28 @@ export function parseRemoteListing(text) {
   }
   if (manifest === null) fail("listing carries no manifest");
   if (edge === undefined) fail("listing carries no edge line");
-  return { manifest, files, others, edge };
+  for (const path of files.keys()) {
+    if (path.startsWith("_astro/") && !pool.has(path)) fail(`listing carries no pool line for ${path}`);
+  }
+  return { manifest, files, others, edge, pool };
 }
 
 // Verifies one release on the host against its manifest: a calendar release
 // set, or a legacy baseline. `expectedDigest` must come from outside the
 // build: the local manifest before sealing, or the ledger entry recorded at
 // sealing (or at the baseline capture) before promotion and rollback. The
-// edge snapshot must match the manifest as exactly as every file.
-export function verifyRemoteRelease({ listing, expectedDigest, releaseId, version }) {
+// edge snapshot and the pool copy of every `_astro/` artifact must match the
+// manifest as exactly as every file. With `reportMissingPool`, pool assets
+// that are merely missing (the build's own copy verified) are returned for
+// restoring instead of failing; an altered pool asset always fails.
+export function verifyRelease({ listing, expectedDigest, releaseId, version, reportMissingPool = false }) {
   if (!SHA256.test(expectedDigest ?? "")) fail("no expected release-set digest");
-  const { manifest, files, others, edge } = parseRemoteListing(listing);
+  const { manifest, files, others, edge, pool } = parseRemoteListing(listing);
   if (manifest.length === 0) fail("the build has no release-set.json");
   if (sha256(manifest) !== expectedDigest) fail("release-set.json differs from the recorded digest");
   const parsed = JSON.parse(manifest.toString("utf8"));
   const legacy = parsed?.schema === BASELINE_SCHEMA;
-  const set = legacy ? validateBaseline(parsed) : validateReleaseSet(parsed);
+  const set = legacy ? validateBaseline(parsed) : validateReleaseSet(parsed, { history: true });
   const setVersion = legacy ? LEGACY_VERSION : set.version.value;
   if (releaseId !== undefined && set.releaseId !== releaseId) fail(`manifest names release ${set.releaseId}, not ${releaseId}`);
   if (version !== undefined && setVersion !== version) fail(`manifest names version ${setVersion}, not ${version}`);
@@ -227,8 +254,18 @@ export function verifyRemoteRelease({ listing, expectedDigest, releaseId, versio
     if (files.get(path) !== digest) fail(`artifact ${path} differs from the release set`);
   }
   for (const path of files.keys()) if (!expected.has(path)) fail(`unlisted artifact ${path}`);
-  return set;
+  const missingPool = [];
+  for (const [path, digest] of expected) {
+    if (!path.startsWith("_astro/")) continue;
+    const pooled = pool.get(path);
+    if (pooled === null && reportMissingPool) missingPool.push({ path, sha256: digest });
+    else if (pooled === null) fail(`shared asset ${path} is missing from the pool`);
+    else if (pooled !== digest) fail(`shared asset ${path} in the pool differs from the release set`);
+  }
+  return { set, missingPool };
 }
+
+export const verifyRemoteRelease = (options) => verifyRelease(options).set;
 
 // The host's append-only release ledger (releases/events.tsv), one event per
 // line: UTC time, event, release id, version, sequence, manifest digest.

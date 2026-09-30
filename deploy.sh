@@ -64,8 +64,11 @@
 # builds/, `sealed` confirms it afterwards.
 #
 # Before anything changes, the live release must be an exact rollback target:
-# it verifies against its ledger digest and the live Caddyfile is the one
-# recorded for it; otherwise the run stops. The pre-migration release has no
+# it verifies against its ledger digest, the shared pool
+# (releases/assets/_astro, which Caddy serves) holds each of its assets with
+# the recorded bytes, and the live Caddyfile is the one recorded for it;
+# otherwise the run stops. A pool asset that is missing is restored from the
+# release's own verified build; an altered one is never replaced. The pre-migration release has no
 # release set, so the first calendar deploy records a write-once legacy
 # baseline for it (releases/baselines/<id>.json and its Caddyfile snapshot),
 # confirmed in the ledger as `baseline`. A failed promotion restores that
@@ -73,7 +76,9 @@
 #
 # From the final history check through sealing, promotion, probes and the
 # promotion event, one deployment holds the atomic remote lock
-# releases/.deploy.lock (mkdir). A lock left by a killed run is never broken
+# releases/.deploy.lock (mkdir). A `current` switch counts as made before its
+# remote command runs, so one that completes while SSH fails is rolled back
+# too. A lock left by a killed run is never broken
 # automatically; the script refuses and names its owner. A lock this run
 # cannot release fails the run.
 #
@@ -328,11 +333,13 @@ release_deploy_lock() {
 
 # Print one release on the host for verification: its manifest bytes (base64;
 # the build's own release-set.json, or an external legacy baseline), the
-# SHA-256 and size of its Caddyfile snapshot, any non-regular entry, and the
-# host's own SHA-256 of every other regular file. Only the build's own
-# manifest is left out of the file list.
+# SHA-256 and size of its Caddyfile snapshot, any non-regular entry, the
+# host's own SHA-256 of every other regular file, and for each of its _astro
+# files the SHA-256 of the copy Caddy actually serves from the shared pool
+# (or that the pool lacks it). Only the build's own manifest is left out of
+# the file list.
 remote_release_listing() {
-  local directory="$1" manifest="$2" edge="$3" exclude="-"
+  local directory="$1" manifest="$2" edge="$3" pool="${4:-$REMOTE_RELEASE_ROOT/assets/_astro}" exclude="-"
   [ "$manifest" != "$directory/release-set.json" ] || exclude="./release-set.json"
   remote_ssh "set -eu
     cd '$directory'
@@ -347,7 +354,17 @@ remote_release_listing() {
       printf 'edge-missing\n'
     fi
     find . -mindepth 1 ! -type f ! -type d -print | sed 's/^/other /'
-    find . -type f ! -path '$exclude' -print0 | LC_ALL=C sort -z | xargs -0 -r sha256sum | sed 's/^/file /'"
+    find . -type f ! -path '$exclude' -print0 | LC_ALL=C sort -z | xargs -0 -r sha256sum | sed 's/^/file /'
+    if [ -d ./_astro ]; then
+      find ./_astro -type f -print0 | LC_ALL=C sort -z | while IFS= read -r -d '' asset; do
+        pooled='$pool'/\"\${asset#./_astro/}\"
+        if [ -f \"\$pooled\" ] && [ ! -L \"\$pooled\" ]; then
+          printf 'pool %s %s\\n' \"\$(sha256sum < \"\$pooled\" | awk '{print \$1}')\" \"\$asset\"
+        else
+          printf 'pool-missing %s\\n' \"\$asset\"
+        fi
+      done
+    fi"
 }
 
 # Whether the host's release ledger stays consistent with one more record
@@ -400,19 +417,59 @@ verify_release() {
   printf '%s\t%s\t%s\t%s\n' "$version" "$sequence" "$digest" "$edge"
 }
 
-# Verify one release tree and its Caddyfile snapshot against a known manifest
-# digest: its own release set, or its legacy baseline (version `legacy`).
-# Prints the recorded Caddyfile's SHA-256.
+# Verify one release tree, its Caddyfile snapshot and the shared-pool copies
+# of its assets against a known manifest digest: its own release set, or its
+# legacy baseline (version `legacy`). A pool asset that is missing is restored
+# from the release's own, just verified bytes and everything is verified
+# again; an altered pool asset fails. Prints the recorded Caddyfile's SHA-256.
 verify_release_digest() {
-  local target="$1" version="$2" digest="$3" id manifest verified
+  local target="$1" version="$2" digest="$3" id manifest verified missing
   id="${target#builds/}"
   [[ "$target" =~ ^builds/[[:alnum:]_.-]+$ ]] || return 1
   manifest="$REMOTE_RELEASE_ROOT/$target/release-set.json"
   [ "$version" != "legacy" ] || manifest="$REMOTE_RELEASE_ROOT/baselines/$id.json"
   verified=$(remote_release_listing "$REMOTE_RELEASE_ROOT/$target" "$manifest" \
     "$REMOTE_RELEASE_ROOT/configs/$id/Caddyfile" | \
-    node "$ROOT/web/scripts/release-set.mjs" verify "$digest" "$id" "$version") || return 1
+    node "$ROOT/web/scripts/release-set.mjs" verify "$digest" "$id" "$version" --report-missing-pool) || return 1
+  missing=$(printf '%s\n' "$verified" | sed -n 's/^missing-pool\t//p')
+  if [ -n "$missing" ]; then
+    restore_pool_assets "$target" "$missing" || return 1
+    verified=$(remote_release_listing "$REMOTE_RELEASE_ROOT/$target" "$manifest" \
+      "$REMOTE_RELEASE_ROOT/configs/$id/Caddyfile" | \
+      node "$ROOT/web/scripts/release-set.mjs" verify "$digest" "$id" "$version") || return 1
+  fi
+  verified="${verified%%$'\n'*}"
   printf '%s\n' "${verified##*$'\t'}"
+}
+
+# Put shared assets the pool lacks back from a release's own verified build
+# copy ("path<TAB>sha256" per line). Each copy must hash to the recorded
+# digest, and a hard link places it only where the pool still has nothing:
+# the pool stays append-only and an existing asset is never replaced.
+restore_pool_assets() {
+  local target="$1" missing="$2" path sha script="" count=0
+  while IFS=$'\t' read -r path sha; do
+    [[ "$path" =~ ^_astro/[[:alnum:]._@+~-]+(/[[:alnum:]._@+~-]+)*$ ]] && [[ "$path" != *..* ]] \
+      && [[ "$sha" =~ ^[0-9a-f]{64}$ ]] || return 1
+    script+="restore '$path' '$sha'
+"
+    count=$((count + 1))
+  done <<<"$missing"
+  say "restoring $count missing shared asset(s) of $target from its verified build" >&2
+  remote_ssh "set -eu
+    cd '$REMOTE_RELEASE_ROOT'
+    restore() {
+      staged=\"assets/\$1.restore-\$\$\"
+      mkdir -p \"\$(dirname \"assets/\$1\")\"
+      test ! -e \"assets/\$1\"
+      cp -p '$target'/\"\$1\" \"\$staged\"
+      if [ \"\$(sha256sum < \"\$staged\" | awk '{print \$1}')\" != \"\$2\" ] || ! ln \"\$staged\" \"assets/\$1\"; then
+        rm -f -- \"\$staged\"
+        exit 1
+      fi
+      rm -f -- \"\$staged\"
+    }
+    $script"
 }
 
 # The pre-migration release has no release set. Before the first calendar
@@ -442,6 +499,9 @@ capture_legacy_baseline() {
       cp -p '$REMOTE_DIR/Caddyfile' 'configs/.incoming-$id/Caddyfile'
       mv -T 'configs/.incoming-$id' 'configs/$id'
     fi" || return 1
+  # The baseline also requires every asset of the release in the shared pool
+  # with the build's bytes; nothing verifies a legacy build yet, so a gap is
+  # not repaired from it.
   file=$(mktemp "${TMPDIR:-/tmp}/inspr-baseline.XXXXXX") || return 1
   if ! digest=$(remote_release_listing "$REMOTE_RELEASE_ROOT/$target" "" "$REMOTE_RELEASE_ROOT/configs/$id/Caddyfile" | \
       node "$ROOT/web/scripts/release-set.mjs" baseline "$id" "$file") \
@@ -529,6 +589,15 @@ promote_edge() {
   ok "inspr-www restarted with validated edge configuration"
 }
 
+# Switch `current` to a release. The switch counts as made before the remote
+# command runs: a switch that completes remotely while SSH (or a signal)
+# reports failure is still rolled back, and the rollback reads what `current`
+# actually points at.
+switch_current() {
+  SYMLINK_SWITCHED=1
+  atomic_release_link "$1" "current" "$2" || die "switching current to $1 was not confirmed"
+}
+
 # The container must serve exactly the expected release with exactly the
 # expected Caddyfile, and answer: its own view of `current` names the target
 # build, its Caddyfile has the expected SHA-256 (a restart re-bound it), the
@@ -581,7 +650,7 @@ restore_edge() {
 # its Caddyfile; otherwise one error says the candidate may still be live.
 rollback_deployment() {
   set +e
-  local current_id version sequence digest edge failure=""
+  local current_id version sequence digest edge live failure=""
   printf '\033[1;33mROLLBACK\033[0m restoring the last known deployment\n' >&2
 
   if [ -n "$CURRENT_RELEASE" ] && { [ "$SYMLINK_SWITCHED" = "1" ] || [ "$EDGE_SWITCHED" = "1" ]; }; then
@@ -590,9 +659,13 @@ rollback_deployment() {
     if [ "$(verify_release_digest "$CURRENT_RELEASE" "$version" "$digest")" != "$edge" ]; then
       failure="$CURRENT_RELEASE does not match its recorded digest; current was NOT relinked"
     else
+      # Idempotent: the switch may or may not have completed remotely.
       if [ "$SYMLINK_SWITCHED" = "1" ]; then
-        atomic_release_link "$CURRENT_RELEASE" "current" "${RELEASE_ID}-rollback" || \
-          failure="current could not be relinked to $CURRENT_RELEASE"
+        live=$(remote_ssh "readlink '$REMOTE_RELEASE_ROOT/current' 2>/dev/null || true")
+        if [ "$live" != "$CURRENT_RELEASE" ]; then
+          atomic_release_link "$CURRENT_RELEASE" "current" "${RELEASE_ID}-rollback" || \
+            failure="current could not be relinked to $CURRENT_RELEASE"
+        fi
       fi
       if [ -z "$failure" ] && [ "$EDGE_SWITCHED" = "1" ]; then
         restore_edge "$REMOTE_RELEASE_ROOT/configs/$current_id/Caddyfile" "$edge" || \
@@ -616,6 +689,7 @@ rollback_deployment() {
       remote_ssh "set -eu
         cd '$REMOTE_RELEASE_ROOT'
         if [ -L current ]; then
+          [ \"\$(readlink current)\" = '$PROMOTED_TARGET' ]
           mv -Tf current 'failed-current-$RELEASE_ID'
         fi" || failure="current could not be moved aside"
     fi
@@ -890,8 +964,7 @@ if [ -n "$ROLLBACK_TO" ]; then
   PROMOTED_TARGET="$ROLLBACK_TARGET"
   PROMOTION_STARTED=1
   promote_edge
-  atomic_release_link "$ROLLBACK_TARGET" "current" "$RELEASE_ID"
-  SYMLINK_SWITCHED=1
+  switch_current "$ROLLBACK_TARGET" "$RELEASE_ID"
   check_promoted_release "$ROLLBACK_TARGET" "${ROLLBACK_VERIFIED##*$'\t'}"
   if [ "${SKIP_PROBE:-}" != "1" ]; then
     probe_page "INSPR umbrella after rollback" "https://www.inspr.at/" "Inspiration is the only limit." "text/html" "$ROLLBACK_RELEASE_ID"
@@ -1198,8 +1271,7 @@ PROMOTED_TARGET="$RELEASE_TARGET"
 # through any container recreation and the content switch happens afterwards.
 if [ -z "$CURRENT_RELEASE" ]; then
   PROMOTION_STARTED=1
-  atomic_release_link "$RELEASE_TARGET" "current" "$RELEASE_ID"
-  SYMLINK_SWITCHED=1
+  switch_current "$RELEASE_TARGET" "$RELEASE_ID"
 fi
 
 if [ "$EDGE_CHANGED" = "1" ]; then
@@ -1209,8 +1281,7 @@ fi
 
 if [ "$SYMLINK_SWITCHED" != "1" ] && [ "$CURRENT_RELEASE" != "$RELEASE_TARGET" ]; then
   PROMOTION_STARTED=1
-  atomic_release_link "$RELEASE_TARGET" "current" "$RELEASE_ID"
-  SYMLINK_SWITCHED=1
+  switch_current "$RELEASE_TARGET" "$RELEASE_ID"
 fi
 
 # Verify Caddy against the promoted symlink from inside the container before

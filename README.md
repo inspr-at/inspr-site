@@ -261,8 +261,14 @@ behind, `deploy.sh` refuses with the owner's name and never removes it: check
 that no deployment is running, then remove that directory on the host by hand.
 
 Before anything changes, the live release must verify against the digest the
-ledger confirmed for it, and the live `Caddyfile` must be the one recorded for
-it; otherwise the run stops, because a failure could not be undone exactly.
+ledger confirmed for it, the shared asset pool (`releases/assets/_astro`,
+which Caddy serves) must hold each of its `_astro` files with the recorded
+bytes, and the live `Caddyfile` must be the one recorded for it; otherwise the
+run stops, because a failure could not be undone exactly. The same pool check
+runs before every rollback: a missing pool asset is restored from the
+release's own verified build, and an altered one is never replaced. A switch
+of `current` counts as made before its remote command runs, so one that
+completes while SSH reports a failure is rolled back as well.
 The pre-migration release has no release set: the first calendar deploy
 records a write-once legacy baseline for it under the lock
 (`releases/baselines/<id>.json`, every file's SHA-256 plus its `Caddyfile`

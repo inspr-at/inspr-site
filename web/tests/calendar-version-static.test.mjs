@@ -413,7 +413,11 @@ test("every release footer shows the version through the one adapter", async () 
   const adapter = await read("src/components/CalendarVersion.astro");
   assert.match(adapter, /from "\.\.\/vendor\/calendar-version-display\/version\.js"/);
   assert.match(adapter, /from "\.\.\/vendor\/calendar-version-display\/display\.json"/);
-  assert.match(adapter, /mode: "pretty"/);
+  // Pretty by default, the reduced SemVer display available through the
+  // same adapter and the same pinned renderer.
+  assert.match(adapter, /display = "pretty"/);
+  assert.match(adapter, /display\?: "pretty" \| "semver"/);
+  assert.match(adapter, /mode: versionDisplay === "semver" \? "reduced" : "pretty"/);
   assert.match(adapter, /interactive: true/);
   assert.match(adapter, /"--calendar-version-brand", "--secondary"/);
   assert.match(adapter, /unknown version scheme/);

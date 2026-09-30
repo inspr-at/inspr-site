@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, readlinkSync } from "node:fs";
-import { appendFile, chmod, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { appendFile, chmod, mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,12 +22,21 @@ import {
   serializeBaseline,
   serializeReleaseSet,
   sha256,
+  validateReleaseSet,
+  verifyRelease,
   verifyRemoteRelease,
 } from "../release-set.mjs";
-import { FIXTURE_REVISION, createCheckout, createHost, seedBuild } from "./support/fake-host.mjs";
+import { FIXTURE_REVISION, coreutilsProblem, createCheckout, createHost, seedBuild } from "./support/fake-host.mjs";
 
 const repositoryRoot = fileURLToPath(new URL("../../", import.meta.url));
 const deploySource = readFileSync(join(repositoryRoot, "deploy.sh"), "utf8");
+
+// Tests that run deploy.sh's shell need GNU coreutils, like the production
+// host; elsewhere they are skipped and one test fails with the reason.
+const deployTest = (name, fn) => test(name, { skip: coreutilsProblem ? "needs GNU coreutils" : false }, fn);
+test("the deploy tests run with GNU coreutils", () => {
+  assert.equal(coreutilsProblem, null, coreutilsProblem ?? "");
+});
 
 const cleanups = [];
 test.after(async () => {
@@ -60,13 +69,13 @@ const waitFor = async (path) => {
 
 // Runs deploy.sh's own remote_release_listing function against a local
 // directory, so the listing format is tested exactly as the host prints it.
-function listing(directory, manifest, edge) {
+function listing(directory, manifest, edge, pool = join(directory, "..", "pool")) {
   const definition = /^remote_release_listing\(\) \{\n[\s\S]*?\n\}\n/m.exec(deploySource)[0];
   const script = `set -euo pipefail
 remote_ssh() { printf '%s\\n' "$1" | bash -se; }
 ${definition}
-remote_release_listing "$1" "$2" "$3"`;
-  const result = spawnSync("/bin/bash", ["-c", script, "listing", directory, manifest, edge], { encoding: "utf8" });
+remote_release_listing "$1" "$2" "$3" "$4"`;
+  const result = spawnSync("/bin/bash", ["-c", script, "listing", directory, manifest, edge, pool], { encoding: "utf8" });
   assert.equal(result.status, 0, result.stderr);
   return result.stdout;
 }
@@ -115,7 +124,7 @@ test("a release set enumerates every artifact with source and lockfile provenanc
   assert.throws(() => createReleaseSet({ root, sourceRevision: FIXTURE_REVISION, lockfileBytes, edgeBytes }), /not a regular file/);
 });
 
-test("the host listing verifies a build and its Caddyfile exactly against its release set", async () => {
+deployTest("the host listing verifies a build and its Caddyfile exactly against its release set", async () => {
   const root = await mkdtemp(join(tmpdir(), "inspr-release-listing-"));
   cleanups.push(root);
   const build = join(root, "build");
@@ -219,7 +228,65 @@ test("every coordinate the ledger recorded stays used by later reservations", ()
   assert.throws(() => reserveCalendarVersion({ deployedAt: "2026-09-30T15:47:12Z", entries: [], recorded, own: { ...own, sequence: 2 } }), /with another coordinate/);
 });
 
-test("a legacy baseline records a pre-migration release and its Caddyfile deterministically", async () => {
+deployTest("the pool copies Caddy serves are verified with the build, and a gap is reported for restoring", async () => {
+  const root = await mkdtemp(join(tmpdir(), "inspr-release-pool-"));
+  cleanups.push(root);
+  const build = join(root, "build");
+  const pool = join(root, "pool");
+  const edge = join(root, "Caddyfile");
+  await mkdir(join(build, "_astro"), { recursive: true });
+  await mkdir(pool, { recursive: true });
+  await writeFile(join(build, "index.html"), "home\n");
+  await writeFile(join(build, "_astro", "site.css"), "body{}\n");
+  await writeFile(join(pool, "site.css"), "body{}\n");
+  await writeFile(join(build, "release.json"), JSON.stringify(release));
+  await writeFile(edge, ":80 {}\n");
+  const bytes = Buffer.from(serializeReleaseSet(createReleaseSet({
+    root: build, sourceRevision: FIXTURE_REVISION, lockfileBytes: Buffer.from("{}"), edgeBytes: Buffer.from(":80 {}\n"),
+  })));
+  await writeFile(join(build, "release-set.json"), bytes);
+  const options = (extra) => ({ listing: listing(build, join(build, "release-set.json"), edge, pool), expectedDigest: sha256(bytes), ...extra });
+  assert.deepEqual(verifyRelease(options()).missingPool, []);
+
+  await rm(join(pool, "site.css"));
+  assert.throws(() => verifyRemoteRelease(options()), /shared asset _astro\/site\.css is missing from the pool/);
+  assert.deepEqual(verifyRelease(options({ reportMissingPool: true })).missingPool, [{ path: "_astro/site.css", sha256: sha256("body{}\n") }]);
+  await writeFile(join(pool, "site.css"), "body{color:red}\n");
+  assert.throws(() => verifyRelease(options({ reportMissingPool: true })), /shared asset _astro\/site\.css in the pool differs/);
+});
+
+deployTest("an immutable CalVer2 release set still verifies; a new one must declare CalVer3", async () => {
+  const root = await mkdtemp(join(tmpdir(), "inspr-release-calver2-"));
+  cleanups.push(root);
+  const build = join(root, "build");
+  const edge = join(root, "Caddyfile");
+  await mkdir(build, { recursive: true });
+  await writeFile(join(build, "index.html"), "home\n");
+  await writeFile(join(build, "release.json"), JSON.stringify(release));
+  await writeFile(edge, ":80 {}\n");
+  const set = createReleaseSet({ root: build, sourceRevision: FIXTURE_REVISION, lockfileBytes: Buffer.from("{}"), edgeBytes: Buffer.from(":80 {}\n") });
+  assert.equal(set.version.scheme, "inspr-calver-3", "a new release set always declares CalVer3");
+  await writeFile(join(build, "release.json"), JSON.stringify({ ...release, version: { ...release.version, scheme: "inspr-calendar-v2" } }));
+  assert.throws(() => createReleaseSet({ root: build, sourceRevision: FIXTURE_REVISION, lockfileBytes: Buffer.from("{}"), edgeBytes: Buffer.from(":80 {}\n") }), /unexpected scheme/);
+  // A set sealed under CalVer2, as it was written then.
+  const releaseBytes = readFileSync(join(build, "release.json"));
+  const historical = {
+    ...set,
+    version: { ...set.version, scheme: "inspr-calendar-v2" },
+    artifacts: set.artifacts.map((artifact) => (artifact.path === "release.json"
+      ? { path: "release.json", size: releaseBytes.length, sha256: sha256(releaseBytes) }
+      : artifact)),
+  };
+  const bytes = Buffer.from(`${JSON.stringify(historical, null, 2)}\n`);
+  await writeFile(join(build, "release-set.json"), bytes);
+  const verified = verifyRemoteRelease({ listing: listing(build, join(build, "release-set.json"), edge), expectedDigest: sha256(bytes), version: "260930154712.0.0" });
+  assert.equal(verified.version.scheme, "inspr-calendar-v2");
+  assert.throws(() => validateReleaseSet(historical), /unknown or absent version scheme/);
+  assert.throws(() => serializeReleaseSet(historical), /unknown or absent version scheme/);
+  assert.equal(validateReleaseSet(historical, { history: true }).version.scheme, "inspr-calendar-v2");
+});
+
+deployTest("a legacy baseline records a pre-migration release and its Caddyfile deterministically", async () => {
   const root = await mkdtemp(join(tmpdir(), "inspr-baseline-"));
   cleanups.push(root);
   const build = join(root, "build");
@@ -249,7 +316,7 @@ test("a legacy baseline records a pre-migration release and its Caddyfile determ
   assert.throws(() => createBaseline({ listing: listing(build, "", join(root, "missing")), releaseId: id }), /no edge snapshot/);
 });
 
-test("deploy.sh seals a verified release set with its Caddyfile and records it in the ledger", async () => {
+deployTest("deploy.sh seals a verified release set with its Caddyfile and records it in the ledger", async () => {
   const { host, checkout } = await fixture();
   ok(checkout.run(), "deploy");
   const { deployment, version } = await checkout.release();
@@ -270,7 +337,7 @@ test("deploy.sh seals a verified release set with its Caddyfile and records it i
   assert.equal(lockHeld(host), false);
 });
 
-test("an upload altered on the host before sealing is refused", async () => {
+deployTest("an upload altered on the host before sealing is refused", async () => {
   const { host, checkout } = await fixture();
   const result = checkout.run({ FAKE_TAMPER_INCOMING: "index.html" });
   failed(result, /does not match its release set/, "tampered upload");
@@ -281,7 +348,7 @@ test("an upload altered on the host before sealing is refused", async () => {
   assert.equal(lockHeld(host), false);
 });
 
-test("overlapping deployments serialize on the host lock", async () => {
+deployTest("overlapping deployments serialize on the host lock", async () => {
   const { host, checkout: first } = await fixture();
   const second = await createCheckout(host);
   cleanups.push(second.root);
@@ -309,7 +376,7 @@ test("overlapping deployments serialize on the host lock", async () => {
   assert.equal(builds(host).length, 2);
 });
 
-test("a lock left behind is reported, never broken", async () => {
+deployTest("a lock left behind is reported, never broken", async () => {
   const { host, checkout } = await fixture();
   await mkdir(join(host.releases, ".deploy.lock"));
   await writeFile(join(host.releases, ".deploy.lock", "owner"), "ghost:4242:20260930T000000Z-aaaaaaaaaaaa:20260930T000000Z\n");
@@ -318,7 +385,7 @@ test("a lock left behind is reported, never broken", async () => {
   assert.deepEqual(builds(host), []);
 });
 
-test("a lock this run cannot release fails the run, and the release stays live", async () => {
+deployTest("a lock this run cannot release fails the run, and the release stays live", async () => {
   // Unreachable host at release time.
   {
     const { host, checkout } = await fixture();
@@ -353,7 +420,7 @@ test("a lock this run cannot release fails the run, and the release stays live",
   assert.equal(current(host), `builds/${first.deployment.releaseId}`);
 });
 
-test("a failed promotion restores the verified previous release and its Caddyfile", async () => {
+deployTest("a failed promotion restores the verified previous release and its Caddyfile", async () => {
   const { host, checkout } = await fixture();
   ok(checkout.run(), "first deployment");
   const first = `builds/${(await checkout.release()).deployment.releaseId}`;
@@ -372,7 +439,7 @@ test("a failed promotion restores the verified previous release and its Caddyfil
   assert.equal(lockHeld(host), false);
 });
 
-test("a live release that is no exact rollback target stops the deploy before any change", async () => {
+deployTest("a live release that is no exact rollback target stops the deploy before any change", async () => {
   const { host, checkout } = await fixture();
   ok(checkout.run(), "first deployment");
   const first = `builds/${(await checkout.release()).deployment.releaseId}`;
@@ -397,7 +464,7 @@ test("a live release that is no exact rollback target stops the deploy before an
   assert.equal(builds(drifted).length, 1);
 });
 
-test("the rollback re-verifies the previous release and never relinks an altered one", async () => {
+deployTest("the rollback re-verifies the previous release and never relinks an altered one", async () => {
   // Defense in depth: the previous release is altered after the pre-check,
   // while the candidate is live. It is not relinked.
   const { host, checkout } = await fixture();
@@ -408,7 +475,7 @@ test("the rollback re-verifies the previous release and never relinks an altered
   assert.notEqual(current(host), first);
 });
 
-test("the first calendar deployment records a legacy baseline and can return to it exactly", async () => {
+deployTest("the first calendar deployment records a legacy baseline and can return to it exactly", async () => {
   const { host, checkout } = await fixture();
   const legacyId = "20260930T144629Z-095391814e7b";
   await seedBuild(host, legacyId, {
@@ -450,7 +517,7 @@ test("the first calendar deployment records a legacy baseline and can return to 
   failed(checkout.run({ ROLLBACK_TO: legacyId }), /does not match its sealed release set; refusing to roll back/, "altered legacy build");
 });
 
-test("ROLLBACK_TO returns production to one exact verified release and its Caddyfile", async () => {
+deployTest("ROLLBACK_TO returns production to one exact verified release and its Caddyfile", async () => {
   const { host, checkout } = await fixture();
   ok(checkout.run(), "first deployment");
   const first = await checkout.release();
@@ -490,7 +557,7 @@ test("ROLLBACK_TO returns production to one exact verified release and its Caddy
   assert.equal(lockHeld(host), false);
 });
 
-test("an interrupted seal before the rename leaves a pending entry that a retry completes", async () => {
+deployTest("an interrupted seal before the rename leaves a pending entry that a retry completes", async () => {
   const { host, checkout } = await fixture();
   ok(checkout.run(), "first deployment");
   const first = await checkout.release();
@@ -528,7 +595,7 @@ test("an interrupted seal before the rename leaves a pending entry that a retry 
   ok(splitCheckout.run({ SKIP_BUILD: "1" }), "retry after a split seal");
 });
 
-test("an interrupted seal after the rename never promotes and never reuses its version", async () => {
+deployTest("an interrupted seal after the rename never promotes and never reuses its version", async () => {
   const { host, checkout } = await fixture();
   ok(checkout.run(), "first deployment");
   const first = await checkout.release();
@@ -547,7 +614,7 @@ test("an interrupted seal after the rename never promotes and never reuses its v
   assert.equal(current(host), `builds/${fresh.deployment.releaseId}`);
 });
 
-test("a promotion event that cannot be recorded rolls the deployment back", async () => {
+deployTest("a promotion event that cannot be recorded rolls the deployment back", async () => {
   const { host, checkout } = await fixture();
   ok(checkout.run(), "first deployment");
   const first = `builds/${(await checkout.release()).deployment.releaseId}`;
@@ -585,7 +652,7 @@ test("deploy.sh holds the lock from the final history check through sealing, pro
   assert.doesNotMatch(deploySource, /rm -rf[^\n]*deploy\.lock/);
 });
 
-test("a divergent retry of an interrupted seal changes neither the ledger nor production", async () => {
+deployTest("a divergent retry of an interrupted seal changes neither the ledger nor production", async () => {
   const { host, checkout } = await fixture();
   ok(checkout.run(), "first deployment");
   const first = `builds/${(await checkout.release()).deployment.releaseId}`;
@@ -609,7 +676,7 @@ test("a divergent retry of an interrupted seal changes neither the ledger nor pr
   assert.equal(liveCaddyfile(host), "edited after the interrupted seal\n");
 });
 
-test("an abandoned pending seal keeps its sequence and version used", async () => {
+deployTest("an abandoned pending seal keeps its sequence and version used", async () => {
   const { host, checkout } = await fixture();
   ok(checkout.run(), "first deployment");
   failed(checkout.run({ FAKE_SSH_FAIL: "*mv -T '*/configs/.incoming-*" }), /unable to seal/, "interrupted seal");
@@ -622,7 +689,7 @@ test("an abandoned pending seal keeps its sequence and version used", async () =
   assert.deepEqual(events(host).filter((entry) => entry.event === "sealed").map((entry) => entry.sequence), [1, 3]);
 });
 
-test("a rollback that cannot finish records nothing and says the candidate may still be live", async () => {
+deployTest("a rollback that cannot finish records nothing and says the candidate may still be live", async () => {
   // The relink fails.
   {
     const { host, checkout } = await fixture();
@@ -647,7 +714,7 @@ test("a rollback that cannot finish records nothing and says the candidate may s
   }
 });
 
-test("the rollback restores from what this run verified even when the ledger turns unreadable", async () => {
+deployTest("the rollback restores from what this run verified even when the ledger turns unreadable", async () => {
   const { host, checkout } = await fixture();
   ok(checkout.run(), "first deployment");
   const first = `builds/${(await checkout.release()).deployment.releaseId}`;
@@ -661,7 +728,7 @@ test("the rollback restores from what this run verified even when the ledger tur
   assert.equal(current(host), first);
 });
 
-test("an unhealthy pre-migration release is never recorded as the legacy baseline", async () => {
+deployTest("an unhealthy pre-migration release is never recorded as the legacy baseline", async () => {
   const { host, checkout } = await fixture();
   const legacyId = "20260930T144629Z-095391814e7b";
   await seedBuild(host, legacyId, {
@@ -681,7 +748,7 @@ test("an unhealthy pre-migration release is never recorded as the legacy baselin
   assert.deepEqual(builds(host), [legacyId]);
 });
 
-test("a failed first cutover restores the previous Caddyfile only with its recorded bytes", async () => {
+deployTest("a failed first cutover restores the previous Caddyfile only with its recorded bytes", async () => {
   // The preserved copy is intact: the host returns to no `current` and its
   // Caddyfile.
   {
@@ -698,4 +765,89 @@ test("a failed first cutover restores the previous Caddyfile only with its recor
     failed(result, /automatic rollback did not complete \(the preserved Caddyfile could not be restored exactly and re-bound\)/, "altered copy");
     assert.equal(liveCaddyfile(host), "candidate caddy configuration\n");
   }
+});
+
+deployTest("rollbacks verify the shared pool assets Caddy serves, restore a missing one and refuse an altered one", async () => {
+  const { host, checkout } = await fixture();
+  const poolAsset = (name) => join(host.releases, "assets", "_astro", name);
+  ok(checkout.run(), "first deployment");
+  const first = await checkout.release();
+  // Each release ships its own asset.
+  await rm(join(checkout.dist, "_astro", "fixture.css"));
+  await writeFile(join(checkout.dist, "_astro", "second.css"), "body{color:teal}\n");
+  ok(checkout.run(), "second deployment");
+  const second = await checkout.release();
+  assert.ok(existsSync(poolAsset("fixture.css")) && existsSync(poolAsset("second.css")));
+
+  // A deleted pool asset of the target comes back from its verified build.
+  await rm(poolAsset("fixture.css"));
+  const restored = checkout.run({ ROLLBACK_TO: first.version.value });
+  ok(restored, "rollback with a missing pool asset");
+  assert.match(restored.stderr, /restoring 1 missing shared asset\(s\) of builds\/.* from its verified build/);
+  assert.equal(readFileSync(poolAsset("fixture.css"), "utf8"), "body{}\n");
+  assert.equal(current(host), `builds/${first.deployment.releaseId}`);
+
+  // An altered pool asset of the target: nothing is switched.
+  ok(checkout.run({ ROLLBACK_TO: second.version.value }), "back to the second release");
+  await appendFile(poolAsset("fixture.css"), "/* altered */\n");
+  failed(checkout.run({ ROLLBACK_TO: first.version.value }), /does not match its sealed release set; refusing to roll back/, "altered pool asset of the target");
+  assert.equal(current(host), `builds/${second.deployment.releaseId}`);
+
+  // An altered pool asset of the live release: it is no exact rollback
+  // target, so a deploy changes nothing.
+  await appendFile(poolAsset("second.css"), "/* altered */\n");
+  const blocked = checkout.run();
+  failed(blocked, /the live release .* does not match its recorded digest; it is not a verified rollback target, so nothing was changed/, "altered live pool asset");
+  assert.doesNotMatch(blocked.stdout, /uploading immutable release/);
+  assert.equal(current(host), `builds/${second.deployment.releaseId}`);
+});
+
+deployTest("a legacy release whose assets the pool lacks is never recorded as the baseline", async () => {
+  const { host, checkout } = await fixture();
+  const legacyId = "20260930T144629Z-095391814e7b";
+  await seedBuild(host, legacyId, {
+    schemaVersion: 1,
+    package: { name: "web", version: "0.0.1" },
+    source: { git: "095391814e7b", dirty: false },
+    deployment: { releaseId: legacyId, deployedAt: "2026-09-30T14:46:29Z" },
+  });
+  await mkdir(join(host.releases, "builds", legacyId, "_astro"), { recursive: true });
+  await writeFile(join(host.releases, "builds", legacyId, "_astro", "legacy.css"), "legacy{}\n");
+  await symlink(`builds/${legacyId}`, join(host.releases, "current"));
+  failed(checkout.run(), /shared asset pool lacks _astro\/legacy\.css of this release/, "pool gap");
+  assert.equal(existsSync(join(host.releases, "baselines", `${legacyId}.json`)), false);
+  assert.equal(existsSync(join(host.releases, "events.tsv")), false);
+
+  // With the pool complete the baseline is recorded and the deploy proceeds.
+  await mkdir(join(host.releases, "assets", "_astro"), { recursive: true });
+  await writeFile(join(host.releases, "assets", "_astro", "legacy.css"), "legacy{}\n");
+  ok(checkout.run(), "first calendar deployment");
+  assert.equal(events(host)[0].event, "baseline");
+});
+
+deployTest("a switch that completes while SSH reports failure is still rolled back", async () => {
+  const switchFails = { FAKE_SSH_FAIL_AFTER: "*mv -Tf '.current-*' 'current'*" };
+  const { host, checkout } = await fixture();
+  ok(checkout.run(), "first deployment");
+  const first = await checkout.release();
+
+  // Deploy: `current` already names the candidate when SSH fails.
+  const deploy = checkout.run(switchFails);
+  failed(deploy, /switching current to builds\/.* was not confirmed/, "switch reported as failed");
+  assert.match(deploy.stderr, /restored builds\/.* and its Caddyfile \(release set verified\)/);
+  const candidate = await checkout.release();
+  assert.equal(current(host), `builds/${first.deployment.releaseId}`);
+  assert.equal(events(host).some((entry) => entry.event === "promoted" && entry.releaseId === candidate.deployment.releaseId), false);
+  assert.equal(events(host).at(-1).event, "auto-rollback");
+
+  // ROLLBACK_TO: the same window on the manual path.
+  ok(checkout.run(), "second deployment");
+  const second = await checkout.release();
+  await rm(`${checkout.transportLog}.failed-after`, { force: true });
+  const manual = checkout.run({ ROLLBACK_TO: first.version.value, ...switchFails });
+  failed(manual, /the requested rollback to .* was reverted/, "manual switch reported as failed");
+  assert.equal(current(host), `builds/${second.deployment.releaseId}`);
+  assert.equal(events(host).at(-1).event, "auto-rollback");
+  assert.equal(events(host).some((entry) => entry.event === "rollback"), false);
+  assert.equal(lockHeld(host), false);
 });

@@ -43,13 +43,15 @@
 # allowlisted release evidence and are written into web/dist/release.json.
 #
 # INSPR Calendar Versioning (inspr-calver-3, INSPR-493): this script is the
-# only place that reserves a release coordinate. It reads every sealed
-# builds/*/release.json on the host, derives YYMMDDhhmmss.0.0 from the one UTC
-# deployment timestamp and requires it to be strictly later than the channel's
-# latest coordinate (waiting for the next second on a same-second collision).
-# The release sequence continues from the highest one on the host, so a
-# rollback never causes a reused version or sequence. Build nodes never derive
-# a version from their own clocks; a direct local build carries none.
+# only place that reserves a release coordinate. It reads every
+# builds/*/release.json on the host and every coordinate the release ledger
+# has recorded (abandoned pending seals included), derives YYMMDDhhmmss.0.0
+# from the one UTC deployment timestamp and requires it to be strictly later
+# than all of them (waiting for the next second on a same-second collision).
+# The release sequence is one past the highest of them, so neither a rollback
+# nor an interrupted seal ever leads to a reused version or sequence. Build
+# nodes never derive a version from their own clocks; a direct local build
+# carries none.
 #
 # Every calendar release is one immutable release set: web/dist/release-set.json
 # enumerates each output file (its path is the artifact coordinate) with size
@@ -108,6 +110,8 @@ INCOMING_CREATED=0
 RELEASE_SEALED=0
 CURRENT_RELEASE=""
 CURRENT_VERIFIED=""
+LIVE_EDGE_SHA=""
+PROMOTED_TARGET=""
 RELEASE_ID=""
 ROLLBACK_DIR=""
 REMOTE_INCOMING=""
@@ -195,17 +199,24 @@ remote_hash() {
   remote_ssh "sha256sum '$REMOTE_DIR/$relative_path' 2>/dev/null | awk '{print \$1}'" || true
 }
 
-# Print every sealed release manifest on the host as "--- <build-id>" followed
-# by its release.json. Read-only; an absent builds/ directory prints nothing.
+# Print every release manifest on the host as "--- <build-id>" followed by its
+# release.json, then "=== events.tsv" followed by the release ledger, whose
+# recorded coordinates count as used. Read-only; an absent builds/ directory
+# or ledger prints nothing for it.
 read_release_inventory() {
   remote_ssh "set -eu
-    cd '$REMOTE_RELEASE_ROOT/builds' 2>/dev/null || exit 0
-    for manifest in */release.json; do
-      [ -f \"\$manifest\" ] || continue
-      printf -- '--- %s\\n' \"\${manifest%/release.json}\"
-      cat \"\$manifest\"
-      printf '\\n'
-    done"
+    if cd '$REMOTE_RELEASE_ROOT/builds' 2>/dev/null; then
+      for manifest in */release.json; do
+        [ -f \"\$manifest\" ] || continue
+        printf -- '--- %s\\n' \"\${manifest%/release.json}\"
+        cat \"\$manifest\"
+        printf '\\n'
+      done
+    fi
+    if [ -f '$REMOTE_EVENTS' ]; then
+      printf '=== events.tsv\\n'
+      cat '$REMOTE_EVENTS'
+    fi"
 }
 
 read_release_manifest() {
@@ -339,14 +350,26 @@ remote_release_listing() {
     find . -type f ! -path '$exclude' -print0 | LC_ALL=C sort -z | xargs -0 -r sha256sum | sed 's/^/file /'"
 }
 
+# Whether the host's release ledger stays consistent with one more record
+# (event, id, version, sequence, digest): no second digest or coordinate for a
+# release id, no version for two releases, no event that contradicts a seal.
+ledger_accepts() {
+  local events
+  events=$(remote_ssh "cat '$REMOTE_EVENTS' 2>/dev/null || true") || return 1
+  printf '%s' "$events" | node "$ROOT/web/scripts/release-set.mjs" accepts "$@"
+}
+
 # Append one event to the host's release ledger. Values are validated here
-# because they are embedded in the remote command.
+# because they are embedded in the remote command, and the record must keep
+# the ledger consistent: a conflicting one is refused before it is written.
+# The deployment lock makes check and append one step.
 record_release_event() {
   local event="$1" id="$2" version="$3" sequence="$4" digest="$5"
   [[ "$event" =~ ^(pending|sealed|baseline|promoted|auto-rollback|rollback)$ ]] && [[ "$id" =~ ^[[:alnum:]._-]+$ ]] \
     && { { [[ "$version" =~ ^[1-9][0-9]{11}\.0\.0$ ]] && [[ "$sequence" =~ ^[1-9][0-9]*$ ]]; } \
       || { [ "$version" = "legacy" ] && [ "$sequence" = "0" ]; }; } \
     && [[ "$digest" =~ ^[0-9a-f]{64}$ ]] || return 1
+  ledger_accepts "$event" "$id" "$version" "$sequence" "$digest" || return 1
   remote_ssh "set -eu
     printf '%s\t%s\t%s\t%s\t%s\t%s\n' \"\$(date -u +%Y-%m-%dT%H:%M:%SZ)\" '$event' '$id' '$version' '$sequence' '$digest' >> '$REMOTE_EVENTS'"
 }
@@ -367,30 +390,48 @@ lookup_release() {
 # Prints "version<TAB>sequence<TAB>digest<TAB>edge-sha256". Exit 4: the
 # ledger confirms nothing for it.
 verify_release() {
-  local target="$1" id entry status version sequence digest kind manifest verified
-  id="${target#builds/}"
+  local target="$1" entry status version sequence digest edge
   [[ "$target" =~ ^builds/[[:alnum:]_.-]+$ ]] || return 1
-  entry=$(lookup_release "$id")
+  entry=$(lookup_release "${target#builds/}")
   status=$?
   [ "$status" = "0" ] || return "$status"
-  IFS=$'\t' read -r _ version sequence digest kind <<<"$entry"
+  IFS=$'\t' read -r _ version sequence digest _ <<<"$entry"
+  edge=$(verify_release_digest "$target" "$version" "$digest") || return 1
+  printf '%s\t%s\t%s\t%s\n' "$version" "$sequence" "$digest" "$edge"
+}
+
+# Verify one release tree and its Caddyfile snapshot against a known manifest
+# digest: its own release set, or its legacy baseline (version `legacy`).
+# Prints the recorded Caddyfile's SHA-256.
+verify_release_digest() {
+  local target="$1" version="$2" digest="$3" id manifest verified
+  id="${target#builds/}"
+  [[ "$target" =~ ^builds/[[:alnum:]_.-]+$ ]] || return 1
   manifest="$REMOTE_RELEASE_ROOT/$target/release-set.json"
-  [ "$kind" = "sealed" ] || manifest="$REMOTE_RELEASE_ROOT/baselines/$id.json"
+  [ "$version" != "legacy" ] || manifest="$REMOTE_RELEASE_ROOT/baselines/$id.json"
   verified=$(remote_release_listing "$REMOTE_RELEASE_ROOT/$target" "$manifest" \
     "$REMOTE_RELEASE_ROOT/configs/$id/Caddyfile" | \
     node "$ROOT/web/scripts/release-set.mjs" verify "$digest" "$id" "$version") || return 1
-  printf '%s\t%s\t%s\t%s\n' "$version" "$sequence" "$digest" "${verified##*$'\t'}"
+  printf '%s\n' "${verified##*$'\t'}"
 }
 
 # The pre-migration release has no release set. Before the first calendar
 # deploy changes anything, record a write-once legacy baseline for it: a
 # snapshot of the live Caddyfile (configs/<id>/Caddyfile) and a digest
 # manifest of every file plus that snapshot (baselines/<id>.json), confirmed
-# in the ledger. It is taken under the lock from the live, healthy release
-# and carries no timestamp, so a retried capture yields identical bytes.
+# in the ledger. It is taken under the lock, only from a release the
+# container demonstrably serves healthy with that Caddyfile, and carries no
+# timestamp, so a retried capture yields identical bytes. An unhealthy
+# release is refused before anything is written.
 capture_legacy_baseline() {
-  local target="$1" id digest file
+  local target="$1" id digest file live_edge
   id="${target#builds/}"
+  live_edge=$(remote_hash "Caddyfile")
+  [[ "$live_edge" =~ ^[0-9a-f]{64}$ ]] || return 1
+  if ! container_healthy "$target" "$live_edge"; then
+    printf '\033[1;31mERROR\033[0m the live release %s is not served healthy by inspr-www; it is not recorded as the legacy baseline\n' "$target" >&2
+    return 1
+  fi
   remote_ssh "set -eu
     cd '$REMOTE_RELEASE_ROOT'
     test -d '$target'
@@ -488,9 +529,16 @@ promote_edge() {
   ok "inspr-www restarted with validated edge configuration"
 }
 
-# The release behind `current` must answer inside the container.
+# The container must serve exactly the expected release with exactly the
+# expected Caddyfile, and answer: its own view of `current` names the target
+# build, its Caddyfile has the expected SHA-256 (a restart re-bound it), the
+# configuration validates and the pages respond.
 container_healthy() {
+  local target="$1" edge="$2"
+  [[ "$target" =~ ^builds/[[:alnum:]_.-]+$ ]] && [[ "$edge" =~ ^[0-9a-f]{64}$ ]] || return 1
   remote_ssh "set -eu
+    test \"\$(docker exec inspr-www readlink /srv/releases/current)\" = '$target'
+    test \"\$(docker exec inspr-www sha256sum /etc/caddy/Caddyfile | awk '{print \$1}')\" = '$edge'
     docker exec inspr-www caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null
     attempt=0
     while [ \"\$attempt\" -lt 20 ]; do
@@ -508,64 +556,81 @@ container_healthy() {
 # probes run.
 check_promoted_release() {
   say "checking promoted release inside inspr-www"
-  container_healthy || die "promoted release failed the internal container check"
+  container_healthy "$1" "$2" || die "promoted release failed the internal container check"
   ok "promoted release is healthy inside Caddy"
 }
 
+# Put a Caddyfile copy back as the live one, only when its bytes still have
+# the expected SHA-256, then restart the stateless inspr-www to re-bind it.
+restore_edge() {
+  local source="$1" edge="$2"
+  [[ "$edge" =~ ^[0-9a-f]{64}$ ]] || return 1
+  remote_ssh "set -eu
+    cp -p '$source' '$REMOTE_DIR/Caddyfile.rollback-$RELEASE_ID'
+    test \"\$(sha256sum < '$REMOTE_DIR/Caddyfile.rollback-$RELEASE_ID' | awk '{print \$1}')\" = '$edge'
+    mv -Tf '$REMOTE_DIR/Caddyfile.rollback-$RELEASE_ID' '$REMOTE_DIR/Caddyfile'" || return 1
+  remote_ssh "docker restart inspr-www >/dev/null"
+}
+
 # Restore the release that was live before this run, site and Caddyfile
-# together. It was verified before promotion and is verified again here; an
-# altered release is never relinked.
+# together. It is verified again against the digest this run verified it
+# with before changing anything (its ledger entry cannot change since), and an
+# altered release is never relinked. Success is reported, and recorded as an
+# `auto-rollback` event, only when the relink, the Caddyfile restore and the
+# restart all succeeded and the container serves the restored release with
+# its Caddyfile; otherwise one error says the candidate may still be live.
 rollback_deployment() {
   set +e
-  local current_id verified rollback_version rollback_sequence rollback_digest
+  local current_id version sequence digest edge failure=""
   printf '\033[1;33mROLLBACK\033[0m restoring the last known deployment\n' >&2
 
   if [ -n "$CURRENT_RELEASE" ] && { [ "$SYMLINK_SWITCHED" = "1" ] || [ "$EDGE_SWITCHED" = "1" ]; }; then
     current_id="${CURRENT_RELEASE#builds/}"
-    if ! verified=$(verify_release "$CURRENT_RELEASE"); then
-      printf '\033[1;31mERROR\033[0m %s does not match its recorded digest; current was NOT relinked and needs operator attention\n' "$CURRENT_RELEASE" >&2
+    IFS=$'\t' read -r version sequence digest edge <<<"$CURRENT_VERIFIED"
+    if [ "$(verify_release_digest "$CURRENT_RELEASE" "$version" "$digest")" != "$edge" ]; then
+      failure="$CURRENT_RELEASE does not match its recorded digest; current was NOT relinked"
     else
       if [ "$SYMLINK_SWITCHED" = "1" ]; then
         atomic_release_link "$CURRENT_RELEASE" "current" "${RELEASE_ID}-rollback" || \
-          printf '\033[1;31mERROR\033[0m current was not relinked to %s and needs operator attention\n' "$CURRENT_RELEASE" >&2
+          failure="current could not be relinked to $CURRENT_RELEASE"
       fi
-      if [ "$EDGE_SWITCHED" = "1" ]; then
-        remote_ssh "set -eu
-          cp -p '$REMOTE_RELEASE_ROOT/configs/$current_id/Caddyfile' '$REMOTE_DIR/Caddyfile.rollback-$RELEASE_ID'
-          mv -Tf '$REMOTE_DIR/Caddyfile.rollback-$RELEASE_ID' '$REMOTE_DIR/Caddyfile'" || \
-          printf '\033[1;31mERROR\033[0m automatic Caddyfile rollback needs operator attention\n' >&2
-        remote_ssh "docker restart inspr-www >/dev/null" || \
-          printf '\033[1;31mERROR\033[0m automatic web edge rollback needs operator attention\n' >&2
+      if [ -z "$failure" ] && [ "$EDGE_SWITCHED" = "1" ]; then
+        restore_edge "$REMOTE_RELEASE_ROOT/configs/$current_id/Caddyfile" "$edge" || \
+          failure="the Caddyfile of $CURRENT_RELEASE could not be restored and re-bound"
       fi
-      IFS=$'\t' read -r rollback_version rollback_sequence rollback_digest _ <<<"$verified"
-      record_release_event auto-rollback "$current_id" "$rollback_version" "$rollback_sequence" "$rollback_digest" || \
-        printf '\033[1;31mERROR\033[0m rollback event was not recorded in %s\n' "$REMOTE_EVENTS" >&2
+      if [ -z "$failure" ]; then
+        container_healthy "$CURRENT_RELEASE" "$edge" || \
+          failure="inspr-www does not serve $CURRENT_RELEASE with its Caddyfile healthy"
+      fi
+    fi
+    if [ -z "$failure" ]; then
       printf '\033[1;33mROLLBACK\033[0m restored %s and its Caddyfile (release set verified)\n' "$CURRENT_RELEASE" >&2
-      container_healthy || \
-        printf '\033[1;31mERROR\033[0m the restored release failed the internal container check and needs operator attention\n' >&2
+      record_release_event auto-rollback "$current_id" "$version" "$sequence" "$digest" || \
+        printf '\033[1;31mERROR\033[0m %s is restored, but the rollback event was not recorded in %s\n' "$CURRENT_RELEASE" "$REMOTE_EVENTS" >&2
     fi
   elif [ -z "$CURRENT_RELEASE" ]; then
     # There was no release link before the initial cutover. Keep the failed
     # release recoverable, but restore the exact absence of `current` and
-    # the Caddyfile that was live.
+    # the Caddyfile that was live, if its copy still has the recorded bytes.
     if [ "$SYMLINK_SWITCHED" = "1" ]; then
       remote_ssh "set -eu
         cd '$REMOTE_RELEASE_ROOT'
         if [ -L current ]; then
           mv -Tf current 'failed-current-$RELEASE_ID'
-        fi"
+        fi" || failure="current could not be moved aside"
     fi
-    if [ "$EDGE_SWITCHED" = "1" ] && [ -n "$ROLLBACK_DIR" ]; then
-      remote_ssh "set -eu
-        cp -p '$ROLLBACK_DIR/Caddyfile' '$REMOTE_DIR/Caddyfile.rollback-$RELEASE_ID'
-        mv -Tf '$REMOTE_DIR/Caddyfile.rollback-$RELEASE_ID' '$REMOTE_DIR/Caddyfile'" || \
-        printf '\033[1;31mERROR\033[0m automatic Caddyfile rollback needs operator attention\n' >&2
-      remote_ssh "docker restart inspr-www >/dev/null" || \
-        printf '\033[1;31mERROR\033[0m automatic web edge rollback needs operator attention\n' >&2
+    if [ -z "$failure" ] && [ "$EDGE_SWITCHED" = "1" ]; then
+      restore_edge "$ROLLBACK_DIR/Caddyfile" "$LIVE_EDGE_SHA" || \
+        failure="the preserved Caddyfile could not be restored exactly and re-bound"
     fi
+    [ -n "$failure" ] || \
+      printf '\033[1;33mROLLBACK\033[0m restored the host without a current release and its previous Caddyfile\n' >&2
   fi
 
-  if [ -n "$ROLLBACK_TO" ]; then
+  if [ -n "$failure" ]; then
+    printf '\033[1;31mERROR\033[0m automatic rollback did not complete (%s); the failed %s may still be live and needs operator attention; no rollback event was recorded\n' \
+      "$failure" "${PROMOTED_TARGET:-release}" >&2
+  elif [ -n "$ROLLBACK_TO" ]; then
     printf '\033[1;33mROLLBACK\033[0m the requested rollback to %s was reverted\n' "$ROLLBACK_TO" >&2
   else
     printf '\033[1;33mROLLBACK\033[0m failed release retained as builds/%s\n' "$RELEASE_ID" >&2
@@ -822,11 +887,12 @@ if [ -n "$ROLLBACK_TO" ]; then
     die "the Caddyfile recorded for $ROLLBACK_TARGET could not be staged and validated"
 
   # From here a failure restores the release and Caddyfile that were live.
+  PROMOTED_TARGET="$ROLLBACK_TARGET"
   PROMOTION_STARTED=1
   promote_edge
   atomic_release_link "$ROLLBACK_TARGET" "current" "$RELEASE_ID"
   SYMLINK_SWITCHED=1
-  check_promoted_release
+  check_promoted_release "$ROLLBACK_TARGET" "${ROLLBACK_VERIFIED##*$'\t'}"
   if [ "${SKIP_PROBE:-}" != "1" ]; then
     probe_page "INSPR umbrella after rollback" "https://www.inspr.at/" "Inspiration is the only limit." "text/html" "$ROLLBACK_RELEASE_ID"
     if [ "$ROLLBACK_VERSION" != "legacy" ]; then
@@ -1012,6 +1078,12 @@ printf '%s' "$RELEASE_INVENTORY" | \
 CALENDAR_VERSION="$MANIFEST_CALENDAR_VERSION"
 ok "calendar version $CALENDAR_VERSION (sequence $MANIFEST_RELEASE_SEQUENCE) is later than every release on the host"
 
+# A retry of an interrupted seal must bring the identical release set: the
+# ledger never takes a second digest for a release id or version. Checked
+# before any write; record_release_event checks every record again.
+ledger_accepts pending "$RELEASE_ID" "$CALENDAR_VERSION" "$MANIFEST_RELEASE_SEQUENCE" "$RELEASE_SET_DIGEST" || \
+  die "the release ledger already records $RELEASE_ID or $CALENDAR_VERSION with another release set; nothing was changed; rebuild to reserve a new version"
+
 # The live release must be an exact, verified rollback target before any
 # write for the new one; otherwise nothing changes.
 secure_current_release
@@ -1108,12 +1180,18 @@ stage_edge "$RELEASE_ID" "$RELEASE_EDGE_SHA" || \
   die "the Caddyfile of $RELEASE_ID could not be staged and validated"
 
 # Before the very first cutover nothing recorded the live Caddyfile; keep a
-# copy so a failed cutover can restore it.
+# copy with its SHA-256 so a failed cutover can restore exactly those bytes.
 if [ -z "$CURRENT_RELEASE" ] && [ "$EDGE_CHANGED" = "1" ]; then
+  LIVE_EDGE_SHA=$(remote_hash "Caddyfile")
+  [[ "$LIVE_EDGE_SHA" =~ ^[0-9a-f]{64}$ ]] || die "the live Caddyfile could not be read; nothing was promoted"
   remote_ssh "set -eu
     mkdir -p '$ROLLBACK_DIR'
-    cp -p '$REMOTE_DIR/Caddyfile' '$ROLLBACK_DIR/Caddyfile'"
+    cp -p '$REMOTE_DIR/Caddyfile' '$ROLLBACK_DIR/Caddyfile'
+    test \"\$(sha256sum < '$ROLLBACK_DIR/Caddyfile' | awk '{print \$1}')\" = '$LIVE_EDGE_SHA'" || \
+    die "the live Caddyfile could not be preserved exactly; nothing was promoted"
 fi
+
+PROMOTED_TARGET="$RELEASE_TARGET"
 
 # On the first cutover the old container still serves site/. Seed `current`
 # before its compose file changes. On repeat deploys the old release stays live
@@ -1137,7 +1215,7 @@ fi
 
 # Verify Caddy against the promoted symlink from inside the container before
 # asking public DNS, TLS and Traefik to participate in the final smoke tests.
-check_promoted_release
+check_promoted_release "$RELEASE_TARGET" "$RELEASE_EDGE_SHA"
 
 # 7. Centralised, read-only smoke probes. Pages are checked for recognizable
 # content, content type and security headers, not just a green status code.

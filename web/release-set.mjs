@@ -277,6 +277,16 @@ function checkLedger(events) {
   }
 }
 
+// Whether the ledger stays consistent with one more record. deploy.sh checks
+// every record before it appends it, so a conflicting digest or coordinate
+// for a release id, or a version for a second release, is refused before it
+// is written and the ledger never becomes unreadable.
+export function acceptsEvent(events, { event, releaseId, version, sequence, digest }) {
+  const at = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+  return parseEvents([...events.map((entry) => [entry.at, entry.event, entry.releaseId, entry.version, entry.sequence, entry.digest].join("\t")),
+    [at, event, releaseId, version, sequence, digest].join("\t")].join("\n"));
+}
+
 // The confirmed entry (sealed calendar release or legacy baseline) for one
 // release id or calendar version, or null when the ledger confirms none.
 export function sealedRelease(events, target) {

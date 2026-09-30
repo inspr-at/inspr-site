@@ -216,11 +216,13 @@ and re-checks the source revision after the build before any remote write.
 The site follows INSPR Calendar Versioning (`inspr-calver-3`, INSPR-493). A
 release version is `YYMMDDhhmmss.0.0` in UTC and is reserved only by
 `deploy.sh`, from the same second as the deployment timestamp. Before the
-build it reads every sealed `releases/builds/*/release.json` on the host and
-requires the new version to be strictly later than the channel's latest one;
-a same-second collision waits for the next second and a skewed clock fails
-closed. The release sequence continues from the highest sequence on the host,
-so a rollback never leads to a reused version. The same check runs again
+build it reads every `releases/builds/*/release.json` on the host and every
+coordinate the release ledger has recorded, abandoned pending seals included,
+and requires the new version to be strictly later than all of them; a
+same-second collision waits for the next second and a skewed clock fails
+closed. The release sequence is one past the highest of them, so neither a
+rollback nor an interrupted seal leads to a reused version or sequence. The
+same check runs again
 before the first remote write, which also covers `SKIP_BUILD=1`, and the
 probes confirm that the live `release.json` declares the scheme and that the
 footers (including `/overview/` and `/de/ueberblick/`) render the version.
@@ -244,8 +246,11 @@ Sealing is two-phase in `releases/events.tsv` on the host, an append-only
 ledger: `pending` records the digest before the build is renamed into
 `builds/`, `sealed` confirms it afterwards. An interrupted seal leaves either
 a removed upload whose identical retry completes, or a build that is never
-promoted or used for rollback and whose version stays used. Conflicting
-entries for one release make the ledger invalid.
+promoted or used for rollback and whose version stays used. Every record is
+checked against the ledger before it is appended: a second digest or
+coordinate for a release id, or a version for a second release, is refused
+with nothing written, so a retry must bring the identical release set and a
+changed one needs a rebuild with a new version.
 
 From the final history check through sealing, promotion and probes, one run
 holds `releases/.deploy.lock`, created atomically with `mkdir` and naming its
@@ -261,9 +266,17 @@ it; otherwise the run stops, because a failure could not be undone exactly.
 The pre-migration release has no release set: the first calendar deploy
 records a write-once legacy baseline for it under the lock
 (`releases/baselines/<id>.json`, every file's SHA-256 plus its `Caddyfile`
-snapshot, confirmed as a `baseline` ledger event). A failed promotion verifies
-the previous release again and restores it together with its `Caddyfile`; an
-altered release is never relinked and is reported for operator attention. To
+snapshot, confirmed as a `baseline` ledger event), only after the container
+has shown that it serves that release healthy with that `Caddyfile`. A failed
+promotion verifies the previous release again against the digest the run
+verified it with and restores it together with its `Caddyfile`; an altered
+release is never relinked. The restore is reported and recorded as an
+`auto-rollback` event only when the relink, the `Caddyfile` restore and the
+restart succeeded and `inspr-www` serves that release (its own view of
+`current`) with that `Caddyfile` (its SHA-256); otherwise one error says the
+failed release may still be live and needs operator attention. Before the
+very first cutover of a host, the live `Caddyfile` is kept with its SHA-256
+and only those bytes are restored. To
 return production to one exact earlier release, run
 `ROLLBACK_TO=<YYMMDDhhmmss.0.0> ./deploy.sh` (or the legacy release's id):
 under the lock it verifies the target and the live release, validates the

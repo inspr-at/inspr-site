@@ -214,44 +214,74 @@ export function summarizeInventory(entries) {
   return { legacy, calendar };
 }
 
-// Reserves the next coordinate of the channel from one deployment timestamp.
-export function reserveCalendarVersion({ deployedAt, entries }) {
+// Coordinates the host's release ledger has recorded ({ releaseId, version,
+// sequence } of every pending or sealed record). A recorded coordinate stays
+// used even when its upload was abandoned before sealing, so it is never
+// issued again. Rows of `own` (the release being verified) are its own
+// reservation and must name exactly its coordinate.
+function heldCoordinates(recorded, own) {
+  const held = [];
+  for (const row of recorded) {
+    if (!row || typeof row.releaseId !== "string" || !isCalendarVersion(row.version)
+      || !Number.isSafeInteger(row.sequence) || row.sequence < 1) {
+      throw new ReservationError("invalid", "the release ledger records an invalid coordinate");
+    }
+    if (own && row.releaseId === own.releaseId) {
+      if (row.version !== own.value || row.sequence !== own.sequence) {
+        throw new ReservationError("invalid", `the release ledger records ${own.releaseId} with another coordinate`);
+      }
+    } else {
+      held.push(row);
+    }
+  }
+  return held;
+}
+
+// Reserves the next coordinate of the channel from one deployment timestamp:
+// strictly later than every sealed build and every coordinate the ledger has
+// recorded, and one past the highest sequence of either.
+export function reserveCalendarVersion({ deployedAt, entries, recorded = [], own }) {
   const version = calendarVersionFromUtc(deployedAt);
   const { legacy, calendar } = summarizeInventory(entries);
   const latest = calendar.at(-1);
-  if (latest) {
-    if (compareCalendarVersions(version, latest.value) <= 0) {
-      const gap = (calendarInstant(latest.value) - calendarInstant(version)) / 1000;
-      throw new ReservationError(
-        gap < RESERVATION_RETRY_SECONDS ? "retry" : "clock",
-        `reservation ${version} is not later than the channel's latest version ${latest.value}`,
-      );
-    }
-    return { version, sequence: latest.sequence + 1, anchor: canonicalAnchor(latest.anchor) };
+  const coordinates = [...calendar.map(({ value, sequence }) => ({ version: value, sequence })), ...heldCoordinates(recorded, own)];
+  const latestVersion = coordinates.reduce((max, { version: value }) =>
+    (max === null || compareCalendarVersions(value, max) > 0 ? value : max), null);
+  const sequence = Math.max(0, ...coordinates.map((coordinate) => coordinate.sequence)) + 1;
+  if (latestVersion && compareCalendarVersions(version, latestVersion) <= 0) {
+    const gap = (calendarInstant(latestVersion) - calendarInstant(version)) / 1000;
+    throw new ReservationError(
+      gap < RESERVATION_RETRY_SECONDS ? "retry" : "clock",
+      `reservation ${version} is not later than the channel's latest version ${latestVersion}`,
+    );
   }
+  if (latest) return { version, sequence, anchor: canonicalAnchor(latest.anchor) };
   const lastLegacy = legacy.at(-1) ?? null;
   if (lastLegacy && lastLegacy.deployedAt >= deployedAt) {
     throw new ReservationError("clock", `reservation ${deployedAt} is not later than the last legacy deployment`);
   }
+  // The first sealed calendar release anchors the channel; an abandoned
+  // earlier reservation only moves its sequence on.
   return {
     version,
-    sequence: 1,
+    sequence,
     anchor: {
       legacyScheme: LEGACY_SCHEME,
       lastLegacyVersion: lastLegacy?.releaseId ?? null,
       firstCalendarVersion: version,
-      firstCalendarSequence: 1,
+      firstCalendarSequence: sequence,
     },
   };
 }
 
 // Confirms that a built release manifest is exactly the next reservation of
 // the channel described by the host inventory.
-export function verifyReleaseAgainstInventory(manifest, entries) {
+export function verifyReleaseAgainstInventory(manifest, entries, recorded = []) {
   if (manifest?.schemaVersion !== 2) throw new ReservationError("invalid", "release manifest must use schema version 2");
   const deployedAt = manifest?.deployment?.deployedAt;
   const block = validateVersionBlock(manifest.version, { deployedAt });
-  const expected = reserveCalendarVersion({ deployedAt, entries });
+  const own = { releaseId: manifest?.deployment?.releaseId, value: block.value, sequence: block.sequence };
+  const expected = reserveCalendarVersion({ deployedAt, entries, recorded, own });
   if (block.sequence !== expected.sequence) {
     throw new ReservationError("invalid", `release sequence ${block.sequence} is not the channel's next sequence ${expected.sequence}`);
   }

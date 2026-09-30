@@ -255,7 +255,8 @@ test("apex and identity edge routes enforce HTTPS and HSTS", async () => {
   assert.doesNotMatch(deploy, /remote_hash\s+"docker-compose\.yml"/);
   assert.doesNotMatch(deploy, /\$ROOT\/docker-compose\.yml/);
   assert.match(deploy, /docker restart inspr-www/);
-  assert.match(deploy, /automatic web edge rollback needs operator attention/);
+  assert.match(deploy, /the Caddyfile of \$CURRENT_RELEASE could not be restored and re-bound/);
+  assert.match(deploy, /automatic rollback did not complete \(%s\); the failed %s may still be live and needs operator attention/);
 });
 
 test("identity edge rejects the deployed sibling-header spoof contract", () => {

@@ -9,7 +9,9 @@
 //   FAKE_SSH_FAIL=<glob>        a remote command matching it fails (exit 255)
 //   FAKE_CONTAINER_UNHEALTHY=1  the container check fails, unless `current`
 //                               points at FAKE_HEALTHY_CURRENT
-//   FAKE_DOCKER_TAMPER=<path>   a failing container check also appends to it
+//   FAKE_CONTAINER_STALE=1      the container keeps seeing the `current` of its
+//                               first check in this run (a stale bind mount)
+//   FAKE_DOCKER_TAMPER=<glob>   a failing container check also appends to it
 //   FAKE_RSYNC_GATE=<path>      holds the upload until the file exists
 //   FAKE_TAMPER_INCOMING=<path> alters the unsealed upload before sealing
 import { spawn, spawnSync } from "node:child_process";
@@ -81,12 +83,24 @@ if [ "$status" = 0 ] && [ "$dry" = 0 ] && [ -n "\${FAKE_TAMPER_INCOMING:-}" ]; t
   esac
 fi
 exit "$status"`,
+  // The container sees releases/ at /srv/releases and the Caddyfile at
+  // /etc/caddy/Caddyfile, as the bind mounts in nixcfg provide them.
   docker: `${logLine("docker")}
+stale="$TRANSPORT_LOG.container-current"
+if [ -n "\${FAKE_CONTAINER_STALE:-}" ] && [ "$1 $2" = "exec inspr-www" ] && [ ! -e "$stale" ]; then
+  readlink "$INSPR_AT_DIR/releases/current" > "$stale"
+fi
 case "$*" in
+  "exec inspr-www readlink /srv/releases/current")
+    if [ -n "\${FAKE_CONTAINER_STALE:-}" ]; then cat "$stale"; else readlink "$INSPR_AT_DIR/releases/current"; fi ;;
+  "exec inspr-www sha256sum /etc/caddy/Caddyfile")
+    printf '%s  /etc/caddy/Caddyfile\\n' "$(sha256sum < "$INSPR_AT_DIR/Caddyfile" | awk '{print $1}')" ;;
   *"exec inspr-www caddy validate"*)
     if [ -n "\${FAKE_CONTAINER_UNHEALTHY:-}" ] \\
       && [ "$(readlink "$INSPR_AT_DIR/releases/current" 2>/dev/null)" != "\${FAKE_HEALTHY_CURRENT:-}" ]; then
-      [ -z "\${FAKE_DOCKER_TAMPER:-}" ] || printf 'tampered\\n' >> "$FAKE_DOCKER_TAMPER"
+      if [ -n "\${FAKE_DOCKER_TAMPER:-}" ]; then
+        for tampered in $FAKE_DOCKER_TAMPER; do [ ! -f "$tampered" ] || printf 'tampered\\n' >> "$tampered"; done
+      fi
       exit 1
     fi ;;
   *wget*) printf 'Inspiration is the only limit.\\nRequirements you approve before work begins.\\n' ;;

@@ -8,6 +8,9 @@
 //   baseline <release-id> <output-file>
 //       stdin: remote_release_listing output for a live legacy release;
 //       writes its baseline manifest and prints the manifest's SHA-256
+//   accepts <event> <release-id> <version> <sequence> <sha256>
+//       stdin: releases/events.tsv; exit 0 when appending that record keeps
+//       the ledger consistent, 1 (with the reason) when it would not
 //   lookup <release-id|version>
 //       stdin: releases/events.tsv; prints "release-id<TAB>version<TAB>sequence<TAB>sha256<TAB>kind"
 //       of the confirmed entry (kind sealed or baseline); exit 4 when the
@@ -16,6 +19,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   RELEASE_SET_FILE,
+  acceptsEvent,
   createBaseline,
   createReleaseSet,
   parseEvents,
@@ -47,6 +51,9 @@ try {
     const bytes = Buffer.from(serializeBaseline(createBaseline({ listing: readFileSync(0, "utf8"), releaseId })));
     writeFileSync(output, bytes);
     process.stdout.write(`${sha256(bytes)}\n`);
+  } else if (command === "accepts" && args.length === 5) {
+    const [event, releaseId, version, sequence, digest] = args;
+    acceptsEvent(parseEvents(readFileSync(0, "utf8")), { event, releaseId, version, sequence, digest });
   } else if (command === "lookup" && args.length === 1) {
     const entry = sealedRelease(parseEvents(readFileSync(0, "utf8")), args[0]);
     if (!entry) {
@@ -55,7 +62,7 @@ try {
     }
     process.stdout.write(`${entry.releaseId}\t${entry.version}\t${entry.sequence}\t${entry.digest}\t${entry.event}\n`);
   } else {
-    throw new Error("usage: release-set.mjs create <dist> <revision> <lockfile> <caddyfile> | verify <sha256> <release-id> <version> | baseline <release-id> <output> | lookup <target>");
+    throw new Error("usage: release-set.mjs create <dist> <revision> <lockfile> <caddyfile> | verify <sha256> <release-id> <version> | baseline <release-id> <output> | accepts <event> <id> <version> <sequence> <sha256> | lookup <target>");
   }
 } catch (error) {
   console.error(error.message);

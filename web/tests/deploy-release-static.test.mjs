@@ -9,10 +9,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
+import { compareCalendarVersions, reserveCalendarVersion } from "../calendar-version.mjs";
 import {
   BASELINE_SCHEMA,
   LOCKFILE,
   RELEASE_SET_SCHEMA,
+  acceptsEvent,
   createBaseline,
   createReleaseSet,
   parseEvents,
@@ -188,6 +190,33 @@ test("the ledger seals in two phases and never disagrees about a release", () =>
   assert.throws(() => parseEvents(line("sealed", legacyId, "legacy", 0)), /unreadable ledger line/);
   assert.throws(() => parseEvents(line("baseline", legacyId, "260930154712.0.0", 1)), /unreadable ledger line/);
   assert.throws(() => parseEvents("2026-09-30T15:47:13Z\tsealed\tx\ty\t1\tnot-a-digest"), /unreadable ledger line/);
+});
+
+test("a record that would contradict the ledger is refused before it is written", () => {
+  const id = "20260930T154712Z-0123456789ab";
+  const ledger = parseEvents(`2026-09-30T15:47:13Z\tpending\t${id}\t260930154712.0.0\t1\t${"a".repeat(64)}`);
+  const record = (overrides) => acceptsEvent(ledger, { event: "pending", releaseId: id, version: "260930154712.0.0", sequence: "1", digest: "a".repeat(64), ...overrides });
+  assert.equal(record({}).length, 2, "an identical retry is accepted");
+  assert.equal(record({ event: "sealed" }).at(-1).event, "sealed");
+  assert.throws(() => record({ digest: "b".repeat(64) }), /conflicting digests/);
+  assert.throws(() => record({ sequence: "2" }), /conflicting digests/);
+  assert.throws(() => record({ releaseId: "20260930T154712Z-fedcba987654" }), /assigns 260930154712\.0\.0 to two releases/);
+  assert.throws(() => record({ event: "promoted", digest: "b".repeat(64) }), /does not match its seal/);
+});
+
+test("every coordinate the ledger recorded stays used by later reservations", () => {
+  const recorded = [{ releaseId: "20260930T154712Z-0123456789ab", version: "260930154712.0.0", sequence: 1 }];
+  // An abandoned first reservation: the first sealed release moves on.
+  const first = reserveCalendarVersion({ deployedAt: "2026-09-30T16:00:00Z", entries: [], recorded });
+  assert.equal(first.sequence, 2);
+  assert.deepEqual([first.anchor.firstCalendarVersion, first.anchor.firstCalendarSequence], ["260930160000.0.0", 2]);
+  // Same second as the recorded coordinate: wait for the next one.
+  assert.throws(() => reserveCalendarVersion({ deployedAt: "2026-09-30T15:47:12Z", entries: [], recorded }), (error) => error.code === "retry");
+  // A release verifying its own recorded reservation is not blocked by it,
+  // but only with exactly that coordinate.
+  const own = { releaseId: recorded[0].releaseId, value: "260930154712.0.0", sequence: 1 };
+  assert.equal(reserveCalendarVersion({ deployedAt: "2026-09-30T15:47:12Z", entries: [], recorded, own }).sequence, 1);
+  assert.throws(() => reserveCalendarVersion({ deployedAt: "2026-09-30T15:47:12Z", entries: [], recorded, own: { ...own, sequence: 2 } }), /with another coordinate/);
 });
 
 test("a legacy baseline records a pre-migration release and its Caddyfile deterministically", async () => {
@@ -534,6 +563,7 @@ test("deploy.sh holds the lock from the final history check through sealing, pro
   const order = [
     "acquire_deploy_lock \"$RELEASE_ID\"",
     "calendar-reservation.mjs\" verify",
+    "ledger_accepts pending",
     "secure_current_release\n\n# A non-symlink",
     "rsync -az --delay-updates -e",
     "release-set.mjs\" verify \"$RELEASE_SET_DIGEST\"",
@@ -541,7 +571,7 @@ test("deploy.sh holds the lock from the final history check through sealing, pro
     "mv '$REMOTE_INCOMING' '$REMOTE_RELEASE'",
     "record_release_event sealed",
     "stage_edge \"$RELEASE_ID\"",
-    "check_promoted_release\n",
+    "check_promoted_release \"$RELEASE_TARGET\" \"$RELEASE_EDGE_SHA\"",
     "record_release_event promoted",
     "PROMOTION_STARTED=0\nrelease_deploy_lock ||",
     "trap - EXIT INT TERM\nok \"deployment complete",
@@ -553,4 +583,119 @@ test("deploy.sh holds the lock from the final history check through sealing, pro
   assert.deepEqual([...order].sort((left, right) => left - right), order);
   assert.match(deploySource, /release_deploy_lock \|\| \{ \[ "\$status" -ne 0 \] \|\| status=1; \}\n  exit "\$status"\n\}/);
   assert.doesNotMatch(deploySource, /rm -rf[^\n]*deploy\.lock/);
+});
+
+test("a divergent retry of an interrupted seal changes neither the ledger nor production", async () => {
+  const { host, checkout } = await fixture();
+  ok(checkout.run(), "first deployment");
+  const first = `builds/${(await checkout.release()).deployment.releaseId}`;
+  failed(checkout.run({ FAKE_SSH_FAIL: "*mv -T '*/configs/.incoming-*" }), /unable to seal/, "interrupted seal");
+  const ledgerBefore = readFileSync(join(host.releases, "events.tsv"), "utf8");
+
+  // The retry brings another release set (here a changed Caddyfile) under
+  // the same release id and version: refused before any write.
+  await writeFile(join(checkout.root, "Caddyfile"), "edited after the interrupted seal\n");
+  const retry = checkout.run({ SKIP_BUILD: "1" });
+  failed(retry, /already records .* with another release set; nothing was changed; rebuild to reserve a new version/, "divergent retry");
+  assert.doesNotMatch(retry.stdout, /uploading immutable release/);
+  assert.equal(readFileSync(join(host.releases, "events.tsv"), "utf8"), ledgerBefore);
+  assert.equal(current(host), first);
+  assert.equal(builds(host).length, 1);
+  assert.equal(lockHeld(host), false);
+  events(host);
+
+  // A rebuild reserves a new coordinate and deploys the changed release.
+  ok(checkout.run(), "rebuild");
+  assert.equal(liveCaddyfile(host), "edited after the interrupted seal\n");
+});
+
+test("an abandoned pending seal keeps its sequence and version used", async () => {
+  const { host, checkout } = await fixture();
+  ok(checkout.run(), "first deployment");
+  failed(checkout.run({ FAKE_SSH_FAIL: "*mv -T '*/configs/.incoming-*" }), /unable to seal/, "interrupted seal");
+  const abandoned = await checkout.release();
+  assert.equal(abandoned.version.sequence, 2);
+  ok(checkout.run(), "fresh deployment");
+  const fresh = await checkout.release();
+  assert.equal(fresh.version.sequence, 3, "the abandoned sequence is not issued again");
+  assert.equal(compareCalendarVersions(fresh.version.value, abandoned.version.value), 1);
+  assert.deepEqual(events(host).filter((entry) => entry.event === "sealed").map((entry) => entry.sequence), [1, 3]);
+});
+
+test("a rollback that cannot finish records nothing and says the candidate may still be live", async () => {
+  // The relink fails.
+  {
+    const { host, checkout } = await fixture();
+    ok(checkout.run(), "first deployment");
+    const first = `builds/${(await checkout.release()).deployment.releaseId}`;
+    const result = checkout.run({ FAKE_CONTAINER_UNHEALTHY: "1", FAKE_SSH_FAIL: "*.current-*-rollback*" });
+    failed(result, /automatic rollback did not complete \(current could not be relinked to builds\/.*\); the failed builds\/.* may still be live/, "relink failure");
+    assert.doesNotMatch(result.stderr, /restored builds/);
+    assert.notEqual(current(host), first);
+    assert.equal(events(host).some((entry) => entry.event === "auto-rollback"), false);
+  }
+  // The relink succeeds, but the container still serves the candidate.
+  {
+    const { host, checkout } = await fixture();
+    ok(checkout.run(), "first deployment");
+    const first = `builds/${(await checkout.release()).deployment.releaseId}`;
+    const result = checkout.run({ FAKE_CONTAINER_UNHEALTHY: "1", FAKE_HEALTHY_CURRENT: first, FAKE_CONTAINER_STALE: "1" });
+    failed(result, /automatic rollback did not complete \(inspr-www does not serve builds\/.* with its Caddyfile healthy\)/, "stale container");
+    assert.doesNotMatch(result.stderr, /restored builds/);
+    assert.equal(current(host), first, "the host link was restored");
+    assert.equal(events(host).some((entry) => entry.event === "auto-rollback"), false);
+  }
+});
+
+test("the rollback restores from what this run verified even when the ledger turns unreadable", async () => {
+  const { host, checkout } = await fixture();
+  ok(checkout.run(), "first deployment");
+  const first = `builds/${(await checkout.release()).deployment.releaseId}`;
+  const result = checkout.run({
+    FAKE_CONTAINER_UNHEALTHY: "1",
+    FAKE_HEALTHY_CURRENT: first,
+    FAKE_DOCKER_TAMPER: join(host.releases, "events.tsv"),
+  });
+  failed(result, /restored builds\/.* and its Caddyfile \(release set verified\)/, "unreadable ledger");
+  assert.match(result.stderr, /is restored, but the rollback event was not recorded/);
+  assert.equal(current(host), first);
+});
+
+test("an unhealthy pre-migration release is never recorded as the legacy baseline", async () => {
+  const { host, checkout } = await fixture();
+  const legacyId = "20260930T144629Z-095391814e7b";
+  await seedBuild(host, legacyId, {
+    schemaVersion: 1,
+    package: { name: "web", version: "0.0.1" },
+    source: { git: "095391814e7b", dirty: false },
+    deployment: { releaseId: legacyId, deployedAt: "2026-09-30T14:46:29Z" },
+  });
+  await symlink(`builds/${legacyId}`, join(host.releases, "current"));
+  const result = checkout.run({ FAKE_CONTAINER_UNHEALTHY: "1" });
+  failed(result, /is not served healthy by inspr-www; it is not recorded as the legacy baseline/, "unhealthy legacy");
+  assert.match(result.stderr, /unable to record a legacy baseline .*nothing was changed/);
+  assert.equal(existsSync(join(host.releases, "configs", legacyId)), false);
+  assert.equal(existsSync(join(host.releases, "baselines", `${legacyId}.json`)), false);
+  assert.equal(existsSync(join(host.releases, "events.tsv")), false);
+  assert.equal(current(host), `builds/${legacyId}`);
+  assert.deepEqual(builds(host), [legacyId]);
+});
+
+test("a failed first cutover restores the previous Caddyfile only with its recorded bytes", async () => {
+  // The preserved copy is intact: the host returns to no `current` and its
+  // Caddyfile.
+  {
+    const { host, checkout } = await fixture({ caddyfile: "candidate caddy configuration\n" });
+    const result = checkout.run({ FAKE_CONTAINER_UNHEALTHY: "1" });
+    failed(result, /restored the host without a current release and its previous Caddyfile/, "failed first cutover");
+    assert.equal(existsSync(join(host.releases, "current")), false);
+    assert.equal(liveCaddyfile(host), "fixture caddy configuration\n");
+  }
+  // The preserved copy changed after it was taken: it is not put live.
+  {
+    const { host, checkout } = await fixture({ caddyfile: "candidate caddy configuration\n" });
+    const result = checkout.run({ FAKE_CONTAINER_UNHEALTHY: "1", FAKE_DOCKER_TAMPER: join(host.releases, "rollbacks", "*", "Caddyfile") });
+    failed(result, /automatic rollback did not complete \(the preserved Caddyfile could not be restored exactly and re-bound\)/, "altered copy");
+    assert.equal(liveCaddyfile(host), "candidate caddy configuration\n");
+  }
 });

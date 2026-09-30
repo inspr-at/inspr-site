@@ -189,6 +189,10 @@ const screens = await Promise.all(
   })),
 );
 const controlFull = await lightbox(sessionsDark);
+// INSPR-498: each capture's box states its own aspect ratio. Without it a lazy
+// image is laid out from its width and height attributes and, once loaded,
+// from the ratio of the chosen (rounded) rendition: a fraction of a pixel
+// that moves every section below it by a rounding step.
 
 // The capability lens: one image per capability, keyed by the NN prefix of
 // src/assets/products/paimos-aeon/specs/NN-slug.{jpg,png,webp} in content
@@ -440,6 +444,7 @@ const releaseVersion = content.release.version.replace(/^v/, "");
                 <Image
                   src={screen.image}
                   alt={screen.alt}
+                  style={`aspect-ratio: ${screen.image.width} / ${screen.image.height};`}
                   widths={[800, 1200, 1600, 2400]}
                   sizes="(min-width: 90rem) 88rem, 94vw"
                   format="webp"
@@ -515,6 +520,7 @@ const releaseVersion = content.release.version.replace(/^v/, "");
             <Image
               src={sessionsDark}
               alt={content.controlRoom.screenAlt}
+              style={`aspect-ratio: ${sessionsDark.width} / ${sessionsDark.height};`}
               widths={[800, 1200, 1600, 2400]}
               sizes="(min-width: 90rem) 88rem, 94vw"
               format="webp"

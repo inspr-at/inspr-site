@@ -3,70 +3,95 @@
   "tag": "v260930115354.0.0",
   "commit": "ea5328e7b9af8e6087c6ccc2b765e6c11c5d7e01",
   "source": "https://aeon.barta.cm",
-  "sourceVersionCheck": "GET /api/version returned 260930094206.0.0 (release 14) for captures before 12:24 UTC and 260930115354.0.0 (release 14.1) after",
+  "sourceVersionCheck": "GET /api/version returned 260930094206.0.0 (release 14) for the first INSPR-492 captures, 260930115354.0.0 (release 14.1) for the rest and for the INSPR-498 recapture on 2026-09-30 (late evening).",
   "syntheticData": false,
   "decision": "Operator decision 2026-09-30 (INSPR-492): capture the live INSPR instance instead of a local demo; public INSPR/AEON projects only.",
   "capturedAt": "2026-09-30",
   "viewport": {
-    "width": 1600,
-    "height": 1000,
+    "width": 1280,
+    "height": 800,
     "deviceScaleFactor": 2
   },
-  "redaction": "Live frames exclude the accounts card; account e-mail text is blurred in the DOM before every shot as a safety net. Usage is filtered to the Aeon project. Generated illustrations contain no text.",
+  "redaction": "Live frames exclude the accounts card; account e-mail text is blurred in the DOM before every shot as a safety net. Usage is filtered to the Aeon project. Generated illustrations contain no text. INSPR-498: every frame passed a guard that rejects visible machine names, local paths, account-availability lines, private project names and classic-import text; key identifiers and a few unrelated names are blurred where they could not be framed out.",
   "files": [
     {
       "name": "sessions-dark.png",
       "kind": "live",
       "source": "https://aeon.barta.cm",
       "route": "/agents",
-      "version": "260930094206.0.0",
-      "crop": "section.sessions",
+      "version": "260930115354.0.0",
       "theme": "dark",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "0b39f83181132a1c4506ec74416277c2f64109efd69313f32fe685ee33ec3442"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
+      "sha256": "0ce333146620138537f3b01b5b333095a51be7cd73dbae6de1cea31319dd12f9",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "crop": "section.sessions"
     },
     {
       "name": "tickets.png",
       "kind": "live",
       "source": "https://aeon.barta.cm",
       "route": "/p/AEON/tickets?group=epic&sort=-progress,priority&cols=status,priority,assignee,estimate,progress,eta,updated",
-      "version": "260930094206.0.0",
+      "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "41131a96e864f57a8d751032131d2896fe0a32d4a032d69a7a0bb35d9e8dfb71"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them); one ticket title at the frame edge blurred (machine name)",
+      "sha256": "468beb07c5ee0bef83a346d7e7864ec94a4d9b2351443c0dbb5f021f39c9299c",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      }
     },
     {
       "name": "graph.png",
       "kind": "live",
       "source": "https://aeon.barta.cm",
       "route": "/p/AEON/tickets?view=graph",
-      "version": "260930094206.0.0",
+      "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "6621a8af90048c7660f86665431696451bb12be9ba83f4e32ba1eeb46610bd76"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
+      "sha256": "0e7c1c87f21fd6593e09bfe84a4e1a82f3288993128217a4f8c165bf3fb21033",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      }
     },
     {
       "name": "knowledge.png",
       "kind": "live",
       "source": "https://aeon.barta.cm",
       "route": "/p/AEON/knowledge?view=graph",
-      "version": "260930094206.0.0",
-      "state": "graph maximized",
+      "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "93a1b32b00c4b2539b2e73cd30ce74a144c681df02fc8ce6510b85aff55ba7f5"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them); one node label blurred",
+      "sha256": "536669ff35f25c22dc8f72b5a1cb619d70fd14cb7f70fc98704a08c0b7903411",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "state": "graph maximized; one node label blurred"
     },
     {
       "name": "usage.png",
       "kind": "live",
       "source": "https://aeon.barta.cm",
       "route": "/agents/usage",
-      "version": "260930094206.0.0",
-      "state": "7 days, project Aeon",
-      "crop": "statistics and below",
+      "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "d8f493659a6befca3fc44bdf6bd7e6cb0faa9ce321247c1606ffea59a3f035d8"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
+      "sha256": "2716a040e22c4370d67fbaaa8e7be947462309a7ddd0ceca7a8830a35f61d92e",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "state": "7 days, project Aeon",
+      "crop": "statistics and below"
     },
     {
       "name": "rules.png",
@@ -78,60 +103,91 @@
       "crop": "section.rules-page",
       "theme": "light",
       "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "e45e0d7bab519a167500eec17b74799e1e9d8612ad517d983e592e3be73b8a6c"
+      "sha256": "e45e0d7bab519a167500eec17b74799e1e9d8612ad517d983e592e3be73b8a6c",
+      "viewport": {
+        "width": 1600,
+        "height": 1000,
+        "deviceScaleFactor": 2
+      }
     },
     {
       "name": "specs/01-agents-first.jpg",
       "kind": "live",
       "source": "https://aeon.barta.cm",
       "route": "/agents",
-      "version": "260930094206.0.0",
-      "state": "sessions section",
+      "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "f12531efe8f9fb574ba03eef5b8820d995b4b71d97999778bb022f87fd20fd66"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
+      "sha256": "5a18721740bdfaeffe3055280ac106a809b82f45e51c40947992ac5162444dce",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "state": "sessions card: live agents with progress and ETA"
     },
     {
       "name": "specs/02-control-room.jpg",
       "kind": "live",
       "source": "https://aeon.barta.cm",
       "route": "/agents",
-      "version": "260930094206.0.0",
-      "state": "sessions section",
+      "version": "260930115354.0.0",
       "theme": "dark",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "68a2e962232b42b00e41c14861556d347548e63cbd1b9e3fd881a88209f76612"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
+      "sha256": "4f84a728938f2df7f98e48d8dd7520b92bf1bef0675ff09db4f63e0200d356d7",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "state": "sessions card, working and lost-contact states"
     },
     {
       "name": "specs/03-your-machines.jpg",
       "kind": "live",
       "source": "https://aeon.barta.cm",
       "route": "/agents/register-agent",
-      "version": "260930094206.0.0",
+      "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "7a5612b2fa2cac480494499f1def494310155a9997acb19a64fcc6d858a1f488"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
+      "sha256": "4e53d75420562b50fb03e1a8e9fb87c12e7190dfb4d41d6568c443480291dabb",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      }
     },
     {
       "name": "specs/04-scoped-keys.jpg",
       "kind": "live",
       "source": "https://aeon.barta.cm",
       "route": "/settings/access/agents",
-      "version": "260930094206.0.0",
+      "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "bd8a659b178f87e62106e1b3d43e29d9409a7d3136fee435385af991a7ebcad6"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them); key identifiers and one unrelated agent name blurred",
+      "sha256": "a9a1714a6d26022fd14bd6b300d7626ac5eb904fe7b4660ee459d1de16ddee73",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "state": "two agents expanded: scopes, status, rotate, revoke"
     },
     {
       "name": "specs/05-person-approvals.jpg",
       "kind": "live",
       "source": "https://aeon.barta.cm",
       "route": "/agents",
-      "version": "260930094206.0.0",
-      "state": "decided approvals expanded",
+      "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "bfef5dba93d9a8e656e10c228ea7fe0b278f996e0aabea5e148a64ab5cf4bb92"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
+      "sha256": "cb2cb4158843ebf37df84b792f7ffccac8341f571af72a82b8d5b896c26d3020",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "state": "decided approvals expanded, end of page"
     },
     {
       "name": "specs/06-capacity-routing.jpg",
@@ -146,21 +202,31 @@
       "kind": "live",
       "source": "https://aeon.barta.cm",
       "route": "/settings/agent-rules",
-      "version": "260930094206.0.0",
+      "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "ac341f772d8cb9e0dc883efe7dae126419882f5356531e35eba9fb3a8825b20d"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
+      "sha256": "beb12fb06d5137890efdef22608089b8bdec1eb6ac4200b8149a9ab78a2d3ddc",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      }
     },
     {
       "name": "specs/08-git-backed-doctrine.jpg",
       "kind": "live",
       "source": "https://aeon.barta.cm",
       "route": "/settings/agent-rules",
-      "version": "260930094206.0.0",
-      "state": "doctrine section",
+      "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "26f8b562355825df8626028b16f946d455a395c8e791dd4c72c9b2c9a720206d"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
+      "sha256": "49d82cb4bfe9803ca82230c9b595a762370f44b636ec4e6341b1841fcee9725b",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "state": "budget and doctrine section"
     },
     {
       "name": "specs/09-append-only-log.jpg",
@@ -183,11 +249,16 @@
       "kind": "live",
       "source": "https://aeon.barta.cm",
       "route": "/p/AEON/tickets?view=outline",
-      "version": "260930094206.0.0",
-      "state": "outline expanded",
+      "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "9569a1b70f06222f4187a6e17d88344948ff14d082e401be2e12f668cee111a0"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them); one ticket title at the frame edge blurred (machine name)",
+      "sha256": "63c643895ddd6daa851b995da93593a080642f2a8c9af591255f75b4fd4f0115",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "state": "outline expanded"
     },
     {
       "name": "specs/12-work-orders.jpg",
@@ -201,43 +272,65 @@
       "name": "specs/13-knowledge-graph.jpg",
       "kind": "live",
       "source": "https://aeon.barta.cm",
-      "route": "/p/AEON/knowledge?view=graph",
-      "version": "260930094206.0.0",
-      "state": "graph maximized",
+      "route": "/p/PRJ-6/knowledge?view=graph",
+      "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "103e8f91dd161943d767442b7990400fe1b0743082dec7e7618822116085ea84"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
+      "sha256": "36d1576eda3b1176486684e238ccdd0ef6a2ea08159c979190ff3c1fac45b992",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "state": "PAIMOS project knowledge graph, 56 entries"
     },
     {
       "name": "specs/14-journeys-and-gates.jpg",
       "kind": "live",
       "source": "https://aeon.barta.cm",
-      "route": "/p/AEON/journey",
-      "version": "260930094206.0.0",
+      "route": "/p/PRJ-17/journey",
+      "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "9f15caaa43d62b734f01104723297370032bdc9d44ffb129de7c8f089f38f6ec"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
+      "sha256": "9df9a9eb6bffe2528a0f9230dd5eb3444fab721f3a04abc52eeafff174940160",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "state": "Pharos release in Build with its gate decision"
     },
     {
       "name": "specs/15-clear-usage.jpg",
       "kind": "live",
       "source": "https://aeon.barta.cm",
       "route": "/agents/usage",
-      "version": "260930094206.0.0",
-      "state": "7 days, project Aeon",
+      "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "82eab75b6a674590450e8e3bcf0eb5f9d89c1530eade80c6beabb62aa95f41ad"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
+      "sha256": "81a42d18cbc69b7b5bcb375b5529d720e37c98c2b6f0e07f2acec91bbcf655b3",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "state": "7 days, project Aeon"
     },
     {
       "name": "specs/16-live-updates.jpg",
       "kind": "live",
       "source": "https://aeon.barta.cm",
       "route": "/p/AEON/tickets?group=epic&sort=-progress,priority&cols=status,priority,assignee,estimate,progress,eta,updated",
-      "version": "260930094206.0.0",
+      "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "e61f269d9e7b001e174a5ddc5e7a4dd1af2ad11d0eebb7f1029edc2e1ab9dad7"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
+      "sha256": "a7341098e59815633b17b72405d89efc5122787a43f5bd4bb938399728bdcd9d",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      },
+      "state": "in-progress tickets with live progress and ETA from agent heartbeats"
     },
     {
       "name": "specs/17-contract-first.jpg",
@@ -258,9 +351,14 @@
     {
       "name": "specs/19-agpl.jpg",
       "kind": "public-web",
-      "source": "https://github.com/inspr-at/paimos",
-      "note": "public repository page, anonymous browser, no session",
-      "sha256": "f77eaa0892f868ff5ce766d2ac9b6292a981768250698b93f562d81339068a90"
+      "source": "https://github.com/inspr-at/paimos/blob/main/LICENSE",
+      "note": "public repository page (LICENSE and its licence summary), anonymous browser, no session",
+      "sha256": "ceeb9a9f11a6fb52bae45674eb858073bb2e511fa4cd90bc494685f86f9c83ba",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 2
+      }
     },
     {
       "name": "specs/20-made-in-austria.jpg",
@@ -270,5 +368,6 @@
       "text": "none (brief forbids text, logos, metrics)",
       "sha256": "7bddf28ed200270386199b403bd3d028d6e6972167b2a174b245947a11aa6913"
     }
-  ]
+  ],
+  "viewportNote": "Files carry their own viewport. Screens recaptured for INSPR-498 use 1280x800 at device scale 2 (2560x1600 native, UI text about 25 percent larger in the frame than the earlier 1600x1000 captures); rules.png keeps its long 1600x1000 capture."
 }

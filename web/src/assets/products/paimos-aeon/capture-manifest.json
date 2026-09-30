@@ -1,0 +1,60 @@
+{
+  "ticket": "INSPR-492",
+  "tag": "v260930115354.0.0",
+  "commit": "ea5328e7b9af8e6087c6ccc2b765e6c11c5d7e01",
+  "source": "https://aeon.barta.cm",
+  "sourceVersionCheck": "GET /api/version returned 260930094206.0.0 (release 14) for captures before 12:24 UTC and 260930115354.0.0 (release 14.1) after",
+  "syntheticData": false,
+  "decision": "Operator decision 2026-09-30 (INSPR-492): capture the live INSPR instance instead of a local demo; public INSPR/AEON projects only.",
+  "capturedAt": "2026-09-30T11:44:00Z",
+  "viewport": {
+    "width": 1600,
+    "height": 1000,
+    "deviceScaleFactor": 2
+  },
+  "redaction": "Frames exclude the accounts card; account e-mail text is blurred in the DOM before every shot as a safety net. Usage is filtered to the Aeon project.",
+  "files": [
+    {
+      "name": "sessions-dark.png",
+      "route": "/agents",
+      "crop": "section.sessions",
+      "theme": "dark",
+      "version": "260930094206.0.0"
+    },
+    {
+      "name": "tickets.png",
+      "route": "/p/AEON/tickets?group=epic&sort=-progress,priority&cols=status,priority,assignee,estimate,progress,eta,updated",
+      "theme": "light",
+      "version": "260930094206.0.0"
+    },
+    {
+      "name": "graph.png",
+      "route": "/p/AEON/tickets?view=graph",
+      "theme": "light",
+      "version": "260930094206.0.0"
+    },
+    {
+      "name": "knowledge.png",
+      "route": "/p/AEON/knowledge?view=graph",
+      "state": "graph maximized",
+      "theme": "light",
+      "version": "260930094206.0.0"
+    },
+    {
+      "name": "usage.png",
+      "route": "/agents/usage",
+      "state": "7 days, project Aeon",
+      "crop": "statistics and below",
+      "theme": "light",
+      "version": "260930094206.0.0"
+    },
+    {
+      "name": "rules.png",
+      "route": "/settings/agent-rules",
+      "state": "public kernel sets, AEON what-Aeon-is and style, and the AGENTS-KERNEL and AGENTS-AGENT-DEV doctrine files expanded; private operator sets and AEON how-you-work stay collapsed",
+      "crop": "section.rules-page",
+      "theme": "light",
+      "version": "260930115354.0.0"
+    }
+  ]
+}

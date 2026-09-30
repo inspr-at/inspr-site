@@ -13,6 +13,7 @@ import FeatureExperience from "./FeatureExperience.astro";
 import AudiencePaths from "./AudiencePaths.astro";
 import ConstraintRegister from "./ConstraintRegister.astro";
 import ProvenanceReceipt from "./ProvenanceReceipt.astro";
+import SpecsGrid from "./SpecsGrid.astro";
 import HeroLoop from "./HeroLoop.astro";
 import type { ProductContent } from "../content/types";
 import { siteUrls } from "../content/urls";
@@ -36,6 +37,13 @@ import janusProblem from "../assets/products/janus/problem-boundary.png";
 interface Props {
   content: ProductContent;
   locale?: "en" | "de";
+  /**
+   * Mount below the www host instead of the product host root (INSPR-492:
+   * the retired Paimos page at www.inspr.at/paimos-legacy). Scopes canonical,
+   * hreflang, the language switch and the brand link to that path, and keeps
+   * the page out of search indexes.
+   */
+  mount?: { english: string; german: string };
 }
 
 const { content } = Astro.props;
@@ -47,8 +55,10 @@ const sheetLabels = locale === "de"
 // The shared DE/EN locale contract: English lives at the product-host root,
 // German at /de/. Both alternates derive from the canonical host so hreflang
 // stays correct regardless of which edition is being rendered.
-const englishUrl = siteUrls[content.slug];
-const germanUrl = `${englishUrl}/de/`;
+const mount = Astro.props.mount;
+const englishUrl = mount?.english ?? siteUrls[content.slug];
+const germanUrl = mount?.german ?? `${englishUrl}/de/`;
+const pathOf = (url: string) => new URL(url).pathname;
 
 // UI chrome that does not belong to the content model. Section anchors stay
 // identical across locales so the language switch preserves deep links.
@@ -130,38 +140,6 @@ const labels = locale === "de"
       faqTitle: "Before you adopt it.",
     };
 
-// Cache-buster for the public/ scripts: unlike _astro assets they are not
-// content-hashed, and their 5-minute edge cache once served a stale script
-// against fresh HTML (dead controls). The release id changes per deploy.
-const scriptVersion = process.env.INSPR_RELEASE_ID ?? "dev";
-
-// Split a spec note into text/term segments so glossary terms become click
-// targets. Longest match strings win at any position; matching is exact and
-// case-sensitive (match strings carry the casing used in the notes).
-type NoteSegment = { text: string; termId?: string };
-const specGlossary = content.specs?.glossary ?? [];
-// Definitions travel on the term spans (data-def); the only glossary UI is
-// the live help line under the grid that fills while a term is hovered.
-const defById = Object.fromEntries(specGlossary.map((g) => [g.id, g.body]));
-const termMatches = specGlossary
-  .flatMap((entry) => entry.matches.map((m) => ({ s: m, id: entry.id })))
-  .sort((a, b) => b.s.length - a.s.length);
-const termSplitter = termMatches.length
-  ? new RegExp(
-      `(${termMatches.map((m) => m.s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`,
-      "g",
-    )
-  : null;
-const segmentNote = (text: string): NoteSegment[] => {
-  if (!termSplitter) return [{ text }];
-  return text
-    .split(termSplitter)
-    .filter(Boolean)
-    .map((part) => {
-      const hit = termMatches.find((m) => m.s === part);
-      return hit ? { text: part, termId: hit.id } : { text: part };
-    });
-};
 const assets = {
   paimos: {
     hero: paimosHero,
@@ -243,11 +221,12 @@ const featurePresentations: Record<string, FeaturePresentation> = {
 <MicrositeLayout
   title={content.seo.title}
   description={content.seo.description}
-  canonical={content.canonicalUrl}
+  canonical={mount ? (locale === "de" ? germanUrl : englishUrl) : content.canonicalUrl}
   locale={locale}
   alternateEnglish={englishUrl}
   alternateGerman={germanUrl}
   detectLocale={locale === "en"}
+  robots={mount ? "noindex, follow" : undefined}
   ogImage={ogImage}
   ogImageAlt={content.hero.alt}
   favicon={assets.logo.src}
@@ -258,9 +237,10 @@ const featurePresentations: Record<string, FeaturePresentation> = {
     category={content.category}
     logo={assets.logo.src}
     active={content.slug}
+    homeHref={mount ? pathOf(locale === "de" ? germanUrl : englishUrl) : undefined}
     nav={nav}
     locale={locale}
-    languageLinks={{ en: "/", de: "/de/" }}
+    languageLinks={mount ? { en: pathOf(englishUrl), de: pathOf(germanUrl) } : { en: "/", de: "/de/" }}
     detailsSlider={{
       label: "Details",
       description: labels.detailsDescription,
@@ -347,101 +327,15 @@ const featurePresentations: Record<string, FeaturePresentation> = {
     </div>
 
     {content.specs && (
-      <section data-depth-min="standard"
-        class="section page-shell specs"
-        id="specs"
-        aria-labelledby="specs-title"
-        data-section-pattern="specs-grid"
-        data-eli10="false"
-      >
-        <header class="section-intro">
-          <p class="eyebrow">{content.specs.eyebrow}</p>
-          <h2 id="specs-title">{content.specs.title}</h2>
-          {content.specs.lead && (
-            <p class="section-lead">
-              <span class="specs__variant specs__variant--tech">{content.specs.lead}</span>
-              {content.specs.leadEli10 && (
-                <span class="specs__variant specs__variant--plain">{content.specs.leadEli10}</span>
-              )}
-            </p>
-          )}
-        </header>
-
-        <div class="specs__controls">
-          <button type="button" class="specs__control" data-specs-eli10 aria-pressed="false">
-            {labels.specsEli10}
-          </button>
-          <button
-            type="button"
-            class="specs__control"
-            data-specs-flip-all
-            data-label-flip={labels.specsFlipAll}
-            data-label-unflip={labels.specsUnflipAll}
-            aria-pressed="false"
-          >
-            {labels.specsFlipAll}
-          </button>
-          <button
-            type="button"
-            class="specs__control specs__control--shuffle"
-            data-specs-shuffle
-            aria-label={labels.specsShuffle}
-          >
-            ⤨
-          </button>
-        </div>
-
-        <ul class="specs__grid">
-          {content.specs.items.map((item) => (
-            <li class:list={["specs__tile", `specs__tile--${item.group}`]}>
-              <div class="specs__flip" role="button" tabindex="0" aria-pressed="false">
-                <span class="specs__face specs__face--front">
-                  <span class="specs__icon" aria-hidden="true">
-                    <ContextIcon name={item.icon} size={34} strokeWidth={1.75} />
-                  </span>
-                  <span class="specs__label">{item.label}</span>
-                </span>
-                <span class="specs__face specs__face--back">
-                  <span class="specs__back-label">{item.label}</span>
-                  <span class="specs__note">
-                    <span class="specs__variant specs__variant--tech">
-                      {segmentNote(item.note).map((seg) =>
-                        seg.termId ? (
-                          <span class="specs__term" data-def={defById[seg.termId]}>{seg.text}</span>
-                        ) : (
-                          seg.text
-                        ),
-                      )}
-                    </span>
-                    <span class="specs__variant specs__variant--plain">
-                      {segmentNote(item.noteEli10).map((seg) =>
-                        seg.termId ? (
-                          <span class="specs__term" data-def={defById[seg.termId]}>{seg.text}</span>
-                        ) : (
-                          seg.text
-                        ),
-                      )}
-                    </span>
-                  </span>
-                  <span class="specs__pin" aria-hidden="true">
-                    <ContextIcon name={item.icon} size={13} strokeWidth={2} />
-                  </span>
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
-
-        {specGlossary.length > 0 && (
-          <div class="specs__foot" aria-live="polite">
-            <p class="specs__live" data-specs-live>
-              <mark class="specs__live-term" data-gloss-live-term></mark>
-              <span class="specs__live-body" data-gloss-live-body></span>
-            </p>
-          </div>
-        )}
-        <script is:inline src={`/scripts/specs-pin.js?v=${scriptVersion}`} defer></script>
-      </section>
+      <SpecsGrid
+        specs={content.specs}
+        labels={{
+          eli10: labels.specsEli10,
+          flipAll: labels.specsFlipAll,
+          unflipAll: labels.specsUnflipAll,
+          shuffle: labels.specsShuffle,
+        }}
+      />
     )}
 
     <section data-depth-min="standard"

@@ -83,7 +83,17 @@ test("all six page families keep their essence and preserve technical evidence",
       boundary(page, 'id="release-path"');
       boundary(page, 'data-section-pattern="proof-strip"');
     } else {
-      for (const id of ["specs", "architecture", "trust", "open-source"]) boundary(page, `id="${id}"`);
+      for (const id of ["architecture", "trust", "open-source"]) boundary(page, `id="${id}"`);
+      // The specs grid is the shared SpecsGrid component (INSPR-492). It folds
+      // at Simple on every product page; only the AEON variant stays visible,
+      // because there the header's Details level drives the card text instead.
+      assert.match(page, /<SpecsGrid\s/);
+      assert.doesNotMatch(page, /<SpecsGrid[^>]*variant=/);
+      const grid = await source("components/SpecsGrid.astro");
+      const gridTag = tags(grid, "section").find((tag) => tag.includes('id="specs"'));
+      assert.ok(gridTag, 'SpecsGrid renders id="specs"');
+      assert.match(gridTag, /data-depth-min=\{field \? undefined : "standard"\}/, "specs folds at Simple unless it is the AEON lens");
+      assert.match(grid, /const field = variant === "aeon"/);
       boundary(page, 'data-section-pattern="filterable-matrix"');
       assert.match(page, /<div data-depth-min="standard">\{content.slug === "paimos" && <PaimosProductSurface/);
     }

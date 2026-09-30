@@ -19,6 +19,10 @@ interface Props {
   alternateEnglish?: string;
   alternateGerman?: string;
   detectLocale?: boolean;
+  /** Robots directive for pages that must stay out of search indexes. */
+  robots?: string;
+  /** Locale paths for the language redirect when a page is mounted below a host root. */
+  localePaths?: { en: string; de: string };
   ogImage: string;
   ogImageAlt: string;
   favicon: string;
@@ -33,6 +37,8 @@ const {
   alternateEnglish,
   alternateGerman,
   detectLocale = false,
+  robots,
+  localePaths,
   ogImage,
   ogImageAlt,
   favicon,
@@ -51,6 +57,7 @@ const {
     />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {robots && <meta name="robots" content={robots} />}
     <link rel="canonical" href={canonical} />
     {alternateEnglish && <link rel="alternate" hreflang="en" href={alternateEnglish} />}
     {alternateGerman && <link rel="alternate" hreflang="de" href={alternateGerman} />}
@@ -77,8 +84,8 @@ const {
         is:inline
         src={`/scripts/locale-preference.js?v=${releaseMetadata.releaseId}`}
         data-current-locale={locale}
-        data-english-path={new URL(alternateEnglish).pathname}
-        data-german-path={new URL(alternateGerman).pathname}
+        data-english-path={localePaths?.en ?? new URL(alternateEnglish).pathname}
+        data-german-path={localePaths?.de ?? new URL(alternateGerman).pathname}
         data-detect-locale={detectLocale ? "true" : "false"}
       ></script>
     )}

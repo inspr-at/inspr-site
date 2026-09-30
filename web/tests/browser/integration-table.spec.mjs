@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-const routes = ["/paimos/", "/paimos/de/", "/pharos/", "/pharos/de/"];
+const routes = ["/paimos-legacy/", "/paimos-legacy/de/", "/pharos/", "/pharos/de/"];
 
 for (const path of routes) {
   test(`${path} owns its 744px table overflow`, async ({ page }) => {

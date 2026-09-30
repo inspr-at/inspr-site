@@ -1,0 +1,360 @@
+---
+/**
+ * INSPR-492: the live rules view as a guided, touchable long read.
+ *
+ * The capture is much taller than its window. It drifts on its own; people
+ * can drag it (mouse and pen, or any pointer in full screen), wheel it until
+ * an edge hands the scroll back to the page, step through it by keyboard, or
+ * jump with the stop buttons, which also follow along as it moves. After a
+ * few quiet seconds, or when it comes back into view, the drift resumes.
+ */
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+
+interface Props {
+  image: ImageMetadata;
+  alt: string;
+  path: string;
+  /** Section starts in the capture, as a fraction of its height. */
+  stops: Array<{ label: string; at: number }>;
+  labels: { stops: string; viewport: string; hint: string; enterFull: string; exitFull: string };
+}
+
+const { image, alt, path, stops, labels } = Astro.props;
+const hintId = "aeon-pan-hint";
+---
+
+<figure class="aeon-pan" data-pan data-reveal>
+  <div class="aeon-window aeon-pan__window">
+    <div class="aeon-window__bar aeon-pan__bar">
+      <i aria-hidden="true"></i><i aria-hidden="true"></i><i aria-hidden="true"></i>
+      <span aria-hidden="true">{path}</span>
+      <button
+        type="button"
+        class="aeon-pan__full"
+        data-pan-full
+        aria-pressed="false"
+        aria-label={labels.enterFull}
+        data-label-enter={labels.enterFull}
+        data-label-exit={labels.exitFull}
+      >
+        <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+          <path class="aeon-pan__full-enter" d="M3 8V3h5M17 8V3h-5M3 12v5h5M17 12v5h-5" />
+          <path class="aeon-pan__full-exit" d="M8 3v5H3M12 3v5h5M8 17v-5H3M12 17v-5h5" />
+        </svg>
+      </button>
+    </div>
+    <div
+      class="aeon-pan__viewport"
+      data-pan-viewport
+      tabindex="0"
+      role="region"
+      aria-label={labels.viewport}
+      aria-describedby={hintId}
+    >
+      <div class="aeon-pan__track" data-pan-track>
+        <Image
+          class="aeon-pan__image"
+          src={image}
+          alt={alt}
+          widths={[700, 1100, 1600, 2328]}
+          sizes="(min-width: 72rem) 44vw, 94vw"
+          format="webp"
+          quality={84}
+          draggable="false"
+        />
+      </div>
+      <span class="aeon-pan__rail" aria-hidden="true"><span data-pan-thumb></span></span>
+    </div>
+  </div>
+  <p id={hintId} class="visually-hidden">{labels.hint}</p>
+  <div class="aeon-pan__stops" role="group" aria-label={labels.stops}>
+    {stops.map((stop, index) => (
+      <button type="button" data-pan-stop={stop.at} aria-pressed={index === 0 ? "true" : "false"}>
+        <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>{stop.label}
+      </button>
+    ))}
+  </div>
+</figure>
+
+<script>
+  type Mode = "auto" | "idle" | "drag" | "tween" | "inertia";
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const IDLE_RESUME_MS = 4000;
+  const EDGE_HOLD_MS = 2600;
+  const DRIFT_PX_PER_MS = 0.034;
+
+  const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+  const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+  const setup = (root: HTMLElement) => {
+    const viewport = root.querySelector<HTMLElement>("[data-pan-viewport]");
+    const track = root.querySelector<HTMLElement>("[data-pan-track]");
+    const thumb = root.querySelector<HTMLElement>("[data-pan-thumb]");
+    const full = root.querySelector<HTMLButtonElement>("[data-pan-full]");
+    const stops = [...root.querySelectorAll<HTMLButtonElement>("[data-pan-stop]")];
+    if (!viewport || !track) return;
+
+    let y = 0;
+    let max = 0;
+    let mode: Mode = reduceMotion.matches ? "idle" : "auto";
+    let direction = 1;
+    let holdUntil = 0;
+    let lastInteraction = 0;
+    let visible = false;
+    let frame = 0;
+    let last = 0;
+    let velocity = 0;
+    let tween = { from: 0, to: 0, start: 0, duration: 0 };
+    let expanded = false;
+    // A clicked stop stays selected while the capture rests where it sent it.
+    let chosen = -1;
+
+    const stopTarget = (at: number) => clamp(at * track.offsetHeight - 14, 0, max);
+
+    const render = () => {
+      track.style.transform = `translate3d(0, ${-y}px, 0)`;
+      if (thumb && max > 0) {
+        const ratio = viewport.clientHeight / track.offsetHeight;
+        thumb.style.height = `${Math.max(8, ratio * 100)}%`;
+        thumb.style.top = `${(y / max) * (100 - Math.max(8, ratio * 100))}%`;
+      }
+      // The chosen stop while untouched; at the bottom edge the lowest visible
+      // section; otherwise the section at or above the window's upper third.
+      let active = 0;
+      if (chosen >= 0) {
+        active = chosen;
+      } else {
+        const probe = y >= max - 1 ? y + viewport.clientHeight * 0.9 : y + viewport.clientHeight * 0.3;
+        stops.forEach((stop, index) => {
+          if (Number(stop.dataset.panStop) * track.offsetHeight <= probe) active = index;
+        });
+      }
+      stops.forEach((stop, index) => stop.setAttribute("aria-pressed", String(index === active)));
+    };
+
+    const measure = () => {
+      const ratio = max > 0 ? y / max : 0;
+      max = Math.max(0, track.offsetHeight - viewport.clientHeight);
+      y = clamp(ratio * max, 0, max);
+      render();
+    };
+
+    const touch = (keepChoice = false) => {
+      lastInteraction = performance.now();
+      if (!keepChoice) chosen = -1;
+    };
+
+    const run = () => {
+      if (!frame) {
+        last = performance.now();
+        frame = requestAnimationFrame(tick);
+      }
+    };
+
+    const tick = (now: number) => {
+      frame = 0;
+      const dt = Math.min(64, now - last);
+      last = now;
+
+      if (mode === "tween") {
+        const t = clamp((now - tween.start) / tween.duration, 0, 1);
+        y = tween.from + (tween.to - tween.from) * easeInOut(t);
+        if (t >= 1) mode = "idle";
+      } else if (mode === "inertia") {
+        y = clamp(y + velocity * dt, 0, max);
+        velocity *= Math.pow(0.94, dt / 16);
+        if (Math.abs(velocity) < 0.02 || y === 0 || y === max) mode = "idle";
+      } else if (mode === "idle") {
+        if (!reduceMotion.matches && visible && now - lastInteraction > IDLE_RESUME_MS) mode = "auto";
+      } else if (mode === "auto") {
+        chosen = -1;
+        if (now >= holdUntil) {
+          y += direction * DRIFT_PX_PER_MS * dt;
+          if (y >= max || y <= 0) {
+            y = clamp(y, 0, max);
+            direction = y >= max ? -1 : 1;
+            holdUntil = now + EDGE_HOLD_MS;
+          }
+        }
+      }
+
+      render();
+      const busy = mode === "tween" || mode === "inertia" || mode === "drag";
+      if (busy || (visible && !reduceMotion.matches)) run();
+    };
+
+    const goTo = (target: number, choice = -1) => {
+      touch();
+      chosen = choice;
+      const to = clamp(target, 0, max);
+      if (reduceMotion.matches) {
+        y = to;
+        mode = "idle";
+        render();
+        return;
+      }
+      tween = { from: y, to, start: performance.now(), duration: clamp(Math.abs(to - y) * 0.9, 420, 1300) };
+      mode = "tween";
+      run();
+    };
+
+    // Stops jump to their section; the drift waits.
+    stops.forEach((stop, index) => {
+      stop.addEventListener("click", () => {
+        direction = 1;
+        goTo(stopTarget(Number(stop.dataset.panStop)), index);
+      });
+    });
+
+    // Drag. Touch drags only in full screen, so page scrolling stays native.
+    let dragStartY = 0;
+    let dragStartOffset = 0;
+    let samples: Array<{ t: number; y: number }> = [];
+    viewport.addEventListener("pointerdown", (event) => {
+      if (event.pointerType === "touch" && !expanded) return;
+      if (event.button !== 0) return;
+      viewport.setPointerCapture(event.pointerId);
+      viewport.classList.add("is-dragging");
+      mode = "drag";
+      dragStartY = event.clientY;
+      dragStartOffset = y;
+      samples = [{ t: event.timeStamp, y: event.clientY }];
+      touch();
+      run();
+    });
+    viewport.addEventListener("pointermove", (event) => {
+      if (mode !== "drag") return;
+      y = clamp(dragStartOffset - (event.clientY - dragStartY), 0, max);
+      samples.push({ t: event.timeStamp, y: event.clientY });
+      if (samples.length > 6) samples.shift();
+      touch();
+    });
+    const endDrag = () => {
+      if (mode !== "drag") return;
+      viewport.classList.remove("is-dragging");
+      const first = samples[0];
+      const lastSample = samples[samples.length - 1];
+      const span = lastSample && first ? lastSample.t - first.t : 0;
+      velocity = span > 0 ? clamp(-(lastSample.y - first.y) / span, -2.2, 2.2) : 0;
+      mode = reduceMotion.matches ? "idle" : "inertia";
+      touch();
+      run();
+    };
+    viewport.addEventListener("pointerup", endDrag);
+    viewport.addEventListener("pointercancel", endDrag);
+
+    // Wheel moves the capture until an edge, then the page scrolls on.
+    viewport.addEventListener(
+      "wheel",
+      (event) => {
+        const delta = event.deltaMode === 1 ? event.deltaY * 32 : event.deltaY;
+        if ((delta > 0 && y >= max) || (delta < 0 && y <= 0)) return;
+        event.preventDefault();
+        y = clamp(y + delta, 0, max);
+        mode = "idle";
+        touch();
+        render();
+        run();
+      },
+      { passive: false },
+    );
+
+    // Keyboard, while the window has focus.
+    viewport.addEventListener("keydown", (event) => {
+      const page = viewport.clientHeight * 0.8;
+      const moves: Record<string, number> = {
+        ArrowDown: y + 80,
+        ArrowUp: y - 80,
+        PageDown: y + page,
+        PageUp: y - page,
+        " ": y + page,
+        Home: 0,
+        End: max,
+      };
+      if (event.key === "Escape" && expanded) {
+        setExpanded(false);
+        return;
+      }
+      if (!(event.key in moves)) return;
+      event.preventDefault();
+      goTo(moves[event.key]);
+    });
+
+    // Full screen: the real Fullscreen API where it exists, an overlay otherwise.
+    const setExpanded = (next: boolean) => {
+      if (next && root.requestFullscreen) {
+        root.requestFullscreen().catch(() => applyExpanded(true));
+        return;
+      }
+      if (!next && document.fullscreenElement === root) {
+        document.exitFullscreen().catch(() => applyExpanded(false));
+        return;
+      }
+      applyExpanded(next);
+    };
+    // Full screen wants the sharpest rendition. It is fetched and decoded
+    // first and only then swapped in: switching `sizes` on a lazy image makes
+    // browsers drop the painted source and show nothing until the new one
+    // arrives, which inside a full-screen element can be never.
+    const picture = track.querySelector<HTMLImageElement>("img");
+    let sharp = false;
+    const sharpen = async () => {
+      if (!picture || sharp) return;
+      sharp = true;
+      const best = picture.srcset
+        .split(",")
+        .map((entry) => entry.trim().split(/\s+/))
+        .map(([url, width]) => ({ url, width: Number.parseInt(width ?? "0", 10) }))
+        .sort((a, b) => b.width - a.width)[0];
+      if (!best?.url) return;
+      const loader = new window.Image();
+      loader.src = best.url;
+      try {
+        await loader.decode();
+      } catch {
+        return;
+      }
+      picture.loading = "eager";
+      picture.srcset = `${best.url} ${best.width}w`;
+      picture.sizes = `${best.width}px`;
+    };
+    const applyExpanded = (next: boolean) => {
+      expanded = next;
+      if (next) void sharpen();
+      root.classList.toggle("is-expanded", next && document.fullscreenElement !== root);
+      root.classList.toggle("is-full", next);
+      document.documentElement.classList.toggle("aeon-pan-lock", next && document.fullscreenElement !== root);
+      if (full) {
+        full.setAttribute("aria-pressed", String(next));
+        full.setAttribute("aria-label", (next ? full.dataset.labelExit : full.dataset.labelEnter) ?? "");
+      }
+      requestAnimationFrame(measure);
+      touch();
+      viewport.focus({ preventScroll: true });
+    };
+    full?.addEventListener("click", () => setExpanded(!expanded));
+    document.addEventListener("fullscreenchange", () => {
+      if (document.fullscreenElement === root) applyExpanded(true);
+      else if (expanded) applyExpanded(false);
+    });
+
+    // In view: drift. Leaving the view resets the idle clock, so coming back
+    // starts the drift again at once.
+    new IntersectionObserver((entries) => {
+      const wasVisible = visible;
+      visible = entries.some((entry) => entry.isIntersecting);
+      if (!visible && wasVisible) lastInteraction = 0;
+      if (visible && mode === "idle" && lastInteraction === 0 && !reduceMotion.matches) mode = "auto";
+      if (visible) run();
+    }, { threshold: 0.2 }).observe(root);
+
+    new ResizeObserver(measure).observe(viewport);
+    const image = track.querySelector("img");
+    if (image && !image.complete) image.addEventListener("load", measure, { once: true });
+    measure();
+  };
+
+  document.querySelectorAll<HTMLElement>("[data-pan]").forEach(setup);
+</script>

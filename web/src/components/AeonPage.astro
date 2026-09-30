@@ -865,6 +865,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
     let opener: HTMLElement | null = null;
     let inerted: Element[] = [];
     let suppressHoverUntil = 0;
+    let settleTimer = 0;
 
     const describe = (id: string) => {
       slides.forEach((slide, key) => {
@@ -880,11 +881,12 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
     };
 
     // Slides move sideways in the direction of travel: the incoming one is
-    // staged on the far side without a transition, then released.
-    const goTo = (id: string, direction: 1 | -1 | 0) => {
+    // staged on the far side without a transition, then released. `force`
+    // restores the whole state even for the slide already current, which
+    // an open needs: a close leaves the last slide in place for its fade.
+    const goTo = (id: string, direction: 1 | -1 | 0, force = false) => {
       const next = slides.get(id);
-      if (!next || id === current) return;
-      const previous = current ? slides.get(current) : null;
+      if (!next || (id === current && !force)) return;
       current = id;
       carousel.style.setProperty("--dir", String(direction));
       if (direction !== 0 && !reduced) {
@@ -892,8 +894,8 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
         void next.offsetWidth;
         next.classList.remove("is-staged");
       }
-      previous?.classList.remove("is-current");
-      next.classList.add("is-current");
+      slides.forEach((slide, key) => slide.classList.toggle("is-current", key === id));
+      next.scrollTop = 0;
       describe(id);
     };
 
@@ -907,9 +909,10 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       if (open) return;
       open = true;
       opener = from;
+      window.clearTimeout(settleTimer);
       warm();
       showBg(null);
-      goTo(id, 0);
+      goTo(id, 0, true);
       carousel.setAttribute("role", "dialog");
       carousel.setAttribute("aria-modal", "true");
       // Everything outside the dialog goes inert: every sibling on the way
@@ -950,7 +953,8 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       window.setTimeout(() => {
         if (!open) showBg(null);
       }, 0);
-      window.setTimeout(() => {
+      window.clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(() => {
         if (!open) {
           root.classList.remove("is-showing");
           slides.forEach((slide) => slide.classList.remove("is-current"));

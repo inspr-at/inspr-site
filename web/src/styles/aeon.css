@@ -994,6 +994,10 @@
   /* Slides move sideways in the direction of travel and fade; --dir is 1
      for next, -1 for prev. The staged (incoming) slide starts on the far
      side without a transition, then glides in. */
+  /* The active slide scrolls on its own when a short or zoomed viewport
+     cannot hold image and caption (page scrolling is locked); auto block
+     margins centre the pair when there is room and never push it out of
+     reach when there is not. */
   .specs__slide {
     position: absolute;
     inset: 0;
@@ -1002,6 +1006,8 @@
     gap: 1.25rem;
     margin: 0;
     padding: 4.5rem clamp(4rem, 8vw, 7rem) 2rem;
+    overflow: hidden auto;
+    overscroll-behavior: contain;
     visibility: hidden;
     opacity: 0;
     translate: calc(var(--dir, 1) * -6%) 0;
@@ -1028,16 +1034,19 @@
   .specs__slide-img {
     flex: 1 1 0;
     width: 100%;
-    min-height: 0;
+    min-height: 8rem;
+    max-height: 100%;
+    margin-top: auto;
     object-fit: contain;
     filter: drop-shadow(0 30px 50px rgb(0 0 0 / 0.45));
   }
 
   .specs__slide-caption {
     display: grid;
+    flex: 0 0 auto;
     gap: 0.3rem;
     max-width: 60ch;
-    margin: 0 auto;
+    margin: 0 auto auto;
     text-align: center;
   }
 
@@ -1172,23 +1181,23 @@
      image's edges, nothing wasted. */
   @media (max-width: 48rem) {
     .specs__slide {
-      justify-content: center;
       gap: 1.1rem;
       padding: 3.5rem 1rem max(1rem, env(safe-area-inset-bottom));
     }
 
     /* Image and caption form one centred unit: the image at its own
-       aspect, the caption right under it. */
+       aspect, the caption right under it; both scroll when they must. */
     .specs__slide-img {
       flex: 0 0 auto;
       height: auto;
+      min-height: 0;
       max-height: 52vh;
       filter: drop-shadow(0 16px 30px rgb(0 0 0 / 0.45));
     }
 
     .specs__slide-caption {
       text-align: left;
-      margin: 0;
+      margin: 0 0 auto;
     }
 
     .specs__slide-cat {

@@ -48,12 +48,10 @@ for (const path of routes) {
 test.describe("hero pause", () => {
   test.use({ reducedMotion: "no-preference" });
 
-  test("pausing the hero halts every looping hero animation", async ({ page }) => {
+  test("the visible hero Pause control halts every looping hero animation", async ({ page }) => {
     await page.goto("/paimos/?lang=en", { waitUntil: "domcontentloaded" });
     await page.evaluate(() => document.fonts.ready);
-    await page.evaluate(() => document.querySelector(".aeon-hero")?.classList.add("is-paused"));
-    await page.waitForTimeout(100);
-    const running = await page.evaluate(() => {
+    const runningLoops = () => page.evaluate(() => {
       const hero = document.querySelector(".aeon-hero");
       return document.getAnimations()
         .filter((animation) => {
@@ -64,6 +62,26 @@ test.describe("hero pause", () => {
         })
         .map((animation) => `${animation.effect.target.className} ${animation.animationName ?? ""}`);
     });
-    expect(running).toEqual([]);
+    // Motion is really running before the reader presses Pause.
+    await expect.poll(async () => (await runningLoops()).length).toBeGreaterThan(0);
+    const control = page.locator(".aeon-hero .hero-loop__control");
+    await page.locator(".aeon-hero__stage").hover();
+    await control.click();
+    await expect(control).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator(".aeon-hero")).toHaveClass(/is-paused/);
+    await expect.poll(runningLoops).toEqual([]);
   });
+});
+
+// INSPR-494: the operator rejected slanted accents; nothing on the page may
+// render as (synthetic) italic.
+test("no text on the AEON page renders in italic", async ({ page }) => {
+  await page.goto("/paimos/?lang=en", { waitUntil: "domcontentloaded" });
+  const italic = await page.evaluate(() =>
+    [...document.querySelectorAll("main *, header *, footer *")]
+      .filter((element) => element.childNodes.length && [...element.childNodes].some((node) => node.nodeType === 3 && node.textContent.trim()))
+      .filter((element) => getComputedStyle(element).fontStyle !== "normal")
+      .map((element) => `${element.tagName.toLowerCase()}.${element.className}: ${element.textContent.trim().slice(0, 40)}`),
+  );
+  expect(italic).toEqual([]);
 });

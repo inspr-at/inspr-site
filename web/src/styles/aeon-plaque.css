@@ -1,10 +1,11 @@
 /* INSPR-492: the hero release plaque; loaded by AeonReleasePlaque.astro.
  *
  * A small glass object on the cream hero. It carries its own light (two
- * orbs and faint era arcs behind it, spilling a little around it) so the
- * frost and, in Chromium, the refraction have something to work on. One
- * bright top rim, a soft gold bottom rim, a pointer-following specular ring
- * and a slow live pulse. Hover lifts it and clears the glass a touch. */
+ * soft white glows drifting behind it, spilling a little around it) so the
+ * thin frost and, in Chromium, the refraction have something to work on.
+ * One bright top rim, a soft gold bottom rim, a specular ring that glides
+ * with the glow and follows the pointer on hover, and a slow live pulse.
+ * Hover lifts it and clears the glass a touch. */
 @layer components {
   .aeon-plaque-stage {
     --spring-lift: linear(0, 0.074, 0.255, 0.483, 0.714, 0.912, 1.062, 1.156, 1.2, 1.202, 1.175, 1.132, 1.084, 1.039, 1.003, 0.977, 0.963, 0.958, 0.96, 0.968, 0.977, 0.987, 0.996, 1.002, 1.006, 1.008, 1.009, 1.008, 1.006, 1.004, 1.002, 1, 0.999, 0.998, 1);
@@ -27,16 +28,8 @@
     pointer-events: none;
   }
 
-  .aeon-plaque-stage__arcs {
-    position: absolute;
-    inset: -20% -10%;
-    background: repeating-radial-gradient(
-      circle at 18% 120%,
-      transparent 0 2.1rem,
-      rgb(154 106 18 / 0.26) 2.1rem calc(2.1rem + 1px)
-    );
-  }
-
+  /* Two soft white lights, drifting calmly, so the glass keeps catching
+     light the way it does under the pointer. */
   .aeon-plaque-stage__orb {
     position: absolute;
     display: block;
@@ -44,22 +37,22 @@
     will-change: transform;
   }
 
-  .aeon-plaque-stage__orb--gold {
-    top: -10%;
-    left: 4%;
-    width: 46%;
-    height: 130%;
-    background: radial-gradient(closest-side, rgb(214 155 49 / 0.62), rgb(214 155 49 / 0.22) 55%, rgb(214 155 49 / 0));
-    animation: aeon-plaque-orb-gold 14s ease-in-out infinite alternate;
+  .aeon-plaque-stage__orb--a {
+    top: -30%;
+    left: -4%;
+    width: 52%;
+    height: 160%;
+    background: radial-gradient(closest-side, rgb(255 255 255 / 1), rgb(255 255 255 / 0.55) 45%, rgb(255 255 255 / 0));
+    animation: aeon-plaque-glow-a 19s ease-in-out infinite alternate;
   }
 
-  .aeon-plaque-stage__orb--glow {
+  .aeon-plaque-stage__orb--b {
     top: -20%;
-    right: 2%;
+    right: -6%;
     width: 44%;
     height: 150%;
-    background: radial-gradient(closest-side, rgb(67 201 186 / 0.5), rgb(67 201 186 / 0.18) 55%, rgb(67 201 186 / 0));
-    animation: aeon-plaque-orb-glow 17s ease-in-out infinite alternate;
+    background: radial-gradient(closest-side, rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.4) 50%, rgb(255 255 255 / 0));
+    animation: aeon-plaque-glow-b 24s ease-in-out infinite alternate;
   }
 
   .aeon-plaque-stage__lens {
@@ -83,11 +76,11 @@
     max-width: 100%;
     padding: 0.85rem 1.05rem 0.85rem 0.85rem;
     color: var(--ink);
-    background: linear-gradient(150deg, rgb(255 255 255 / 0.58), rgb(255 255 255 / 0.36) 55%, rgb(246 230 194 / 0.34));
+    background: linear-gradient(150deg, rgb(255 255 255 / 0.4), rgb(255 255 255 / 0.2) 55%, rgb(246 230 194 / 0.2));
     border: 1px solid rgb(255 255 255 / 0.82);
     border-radius: 1.3rem;
-    -webkit-backdrop-filter: blur(14px) saturate(1.7);
-    backdrop-filter: blur(14px) saturate(1.7);
+    -webkit-backdrop-filter: blur(7px) saturate(1.5);
+    backdrop-filter: blur(7px) saturate(1.5);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 1),
       inset 0 -1px 0 rgb(255 255 255 / 0.45),
@@ -103,11 +96,11 @@
   }
 
   .aeon-plaque-stage.has-lens .aeon-plaque {
-    backdrop-filter: url(#aeon-plaque-lens) blur(9px) saturate(1.7);
+    backdrop-filter: url(#aeon-plaque-lens) blur(4px) saturate(1.5);
   }
 
   .aeon-plaque:hover {
-    background-color: rgb(255 255 255 / 0.22);
+    background-color: rgb(255 255 255 / 0.12);
     border-color: rgb(255 255 255 / 0.95);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 1),
@@ -133,6 +126,34 @@
     border-radius: inherit;
     background: linear-gradient(180deg, rgb(255 255 255 / 0.5), rgb(255 255 255 / 0) 46%);
     pointer-events: none;
+  }
+
+  .aeon-plaque__sheen::before {
+    position: absolute;
+    inset: 0;
+    padding: 1.5px;
+    content: "";
+    border-radius: inherit;
+    background: radial-gradient(
+      14rem 14rem at 50% 50%,
+      rgb(255 255 255 / 1),
+      rgb(241 197 109 / 0.7) 26%,
+      rgb(67 201 186 / 0.3) 48%,
+      transparent 66%
+    );
+    background-size: 220% 240%;
+    background-position: 0% 100%;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.55;
+    animation: aeon-plaque-glide 19s ease-in-out infinite alternate;
+    transition: opacity 360ms ease;
+  }
+
+  .aeon-plaque:hover .aeon-plaque__sheen::before {
+    opacity: 0;
   }
 
   .aeon-plaque__sheen::after {
@@ -309,12 +330,16 @@
     70%, 100% { opacity: 0; scale: 2.1; }
   }
 
-  @keyframes aeon-plaque-orb-gold {
-    to { transform: translate(24%, 10%) scale(1.15); }
+  @keyframes aeon-plaque-glow-a {
+    to { transform: translate(120%, 14%) scale(1.12); }
   }
 
-  @keyframes aeon-plaque-orb-glow {
-    to { transform: translate(-22%, -8%) scale(0.9); }
+  @keyframes aeon-plaque-glow-b {
+    to { transform: translate(-110%, -10%) scale(0.92); }
+  }
+
+  @keyframes aeon-plaque-glide {
+    to { background-position: 100% 0%; }
   }
 
   @media (max-width: 40rem) {
@@ -356,6 +381,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .aeon-plaque-stage__orb,
+    .aeon-plaque__sheen::before,
     .aeon-plaque__live i::after {
       animation: none;
     }
@@ -379,6 +405,7 @@
 
   /* The hero's Pause control stops the plaque's light too (WCAG 2.2.2). */
   .aeon-hero.is-paused .aeon-plaque-stage__orb,
+  .aeon-hero.is-paused .aeon-plaque__sheen::before,
   .aeon-hero.is-paused .aeon-plaque__live i::after {
     animation-play-state: paused;
   }

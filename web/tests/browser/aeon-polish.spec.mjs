@@ -329,8 +329,12 @@ test.describe("the rules viewer is crisp on retina", () => {
         await setLevel(page, "standard");
         await page.goto("/paimos/?lang=en", { waitUntil: "networkidle" });
         const img = page.locator(".aeon-pan__image");
-        await img.scrollIntoViewIfNeeded();
-        await page.waitForTimeout(600);
+        await page.locator(".aeon-pan__window").scrollIntoViewIfNeeded();
+        // The reveal fade has to be over before the frame is judged.
+        if (await page.evaluate(() => document.documentElement.classList.contains("aeon-reveal-ready"))) {
+          await expect(page.locator(".aeon-pan")).toHaveClass(/is-in/);
+        }
+        await page.waitForTimeout(1400);
         await img.evaluate((el) => el.decode());
         const m = await img.evaluate((el, pick) => ({ pixels: new Function(`return (${pick})`)()(el), shown: el.getBoundingClientRect().width }), chosenPixels.toString());
         expect(m.pixels / (m.shown * scale), `${m.pixels}px candidate for ${m.shown}px at ${scale}x`).toBeGreaterThanOrEqual(0.9);
@@ -346,7 +350,7 @@ test.describe("the rules viewer is crisp on retina", () => {
       await setLevel(page, "standard");
       await page.goto("/paimos/?lang=en", { waitUntil: "networkidle" });
       const img = page.locator(".aeon-pan__image");
-      await img.scrollIntoViewIfNeeded();
+      await page.locator(".aeon-pan__window").scrollIntoViewIfNeeded();
       await page.waitForTimeout(600);
       await img.evaluate((el) => el.decode());
       const m = await img.evaluate((el, pick) => ({ pixels: new Function(`return (${pick})`)()(el), shown: el.getBoundingClientRect().width }), chosenPixels.toString());

@@ -151,9 +151,9 @@ export const paimosAeonContent = {
         label: "Control room",
         icon: "panels-top-left",
         group: "ai",
-        note: "Lead and worker trees, live state, model and effort, and messages marked Sent, Delivered and Read.",
-        noteEli10: "One screen shows every agent: what it works on, who it reports to and whether it has read your message.",
-        noteHow: "/agents lists every session. Heartbeats carry phase, activity, note, progress 0 to 100 and ready and live ETAs; when an unmanaged session stays silent beyond the 2-minute live window, the view shows “Lost contact”.",
+        note: "Lead and worker trees, live state, model and effort, and messages marked Sent, Delivered and Read. A silent session is flagged, and closed as “Lost contact” if it runs outside AEON.",
+        noteEli10: "One screen shows every agent: what it works on, who it reports to and whether it has read your message. Silent agents are flagged, never hidden.",
+        noteHow: "/agents lists every session. Heartbeats carry phase, activity, note, progress 0 to 100 and ready and live ETAs. A session that stops reporting first shows “No heartbeat”. If it runs outside AEON and stays silent, AEON closes it as “Lost contact” after a set time (15 minutes by default); its next heartbeat brings it back.",
       },
       {
         label: "Your machines",
@@ -361,7 +361,9 @@ export const paimosAeonContent = {
       title: "Sessions and pairing, precisely",
       items: [
         { term: "/agents", body: "The Agents page lists every harness session; usage lives at /agents/usage." },
-        { term: "heartbeat", body: "Each heartbeat carries phase, activity, note and progress from 0 to 100. A ready ETA says when the work is expected to be ready for review; a live ETA is set only by coordinators. The live window is 2 minutes; when an unmanaged session stays silent longer, the view shows “Lost contact”." },
+        { term: "heartbeat", body: "Each heartbeat carries phase, activity, note and progress from 0 to 100. A ready ETA says when the work is expected to be ready for review; a live ETA is set only by coordinators." },
+        { term: "live window", body: "The live window is 2 minutes: that is what counts as live." },
+        { term: "silent sessions", body: "“No heartbeat” marks an open session whose last heartbeat is about 10 minutes old or older; each viewer can set that threshold (10 minutes by default, never lower). If a session runs outside AEON and stays silent, AEON closes it as “Lost contact” after a set time (15 minutes by default, a tenant setting), and a later heartbeat with the same worker proof brings it back. Managed runs are never closed this way; their daemon reports the loss itself." },
         { term: "worker lease", body: "Each generation holds a worker lease. Parent and child sessions link through --parent-session, reparenting and lead handover." },
         { term: "aeon-agentd pair", body: "Shows a 9-digit code that expires after 10 minutes. A person with account.manage approves it and picks one to five accounts. The code is display-only: redemption needs a device secret, checked by hash." },
         { term: "transport", body: "The daemon pulls queued runs of work orders and inbox messages from the server over HTTPS and takes them over; plain HTTP only on loopback. Local control runs over an owner-only Unix socket with a bearer token." },

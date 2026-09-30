@@ -144,9 +144,9 @@ export const paimosAeonContentDe = {
         label: "Kontrollraum",
         icon: "panels-top-left",
         group: "ai",
-        note: "Leitagenten und Worker als Baum, Live-Zustand, Modell und Reasoning-Aufwand sowie Nachrichten mit Empfangsstatus: gesendet, zugestellt, gelesen.",
-        noteEli10: "Eine Ansicht zeigt jeden Agenten: woran er arbeitet, wem er berichtet und ob er Ihre Nachricht gelesen hat.",
-        noteHow: "/agents listet jede Sitzung. Heartbeats tragen Phase, Aktivität, Notiz, Fortschritt von 0 bis 100 sowie Bereit- und Live-ETA. Wenn sich eine nicht verwaltete Sitzung länger als das Live-Fenster von 2 Minuten nicht meldet, zeigt die Ansicht „Lost contact“.",
+        note: "Leitagenten und Worker als Baum, Live-Zustand, Modell und Reasoning-Aufwand sowie Nachrichten mit Empfangsstatus: gesendet, zugestellt, gelesen. Meldet sich eine Sitzung nicht mehr, wird sie markiert und, wenn sie außerhalb von AEON läuft, als „Lost contact“ geschlossen.",
+        noteEli10: "Eine Ansicht zeigt jeden Agenten: woran er arbeitet, wem er berichtet und ob er Ihre Nachricht gelesen hat. Agenten, die nichts mehr melden, werden markiert, nie versteckt.",
+        noteHow: "/agents listet jede Sitzung. Heartbeats tragen Phase, Aktivität, Notiz, Fortschritt von 0 bis 100 sowie Bereit- und Live-ETA. Eine Sitzung, die nichts mehr meldet, zeigt zuerst „No heartbeat“. Läuft sie außerhalb von AEON und meldet sich weiterhin nicht, schließt AEON sie nach einer einstellbaren Zeit (standardmäßig 15 Minuten) als „Lost contact“; ihr nächster Heartbeat holt sie zurück.",
       },
       {
         label: "Ihre Rechner",
@@ -354,7 +354,9 @@ export const paimosAeonContentDe = {
       title: "Sitzungen und Kopplung im Detail",
       items: [
         { term: "/agents", body: "Die Seite Agents listet jede Harness-Sitzung; die Nutzung liegt unter /agents/usage." },
-        { term: "Heartbeat", body: "Jeder Heartbeat trägt Phase, Aktivität, Notiz und Fortschritt von 0 bis 100. Dazu kommen eine Bereit-ETA (wann die Arbeit voraussichtlich zur Prüfung bereit ist) und eine Live-ETA, die nur Koordinatoren festlegen. Das Live-Fenster beträgt 2 Minuten. Wenn sich eine nicht verwaltete Sitzung länger nicht meldet, zeigt die Ansicht „Lost contact“." },
+        { term: "Heartbeat", body: "Jeder Heartbeat trägt Phase, Aktivität, Notiz und Fortschritt von 0 bis 100. Dazu kommen eine Bereit-ETA (wann die Arbeit voraussichtlich zur Prüfung bereit ist) und eine Live-ETA, die nur Koordinatoren festlegen." },
+        { term: "Live-Fenster", body: "Das Live-Fenster von 2 Minuten bestimmt, was als live gilt." },
+        { term: "Verstummte Sitzungen", body: "„No heartbeat“ zeigt eine noch offene Sitzung, deren letzter Heartbeat etwa 10 Minuten oder länger zurückliegt; jede Person stellt diese Schwelle für ihre Ansicht selbst ein (standardmäßig 10 Minuten, nie weniger). Läuft eine Sitzung außerhalb von AEON und meldet sich weiterhin nicht, schließt AEON sie nach einer einstellbaren Zeit (standardmäßig 15 Minuten, eine Einstellung des Mandanten) als „Lost contact“; ein späterer Heartbeat mit demselben Worker-Nachweis holt sie zurück. Verwaltete Läufe werden so nie geschlossen; ihr Daemon meldet den Verlust selbst." },
         { term: "Worker-Lease", body: "Jede Generation hält einen Worker-Lease. Übergeordnete und untergeordnete Sitzungen werden über --parent-session verknüpft; dazu kommen das Neuzuordnen einer Sitzung und die Übergabe der Leitung." },
         { term: "aeon-agentd pair", body: "Zeigt einen 9-stelligen Code, der nach 10 Minuten abläuft. Eine Person mit account.manage gibt ihn frei und wählt ein bis fünf Konten. Der Code dient nur der Anzeige: Zum Einlösen braucht es ein Gerätegeheimnis, das über seinen Hash geprüft wird." },
         { term: "Transport", body: "Der Daemon holt anstehende Läufe von Arbeitsaufträgen und Posteingangs-Nachrichten per HTTPS vom Server und übernimmt sie; reines HTTP gibt es nur auf dem Loopback. Die lokale Steuerung läuft über einen Unix-Socket, der nur dem Besitzer zugänglich ist, mit einem Bearer-Token." },

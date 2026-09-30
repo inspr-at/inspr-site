@@ -235,3 +235,43 @@ test("the slides that changed carry an image description in both languages", asy
   assert.match(card(en, "AGPL-3.0"), /GNU Affero General Public License v3\.0/);
   assert.match(card(en, "Journeys and gates"), /Release 27/);
 });
+
+// AEON-LEAD (tag v260930115354.0.0): "No heartbeat" and "Lost contact" are two
+// states that follow one another. The 2-minute live window is a separate fact
+// (what counts as live) and never the lost-contact threshold.
+const stringsOf = (text) => [...text.matchAll(/"((?:[^"\\]|\\.)*)"/g)].map((match) => match[1]);
+
+test("no string couples Lost contact with the 2-minute live window", async () => {
+  for (const [language, text] of [["de", await german()], ["en", await english()]]) {
+    const coupled = stringsOf(text).filter((value) => /Lost contact/.test(value) && /\b2[\s ](minutes|Minuten)|live window|Live-Fenster|2-minute/i.test(value));
+    assert.deepEqual(coupled, [], `${language}: Lost contact is not tied to the live window`);
+  }
+});
+
+test("No heartbeat comes first, Lost contact is the closed state, at every level", async () => {
+  const de = await german();
+  const en = await english();
+  // How: the card and the heartbeat fact name both states, in order, with the default.
+  for (const [language, text, first, outside, byDefault] of [
+    ["de", de, /zeigt zuerst „No heartbeat“\. Läuft sie außerhalb von AEON und meldet sich weiterhin nicht, schließt AEON sie nach einer einstellbaren Zeit \(standardmäßig 15 Minuten\) als „Lost contact“; ihr nächster Heartbeat holt sie zurück\./, /außerhalb von AEON/, /standardmäßig 15 Minuten/],
+    ["en", en, /first shows “No heartbeat”\. If it runs outside AEON and stays silent, AEON closes it as “Lost contact” after a set time \(15 minutes by default\); its next heartbeat brings it back\./, /outside AEON/, /15 minutes by default/],
+  ]) {
+    assert.match(text, first, `${language}: the control-room How note`);
+    assert.match(text, outside);
+    assert.match(text, byDefault);
+    assert.ok((text.match(/„?“?No heartbeat[“”]?/g) ?? []).length >= 2, `${language}: the heartbeat fact names No heartbeat too`);
+  }
+  assert.match(de, /Das Live-Fenster von 2 Minuten bestimmt, was als live gilt\./);
+  assert.match(en, /The live window is 2 minutes: that is what counts as live\./);
+  assert.match(de, /Verwaltete Läufe werden so nie geschlossen; ihr Daemon meldet den Verlust selbst\./);
+  assert.match(en, /Managed runs are never closed this way; their daemon reports the loss itself\./);
+  // What and Why: the short and the plain form, no threshold and no colour.
+  assert.match(en, /A silent session is flagged, and closed as “Lost contact” if it runs outside AEON\./);
+  assert.match(en, /Silent agents are flagged, never hidden\./);
+  assert.match(de, /Meldet sich eine Sitzung nicht mehr, wird sie markiert und, wenn sie außerhalb von AEON läuft, als „Lost contact“ geschlossen\./);
+  assert.match(de, /Agenten, die nichts mehr melden, werden markiert, nie versteckt\./);
+  for (const text of [de, en]) {
+    const colours = stringsOf(text).filter((value) => /(No heartbeat|Lost contact)/.test(value) && /\b(red|rot|rote[rn]?|grey|gray|grau)\b/i.test(value));
+    assert.deepEqual(colours, [], "the states are not described by a colour");
+  }
+});

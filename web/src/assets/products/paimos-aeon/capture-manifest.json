@@ -12,7 +12,7 @@
     "height": 800,
     "deviceScaleFactor": 2
   },
-  "redaction": "Live frames exclude the accounts card; account e-mail text is blurred in the DOM before every shot as a safety net. Usage is filtered to the Aeon project. Generated illustrations contain no text. INSPR-498: every frame passed a guard that rejects visible machine names, local paths, account-availability lines, private project names and classic-import text; key identifiers and a few unrelated names are blurred where they could not be framed out.",
+  "redaction": "Live frames exclude the accounts card; account e-mail text is blurred in the DOM before every shot as a safety net. Usage is filtered to the Aeon project. Generated illustrations contain no text. INSPR-498: a strict guard reads the DOM text of every row that touches a frame, partly visible or clipped rows and text cut by an ellipsis included, and refuses any frame that shows machine names, local paths, account-availability lines, private or classic-import project names or this project's own worker sessions; key identifiers and a few unrelated names are blurred where they could not be framed out.",
   "files": [
     {
       "name": "sessions-dark.png",
@@ -21,14 +21,15 @@
       "route": "/agents",
       "version": "260930115354.0.0",
       "theme": "dark",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
-      "sha256": "0ce333146620138537f3b01b5b333095a51be7cd73dbae6de1cea31319dd12f9",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths, this project's worker sessions, private project names and failure lines. A strict guard read the DOM text of every row touching the frame (rows cut by the frame edge or the bars and text clipped by an ellipsis included) and refused the frame otherwise",
+      "sha256": "a25284d56970cbd2afef014471428c36308fe1be440e24c95902d4f799591e63",
+      "state": "sessions card, whole rows between two row gaps",
+      "crop": "card-wide crop",
       "viewport": {
         "width": 1280,
         "height": 800,
         "deviceScaleFactor": 2
-      },
-      "crop": "section.sessions"
+      }
     },
     {
       "name": "tickets.png",
@@ -37,11 +38,12 @@
       "route": "/p/AEON/tickets?group=epic&sort=-progress,priority&cols=status,priority,assignee,estimate,progress,eta,updated",
       "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them); one ticket title at the frame edge blurred (machine name)",
-      "sha256": "468beb07c5ee0bef83a346d7e7864ec94a4d9b2351443c0dbb5f021f39c9299c",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths, this project's worker sessions, private project names and failure lines. A strict guard read the DOM text of every row touching the frame (rows cut by the frame edge or the bars and text clipped by an ellipsis included) and refused the frame otherwise",
+      "sha256": "5f369904033417cebf9d886e8d050502f1f11b7f1acce9260e0bd367156d3196",
+      "state": "from an epic group to the live rows",
       "viewport": {
-        "width": 1280,
-        "height": 800,
+        "width": 1272,
+        "height": 795,
         "deviceScaleFactor": 2
       }
     },
@@ -52,11 +54,11 @@
       "route": "/p/AEON/tickets?view=graph",
       "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
-      "sha256": "0e7c1c87f21fd6593e09bfe84a4e1a82f3288993128217a4f8c165bf3fb21033",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths, this project's worker sessions, private project names and failure lines. A strict guard read the DOM text of every row touching the frame (rows cut by the frame edge or the bars and text clipped by an ellipsis included) and refused the frame otherwise",
+      "sha256": "74f56d1d10963028041c856177f9409e34ef6fbdb4dc852094301b986d1fee47",
       "viewport": {
-        "width": 1280,
-        "height": 800,
+        "width": 1200,
+        "height": 750,
         "deviceScaleFactor": 2
       }
     },
@@ -67,14 +69,14 @@
       "route": "/p/AEON/knowledge?view=graph",
       "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them); one node label blurred",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths, this project's worker sessions, private project names and failure lines. A strict guard read the DOM text of every row touching the frame (rows cut by the frame edge or the bars and text clipped by an ellipsis included) and refused the frame otherwise; one node label blurred",
       "sha256": "536669ff35f25c22dc8f72b5a1cb619d70fd14cb7f70fc98704a08c0b7903411",
+      "state": "graph maximized; one node label blurred",
       "viewport": {
         "width": 1280,
         "height": 800,
         "deviceScaleFactor": 2
-      },
-      "state": "graph maximized; one node label blurred"
+      }
     },
     {
       "name": "usage.png",
@@ -83,15 +85,15 @@
       "route": "/agents/usage",
       "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
-      "sha256": "2716a040e22c4370d67fbaaa8e7be947462309a7ddd0ceca7a8830a35f61d92e",
-      "viewport": {
-        "width": 1280,
-        "height": 800,
-        "deviceScaleFactor": 2
-      },
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths, this project's worker sessions, private project names and failure lines. A strict guard read the DOM text of every row touching the frame (rows cut by the frame edge or the bars and text clipped by an ellipsis included) and refused the frame otherwise",
+      "sha256": "aef7be54923210ec6b3823db920f4dff5158e291bcb87458532d71cbe0fffa3d",
       "state": "7 days, project Aeon",
-      "crop": "statistics and below"
+      "crop": "statistics and below",
+      "viewport": {
+        "width": 1208,
+        "height": 755,
+        "deviceScaleFactor": 2
+      }
     },
     {
       "name": "rules.png",
@@ -117,14 +119,14 @@
       "route": "/agents",
       "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
-      "sha256": "5a18721740bdfaeffe3055280ac106a809b82f45e51c40947992ac5162444dce",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths, this project's worker sessions, private project names and failure lines. A strict guard read the DOM text of every row touching the frame (rows cut by the frame edge or the bars and text clipped by an ellipsis included) and refused the frame otherwise",
+      "sha256": "f88aed9812372e4d825bfdd4868327d814140528041292ca6b8309f736e61157",
+      "state": "sessions card: live agents with progress, ETA and heartbeats, whole rows only",
       "viewport": {
         "width": 1280,
-        "height": 800,
+        "height": 769,
         "deviceScaleFactor": 2
-      },
-      "state": "sessions card: live agents with progress and ETA"
+      }
     },
     {
       "name": "specs/02-control-room.jpg",
@@ -133,14 +135,14 @@
       "route": "/agents",
       "version": "260930115354.0.0",
       "theme": "dark",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
-      "sha256": "4f84a728938f2df7f98e48d8dd7520b92bf1bef0675ff09db4f63e0200d356d7",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths, this project's worker sessions, private project names and failure lines. A strict guard read the DOM text of every row touching the frame (rows cut by the frame edge or the bars and text clipped by an ellipsis included) and refused the frame otherwise",
+      "sha256": "369f3b61da06f0300a0089ec9d11bbcaa8221c38358b900662b5e7176987f400",
+      "state": "sessions card: live agents with progress, ETA and heartbeats, whole rows only",
       "viewport": {
         "width": 1280,
-        "height": 800,
+        "height": 769,
         "deviceScaleFactor": 2
-      },
-      "state": "sessions card, working and lost-contact states"
+      }
     },
     {
       "name": "specs/03-your-machines.jpg",
@@ -149,11 +151,11 @@
       "route": "/agents/register-agent",
       "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
-      "sha256": "4e53d75420562b50fb03e1a8e9fb87c12e7190dfb4d41d6568c443480291dabb",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths, this project's worker sessions, private project names and failure lines. A strict guard read the DOM text of every row touching the frame (rows cut by the frame edge or the bars and text clipped by an ellipsis included) and refused the frame otherwise",
+      "sha256": "e8322dfcd0531a24df1aba6cd03544f4044e9de550f3652ee9a7a72e332af8e8",
       "viewport": {
         "width": 1280,
-        "height": 800,
+        "height": 780,
         "deviceScaleFactor": 2
       }
     },
@@ -164,14 +166,14 @@
       "route": "/settings/access/agents",
       "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them); key identifiers and one unrelated agent name blurred",
-      "sha256": "a9a1714a6d26022fd14bd6b300d7626ac5eb904fe7b4660ee459d1de16ddee73",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths, this project's worker sessions, private project names and failure lines. A strict guard read the DOM text of every row touching the frame (rows cut by the frame edge or the bars and text clipped by an ellipsis included) and refused the frame otherwise; key identifiers blurred",
+      "sha256": "6f8f8156ec2a51048a175a03f9b47079693929125f58a77970c623d08729b88c",
+      "state": "agents expanded: scopes, status, rotate and revoke",
       "viewport": {
         "width": 1280,
-        "height": 800,
+        "height": 781,
         "deviceScaleFactor": 2
-      },
-      "state": "two agents expanded: scopes, status, rotate, revoke"
+      }
     },
     {
       "name": "specs/05-person-approvals.jpg",
@@ -180,14 +182,14 @@
       "route": "/agents",
       "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
-      "sha256": "cb2cb4158843ebf37df84b792f7ffccac8341f571af72a82b8d5b896c26d3020",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths, this project's worker sessions, private project names and failure lines. A strict guard read the DOM text of every row touching the frame (rows cut by the frame edge or the bars and text clipped by an ellipsis included) and refused the frame otherwise",
+      "sha256": "c95861b861df173a9ca313008f10da2016e82ffc939bc07a77ee72c29b472496",
+      "state": "decided approvals, from the Decided header to the keyboard hints",
       "viewport": {
         "width": 1280,
-        "height": 800,
+        "height": 502,
         "deviceScaleFactor": 2
-      },
-      "state": "decided approvals expanded, end of page"
+      }
     },
     {
       "name": "specs/06-capacity-routing.jpg",
@@ -204,11 +206,11 @@
       "route": "/settings/agent-rules",
       "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
-      "sha256": "beb12fb06d5137890efdef22608089b8bdec1eb6ac4200b8149a9ab78a2d3ddc",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths, this project's worker sessions, private project names and failure lines. A strict guard read the DOM text of every row touching the frame (rows cut by the frame edge or the bars and text clipped by an ellipsis included) and refused the frame otherwise",
+      "sha256": "28339295d0e654fc9bd7d963b57350da035ed11224981bf7c1021524d2b60787",
       "viewport": {
         "width": 1280,
-        "height": 800,
+        "height": 763,
         "deviceScaleFactor": 2
       }
     },
@@ -219,14 +221,14 @@
       "route": "/settings/agent-rules",
       "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
-      "sha256": "49d82cb4bfe9803ca82230c9b595a762370f44b636ec4e6341b1841fcee9725b",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths, this project's worker sessions, private project names and failure lines. A strict guard read the DOM text of every row touching the frame (rows cut by the frame edge or the bars and text clipped by an ellipsis included) and refused the frame otherwise",
+      "sha256": "a7c0ebfef9887be8750d2ba75ea927530af84373ef85c01e0430e2b40f3801f8",
+      "state": "budget and doctrine files",
       "viewport": {
         "width": 1280,
-        "height": 800,
+        "height": 640,
         "deviceScaleFactor": 2
-      },
-      "state": "budget and doctrine section"
+      }
     },
     {
       "name": "specs/09-append-only-log.jpg",
@@ -251,14 +253,14 @@
       "route": "/p/AEON/tickets?view=outline",
       "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them); one ticket title at the frame edge blurred (machine name)",
-      "sha256": "63c643895ddd6daa851b995da93593a080642f2a8c9af591255f75b4fd4f0115",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths, this project's worker sessions, private project names and failure lines. A strict guard read the DOM text of every row touching the frame (rows cut by the frame edge or the bars and text clipped by an ellipsis included) and refused the frame otherwise",
+      "sha256": "2fa58c8930036676d2ba066f6069f4f3b891352327842caefd6240faa386e2df",
+      "state": "outline expanded",
       "viewport": {
         "width": 1280,
-        "height": 800,
+        "height": 779,
         "deviceScaleFactor": 2
-      },
-      "state": "outline expanded"
+      }
     },
     {
       "name": "specs/12-work-orders.jpg",
@@ -275,14 +277,14 @@
       "route": "/p/PRJ-6/knowledge?view=graph",
       "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
-      "sha256": "36d1576eda3b1176486684e238ccdd0ef6a2ea08159c979190ff3c1fac45b992",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths, this project's worker sessions, private project names and failure lines. A strict guard read the DOM text of every row touching the frame (rows cut by the frame edge or the bars and text clipped by an ellipsis included) and refused the frame otherwise",
+      "sha256": "44bfd6a2e4d1c94b9628a8b6efbe564b7ca82d21aec941399b0e1e85d603b48c",
+      "state": "PAIMOS project knowledge graph, maximized",
       "viewport": {
         "width": 1280,
         "height": 800,
         "deviceScaleFactor": 2
-      },
-      "state": "PAIMOS project knowledge graph, 56 entries"
+      }
     },
     {
       "name": "specs/14-journeys-and-gates.jpg",
@@ -291,14 +293,14 @@
       "route": "/p/PRJ-17/journey",
       "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
-      "sha256": "9df9a9eb6bffe2528a0f9230dd5eb3444fab721f3a04abc52eeafff174940160",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths, this project's worker sessions, private project names and failure lines. A strict guard read the DOM text of every row touching the frame (rows cut by the frame edge or the bars and text clipped by an ellipsis included) and refused the frame otherwise",
+      "sha256": "7fb9ee258759e1b33c6d6e8cd946762099d4967478bf7230220da0bf9b1d853e",
+      "state": "Pharos release in Build with its gate decision",
       "viewport": {
         "width": 1280,
-        "height": 800,
+        "height": 778,
         "deviceScaleFactor": 2
-      },
-      "state": "Pharos release in Build with its gate decision"
+      }
     },
     {
       "name": "specs/15-clear-usage.jpg",
@@ -307,14 +309,14 @@
       "route": "/agents/usage",
       "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
-      "sha256": "81a42d18cbc69b7b5bcb375b5529d720e37c98c2b6f0e07f2acec91bbcf655b3",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths, this project's worker sessions, private project names and failure lines. A strict guard read the DOM text of every row touching the frame (rows cut by the frame edge or the bars and text clipped by an ellipsis included) and refused the frame otherwise",
+      "sha256": "b7283cb483646db9584223deb22aeafb655426a0d175a5323c9c461226c6ba5f",
+      "state": "7 days, project Aeon",
       "viewport": {
         "width": 1280,
-        "height": 800,
+        "height": 751,
         "deviceScaleFactor": 2
-      },
-      "state": "7 days, project Aeon"
+      }
     },
     {
       "name": "specs/16-live-updates.jpg",
@@ -323,14 +325,14 @@
       "route": "/p/AEON/tickets?group=epic&sort=-progress,priority&cols=status,priority,assignee,estimate,progress,eta,updated",
       "version": "260930115354.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths and failure lines (a guard rejects any frame that shows them)",
-      "sha256": "a7341098e59815633b17b72405d89efc5122787a43f5bd4bb938399728bdcd9d",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails, machine names, local paths, this project's worker sessions, private project names and failure lines. A strict guard read the DOM text of every row touching the frame (rows cut by the frame edge or the bars and text clipped by an ellipsis included) and refused the frame otherwise",
+      "sha256": "27dbb51ecc2c3974f369c05e9404f26170081a087930e9f466bc4f553ef8789e",
+      "state": "sorted by progress: the agents' live rows with progress bar and ETA",
       "viewport": {
         "width": 1280,
-        "height": 800,
+        "height": 768,
         "deviceScaleFactor": 2
-      },
-      "state": "in-progress tickets with live progress and ETA from agent heartbeats"
+      }
     },
     {
       "name": "specs/17-contract-first.jpg",
@@ -353,10 +355,10 @@
       "kind": "public-web",
       "source": "https://github.com/inspr-at/paimos/blob/main/LICENSE",
       "note": "public repository page (LICENSE and its licence summary), anonymous browser, no session",
-      "sha256": "ceeb9a9f11a6fb52bae45674eb858073bb2e511fa4cd90bc494685f86f9c83ba",
+      "sha256": "24a0cb7e7c2bc4cb76c8f24bd924e439fff5ada69b50fa15a3c8ce604adcda33",
       "viewport": {
         "width": 1280,
-        "height": 800,
+        "height": 784,
         "deviceScaleFactor": 2
       }
     },
@@ -369,5 +371,6 @@
       "sha256": "7bddf28ed200270386199b403bd3d028d6e6972167b2a174b245947a11aa6913"
     }
   ],
-  "viewportNote": "Files carry their own viewport. Screens recaptured for INSPR-498 use 1280x800 at device scale 2 (2560x1600 native, UI text about 25 percent larger in the frame than the earlier 1600x1000 captures); rules.png keeps its long 1600x1000 capture."
+  "viewportNote": "Each file carries its own viewport: the frame is cut between two rows, so the height (and, for the theatre images that keep a 16:10 frame, the width) follows the content. 2x native, no resampling. rules.png keeps its long 1600x1000 capture.",
+  "frameRule": "Live frames show whole rows only: the first row starts right under the sticky header and the last row ends above the footer bar (text lines, icons, pills and chips count as row content). Content scrolled above the frame under translucent bars is hidden."
 }

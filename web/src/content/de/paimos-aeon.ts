@@ -58,11 +58,11 @@ export const paimosAeonContentDe = {
       { kind: "run", label: "Live-Sitzung", detail: "Modell, Reasoning-Aufwand und Fortschritt im Blick" },
       { kind: "event", label: "approval.proposed", detail: "An das Ereignisprotokoll angefügt" },
       { kind: "run", label: "Nachricht gelesen", detail: "Gesendet, zugestellt, gelesen" },
-      { kind: "approval", label: "Build-Freigabe", detail: "journey.build wartet auf eine Person" },
-      { kind: "event", label: "node.moved", detail: "Die Arbeitsstruktur aktualisiert sich live" },
+      { kind: "approval", label: "Build-Gate", detail: "journey.build wartet auf eine Person" },
+      { kind: "event", label: "node.moved", detail: "Der Baum aktualisiert sich live" },
       { kind: "run", label: "Nächstes Konto", detail: "Die Arbeit läuft weiter, wenn ein Anbieter ein Konto stoppt" },
       { kind: "event", label: "approval.approved", detail: "Eine Person hat entschieden" },
-      { kind: "run", label: "Fester Commit", detail: "Die Doktrin wird aus Git an einem festgelegten Commit gelesen" },
+      { kind: "run", label: "Doktrin festgelegt", detail: "Die Doktrin wird an einem festgelegten Commit aus Git gelesen" },
     ],
     ribbonLabel: "Append-only-Ereignisprotokoll",
     ribbon: [
@@ -89,7 +89,7 @@ export const paimosAeonContentDe = {
     lead:
       "Diese Ansichten stammen von aeon.barta.cm, wo das INSPR-Team AEON mit seinen eigenen Agenten plant, betreibt und ausliefert.",
     depths: {
-      simple: "So sieht AEON im Alltag aus: Das INSPR-Team plant, betreibt und liefert AEON selbst damit aus, gemeinsam mit seinen eigenen Agenten.",
+      simple: "So sieht AEON im Alltag aus: Das INSPR-Team plant, betreibt und liefert AEON damit selbst aus, gemeinsam mit seinen eigenen Agenten.",
       technical: "Aufgenommen in der Live-Instanz: die Vue-3-Anwendung, eingebettet in die Go-Binärdatei. Tickets und Wissenseinträge sind Knoten eines Baums und werden aus GET /api/tickets/graph und GET /api/knowledge/graph dargestellt; die Nutzung liegt unter /agents/usage.",
     },
     note: "aeon.barta.cm · aufgenommen am 30. September 2026",
@@ -99,7 +99,7 @@ export const paimosAeonContentDe = {
         id: "tickets",
         tab: "Tickets",
         title: "Tickets nach Epic",
-        body: "Das Backlog von AEON, gruppiert nach Epic, mit Schätzungen der Agenten, Fortschritt und ETAs.",
+        body: "Das Backlog von AEON, gruppiert nach Epic, mit Schätzungen durch die Agenten, Fortschritt und ETAs.",
         alt: "Die Ticketliste von AEON, gruppiert nach Epic, mit Spalten für Status, Priorität, Zuständige, Schätzung, Fortschritt und ETA.",
       },
       {
@@ -128,7 +128,7 @@ export const paimosAeonContentDe = {
   specs: {
     eyebrow: "Eckdaten",
     title: "Was Sie erhalten.",
-    lead: "Zwanzig Funktionen, heute verfügbar. Zeigen Sie auf eine Karte für eine Vorschau, oder öffnen Sie sie für die Details.",
+    lead: "Zwanzig Funktionen, heute verfügbar. Zeigen Sie auf eine Karte, um die Vorschau zu sehen, oder öffnen Sie sie für die Einzelheiten.",
     leadEli10: "Zwanzig Funktionen, heute verfügbar. Öffnen Sie eine Karte, um zu sehen, was sie für Sie leistet.",
     leadHow: "Zwanzig Funktionen in Hinged Hangar. Öffnen Sie eine Karte für den Mechanismus dahinter.",
     items: [
@@ -146,7 +146,7 @@ export const paimosAeonContentDe = {
         group: "ai",
         note: "Leitagenten und Worker als Baum, Live-Zustand, Modell und Reasoning-Aufwand sowie Nachrichten mit Empfangsstatus: gesendet, zugestellt, gelesen.",
         noteEli10: "Eine Ansicht zeigt jeden Agenten: woran er arbeitet, wem er berichtet und ob er Ihre Nachricht gelesen hat.",
-        noteHow: "/agents listet jede Sitzung. Heartbeats tragen Phase, Aktivität, Notiz, Fortschritt von 0 bis 100 sowie Bereit- und Live-ETA; meldet sich eine nicht verwaltete Sitzung nach dem Live-Fenster von 2 Minuten nicht mehr, zeigt die Ansicht „Lost contact“.",
+        noteHow: "/agents listet jede Sitzung. Heartbeats tragen Phase, Aktivität, Notiz, Fortschritt von 0 bis 100 sowie Bereit- und Live-ETA. Wenn sich eine nicht verwaltete Sitzung länger als das Live-Fenster von 2 Minuten nicht meldet, zeigt die Ansicht „Lost contact“.",
       },
       {
         label: "Ihre Rechner",
@@ -154,7 +154,7 @@ export const paimosAeonContentDe = {
         group: "ops",
         note: "aeon-agentd koppelt einen Rechner über einen Code, den eine Person im Browser bestätigt; die Agenten laufen mit Ihren eigenen Abonnements.",
         noteEli10: "Die Agenten laufen auf Ihren eigenen Rechnern und KI-Abonnements. Ein neuer Rechner kommt erst dazu, wenn eine Person zustimmt.",
-        noteHow: "aeon-agentd pair --url <origin> zeigt einen 9-stelligen Code, der nach 10 Minuten abläuft. Eine Person mit account.manage gibt ihn frei; der Daemon erzeugt seine Zugangsdaten lokal, und der Server speichert nur Hashes.",
+        noteHow: "aeon-agentd pair --url <origin> zeigt einen 9-stelligen Code, der nach 10 Minuten abläuft. Eine Person mit account.manage gibt ihn frei; der Daemon erzeugt seine Zugangsdaten lokal, und der Server speichert nur Hashes.",
       },
       {
         label: "Schlüssel mit Scopes",
@@ -168,9 +168,10 @@ export const paimosAeonContentDe = {
         label: "Freigabe durch Personen",
         icon: "user-round-check",
         group: "security",
-        note: "Freigabepflichtige Schritte warten auf eine gültige Freigabe, und die Datenbank nimmt eine Entscheidung nur von einer Person an.",
+        note: "Eine Person entscheidet jeden freigabepflichtigen Schritt, und jede Entscheidung bleibt festgehalten.",
         noteEli10: "Wichtige Schritte warten auf eine Person. Nur Menschen können sie freigeben, und das System selbst setzt das durch.",
         noteHow: "Agenten schlagen nur vor. approvals.decide wird nie an Agentenschlüssel vergeben, und die Datenbank weist die Entscheidung eines Agenten zurück.",
+        alt: "Die Agents-Seite von AEON mit den arbeitenden Agentensitzungen über einer Liste von zehn entschiedenen Freigaben, jede als „Approved“ markiert.",
       },
       {
         label: "Kapazitätssteuerung",
@@ -194,7 +195,7 @@ export const paimosAeonContentDe = {
         group: "ops",
         note: "Die Doktrin wird an einem festgelegten Commit aus Git gelesen, und aeon rules compare vergleicht die Anweisungen, die ein Harness geladen hat, mit den zusammengeführten Regeln.",
         noteEli10: "Das Regelwerk liegt in der Versionsverwaltung, und AEON zeigt, wenn ein Agent mit einer veralteten Kopie arbeitet.",
-        noteHow: "Die Doktrin wird aus Git an einem gepinnten Commit gelesen. Ein Harness erhält die zusammengeführten Regeln über paimos session start --rules-receive, das eine vom Worker gemeldete Empfangsbestätigung schickt: ein Nachweis der Zustellung, nicht der Befolgung. aeon rules compare vergleicht die geladenen Anweisungen mit den zusammengeführten Regeln.",
+        noteHow: "Die Doktrin wird an einem festgelegten Commit aus Git gelesen. Ein Harness erhält die zusammengeführten Regeln über paimos session start --rules-receive, das eine vom Worker gemeldete Empfangsbestätigung schickt: ein Nachweis der Zustellung, nicht der Befolgung. aeon rules compare vergleicht die geladenen Anweisungen mit den zusammengeführten Regeln.",
       },
       {
         label: "Append-only-Protokoll",
@@ -208,16 +209,16 @@ export const paimosAeonContentDe = {
         label: "Mandantentrennung",
         icon: "lock-keyhole",
         group: "security",
-        note: "Row-Level Security (Sicherheit auf Zeilenebene) trennt in Postgres die Mandanten in jeder Tabelle, unterhalb der Anwendung.",
+        note: "Erzwungene Row-Level Security (Sicherheit auf Zeilenebene, FORCE) hält in Postgres die Mandanten in jeder Tabelle auseinander, unterhalb der Anwendung.",
         noteEli10: "Die Daten jeder Organisation hält die Datenbank selbst getrennt.",
         noteHow: "Jede Zeile trägt tenant_id unter erzwungener Row-Level Security, und der Produktivbetrieb braucht eine Datenbankrolle ohne Superuser-Rechte.",
       },
       {
-        label: "Eine Arbeitsstruktur",
+        label: "Ein Baum für die gesamte Arbeit",
         icon: "list-tree",
         group: "work",
         note: "Projekte, Epics, Tickets, Releases, Arbeitsaufträge und Wissen sind Knoten in einem Baum mit typisierten Beziehungen.",
-        noteEli10: "Alle Arbeit steht in einer Struktur, sodass jede Aufgabe zeigt, wie sie mit dem großen Ganzen zusammenhängt.",
+        noteEli10: "Alle Arbeit liegt in einem Baum, sodass jede Aufgabe zeigt, wie sie mit dem Ganzen zusammenhängt.",
         noteHow: "Knoten bilden einen Baum mit Knotentypen, die der Mandant selbst festlegt. Beziehungen: blocks, relates, implements, cites und duplicates.",
       },
       {
@@ -235,14 +236,16 @@ export const paimosAeonContentDe = {
         note: "Wissenseinträge verknüpfen sich über [[slug]]-Verweise und öffnen sich als Graph neben der Arbeit.",
         noteEli10: "Projektwissen wird einmal festgehalten, miteinander verknüpft und als Landkarte gezeigt.",
         noteHow: "Wissenseinträge sind Knoten der Typen memory, runbook, guideline, external-system und related-project; der Graph kommt aus GET /api/knowledge/graph.",
+        alt: "Der Wissensgraph des Projekts PAIMOS mit verknüpften Runbooks, Richtlinien und Memory-Einträgen, wie ihn die Wissensansicht von AEON zeigt.",
       },
       {
-        label: "Journeys und Freigaben",
+        label: "Journeys und Gates",
         icon: "waypoints",
         group: "work",
-        note: "Acht abgeleitete Stufen von Inspire bis Live, mit Freigaben durch Personen.",
+        note: "Eine Beispiel-Journey für ein Pharos-Release: acht abgeleitete Stufen von Inspire bis Live, hier im Build mit der Gate-Entscheidung einer Person.",
         noteEli10: "Jedes Projekt durchläuft klare Stufen, und eine Person gibt frei, bevor etwas live geht.",
         noteHow: "Acht abgeleitete Stufen von Inspire bis Live, mit Gates, die eine Person freigibt. Die Durchsetzung von Deploy-Zielen ist in diesem Release noch nicht enthalten.",
+        alt: "Die Journey-Ansicht eines Pharos-Releases in der Stufe Build: die acht Stufen von Inspire bis Live und die Entscheidung, Release 27 als Kandidaten zu markieren.",
       },
       {
         label: "Transparente Nutzung",
@@ -256,9 +259,10 @@ export const paimosAeonContentDe = {
         label: "Live-Aktualisierungen",
         icon: "radio-tower",
         group: "ops",
-        note: "Offene Seiten folgen dem Ereignisprotokoll per Server-Sent Events, sodass sich Listen und Gliederung aktualisieren, während gearbeitet wird.",
-        noteEli10: "Ansichten aktualisieren sich von selbst, sobald sich etwas ändert, ohne neu zu laden.",
+        note: "Fortschritt und ETAs aktualisieren sich, sobald Agenten berichten.",
+        noteEli10: "Ansichten aktualisieren sich von selbst, wenn Agenten berichten, ohne dass Sie neu laden müssen.",
         noteHow: "Offene Seiten folgen dem Ereignisprotokoll per Server-Sent Events, sodass sich Listen und Gliederung aktualisieren, während gearbeitet wird.",
+        alt: "Die Ticketliste von AEON nach Epic gruppiert, mit laufenden Tickets samt Fortschrittsbalken, ETAs und Agenten-Chips.",
       },
       {
         label: "Spezifikation zuerst",
@@ -283,6 +287,7 @@ export const paimosAeonContentDe = {
         note: "AEON unter AGPL-3.0-only prüfen, selbst betreiben, forken und verändern.",
         noteEli10: "Der Quellcode ist offen: Sie können ihn lesen, betreiben und verändern.",
         noteHow: "AGPL-3.0-only. Ein annotierter Git-Tag baut das GHCR-Image und einen Release-Entwurf auf GitHub mit SHA256SUMS; veröffentlicht wird erst nach der Live-Prüfung.",
+        alt: "Die LICENSE-Seite des öffentlichen Repositorys inspr-at/paimos auf GitHub mit der Lizenzübersicht: GNU Affero General Public License v3.0, mit Berechtigungen, Einschränkungen und Bedingungen.",
       },
       {
         label: "Made in Austria",
@@ -349,13 +354,13 @@ export const paimosAeonContentDe = {
       title: "Sitzungen und Kopplung im Detail",
       items: [
         { term: "/agents", body: "Die Seite Agents listet jede Harness-Sitzung; die Nutzung liegt unter /agents/usage." },
-        { term: "Heartbeat", body: "Jeder Heartbeat trägt Phase, Aktivität, Notiz und Fortschritt von 0 bis 100. Dazu kommen eine Bereit-ETA (wann die Arbeit voraussichtlich zur Prüfung bereit ist) und eine Live-ETA, die nur Koordinatoren setzen. Das Live-Fenster beträgt 2 Minuten; meldet sich eine nicht verwaltete Sitzung länger nicht, zeigt die Ansicht „Lost contact“." },
+        { term: "Heartbeat", body: "Jeder Heartbeat trägt Phase, Aktivität, Notiz und Fortschritt von 0 bis 100. Dazu kommen eine Bereit-ETA (wann die Arbeit voraussichtlich zur Prüfung bereit ist) und eine Live-ETA, die nur Koordinatoren festlegen. Das Live-Fenster beträgt 2 Minuten. Wenn sich eine nicht verwaltete Sitzung länger nicht meldet, zeigt die Ansicht „Lost contact“." },
         { term: "Worker-Lease", body: "Jede Generation hält einen Worker-Lease. Übergeordnete und untergeordnete Sitzungen werden über --parent-session verknüpft; dazu kommen das Neuzuordnen einer Sitzung und die Übergabe der Leitung." },
-        { term: "aeon-agentd pair", body: "Zeigt einen 9-stelligen Code, der nach 10 Minuten abläuft. Eine Person mit account.manage gibt ihn frei und wählt ein bis fünf Konten. Der Code dient nur der Anzeige: Zum Einlösen braucht es ein Gerätegeheimnis, das über seinen Hash geprüft wird." },
-        { term: "Transport", body: "Der Daemon holt eingeplante Läufe zu Arbeitsaufträgen und Posteingangs-Nachrichten per HTTPS vom Server und übernimmt sie; HTTP gibt es nur auf Loopback. Die lokale Steuerung läuft über einen Unix-Socket, der nur dem Besitzer zugänglich ist, mit einem Bearer-Token." },
+        { term: "aeon-agentd pair", body: "Zeigt einen 9-stelligen Code, der nach 10 Minuten abläuft. Eine Person mit account.manage gibt ihn frei und wählt ein bis fünf Konten. Der Code dient nur der Anzeige: Zum Einlösen braucht es ein Gerätegeheimnis, das über seinen Hash geprüft wird." },
+        { term: "Transport", body: "Der Daemon holt anstehende Läufe von Arbeitsaufträgen und Posteingangs-Nachrichten per HTTPS vom Server und übernimmt sie; reines HTTP gibt es nur auf dem Loopback. Die lokale Steuerung läuft über einen Unix-Socket, der nur dem Besitzer zugänglich ist, mit einem Bearer-Token." },
         { term: "Telemetrie", body: "Ohne Inhalte: keine Anbieter-Tokens, keine Rohdaten der Anbieter, und die Sitzungs-IDs der Anbieter bleiben lokal." },
         { term: "Verwaltete Läufe", body: "Ein verwalteter Lauf erhält einen eigenen MCP-Server mit aeon_comment, aeon_status, aeon_request_approval und aeon_terminal." },
-        { term: "Nachrichten", body: "Mindestens einmal, mit Empfangsbestätigungen: „Gelesen“ heißt, die Sitzung hat den Empfang bestätigt, „Beantwortet“, dass eine angenommene Antwort vorliegt. Hooks stellen an Turn-Grenzen zu; der verwaltete agentd-Pfad stellt auch mitten im Turn und im Leerlauf zu." },
+        { term: "Nachrichten", body: "Mindestens einmal, mit Empfangsbestätigungen: „Read“ heißt, dass die Sitzung den Empfang bestätigt hat, „Answered“, dass eine angenommene Antwort vorliegt. Hooks stellen an den Turn-Grenzen zu; der verwaltete agentd-Pfad stellt auch mitten im Turn und im Leerlauf zu." },
         { term: "aeon hook", body: "aeon hook claude|codex <event> für PostToolUse, UserPromptSubmit und Stop, eingerichtet mit aeon hook install." },
       ],
     },
@@ -368,7 +373,7 @@ export const paimosAeonContentDe = {
       {
         icon: "radio-tower",
         title: "Nachrichten mit Empfangsbestätigung",
-        body: "Nachrichten erreichen die Sitzung mindestens einmal, mit Empfangsbestätigungen für „gelesen“ und „beantwortet“; Hooks für den Posteingang stellen sie zu.",
+        body: "Nachrichten erreichen die Sitzung mindestens einmal, mit Empfangsbestätigungen für „Read“ und „Answered“; Hooks für den Posteingang stellen sie zu.",
       },
       {
         icon: "sliders-horizontal",
@@ -390,7 +395,7 @@ export const paimosAeonContentDe = {
       steps: [
         { label: "Installieren Sie den Daemon. Unter macOS ist er signiert (Developer ID, Hardened Runtime) und notarisiert.", command: "brew install inspr-at/tap/aeon-agentd" },
         { label: "Koppeln Sie den Rechner aus Ihrem Arbeitsordner.", command: "aeon-agentd pair --url <origin>" },
-        { label: "Eine Person bestätigt den 9-stelligen Code innerhalb von 10 Minuten im Browser." },
+        { label: "Eine Person bestätigt den 9-stelligen Code innerhalb von 10 Minuten im Browser." },
       ],
       harnessesLabel: "Harnesses",
       harnesses: ["Claude", "Codex", "Cursor", "Grok", "pi"],
@@ -412,7 +417,7 @@ export const paimosAeonContentDe = {
       simple:
         "Agenten können um mehr bitten, aber nur eine Person kann zustimmen, und die Datenbank prüft, dass es wirklich eine Person war.",
       technical:
-        "Ein angefragter Scope muss einem Scope des Schlüssels entsprechen oder ihn in Punktnotation verfeinern. approval.proposed gewährt nichts; approval.approved und die zugehörige Berechtigung werden gemeinsam festgeschrieben; die Datenbank weist Entscheidungen von Agenten zurück, ebenso jede Berechtigung ohne passende freigegebene Anfrage.",
+        "Ein angefragter Scope muss einem Scope des Schlüssels entsprechen oder eine Verfeinerung davon in Punktnotation sein. approval.proposed gewährt nichts; approval.approved und die zugehörige Berechtigung werden gemeinsam festgeschrieben; die Datenbank weist Entscheidungen von Agenten zurück, ebenso jede Berechtigung ohne passende freigegebene Anfrage.",
     },
     deep: {
       title: "Schlüssel und Freigaben im Detail",
@@ -434,7 +439,7 @@ export const paimosAeonContentDe = {
       {
         label: "Vorschlag",
         title: "Der Agent schlägt vor",
-        body: "Ein freigabepflichtiger Schritt wird zu einem Vorschlag und landet im Protokoll. Er gewährt nichts.",
+        body: "Ein freigabepflichtiger Schritt wird zum Vorschlag und an das Protokoll angefügt. Er gewährt nichts.",
         actor: "Ein Agent",
         tokens: ["approval.proposed"],
       },
@@ -447,7 +452,7 @@ export const paimosAeonContentDe = {
       },
       {
         label: "Durchsetzung",
-        title: "Die Datenbank setzt es durch",
+        title: "Die Datenbank hält die Grenze",
         body: "Nur die Entscheidung einer Person zu einer passenden Freigabe wird zur Berechtigung.",
         actor: "Die Datenbank",
         tokens: ["0202_agent_approvals.sql"],
@@ -470,7 +475,7 @@ export const paimosAeonContentDe = {
     eyebrow: "Agentenregeln",
     title: "Ein Regelwerk, sechs Ebenen.",
     lead:
-      "Unternehmen, Projekt, Person, Rolle, benannter Agent und Aufgabe: sechs Ebenen, zusammengeführt zu einem Regelwerk. Jede Veröffentlichung ist unveränderlich und versioniert, und die Doktrin wird aus Git an einem festgelegten Commit gelesen.",
+      "Unternehmen, Projekt, Person, Rolle, benannter Agent und Aufgabe: sechs Ebenen, zusammengeführt zu einem Regelwerk. Jede Veröffentlichung ist unveränderlich und versioniert, und die Doktrin wird an einem festgelegten Commit aus Git gelesen.",
     depths: {
       simple:
         "Regeln für Agenten werden einmal für das Unternehmen geschrieben und für jedes Projekt, jede Person und jede Aufgabe verfeinert, und die entscheidenden bleiben gesperrt.",
@@ -482,7 +487,7 @@ export const paimosAeonContentDe = {
       items: [
         { term: "Rangfolge", body: "Unternehmen, Projekt, Person, Agentenrolle, benannter Agent, Aufgabe. Der höchste Treffer gewinnt, bei Gleichstand wird abgelehnt (fail closed), und eine tiefere Ebene ersetzt nie eine gesperrte Regel." },
         { term: "Veröffentlichen", body: "Regelsätze entstehen als Entwurf, werden unter einer Kalenderversion veröffentlicht, und jede Veröffentlichung lässt sich wiederherstellen." },
-        { term: "Budget", body: "Der zusammengeführte Satz hat standardmäßig ein Budget von 12.000 Bytes und höchstens 64.000." },
+        { term: "Budget", body: "Der zusammengeführte Satz hat standardmäßig ein Budget von 12.000 Bytes und höchstens 64.000." },
         { term: "session start", body: "paimos session start --rules-preview zeigt den zusammengeführten Satz vorab; --rules-receive schreibt die Datei und schickt eine vom Worker gemeldete Empfangsbestätigung, die die Zustellung festhält, nicht die Befolgung." },
         { term: "rules compare", body: "aeon rules compare vergleicht die Anweisungen, die ein Harness geladen hat, mit den zusammengeführten Regeln. Weder der Vergleich noch die Empfangsbestätigung belegt, dass das Modell sie befolgt." },
         { term: "Unterstützte Harnesses", body: "claude-code, codex, grok, pi und cursor." },
@@ -499,7 +504,7 @@ export const paimosAeonContentDe = {
     ],
     points: [
       { title: "Gesperrte Regeln", body: "Eine höhere Ebene kann eine Regel für alle Ebenen darunter sperren." },
-      { title: "Byte-Budget", body: "Ein gemeinsames Budget, standardmäßig 12.000 Bytes und höchstens 64.000, hält lesbar, was ein Agent lädt." },
+      { title: "Byte-Budget", body: "Ein gemeinsames Budget, standardmäßig 12.000 Bytes und höchstens 64.000, hält lesbar, was ein Agent lädt." },
       { title: "Abweichungen erkennen", body: "aeon rules compare vergleicht die Anweisungen, die ein Harness geladen hat, mit den zusammengeführten Regeln." },
     ],
     screenAlt:
@@ -519,7 +524,7 @@ export const paimosAeonContentDe = {
       simple:
         "Jedes Projekt durchläuft acht Stufen. An jedem Gate gibt eine Person frei, bevor es weitergeht, und nichts anderes kann es bewegen.",
       technical:
-        "Die Stufe ist eine Projektion, abgeleitet aus dem akzeptierten Briefing, der Shape-Entscheidung einer Person, der bestätigten Anforderungsrevision, dem aktuellen Release-Zustand und den gültigen Freigaben der Gates. Ein Heartbeat, ein Timer oder eine Stufenangabe eines Clients bewegt die Leiste nie.",
+        "Die Stufe ist eine Projektion, abgeleitet aus dem akzeptierten Briefing, der Shape-Entscheidung einer Person, der bestätigten Anforderungsrevision, dem aktuellen Release-Zustand und den aktiven Freigaben der Gates. Ein Heartbeat, ein Timer oder eine Stufenangabe eines Clients bewegt die Leiste nie.",
     },
     stages: [
       {
@@ -532,7 +537,7 @@ export const paimosAeonContentDe = {
         name: "Shape",
         gate: true,
         scope: "journey.shape",
-        summary: "Die Shape-Entscheidung ist ein Gate für eine Person: weiter, Umfang reduzieren, parken oder verwerfen. Ein geparktes oder verworfenes Projekt bleibt in der Stufe Shape und kann wieder geöffnet werden.",
+        summary: "Die Shape-Entscheidung ist ein Gate für eine Person: weiter, Umfang reduzieren, zurückstellen oder verwerfen. Ein zurückgestelltes oder verworfenes Projekt bleibt in der Stufe Shape und kann wieder geöffnet werden.",
         decides: "Eine Person entscheidet über die Form.",
         action: "decide",
         note: "Das persönliche Profil überspringt Shape, sobald ein Briefing bestätigt ist.",
@@ -558,7 +563,7 @@ export const paimosAeonContentDe = {
         summary: "Der Build-Start braucht ein freigegebenes Gate. Während der Build läuft, ist passives Warten die einzige Aktion. Sind die Tickets des Releases fertig, kann es zum Release-Kandidaten werden, und die Prüfung des Kandidaten ist ein eigenes Gate für eine Person.",
         decides: "Eine Person gibt den Build-Start und den Release-Kandidaten frei.",
         action: "approve_candidate",
-        note: "Enterprise ergänzt eine separate Prüfung des Kandidaten durch eine andere Person als Builder und Autor.",
+        note: "Enterprise ergänzt eine separate Prüfung des Kandidaten durch eine Person, die weder Builder noch Autor ist.",
       },
       {
         name: "Deploy",
@@ -589,7 +594,7 @@ export const paimosAeonContentDe = {
         action: "plan_next_release",
       },
     ],
-    gateLabel: "Freigabe durch eine Person",
+    gateLabel: "Gate einer Person",
     ui: {
       stageOf: "Stufe {n} von {total}",
       decides: "Wer entscheidet",
@@ -679,9 +684,9 @@ export const paimosAeonContentDe = {
         when: "In Arbeit",
         items: [
           { title: "Immer eine ETA", body: "Jedes Ticket und jeder laufende Agent zeigt eine Schätzung und eine Live-ETA, gemeldet von den Agenten selbst." },
-          { title: "Posteingang für Doktrin-Vorschläge", body: "Findet ein Agent eine bessere Regel, schlägt er sie vor: Sie sehen einen Hinweispunkt, prüfen den Diff und übernehmen die Regel mit einem Klick in Git." },
+          { title: "Posteingang für Doktrin-Vorschläge", body: "Findet ein Agent eine bessere Regel, schlägt er sie vor: Sie sehen einen Punkt als Hinweis, prüfen den Diff und übernehmen die Regel mit einem Klick nach Git." },
           { title: "Ihre Marke im Header", body: "Logo und Kurzname Ihrer Organisation im Header von AEON." },
-          { title: "Größere Regeldateien", body: "Agentenregeln bis 500 KB, mit Best-Practice-Tipps." },
+          { title: "Größere Regeldateien", body: "Agentenregeln bis 500 KB, mit Best-Practice-Tipps." },
         ],
       },
       {
@@ -739,7 +744,7 @@ export const paimosAeonContentDe = {
   },
   faq: [
     {
-      question: "Welche Agenten können wir nutzen?",
+      question: "Welche Agenten können Sie nutzen?",
       answer:
         "Claude, Codex, Cursor, Grok und pi, einschließlich OpenRouter-Modellen über pi. Sie laufen über aeon-agentd auf Rechnern, die Sie koppeln, mit Ihren eigenen Abonnements.",
       depths: {
@@ -748,7 +753,7 @@ export const paimosAeonContentDe = {
       },
     },
     {
-      question: "Wo liegen unsere Daten?",
+      question: "Wo liegen Ihre Daten?",
       answer:
         "Dort, wo Sie es entscheiden: auf einer Instanz, die Augmentoring für Sie betreibt, oder selbst betrieben auf Ihrer eigenen Infrastruktur, als eine Server-Binärdatei und eine Postgres-18-Datenbank. In beiden Fällen hält die Row-Level Security in der Datenbank die Mandanten auseinander.",
       depths: {
@@ -759,7 +764,7 @@ export const paimosAeonContentDe = {
     {
       question: "Kann ein Agent seine eigene Anfrage freigeben?",
       answer:
-        "Nein. Ein Agent schlägt vor; die Datenbank nimmt eine Entscheidung nur von einer Person zu einer gültigen Freigabeanfrage an, und jede Freigabe bleibt innerhalb der Scopes des Agentenschlüssels.",
+        "Nein. Ein Agent schlägt vor; die Datenbank nimmt eine Entscheidung nur von einer Person zu einer aktiven Freigabe an, und jede Freigabe bleibt innerhalb der Scopes des Agentenschlüssels.",
       depths: {
         simple: "Nein. Agenten können nur fragen. Freigeben kann nur eine Person, und die Datenbank setzt das durch.",
         technical: "Nein. approvals.decide wird nie an Agentenschlüssel vergeben: Agenten schlagen nur vor, und die Datenbank weist die Entscheidung eines Agenten zurück.",
@@ -767,7 +772,7 @@ export const paimosAeonContentDe = {
     },
     {
       // Nur bei Warum: die erste Frage von Entscheidern.
-      question: "Brauchen wir eigene Server?",
+      question: "Brauchen Sie eigene Server?",
       answer:
         "Nein. Augmentoring kann AEON für Ihr Team bereitstellen, integrieren und betreiben. Wenn Sie möchten, betreiben Sie es selbst aus dem öffentlichen Quellcode.",
       depths: {

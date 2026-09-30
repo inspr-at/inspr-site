@@ -34,6 +34,11 @@ const retiredGerman = [
   [/Ruhezustand/, "Ruhezustand (hibernation): Schlüsselspeicherung"],
   [/Untergrenze/, "Untergrenze: gesperrte Regel"],
   [/Startzulassung|Cloud-Spur|Autopilot-Spuren/, "lane and launch-admission jargon"],
+  [/gültige[nr]? Freigabe/, "gültige Freigabe: a live approval is an aktive Freigabe"],
+  [/Build-Freigabe|Journeys und Freigaben|Freigabe durch eine Person/, "Freigabe where the checkpoint is a Gate"],
+  [/gepinn/, "gepinnt: the commit is festgelegt, in one word order"],
+  [/Fester Commit|Hinweispunkt|Arbeitsstruktur/, "retired coinages"],
+  [/geparkt|parken/, "parken: zurückstellen"],
   [/qualifiz/i, "qualifiziert: not an AEON term"],
   [/Knöpfe/, "Knöpfe: Schaltflächen"],
   [/Fahren Sie über/, "the retired hover and flip wording"],
@@ -59,6 +64,7 @@ test("the German copy keeps to the glossary", async () => {
 test("German quotes UI names and uses one deploy compound style", async () => {
   const text = await german();
   assert.match(text, /„Lost contact“/, "the English UI name is quoted");
+  assert.match(text, /„Read“ heißt, dass die Sitzung den Empfang bestätigt hat, „Answered“, dass/, "the receipt labels are quoted English UI names");
   assert.doesNotMatch(text, /Deployment-Karte/, "Deploy-Karte");
   assert.doesNotMatch(text, /Bereitstellung frei/, "the deploy decision is an Deploy-Freigabe");
 });
@@ -94,10 +100,10 @@ test("both languages state the heartbeat ETAs and the transport the way the rele
   const de = await german();
   const en = await english();
   assert.match(de, /Bereit-ETA \(wann die Arbeit voraussichtlich zur Prüfung bereit ist\)/);
-  assert.match(de, /Live-ETA, die nur Koordinatoren setzen/);
+  assert.match(de, /Live-ETA, die nur Koordinatoren festlegen/);
   assert.match(en, /A ready ETA says when the work is expected to be ready for review/);
   assert.match(en, /a live ETA is set only by coordinators/);
-  assert.match(de, /eingeplante Läufe zu Arbeitsaufträgen und Posteingangs-Nachrichten/);
+  assert.match(de, /anstehende Läufe von Arbeitsaufträgen und Posteingangs-Nachrichten per HTTPS vom Server und übernimmt sie; reines HTTP gibt es nur auf dem Loopback/);
   assert.match(en, /queued runs of work orders and inbox messages/);
 });
 
@@ -162,4 +168,70 @@ test("the doctrine inbox and rule-edit pull requests stay a roadmap item", async
       assert.ok(at > horizon || planned.test(text.slice(Math.max(0, at - 70), at + 90)), `${language}: pull requests outside the roadmap must be the planned item`);
     }
   }
+});
+
+// Grok's native German read, INSPR-498.
+test("the German FAQ speaks to the reader, and the pinned commit has one phrase", async () => {
+  const text = await german();
+  const questions = [...text.matchAll(/question: "([^"]*)"/g)].map((match) => match[1]);
+  assert.ok(questions.length >= 5, "the FAQ has its questions");
+  for (const question of questions) {
+    assert.doesNotMatch(question, /\b(wir|uns|unser\w*)\b/i, `"${question}" addresses the reader with Sie`);
+  }
+  assert.match(text, /label: "Doktrin festgelegt"/);
+  const phrase = text.match(/Die Doktrin wird an einem festgelegten Commit aus Git gelesen/g) ?? [];
+  assert.ok(phrase.length >= 3, "the chip, the doctrine card and the rules lead say it the same way");
+  assert.doesNotMatch(text, /aus Git an einem festgelegten Commit/, "one word order");
+});
+
+test("German numbers and units are held together by a narrow no-break space", async () => {
+  const text = await german();
+  assert.doesNotMatch(text, /\d (Minuten|Bytes|KB)\b/, "a number is never parted from its unit");
+  assert.match(text, /2\u202fMinuten/);
+  assert.match(text, /12\.000\u202fBytes/);
+  assert.match(text, /500\u202fKB/);
+});
+
+test("the tenant-isolation card names forced Row-Level Security as the English twin does", async () => {
+  const de = await german();
+  const en = await english();
+  assert.match(en, /FORCE row-level security in Postgres separates tenants/);
+  assert.match(de, /Erzwungene Row-Level Security \(Sicherheit auf Zeilenebene, FORCE\) hält in Postgres die Mandanten in jeder Tabelle auseinander/);
+});
+
+// The 2x recapture (INSPR-498): captions say only what the frames show.
+const card = (text, label) => {
+  const start = text.indexOf(`label: "${label}",`);
+  assert.ok(start > 0, `the card ${label} exists`);
+  const end = text.indexOf("\n      },", start);
+  return text.slice(start, end);
+};
+
+test("the recaptured slides are captioned with what their frames show", async () => {
+  const de = await german();
+  const en = await english();
+  const approvals = card(en, "Person approvals");
+  assert.match(approvals, /note: "A person decides every gated step, and every decision stays on record\."/);
+  assert.doesNotMatch(approvals, /revok/i, "no claim of revocation in general");
+  assert.match(card(de, "Freigabe durch Personen"), /note: "Eine Person entscheidet jeden freigabepflichtigen Schritt, und jede Entscheidung bleibt festgehalten\."/);
+  assert.match(card(en, "Journeys and gates"), /note: "An example journey for a Pharos release:/);
+  assert.match(card(de, "Journeys und Gates"), /note: "Eine Beispiel-Journey für ein Pharos-Release:/);
+  const live = card(en, "Live updates");
+  assert.match(live, /note: "Progress and ETAs update as agents report\."/);
+  assert.match(card(de, "Live-Aktualisierungen"), /note: "Fortschritt und ETAs aktualisieren sich, sobald Agenten berichten\."/);
+  for (const text of [card(en, "Live updates").split("noteHow")[0], card(de, "Live-Aktualisierungen").split("noteHow")[0]]) {
+    assert.doesNotMatch(text, /instant|streaming|the moment|sobald sich etwas ändert/i, "no claim of streaming or instant updates");
+  }
+});
+
+test("the slides that changed carry an image description in both languages", async () => {
+  const en = await english();
+  const de = await german();
+  assert.match(card(en, "Knowledge graph"), /alt: "The PAIMOS project's knowledge graph of linked runbooks, guidelines and memory entries, as the AEON Knowledge view shows it\."/);
+  assert.match(card(de, "Wissensgraph"), /alt: "Der Wissensgraph des Projekts PAIMOS mit verknüpften Runbooks, Richtlinien und Memory-Einträgen, wie ihn die Wissensansicht von AEON zeigt\."/);
+  for (const [text, labels] of [[en, ["Person approvals", "Knowledge graph", "Journeys and gates", "Live updates", "AGPL-3.0"]], [de, ["Freigabe durch Personen", "Wissensgraph", "Journeys und Gates", "Live-Aktualisierungen", "AGPL-3.0"]]]) {
+    for (const label of labels) assert.match(card(text, label), /\n        alt: "[^"]{40,}",/, `${label} has an image description`);
+  }
+  assert.match(card(en, "AGPL-3.0"), /GNU Affero General Public License v3\.0/);
+  assert.match(card(en, "Journeys and gates"), /Release 27/);
 });

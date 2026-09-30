@@ -555,6 +555,7 @@
     align-items: flex-start;
     gap: 0.7rem;
     margin-top: 1.1rem;
+    max-width: 44rem;
     color: var(--ink-soft);
     font-size: 0.9rem;
   }
@@ -568,6 +569,82 @@
     border: 2px solid var(--aeon-gold);
     border-bottom: 0;
     border-radius: 1.3rem 1.3rem 0 0;
+  }
+
+
+  /* The walk control: a quiet glass pill under the slab. Pressed = paused,
+     and the label says what pressing it does next. */
+  .aeon-instrument__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.6rem 1.2rem;
+    margin-top: 1.1rem;
+  }
+
+  .aeon-instrument__foot > p {
+    margin-top: 0;
+  }
+
+  .aeon-instrument__walk {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2rem;
+    margin-left: auto;
+    padding: 0.3rem 0.8rem 0.3rem 0.6rem;
+    color: var(--ink-soft);
+    background: linear-gradient(150deg, rgb(255 255 255 / 0.72), rgb(255 255 255 / 0.46));
+    border: 1px solid rgb(255 255 255 / 0.85);
+    border-radius: 99rem;
+    -webkit-backdrop-filter: blur(12px) saturate(1.5);
+    backdrop-filter: blur(12px) saturate(1.5);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 1),
+      0 1px 2px rgb(5 24 39 / 0.05),
+      0 10px 20px -14px rgb(5 24 39 / 0.35);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 650;
+    letter-spacing: 0.01em;
+    transition: color 160ms ease, background-color 220ms ease, box-shadow 220ms ease;
+  }
+
+  .aeon-instrument__walk:hover {
+    color: var(--ink);
+    background: rgb(255 255 255 / 0.85);
+  }
+
+  .aeon-instrument__walk:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .aeon-instrument__walk svg {
+    width: 0.85rem;
+    height: 0.85rem;
+    fill: currentColor;
+  }
+
+  .aeon-instrument__walk[aria-pressed="true"] .aeon-instrument__walk-pause,
+  .aeon-instrument__walk[aria-pressed="false"] .aeon-instrument__walk-play {
+    display: none;
+  }
+
+  .aeon-instrument__walk[aria-pressed="true"] {
+    color: var(--aeon-gold-deep);
+  }
+
+  .aeon-instrument__walk[hidden] {
+    display: none;
+  }
+
+  /* Paused: the orbs and the light's pulse hold still. */
+  .aeon-authority.is-paused .aeon-authority__orb,
+  .aeon-authority.is-paused .aeon-instrument__light {
+    animation-play-state: paused;
   }
 
   @keyframes aeon-authority-orb-gold {

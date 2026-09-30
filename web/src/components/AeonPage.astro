@@ -74,6 +74,10 @@ const labels = locale === "de"
       stagesAria: "Die acht Stufen einer Journey",
       layersAria: "Die sechs Regel-Ebenen",
       stopsAria: "Zu einem Teil der Regelansicht springen",
+      tourPause: "Tour pausieren",
+      tourPlay: "Tour abspielen",
+      panPause: "Bewegung pausieren",
+      panResume: "Bewegung fortsetzen",
       panViewport: "Die Regelansicht von AEON, ziehbar",
       panHint: "Ziehen, scrollen oder mit den Pfeiltasten bewegen. Die Knöpfe darunter springen zu einem Abschnitt.",
       enterFull: "Vollbild",
@@ -110,6 +114,10 @@ const labels = locale === "de"
       stagesAria: "The eight stages of a journey",
       layersAria: "The six rule layers",
       stopsAria: "Jump to a part of the rules view",
+      tourPause: "Pause tour",
+      tourPlay: "Play tour",
+      panPause: "Pause motion",
+      panResume: "Resume motion",
       panViewport: "The AEON rules view, draggable",
       panHint: "Drag, scroll or use the arrow keys to move it. The buttons below jump to a section.",
       enterFull: "Full screen",
@@ -323,6 +331,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
           <p class="section-lead">{content.theatre.lead}</p>
         </header>
 
+        <div class="aeon-theatre__bar">
         <div class="aeon-tabs" role="tablist" aria-label={labels.tabsAria}>
           {screens.map((screen, index) => (
             <button
@@ -340,6 +349,19 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
               <span class="aeon-tab__progress" aria-hidden="true"></span>
             </button>
           ))}
+        </div>
+        <button
+          type="button"
+          class="aeon-motion-toggle"
+          data-theatre-toggle
+          aria-pressed="false"
+          data-label-pause={labels.tourPause}
+          data-label-play={labels.tourPlay}
+          hidden
+        >
+          <span class="aeon-motion-toggle__icon" aria-hidden="true"></span>
+          <span data-theatre-toggle-label>{labels.tourPause}</span>
+        </button>
         </div>
 
         <div class="aeon-theatre__stage" data-aeon-gallery>
@@ -535,6 +557,8 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
             hint: labels.panHint,
             enterFull: labels.enterFull,
             exitFull: labels.exitFull,
+            pause: labels.panPause,
+            resume: labels.panResume,
           }}
         />
       </div>
@@ -837,6 +861,8 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
     let swapTimer = 0;
     let suppressFocusUntil = 0;
     let suppressHoverUntil = 0;
+    let inerted: Element[] = [];
+    const placardHome = placard?.nextSibling ?? null;
     const leaveMs = reduced ? 0 : 1500;
     const enterMs = reduced ? 0 : 5200;
     const swapMs = reduced ? 0 : 500;
@@ -880,6 +906,22 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       });
     };
 
+    // In the dialog, the current slide's image is the content (a real alt),
+    // the others are hidden from AT, and the dialog is named and described
+    // by the placard's label and note, which live inside it while modal.
+    const describe = (id: string) => {
+      slides.forEach((slide, key) => {
+        const img = slide.querySelector<HTMLImageElement>(".specs__slide-img");
+        const on = modal && key === id;
+        slide.setAttribute("aria-hidden", String(!on));
+        if (img) img.alt = on ? img.dataset.alt ?? "" : "";
+      });
+      if (modal) {
+        lens.setAttribute("aria-labelledby", `specs-lens-title specs-lens-label-${id}`);
+        lens.setAttribute("aria-describedby", `specs-lens-note-${id}`);
+      }
+    };
+
     const light = (id: string) => {
       window.clearTimeout(leaveTimer);
       window.clearTimeout(endTimer);
@@ -891,6 +933,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
         current = id;
         tile.classList.add("is-lit");
         showBody(id, handover);
+        describe(id);
         // Entering dissolves the page slowly; a handover, or the end of the
         // dissolve, returns the ghosts to their 1s handover timing.
         window.clearTimeout(enterTimer);
@@ -949,7 +992,22 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       lens.classList.add("is-modal");
       lens.setAttribute("role", "dialog");
       lens.setAttribute("aria-modal", "true");
-      lens.setAttribute("aria-label", lens.dataset.lensLabel ?? "");
+      // The placard joins the dialog so its name and description are inside.
+      if (placard) lens.append(placard);
+      describe(id);
+      // Everything outside the dialog goes inert: every sibling on the way
+      // up from the layer to the body.
+      inerted = [];
+      for (let node: Element | null = lens; node && node !== document.body; node = node.parentElement) {
+        const parent: HTMLElement | null = node.parentElement;
+        if (!parent) break;
+        for (const sibling of Array.from(parent.children) as Element[]) {
+          if (sibling !== node && !sibling.hasAttribute("inert")) {
+            sibling.setAttribute("inert", "");
+            inerted.push(sibling);
+          }
+        }
+      }
       root.classList.add("is-modal");
       html.classList.add("aeon-lens-modal");
       closeBtn?.focus({ preventScroll: true });
@@ -961,7 +1019,12 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       lens.classList.remove("is-modal");
       lens.removeAttribute("role");
       lens.removeAttribute("aria-modal");
-      lens.removeAttribute("aria-label");
+      lens.removeAttribute("aria-labelledby");
+      lens.removeAttribute("aria-describedby");
+      inerted.forEach((node) => node.removeAttribute("inert"));
+      inerted = [];
+      if (placard) root.insertBefore(placard, placardHome);
+      if (current) describe(current);
       root.classList.remove("is-modal");
       html.classList.remove("aeon-lens-modal");
       end();
@@ -1101,11 +1164,32 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       timer = window.setTimeout(() => select(current + 1), dwell);
     };
 
+    // WCAG 2.2.2: the tour has a visible pause. Any interaction also stops it
+    // for good; only the toggle starts it again.
+    const toggle = root.querySelector<HTMLButtonElement>("[data-theatre-toggle]");
+    const toggleLabel = root.querySelector<HTMLElement>("[data-theatre-toggle-label]");
+    const syncToggle = () => {
+      if (!toggle || !toggleLabel) return;
+      toggle.setAttribute("aria-pressed", String(!playing));
+      toggleLabel.textContent = (playing ? toggle.dataset.labelPause : toggle.dataset.labelPlay) ?? "";
+    };
+
     const stop = () => {
       playing = false;
       window.clearTimeout(timer);
       tabs.forEach((tab) => tab.classList.remove("is-running"));
+      syncToggle();
     };
+
+    toggle?.addEventListener("click", () => {
+      if (playing) {
+        stop();
+      } else {
+        playing = true;
+        schedule();
+        syncToggle();
+      }
+    });
 
     tabs.forEach((tab, index) => {
       tab.addEventListener("click", () => {
@@ -1125,18 +1209,24 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
         }
       });
     });
-    root.addEventListener("pointerenter", stop);
-    root.addEventListener("focusin", stop);
+    root.addEventListener("pointerenter", (event) => {
+      if (!(event.target instanceof Element) || !event.target.closest("[data-theatre-toggle]")) stop();
+    });
+    root.addEventListener("focusin", (event) => {
+      if (!(event.target instanceof Element) || !event.target.closest("[data-theatre-toggle]")) stop();
+    });
 
     if (!reduceMotion() && "IntersectionObserver" in window) {
       const observer = new IntersectionObserver((entries) => {
         if (entries.some((entry) => entry.isIntersecting)) {
           playing = true;
           schedule();
+          syncToggle();
           observer.disconnect();
         }
       }, { threshold: 0.5 });
       observer.observe(root);
+      if (toggle) toggle.hidden = false;
     }
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) stop();
@@ -1156,7 +1246,6 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
     chips.forEach((chip, index) => { if (index < 3) shown.set(chip, index + 1); });
     let next = 3;
     let timer = 0;
-    let visible = true;
     const hide = (chip: HTMLElement) => {
       chip.classList.remove("is-shown");
       chip.classList.add("is-leaving");
@@ -1167,7 +1256,6 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       }, 900);
     };
     const step = () => {
-      if (!visible) return;
       const oldest = [...shown.keys()][0];
       if (oldest && shown.size >= 3) hide(oldest);
       const used = new Set(shown.values());
@@ -1180,19 +1268,25 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       shown.set(chip, slot);
       requestAnimationFrame(() => chip.classList.add("is-shown"));
     };
+    // The notes, the event ribbon and their float follow the hero loop, whose
+    // visible Pause control (and its in-view and tab-visibility handling)
+    // therefore pauses all hero motion (WCAG 2.2.2).
+    const hero = list.closest<HTMLElement>(".aeon-hero");
+    const video = hero?.querySelector<HTMLVideoElement>("[data-hero-video]");
     const run = () => {
       window.clearInterval(timer);
       timer = window.setInterval(step, CADENCE_MS);
+      hero?.classList.remove("is-paused");
     };
-    new IntersectionObserver((entries) => {
-      visible = entries.some((entry) => entry.isIntersecting);
-      if (visible) run();
-      else window.clearInterval(timer);
-    }).observe(list.parentElement ?? list);
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) window.clearInterval(timer);
-      else if (visible) run();
-    });
+    const pause = () => {
+      window.clearInterval(timer);
+      hero?.classList.add("is-paused");
+    };
+    if (!video) return;
+    video.addEventListener("playing", run);
+    video.addEventListener("pause", pause);
+    if (video.paused) pause();
+    else run();
   };
 
   initReveal();

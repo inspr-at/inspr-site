@@ -404,6 +404,8 @@ export const paimosAeonContentDe = {
     ui: {
       stepOf: "Schritt {n} von {total}",
       caption: "Einer der vier ist eine Person. Die anderen drei können nicht ja sagen.",
+      pause: "Pausieren",
+      resume: "Fortsetzen",
     },
     proof: [
       { label: "Freigaben", path: "internal/approvals/doc.go" },
@@ -526,6 +528,8 @@ export const paimosAeonContentDe = {
       gate: "Tor",
       noGate: "Kein Tor",
       nextAction: "Nächste Aktion",
+      pause: "Pausieren",
+      resume: "Fortsetzen",
     },
     proof: [
       { label: "Planungshierarchie", path: "docs/PLANNING_HIERARCHY.md" },

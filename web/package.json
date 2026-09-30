@@ -15,7 +15,7 @@
     "test:browser": "playwright test",
     "check": "astro check",
     "links:check": "node scripts/check-links.mjs",
-    "captures:check": "node scripts/sync-paimos-captures.mjs --check"
+    "captures:check": "node scripts/sync-paimos-captures.mjs --check && node scripts/check-aeon-captures.mjs"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.2.9",

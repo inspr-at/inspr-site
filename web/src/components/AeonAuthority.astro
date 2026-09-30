@@ -89,7 +89,22 @@ const kindOf = (token: string) =>
         ))}
       </ol>
     </div>
-    <p class="aeon-instrument__caption">{content.ui.caption}</p>
+    <div class="aeon-instrument__foot">
+      <p class="aeon-instrument__caption">{content.ui.caption}</p>
+      <button
+        type="button"
+        class="aeon-instrument__walk"
+        aria-pressed="false"
+        data-walk
+        data-pause={content.ui.pause}
+        data-resume={content.ui.resume}
+        hidden
+      >
+        <svg class="aeon-instrument__walk-pause" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="3.5" y="3" width="3" height="10" rx="1" /><rect x="9.5" y="3" width="3" height="10" rx="1" /></svg>
+        <svg class="aeon-instrument__walk-play" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M5 3.5 L12.5 8 L5 12.5 Z" /></svg>
+        <span data-walk-label>{content.ui.pause}</span>
+      </button>
+    </div>
 
     <p class="aeon-proof">
       <span class="aeon-proof__label">{labels.proof}</span>
@@ -145,10 +160,32 @@ const kindOf = (token: string) =>
       timer = window.setTimeout(() => select(current + 1), dwell);
     };
 
+    // The walk control (WCAG 2.2.2): Pause halts the walk, the light's pulse
+    // and the section's drifting orbs; Resume restarts them. Any manual
+    // interaction stops the walk the same way, and nothing restarts it by
+    // itself; only Resume does.
+    const walk = root.parentElement?.querySelector<HTMLButtonElement>("[data-walk]") ?? null;
+    const section = root.closest<HTMLElement>(".aeon-authority");
+    const setWalkState = (paused: boolean) => {
+      section?.classList.toggle("is-paused", paused);
+      if (!walk) return;
+      walk.setAttribute("aria-pressed", String(paused));
+      const label = walk.querySelector("[data-walk-label]");
+      if (label) label.textContent = paused ? walk.dataset.resume ?? "" : walk.dataset.pause ?? "";
+    };
+
     const stop = () => {
       walking = false;
       window.clearTimeout(timer);
       root.classList.remove("is-walking");
+      setWalkState(true);
+    };
+
+    const resume = () => {
+      walking = true;
+      root.classList.add("is-walking");
+      setWalkState(false);
+      schedule();
     };
 
     buttons.forEach((button, index) => {
@@ -179,6 +216,10 @@ const kindOf = (token: string) =>
     });
     root.addEventListener("pointerdown", stop);
     root.addEventListener("focusin", stop);
+    walk?.addEventListener("click", () => {
+      if (walking) stop();
+      else resume();
+    });
 
     // The specular rim follows a fine pointer; one frame at most.
     if (window.matchMedia("(pointer: fine)").matches && !reduced) {
@@ -205,13 +246,15 @@ const kindOf = (token: string) =>
     place();
     root.classList.add("is-ready");
 
-    if (!reduced && "IntersectionObserver" in window) {
+    if (!reduced && "IntersectionObserver" in window && walk) {
+      // Armed: the walk starts once in view unless it was stopped first.
+      walking = true;
+      walk.hidden = false;
+      setWalkState(false);
       const observer = new IntersectionObserver((entries) => {
         if (!entries.some((entry) => entry.isIntersecting)) return;
         observer.disconnect();
-        walking = true;
-        root.classList.add("is-walking");
-        schedule();
+        if (walking) resume();
       }, { threshold: 0.45 });
       observer.observe(root);
     }

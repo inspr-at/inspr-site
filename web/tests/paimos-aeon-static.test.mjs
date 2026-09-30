@@ -134,3 +134,15 @@ test("every capture is recorded with its release, source and redaction policy", 
   const recorded = new Set(manifest.files.map((file) => file.name));
   for (const name of imports) assert.ok(recorded.has(name), `${name} is missing from the capture manifest`);
 });
+
+test("the capture gate covers every published AEON image with a digest", async () => {
+  const { spawnSync } = await import("node:child_process");
+  const result = spawnSync(process.execPath, ["scripts/check-aeon-captures.mjs"], { cwd: new URL("../", import.meta.url), encoding: "utf8" });
+  assert.equal(result.status, 0, result.stderr);
+  const manifest = JSON.parse(await source("assets/products/paimos-aeon/capture-manifest.json"));
+  const specs = manifest.files.filter((file) => file.name.startsWith("specs/"));
+  assert.equal(specs.length, 20, "one lens image per capability");
+  for (const file of manifest.files) assert.match(file.sha256, /^[0-9a-f]{64}$/, `${file.name} digest`);
+  const pkg = JSON.parse(await webFile("package.json"));
+  assert.match(pkg.scripts["captures:check"], /check-aeon-captures\.mjs/, "the build runs the AEON capture gate");
+});

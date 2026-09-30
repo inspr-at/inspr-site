@@ -405,6 +405,8 @@ export const paimosAeonContent = {
     ui: {
       stepOf: "Step {n} of {total}",
       caption: "One of the four is a person. The other three cannot say yes.",
+      pause: "Pause",
+      resume: "Resume",
     },
     proof: [
       { label: "Approvals", path: "internal/approvals/doc.go" },
@@ -527,6 +529,8 @@ export const paimosAeonContent = {
       gate: "Gate",
       noGate: "No gate",
       nextAction: "Next action",
+      pause: "Pause",
+      resume: "Resume",
     },
     proof: [
       { label: "Planning hierarchy", path: "docs/PLANNING_HIERARCHY.md" },

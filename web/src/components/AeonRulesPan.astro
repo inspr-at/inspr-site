@@ -17,7 +17,7 @@ interface Props {
   path: string;
   /** Section starts in the capture, as a fraction of its height. */
   stops: Array<{ label: string; at: number }>;
-  labels: { stops: string; viewport: string; hint: string; enterFull: string; exitFull: string };
+  labels: { stops: string; viewport: string; hint: string; enterFull: string; exitFull: string; pause: string; resume: string };
 }
 
 const { image, alt, path, stops, labels } = Astro.props;
@@ -29,6 +29,18 @@ const hintId = "aeon-pan-hint";
     <div class="aeon-window__bar aeon-pan__bar">
       <i aria-hidden="true"></i><i aria-hidden="true"></i><i aria-hidden="true"></i>
       <span aria-hidden="true">{path}</span>
+      <button
+        type="button"
+        class="aeon-pan__pause"
+        data-pan-pause
+        aria-pressed="false"
+        aria-label={labels.pause}
+        data-label-pause={labels.pause}
+        data-label-resume={labels.resume}
+        hidden
+      >
+        <span class="aeon-pan__pause-icon" aria-hidden="true"></span>
+      </button>
       <button
         type="button"
         class="aeon-pan__full"
@@ -108,6 +120,14 @@ const hintId = "aeon-pan-hint";
     let velocity = 0;
     let tween = { from: 0, to: 0, start: 0, duration: 0 };
     let expanded = false;
+    // WCAG 2.2.2: an explicit pause stops the drift until the reader resumes it.
+    let paused = false;
+    const pauseButton = root.querySelector<HTMLButtonElement>("[data-pan-pause]");
+    const syncPause = () => {
+      if (!pauseButton) return;
+      pauseButton.setAttribute("aria-pressed", String(paused));
+      pauseButton.setAttribute("aria-label", (paused ? pauseButton.dataset.labelResume : pauseButton.dataset.labelPause) ?? "");
+    };
     // A clicked stop stays selected while the capture rests where it sent it.
     let chosen = -1;
 
@@ -167,7 +187,7 @@ const hintId = "aeon-pan-hint";
         velocity *= Math.pow(0.94, dt / 16);
         if (Math.abs(velocity) < 0.02 || y === 0 || y === max) mode = "idle";
       } else if (mode === "idle") {
-        if (!reduceMotion.matches && visible && now - lastInteraction > IDLE_RESUME_MS) mode = "auto";
+        if (!paused && !reduceMotion.matches && visible && now - lastInteraction > IDLE_RESUME_MS) mode = "auto";
       } else if (mode === "auto") {
         chosen = -1;
         if (now >= holdUntil) {
@@ -182,7 +202,7 @@ const hintId = "aeon-pan-hint";
 
       render();
       const busy = mode === "tween" || mode === "inertia" || mode === "drag";
-      if (busy || (visible && !reduceMotion.matches)) run();
+      if (busy || (visible && !paused && !reduceMotion.matches)) run();
     };
 
     const goTo = (target: number, choice = -1) => {
@@ -346,9 +366,23 @@ const hintId = "aeon-pan-hint";
       const wasVisible = visible;
       visible = entries.some((entry) => entry.isIntersecting);
       if (!visible && wasVisible) lastInteraction = 0;
-      if (visible && mode === "idle" && lastInteraction === 0 && !reduceMotion.matches) mode = "auto";
+      if (visible && !paused && mode === "idle" && lastInteraction === 0 && !reduceMotion.matches) mode = "auto";
       if (visible) run();
     }, { threshold: 0.2 }).observe(root);
+
+    if (pauseButton && !reduceMotion.matches) {
+      pauseButton.hidden = false;
+      pauseButton.addEventListener("click", () => {
+        paused = !paused;
+        if (paused && mode === "auto") mode = "idle";
+        if (!paused) {
+          lastInteraction = 0;
+          mode = "auto";
+          run();
+        }
+        syncPause();
+      });
+    }
 
     new ResizeObserver(measure).observe(viewport);
     const image = track.querySelector("img");

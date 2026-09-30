@@ -6,55 +6,269 @@
   "sourceVersionCheck": "GET /api/version returned 260930094206.0.0 (release 14) for captures before 12:24 UTC and 260930115354.0.0 (release 14.1) after",
   "syntheticData": false,
   "decision": "Operator decision 2026-09-30 (INSPR-492): capture the live INSPR instance instead of a local demo; public INSPR/AEON projects only.",
-  "capturedAt": "2026-09-30T11:44:00Z",
+  "capturedAt": "2026-09-30",
   "viewport": {
     "width": 1600,
     "height": 1000,
     "deviceScaleFactor": 2
   },
-  "redaction": "Frames exclude the accounts card; account e-mail text is blurred in the DOM before every shot as a safety net. Usage is filtered to the Aeon project.",
+  "redaction": "Live frames exclude the accounts card; account e-mail text is blurred in the DOM before every shot as a safety net. Usage is filtered to the Aeon project. Generated illustrations contain no text.",
   "files": [
     {
       "name": "sessions-dark.png",
+      "kind": "live",
+      "source": "https://aeon.barta.cm",
       "route": "/agents",
+      "version": "260930094206.0.0",
       "crop": "section.sessions",
       "theme": "dark",
-      "version": "260930094206.0.0"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
+      "sha256": "0b39f83181132a1c4506ec74416277c2f64109efd69313f32fe685ee33ec3442"
     },
     {
       "name": "tickets.png",
+      "kind": "live",
+      "source": "https://aeon.barta.cm",
       "route": "/p/AEON/tickets?group=epic&sort=-progress,priority&cols=status,priority,assignee,estimate,progress,eta,updated",
+      "version": "260930094206.0.0",
       "theme": "light",
-      "version": "260930094206.0.0"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
+      "sha256": "41131a96e864f57a8d751032131d2896fe0a32d4a032d69a7a0bb35d9e8dfb71"
     },
     {
       "name": "graph.png",
+      "kind": "live",
+      "source": "https://aeon.barta.cm",
       "route": "/p/AEON/tickets?view=graph",
+      "version": "260930094206.0.0",
       "theme": "light",
-      "version": "260930094206.0.0"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
+      "sha256": "6621a8af90048c7660f86665431696451bb12be9ba83f4e32ba1eeb46610bd76"
     },
     {
       "name": "knowledge.png",
+      "kind": "live",
+      "source": "https://aeon.barta.cm",
       "route": "/p/AEON/knowledge?view=graph",
+      "version": "260930094206.0.0",
       "state": "graph maximized",
       "theme": "light",
-      "version": "260930094206.0.0"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
+      "sha256": "93a1b32b00c4b2539b2e73cd30ce74a144c681df02fc8ce6510b85aff55ba7f5"
     },
     {
       "name": "usage.png",
+      "kind": "live",
+      "source": "https://aeon.barta.cm",
       "route": "/agents/usage",
+      "version": "260930094206.0.0",
       "state": "7 days, project Aeon",
       "crop": "statistics and below",
       "theme": "light",
-      "version": "260930094206.0.0"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
+      "sha256": "d8f493659a6befca3fc44bdf6bd7e6cb0faa9ce321247c1606ffea59a3f035d8"
     },
     {
       "name": "rules.png",
+      "kind": "live",
+      "source": "https://aeon.barta.cm",
       "route": "/settings/agent-rules",
+      "version": "260930115354.0.0",
       "state": "public kernel sets, AEON what-Aeon-is and style, and the AGENTS-KERNEL and AGENTS-AGENT-DEV doctrine files expanded; private operator sets and AEON how-you-work stay collapsed",
       "crop": "section.rules-page",
       "theme": "light",
-      "version": "260930115354.0.0"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
+      "sha256": "e45e0d7bab519a167500eec17b74799e1e9d8612ad517d983e592e3be73b8a6c"
+    },
+    {
+      "name": "specs/01-agents-first.jpg",
+      "kind": "live",
+      "source": "https://aeon.barta.cm",
+      "route": "/agents",
+      "version": "260930094206.0.0",
+      "state": "sessions section",
+      "theme": "light",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
+      "sha256": "f12531efe8f9fb574ba03eef5b8820d995b4b71d97999778bb022f87fd20fd66"
+    },
+    {
+      "name": "specs/02-control-room.jpg",
+      "kind": "live",
+      "source": "https://aeon.barta.cm",
+      "route": "/agents",
+      "version": "260930094206.0.0",
+      "state": "sessions section",
+      "theme": "dark",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
+      "sha256": "68a2e962232b42b00e41c14861556d347548e63cbd1b9e3fd881a88209f76612"
+    },
+    {
+      "name": "specs/03-your-machines.jpg",
+      "kind": "live",
+      "source": "https://aeon.barta.cm",
+      "route": "/agents/register-agent",
+      "version": "260930094206.0.0",
+      "theme": "light",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
+      "sha256": "7a5612b2fa2cac480494499f1def494310155a9997acb19a64fcc6d858a1f488"
+    },
+    {
+      "name": "specs/04-scoped-keys.jpg",
+      "kind": "live",
+      "source": "https://aeon.barta.cm",
+      "route": "/settings/access/agents",
+      "version": "260930094206.0.0",
+      "theme": "light",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
+      "sha256": "bd8a659b178f87e62106e1b3d43e29d9409a7d3136fee435385af991a7ebcad6"
+    },
+    {
+      "name": "specs/05-person-approvals.jpg",
+      "kind": "live",
+      "source": "https://aeon.barta.cm",
+      "route": "/agents",
+      "version": "260930094206.0.0",
+      "state": "decided approvals expanded",
+      "theme": "light",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
+      "sha256": "bfef5dba93d9a8e656e10c228ea7fe0b278f996e0aabea5e148a64ab5cf4bb92"
+    },
+    {
+      "name": "specs/06-capacity-routing.jpg",
+      "kind": "generated",
+      "generator": "Codex CLI built-in image generation (gpt-5.6-sol), 2026-09-30, style references: INSPR product-family hero art",
+      "subject": "marble water garden: capacity flows to the next basin, one basin kept in reserve",
+      "text": "none (brief forbids text, logos, metrics)",
+      "sha256": "a71d83bb303f64de0c3ca4f15ffa4232cf5fb275eb97e93ebe012c0ef90a2d55"
+    },
+    {
+      "name": "specs/07-governed-rules.jpg",
+      "kind": "live",
+      "source": "https://aeon.barta.cm",
+      "route": "/settings/agent-rules",
+      "version": "260930094206.0.0",
+      "theme": "light",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
+      "sha256": "ac341f772d8cb9e0dc883efe7dae126419882f5356531e35eba9fb3a8825b20d"
+    },
+    {
+      "name": "specs/08-git-backed-doctrine.jpg",
+      "kind": "live",
+      "source": "https://aeon.barta.cm",
+      "route": "/settings/agent-rules",
+      "version": "260930094206.0.0",
+      "state": "doctrine section",
+      "theme": "light",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
+      "sha256": "26f8b562355825df8626028b16f946d455a395c8e791dd4c72c9b2c9a720206d"
+    },
+    {
+      "name": "specs/09-append-only-log.jpg",
+      "kind": "generated",
+      "generator": "Codex CLI built-in image generation (gpt-5.6-sol), 2026-09-30, style references: INSPR product-family hero art",
+      "subject": "sealed marble slabs in sequence: an append-only record",
+      "text": "none (brief forbids text, logos, metrics)",
+      "sha256": "49f5273db505cf40fe4b7705ba568610a247fd9e8cfc472fa7579ac7b955ba02"
+    },
+    {
+      "name": "specs/10-tenant-isolation.jpg",
+      "kind": "generated",
+      "generator": "Codex CLI built-in image generation (gpt-5.6-sol), 2026-09-30, style references: INSPR product-family hero art",
+      "subject": "separate glass-walled marble terraces: tenant isolation",
+      "text": "none (brief forbids text, logos, metrics)",
+      "sha256": "fb9a3be9facce05361dec567eba7f76b2b12daa113b335fe11d6f4ad96157843"
+    },
+    {
+      "name": "specs/11-one-work-tree.jpg",
+      "kind": "live",
+      "source": "https://aeon.barta.cm",
+      "route": "/p/AEON/tickets?view=outline",
+      "version": "260930094206.0.0",
+      "state": "outline expanded",
+      "theme": "light",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
+      "sha256": "9569a1b70f06222f4187a6e17d88344948ff14d082e401be2e12f668cee111a0"
+    },
+    {
+      "name": "specs/12-work-orders.jpg",
+      "kind": "generated",
+      "generator": "Codex CLI built-in image generation (gpt-5.6-sol), 2026-09-30, style references: INSPR product-family hero art",
+      "subject": "glass vessel filled to a gold budget line: work orders with ceilings",
+      "text": "none (brief forbids text, logos, metrics)",
+      "sha256": "1f3ddf1fe33b6a5b3da1488ec8a3913f768f5d2995e6e40fdcbb35732fe897a3"
+    },
+    {
+      "name": "specs/13-knowledge-graph.jpg",
+      "kind": "live",
+      "source": "https://aeon.barta.cm",
+      "route": "/p/AEON/knowledge?view=graph",
+      "version": "260930094206.0.0",
+      "state": "graph maximized",
+      "theme": "light",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
+      "sha256": "103e8f91dd161943d767442b7990400fe1b0743082dec7e7618822116085ea84"
+    },
+    {
+      "name": "specs/14-journeys-and-gates.jpg",
+      "kind": "live",
+      "source": "https://aeon.barta.cm",
+      "route": "/p/AEON/journey",
+      "version": "260930094206.0.0",
+      "theme": "light",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
+      "sha256": "9f15caaa43d62b734f01104723297370032bdc9d44ffb129de7c8f089f38f6ec"
+    },
+    {
+      "name": "specs/15-clear-usage.jpg",
+      "kind": "live",
+      "source": "https://aeon.barta.cm",
+      "route": "/agents/usage",
+      "version": "260930094206.0.0",
+      "state": "7 days, project Aeon",
+      "theme": "light",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
+      "sha256": "82eab75b6a674590450e8e3bcf0eb5f9d89c1530eade80c6beabb62aa95f41ad"
+    },
+    {
+      "name": "specs/16-live-updates.jpg",
+      "kind": "live",
+      "source": "https://aeon.barta.cm",
+      "route": "/p/AEON/tickets?group=epic&sort=-progress,priority&cols=status,priority,assignee,estimate,progress,eta,updated",
+      "version": "260930094206.0.0",
+      "theme": "light",
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
+      "sha256": "e61f269d9e7b001e174a5ddc5e7a4dd1af2ad11d0eebb7f1029edc2e1ab9dad7"
+    },
+    {
+      "name": "specs/17-contract-first.jpg",
+      "kind": "generated",
+      "generator": "Codex CLI built-in image generation (gpt-5.6-sol), 2026-09-30, style references: INSPR product-family hero art",
+      "subject": "a marble tablet with teal lines to many glass endpoints: one contract",
+      "text": "none (brief forbids text, logos, metrics)",
+      "sha256": "6c7cbb86807206392284710d9fe1a3bcece4f3bd939e7bf40834559b3d1e6c76"
+    },
+    {
+      "name": "specs/18-hosted-or-self-hosted.jpg",
+      "kind": "generated",
+      "generator": "Codex CLI built-in image generation (gpt-5.6-sol), 2026-09-30, style references: INSPR product-family hero art",
+      "subject": "two marble pavilions joined by a gold arc: hosted or self-hosted",
+      "text": "none (brief forbids text, logos, metrics)",
+      "sha256": "c3d226b156008a69bb84c6e80fd8f55aeb4cccd593d207bbd8c1335adb61e9c6"
+    },
+    {
+      "name": "specs/19-agpl.jpg",
+      "kind": "public-web",
+      "source": "https://github.com/inspr-at/paimos",
+      "note": "public repository page, anonymous browser, no session",
+      "sha256": "f77eaa0892f868ff5ce766d2ac9b6292a981768250698b93f562d81339068a90"
+    },
+    {
+      "name": "specs/20-made-in-austria.jpg",
+      "kind": "generated",
+      "generator": "Codex CLI built-in image generation (gpt-5.6-sol), 2026-09-30, style references: INSPR product-family hero art",
+      "subject": "an abstract alpine skyline at golden hour with a faint gold arc",
+      "text": "none (brief forbids text, logos, metrics)",
+      "sha256": "7bddf28ed200270386199b403bd3d028d6e6972167b2a174b245947a11aa6913"
     }
   ]
 }

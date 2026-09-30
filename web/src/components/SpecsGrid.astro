@@ -140,9 +140,10 @@ const segmentNote = (text: string): NoteSegment[] => {
       present but hidden, so all twenty load and decode ahead of the first
       hover. In dialog mode the layer gains role=dialog and its controls. */}
   {field && slides && lens && (
-    <div class="specs__lens" data-specs-lens data-lens-label={lens.labels.dialog} tabindex="-1">
+    <div class="specs__lens" data-specs-lens tabindex="-1">
+      <span class="visually-hidden" id="specs-lens-title">{lens.labels.dialog}</span>
       {slides.map((slide, i) => (
-        <figure class="specs__slide" data-slide={pad(i + 1)}>
+        <figure class="specs__slide" data-slide={pad(i + 1)} aria-hidden="true">
           <img
             class="specs__slide-fill"
             src={slide.fill}
@@ -158,6 +159,7 @@ const segmentNote = (text: string): NoteSegment[] => {
             srcset={slide.srcset}
             sizes="100vw"
             alt=""
+            data-alt={`${specs.items[i]?.label}, ${lens.images[i]?.kind === "art" ? lens.labels.illustration : lens.labels.live}`}
             width={slide.width}
             height={slide.height}
             loading="lazy"
@@ -187,8 +189,8 @@ const segmentNote = (text: string): NoteSegment[] => {
             <span aria-hidden="true">·</span>
             <span>{pad(index + 1)}</span>
           </span>
-          <strong class="specs__placard-label">{item.label}</strong>
-          <p class="specs__placard-note">
+          <strong class="specs__placard-label" id={`specs-lens-label-${pad(index + 1)}`}>{item.label}</strong>
+          <p class="specs__placard-note" id={`specs-lens-note-${pad(index + 1)}`}>
             <span class="specs__variant specs__variant--tech">{item.note}</span>
             <span class="specs__variant specs__variant--plain">{item.noteEli10}</span>
           </p>

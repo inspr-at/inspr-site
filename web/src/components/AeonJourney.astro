@@ -110,10 +110,25 @@ const stageOf = (n: number) => content.ui.stageOf.replace("{n}", String(n)).repl
         ))}
       </ol>
     </div>
-    <p class="aeon-rail__legend">
-      <svg viewBox="0 0 40 21" aria-hidden="true" focusable="false"><path d="M3 18.8 A17 17 0 0 1 37 18.8" /></svg>
-      {content.gateLabel}
-    </p>
+    <div class="aeon-rail__foot">
+      <p class="aeon-rail__legend">
+        <svg viewBox="0 0 40 21" aria-hidden="true" focusable="false"><path d="M3 18.8 A17 17 0 0 1 37 18.8" /></svg>
+        {content.gateLabel}
+      </p>
+      <button
+        type="button"
+        class="aeon-rail__walk"
+        aria-pressed="false"
+        data-walk
+        data-pause={content.ui.pause}
+        data-resume={content.ui.resume}
+        hidden
+      >
+        <svg class="aeon-rail__walk-pause" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="3.5" y="3" width="3" height="10" rx="1" /><rect x="9.5" y="3" width="3" height="10" rx="1" /></svg>
+        <svg class="aeon-rail__walk-play" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M5 3.5 L12.5 8 L5 12.5 Z" /></svg>
+        <span data-walk-label>{content.ui.pause}</span>
+      </button>
+    </div>
 
     <p class="aeon-proof">
       <span class="aeon-proof__label">{labels.proof}</span>
@@ -169,10 +184,30 @@ const stageOf = (n: number) => content.ui.stageOf.replace("{n}", String(n)).repl
       timer = window.setTimeout(() => select(current + 1), dwell);
     };
 
+    // The walk control (WCAG 2.2.2): Pause halts the walk and the section's
+    // drifting orbs; Resume restarts them. Manual interaction stops the walk
+    // the same way, and only Resume restarts it.
+    const walk = root.parentElement?.querySelector<HTMLButtonElement>("[data-walk]") ?? null;
+    const section = root.closest<HTMLElement>(".aeon-journey");
+    const setWalkState = (paused: boolean) => {
+      section?.classList.toggle("is-paused", paused);
+      if (!walk) return;
+      walk.setAttribute("aria-pressed", String(paused));
+      const label = walk.querySelector("[data-walk-label]");
+      if (label) label.textContent = paused ? walk.dataset.resume ?? "" : walk.dataset.pause ?? "";
+    };
+
     const stop = () => {
       walking = false;
       window.clearTimeout(timer);
       buttons.forEach((button) => button.classList.remove("is-running"));
+      setWalkState(true);
+    };
+
+    const resume = () => {
+      walking = true;
+      setWalkState(false);
+      schedule();
     };
 
     buttons.forEach((button, index) => {
@@ -195,20 +230,33 @@ const stageOf = (n: number) => content.ui.stageOf.replace("{n}", String(n)).repl
     });
     root.addEventListener("pointerdown", stop);
     root.addEventListener("focusin", stop);
+    walk?.addEventListener("click", () => {
+      if (walking) stop();
+      else resume();
+    });
 
     select(0);
     root.classList.add("is-ready");
 
-    if (!reduced && "IntersectionObserver" in window) {
+    if (!reduced && "IntersectionObserver" in window && walk) {
+      // Armed in the one-row layout: the walk starts once in view unless it
+      // was stopped first. The column layout has no walk and no control.
+      walking = oneRow.matches;
+      walk.hidden = !oneRow.matches;
+      setWalkState(!walking);
       const observer = new IntersectionObserver((entries) => {
         if (!entries.some((entry) => entry.isIntersecting) || !oneRow.matches) return;
         observer.disconnect();
-        walking = true;
-        schedule();
+        if (walking) resume();
       }, { threshold: 0.4 });
       observer.observe(root);
       oneRow.addEventListener("change", () => {
-        if (!oneRow.matches) stop();
+        if (!oneRow.matches) {
+          stop();
+          walk.hidden = true;
+        } else {
+          walk.hidden = false;
+        }
       });
     }
     document.addEventListener("visibilitychange", () => {

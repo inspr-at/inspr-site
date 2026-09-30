@@ -338,6 +338,9 @@ export type AeonContent = {
       stepOf: string;
       /** Caption under the instrument. */
       caption: string;
+      /** The walk control (WCAG 2.2.2): pressed while paused. */
+      pause: string;
+      resume: string;
     };
     proof: AeonProof[];
   };
@@ -381,6 +384,9 @@ export type AeonContent = {
       gate: string;
       noGate: string;
       nextAction: string;
+      /** The walk control (WCAG 2.2.2): pressed while paused. */
+      pause: string;
+      resume: string;
     };
     proof: AeonProof[];
   };

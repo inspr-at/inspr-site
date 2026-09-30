@@ -174,7 +174,7 @@ const segmentNote = (text: string): NoteSegment[] => {
                 <span>{pad(i + 1)}</span>
               </span>
               <strong class="specs__slide-label" id={`specs-slide-label-${pad(i + 1)}`}>{specs.items[i]?.label}</strong>
-              <p class="specs__slide-note" id={`specs-slide-note-${pad(i + 1)}`} data-copy-slot>
+              <p class="specs__slide-note" id={`specs-slide-note-${pad(i + 1)}`}>
                 <DetailLevels
                   simple={specs.items[i]?.noteEli10 ?? ""}
                   standard={specs.items[i]?.note ?? ""}
@@ -209,7 +209,7 @@ const segmentNote = (text: string): NoteSegment[] => {
     <p class="eyebrow">{specs.eyebrow}</p>
     <h2 id="specs-title">{specs.title}</h2>
     {specs.lead && field && (
-      <p class="section-lead" data-copy-slot>
+      <p class="section-lead">
         <DetailLevels simple={specs.leadEli10 ?? specs.lead} standard={specs.lead} technical={specs.leadHow ?? specs.lead} />
       </p>
     )}

@@ -12,7 +12,7 @@
  * ids stay simple, standard and technical; the switch names them Why, What
  * and How. What is the page as it was and the edition without JavaScript.
  * Blocks carry data-depth-min / data-depth-max; copy that changes sits in a
- * [data-copy-slot] with one child per level. The level map, pinned by
+ * [data-copy-slot] with one child per level (DetailLevels renders the slot). The level map, pinned by
  * tests/paimos-aeon-levels-static.test.mjs:
  *
  *   section          Why                     What        How
@@ -246,7 +246,7 @@ const releaseVersion = content.release.version.replace(/^v/, "");
             <span class="aeon-hero__title-lead">{content.hero.titleLead}</span>
             <em class="aeon-accent">{content.hero.titleAccent}</em>
           </h1>
-          <p class="aeon-hero__lead" data-copy-slot>
+          <p class="aeon-hero__lead">
             <DetailLevels
               simple={content.hero.depths.simple ?? content.hero.lead}
               standard={content.hero.lead}
@@ -345,7 +345,7 @@ const releaseVersion = content.release.version.replace(/^v/, "");
             <p class="eyebrow">{content.theatre.eyebrow}</p>
             <h2 id="screens-title">{content.theatre.title}</h2>
           </div>
-          <p class="section-lead" data-copy-slot>
+          <p class="section-lead">
             <DetailLevels
               simple={content.theatre.depths.simple}
               standard={content.theatre.lead}
@@ -458,7 +458,7 @@ const releaseVersion = content.release.version.replace(/^v/, "");
             <p class="eyebrow">{content.controlRoom.eyebrow}</p>
             <h2 id="control-title">{content.controlRoom.title}</h2>
           </div>
-          <p class="section-lead" data-copy-slot>
+          <p class="section-lead">
             <DetailLevels
               simple={content.controlRoom.depths.simple}
               standard={content.controlRoom.lead}
@@ -548,7 +548,7 @@ const releaseVersion = content.release.version.replace(/^v/, "");
         <div>
           <p class="eyebrow">{content.rules.eyebrow}</p>
           <h2 id="rules-title">{content.rules.title}</h2>
-          <p class="section-lead" data-copy-slot>
+          <p class="section-lead">
             <DetailLevels
               simple={content.rules.depths.simple}
               standard={content.rules.lead}
@@ -600,7 +600,7 @@ const releaseVersion = content.release.version.replace(/^v/, "");
             <p class="eyebrow">{content.architecture.eyebrow}</p>
             <h2 id="architecture-title">{content.architecture.title}</h2>
           </div>
-          <p class="section-lead" data-copy-slot>
+          <p class="section-lead">
             <DetailLevels
               simple={content.architecture.depths.simple}
               standard={content.architecture.lead}
@@ -693,7 +693,7 @@ const releaseVersion = content.release.version.replace(/^v/, "");
       <div>
         <p class="eyebrow">{content.openSource.eyebrow}</p>
         <h2 id="source-title">{content.openSource.title}</h2>
-        <p class="section-lead" data-copy-slot>
+        <p class="section-lead">
           <DetailLevels
             simple={content.openSource.depths.simple}
             standard={content.openSource.body}
@@ -712,14 +712,14 @@ const releaseVersion = content.release.version.replace(/^v/, "");
       <div class="faq-list">
         {content.faq.map((item) => (
           <details data-flip data-depth-min={item.depthMin} data-depth-max={item.depthMax}>
-            <summary data-copy-slot>
+            <summary>
               <DetailLevels
                 simple={item.questionDepths?.simple ?? item.question}
                 standard={item.question}
                 technical={item.questionDepths?.technical ?? item.question}
               />
             </summary>
-            <p data-copy-slot>
+            <p>
               <DetailLevels simple={item.depths.simple} standard={item.answer} technical={item.depths.technical} />
             </p>
           </details>

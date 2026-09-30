@@ -46,7 +46,7 @@ test("the level map: what Why hides, and where How adds verified facts", async (
   assert.match(authority, /<p class="aeon-proof" data-depth-min="standard">/);
   const journey = await source("components/AeonJourney.astro");
   assert.match(journey, /<p class="aeon-proof" data-depth-min="standard">/);
-  assert.match(journey, /<p class="aeon-stage__summary aeon-stage__detail" data-depth-min="standard" data-copy-slot>/);
+  assert.match(journey, /<p class="aeon-stage__summary aeon-stage__detail" data-depth-min="standard">\s*<DetailLevels/);
   const deep = await source("components/AeonDeep.astro");
   assert.match(deep, /data-depth-min="technical"/, "the How facts show at How only");
   // The map is documented where the markup lives.
@@ -54,17 +54,20 @@ test("the level map: what Why hides, and where How adds verified facts", async (
   assert.match(page, /section\s+Why\s+What\s+How/);
 });
 
-test("every changing sentence sits in a copy slot with one child per level", async () => {
+test("every changing sentence sits in exactly one copy slot with one child per level", async () => {
+  // DetailLevels renders the slot itself, so an outer [data-copy-slot] around
+  // it would nest two slots and leave the outer one without variants.
   for (const file of ["components/AeonPage.astro", "components/AeonAuthority.astro", "components/AeonJourney.astro"]) {
     const text = await source(file);
     const uses = [...text.matchAll(/<DetailLevels/g)].length;
-    const slotted = [...text.matchAll(/data-copy-slot>\s*<DetailLevels/g)].length;
+    const doubled = [...text.matchAll(/data-copy-slot>\s*<DetailLevels/g)].length;
     assert.ok(uses > 0, `${file} uses DetailLevels`);
-    assert.equal(slotted, uses, `${file}: every DetailLevels sits directly in a [data-copy-slot]`);
+    assert.equal(doubled, 0, `${file}: no [data-copy-slot] wraps a DetailLevels`);
   }
   const grid = await source("components/SpecsGrid.astro");
-  assert.match(grid, /specs__slide-note" id=\{`specs-slide-note-\$\{pad\(i \+ 1\)\}`\} data-copy-slot>\s*<DetailLevels/);
-  assert.match(grid, /\{specs\.lead && field && \(\s*<p class="section-lead" data-copy-slot>\s*<DetailLevels/);
+  assert.match(grid, /specs__slide-note" id=\{`specs-slide-note-\$\{pad\(i \+ 1\)\}`\}>\s*<DetailLevels/);
+  assert.match(grid, /\{specs\.lead && field && \(\s*<p class="section-lead">\s*<DetailLevels/);
+  assert.doesNotMatch(grid, /data-copy-slot>\s*<DetailLevels/, "SpecsGrid: no doubled slot");
   // The other pages keep their ELI10 toggle markup unchanged.
   assert.match(grid, /\{specs\.lead && !field && \(\s*<p class="section-lead">\s*<span class="specs__variant specs__variant--tech">/);
   const levels = await source("components/DetailLevels.astro");

@@ -1,0 +1,287 @@
+/* INSPR-498 round 1: polish for the AEON page. Loaded after aeon.css by
+   AeonPage; same layer, so these rules win where they overlap. Motion here is
+   transform, translate or opacity only, for a fine pointer only where it
+   follows the mouse, and off under reduced motion. */
+@layer components {
+  /* ── Rhythm: two tokens ─────────────────────────────────────────────
+     --aeon-space is the padding of a section; --aeon-space-tight is used
+     where two plain sections meet, so the blank between them is one space
+     and not two. A section's own padding-top also sets its anchor offset,
+     so a nav jump lands the heading just under the sticky header. */
+  .aeon {
+    --aeon-space: clamp(4rem, 7.5vw, 6.5rem);
+    --aeon-space-tight: clamp(2.25rem, 4.5vw, 3.5rem);
+  }
+
+  .aeon .section {
+    --aeon-pt: var(--aeon-space);
+    --aeon-pb: var(--aeon-space);
+    padding-block: var(--aeon-pt) var(--aeon-pb);
+  }
+
+  .aeon .section[id] {
+    scroll-margin-top: calc(var(--aeon-pt) * -1);
+  }
+
+  /* Runs of plain sections, at every level. */
+  .aeon #screens { --aeon-pb: var(--aeon-space-tight); }
+  .aeon #specs { --aeon-pt: var(--aeon-space-tight); }
+  .aeon #next { --aeon-pb: var(--aeon-space-tight); }
+  .aeon #open-source { --aeon-pt: var(--aeon-space-tight); --aeon-pb: var(--aeon-space-tight); }
+  .aeon .faq { --aeon-pt: var(--aeon-space-tight); }
+
+  /* At Why the rules band is away, so authority meets delivery. */
+  html[data-details-level="simple"] .aeon .aeon-authority { --aeon-pb: var(--aeon-space-tight); }
+  html[data-details-level="simple"] .aeon .aeon-journey { --aeon-pt: var(--aeon-space-tight); }
+
+  /* ── Hero: the whole scene, no cut plinth ─────────────────────────── */
+  .aeon .aeon-hero__visual {
+    aspect-ratio: 16 / 9;
+  }
+
+  /* A little parallax with a fine pointer: the scene and its glass notes
+     drift a few pixels against the pointer. `translate` is its own property,
+     so it never fights the entrance animations; the script writes
+     --px and --py (-1 to 1). Off while the hero is paused and on touch. */
+  .aeon .aeon-hero__visual,
+  .aeon .aeon-chips {
+    translate: calc(var(--px, 0) * -7px) calc(var(--py, 0) * -5px);
+    transition: translate 700ms var(--ease);
+  }
+
+  .aeon .aeon-chips {
+    translate: calc(var(--px, 0) * -13px) calc(var(--py, 0) * -9px);
+  }
+
+  .aeon .aeon-hero.is-paused .aeon-hero__visual,
+  .aeon .aeon-hero.is-paused .aeon-chips {
+    translate: none;
+  }
+
+  @media (hover: none), (pointer: coarse) {
+    .aeon .aeon-hero__visual,
+    .aeon .aeon-chips {
+      translate: none;
+    }
+  }
+
+  /* ── Rules: the viewer follows the reading ────────────────────────── */
+  @media (min-width: 72rem) and (min-height: 46rem) {
+    .aeon-rules__grid {
+      align-items: start;
+    }
+
+    .aeon-rules__grid > .aeon-pan {
+      position: sticky;
+      top: 7.5rem;
+    }
+  }
+
+  /* ── How facts: a calm measure ─────────────────────────────────────── */
+  .aeon-deep dd {
+    max-width: 70ch;
+  }
+
+  /* ── Carousel counter, easier to see ──────────────────────────────── */
+  .specs__carousel-pos {
+    font-size: 0.8125rem;
+  }
+
+  .specs__carousel-sep {
+    color: rgb(247 251 250 / 0.6);
+  }
+
+  /* ── Specs tiles: a calmer entrance, a soft light that follows a pointer ── */
+  .specs--aeon .specs__tile.is-in .specs__face {
+    animation-duration: 700ms;
+    animation-delay: calc(var(--base, 0ms) + var(--i, 0) * 45ms);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .specs--aeon .specs__face {
+      position: relative;
+      isolation: isolate;
+    }
+
+    .specs--aeon .specs__face::before {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      content: "";
+      pointer-events: none;
+      border-radius: inherit;
+      background: radial-gradient(11rem 8rem at var(--mx, 50%) var(--my, 0%), rgb(255 255 255 / 0.62), rgb(255 255 255 / 0) 70%);
+      opacity: 0;
+      transition: opacity 0.55s var(--calm);
+    }
+
+    .specs--aeon .specs__tile:hover .specs__face::before,
+    .specs--aeon .specs__tile:focus-within .specs__face::before {
+      opacity: 1;
+    }
+  }
+
+  /* ── Command copy buttons ─────────────────────────────────────────── */
+  .aeon-cmd {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    min-width: 0;
+  }
+
+  .aeon-cmd code {
+    min-width: 0;
+  }
+
+  .aeon-copy {
+    position: relative;
+    display: grid;
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    place-items: center;
+    color: var(--aeon-glow);
+    background: rgb(67 201 186 / 0.08);
+    border: 1px solid rgb(67 201 186 / 0.22);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition:
+      background 0.35s var(--calm),
+      border-color 0.35s var(--calm),
+      color 0.35s var(--calm);
+  }
+
+  /* A touch-sized target without a bigger look. */
+  .aeon-copy::after {
+    position: absolute;
+    inset: -0.4rem;
+    content: "";
+  }
+
+  .aeon-copy:hover {
+    background: rgb(67 201 186 / 0.18);
+    border-color: rgb(67 201 186 / 0.5);
+  }
+
+  .aeon-copy:focus-visible {
+    outline: 2px solid var(--aeon-gold-bright);
+    outline-offset: 2px;
+  }
+
+  .aeon-copy svg {
+    grid-area: 1 / 1;
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition:
+      opacity 0.35s var(--calm),
+      transform 0.45s var(--calm);
+  }
+
+  .aeon-copy__done {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+
+  .aeon-copy.is-copied {
+    color: var(--aeon-gold-bright);
+    border-color: rgb(241 197 109 / 0.55);
+  }
+
+  .aeon-copy.is-copied .aeon-copy__icon {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+
+  .aeon-copy.is-copied .aeon-copy__done {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ── Phones: the theatre screens, pannable ───────────────────────────
+     A 1440px screen squeezed into 350px is a thumbnail. Here it is a
+     window you drag across, with native momentum; a tap still opens the
+     full-screen viewer. */
+  .aeon-theatre__pan-hint {
+    display: none;
+  }
+
+  @media (max-width: 40rem) {
+    .aeon-theatre .aeon-window {
+      max-height: min(26rem, 72svh);
+      overflow: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+
+    .aeon-theatre .aeon-window img {
+      display: block;
+      width: 1080px;
+      max-width: none;
+      height: auto;
+    }
+
+    .aeon-theatre .aeon-window__bar {
+      position: sticky;
+      top: 0;
+      left: 0;
+      z-index: 2;
+    }
+
+    .aeon-theatre .aeon-shot__zoom {
+      display: none;
+    }
+
+    .aeon-theatre__pan-hint {
+      display: block;
+      margin-top: 0.6rem;
+      color: var(--ink-soft);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: opacity 0.5s var(--calm);
+    }
+
+    .aeon-theatre__pan-hint.is-used {
+      opacity: 0;
+    }
+  }
+
+  /* ── Footer meta on a local build: quiet ───────────────────────────── */
+  .aeon ~ .site-footer .site-footer__release[data-release-id="local"] {
+    opacity: 0.4;
+  }
+
+  /* ── German: hyphenate long compounds, never code or terms ─────────── */
+  html[lang="de"] .aeon :is(h1, h2, h3, h4, p, li, dd, summary, figcaption, small) {
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    hyphenate-limit-chars: 7 3 3;
+  }
+
+  html[lang="de"] .aeon :is(code, dt, .aeon-tab, .eyebrow, .aeon-chip__text small) {
+    hyphens: manual;
+    -webkit-hyphens: manual;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aeon .aeon-hero__visual,
+    .aeon .aeon-chips {
+      translate: none;
+      transition: none;
+    }
+
+    .specs--aeon .specs__face::before,
+    .aeon-copy,
+    .aeon-copy svg {
+      transition: none;
+    }
+  }
+}

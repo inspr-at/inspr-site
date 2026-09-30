@@ -46,12 +46,14 @@ import AeonRulesPan from "./AeonRulesPan.astro";
 import AeonReleasePlaque from "./AeonReleasePlaque.astro";
 import AeonDeep from "./AeonDeep.astro";
 import AeonText from "./AeonText.astro";
+import AeonPolish from "./AeonPolish.astro";
 import type { AeonContent, AeonProof } from "../content/types";
 import { siteUrls } from "../content/urls";
 import captureManifest from "../assets/products/paimos-aeon/capture-manifest.json";
 import "@fontsource-variable/geist/index.css";
 import "../styles/aeon.css";
 import "../styles/aeon-mark.css";
+import "../styles/aeon-polish.css";
 
 import aeonMark from "../assets/products/paimos/logo.svg";
 import heroPoster from "../assets/products/paimos/hero.png";
@@ -118,6 +120,9 @@ const labels = locale === "de"
       ribbonAria: "Beispielhafte Ereignisse im Ereignisprotokoll",
       releaseAria: "Aktuelles Release",
       codename: "Codename",
+      copyCommand: "Befehl kopieren",
+      copied: "Kopiert",
+      theatreHint: "Ziehen zum Erkunden · Tippen zum Vergrößern",
     }
   : {
       viewSource: "View the source",
@@ -160,6 +165,9 @@ const labels = locale === "de"
       ribbonAria: "Illustrative events in the event log",
       releaseAria: "Current release",
       codename: "Codename",
+      copyCommand: "Copy command",
+      copied: "Copied",
+      theatreHint: "Drag to explore · tap to enlarge",
     };
 
 const proofHref = (proof: AeonProof) => {
@@ -446,12 +454,13 @@ const releaseVersion = content.release.version.replace(/^v/, "");
                   alt={screen.alt}
                   style={`aspect-ratio: ${screen.image.width} / ${screen.image.height};`}
                   widths={[800, 1200, 1600, 2400]}
-                  sizes="(min-width: 90rem) 88rem, 94vw"
+                  sizes="(max-width: 40rem) 1080px, (min-width: 90rem) 88rem, 94vw"
                   format="webp"
                   quality={84}
                 />
                 <span class="aeon-shot__zoom" aria-hidden="true">{content.theatre.openLabel} ⤢</span>
               </a>
+              <p class="aeon-theatre__pan-hint" aria-hidden="true">{labels.theatreHint}</p>
               <p class="aeon-theatre__caption"><strong>{screen.title}</strong> {screen.body}</p>
             </div>
           ))}
@@ -558,7 +567,13 @@ const releaseVersion = content.release.version.replace(/^v/, "");
                 <span class="aeon-terminal__body">
                   <span>{step.label}</span>
                   {step.command ? (
-                    <code><span aria-hidden="true">$ </span>{step.command}</code>
+                    <span class="aeon-cmd">
+                      <code><span aria-hidden="true">$ </span>{step.command}</code>
+                      <button type="button" class="aeon-copy" data-copy={step.command} data-copied-text={labels.copied} aria-label={`${labels.copyCommand}: ${step.command}`}>
+                        <svg class="aeon-copy__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="9" y="9" width="11" height="11" rx="2.5" /><path d="M5 15V6.5A2.5 2.5 0 0 1 7.5 4H15" /></svg>
+                        <svg class="aeon-copy__done" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+                      </button>
+                    </span>
                   ) : (
                     <span class="aeon-code" aria-hidden="true"><i></i><i></i><i></i><b></b><i></i><i></i><i></i><b></b><i></i><i></i><i></i></span>
                   )}
@@ -566,6 +581,7 @@ const releaseVersion = content.release.version.replace(/^v/, "");
               </li>
             ))}
           </ol>
+          <span class="visually-hidden" role="status" aria-live="polite" data-copy-status></span>
         </div>
 
         <AeonDeep deep={content.controlRoom.deep} id="control-deep" version={releaseVersion} locale={locale} ink />
@@ -767,6 +783,8 @@ const releaseVersion = content.release.version.replace(/^v/, "");
     </section>
   </main>
 
+  <AeonPolish />
+
   <MicrositeFooter
     name={content.name}
     repositoryUrl={content.repositoryUrl}
@@ -873,11 +891,16 @@ const releaseVersion = content.release.version.replace(/^v/, "");
           .map((entry) => entry.target as HTMLElement)
           .sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
           .forEach((tile, i) => {
-            tile.style.setProperty("--i", String(i));
+            tile.style.setProperty("--i", String(Math.min(i, 8)));
+            // The theatre tour moves while it is on screen: the tiles wait a
+            // beat so the two never start on the same scroll moment.
+            const theatre = document.querySelector<HTMLElement>("[data-theatre]");
+            const theatreOn = theatre ? theatre.getBoundingClientRect().bottom > window.innerHeight * 0.3 : false;
+            tile.style.setProperty("--base", theatreOn ? "400ms" : "0ms");
             tile.classList.add("is-in");
             observer.unobserve(tile);
           });
-      }, { threshold: 0.2, rootMargin: "0px 0px -4% 0px" });
+      }, { threshold: 0.05, rootMargin: "0px 0px 8% 0px" });
       tiles.forEach((tile) => observer.observe(tile));
     }
 

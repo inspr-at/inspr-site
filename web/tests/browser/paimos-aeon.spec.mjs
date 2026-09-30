@@ -67,3 +67,16 @@ test.describe("hero pause", () => {
     expect(running).toEqual([]);
   });
 });
+
+// INSPR-494: the operator rejected slanted accents; nothing on the page may
+// render as (synthetic) italic.
+test("no text on the AEON page renders in italic", async ({ page }) => {
+  await page.goto("/paimos/?lang=en", { waitUntil: "domcontentloaded" });
+  const italic = await page.evaluate(() =>
+    [...document.querySelectorAll("main *, header *, footer *")]
+      .filter((element) => element.childNodes.length && [...element.childNodes].some((node) => node.nodeType === 3 && node.textContent.trim()))
+      .filter((element) => getComputedStyle(element).fontStyle !== "normal")
+      .map((element) => `${element.tagName.toLowerCase()}.${element.className}: ${element.textContent.trim().slice(0, 40)}`),
+  );
+  expect(italic).toEqual([]);
+});

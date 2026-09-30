@@ -46,7 +46,7 @@ export const paimosAeonContent = {
   ],
   serviceIntro: "Augmentoring deploys, integrates and operates PAIMOS AEON for teams.",
   hero: {
-    eyebrow: "PAIMOS 7",
+    eyebrow: "PAIMOS",
     titleLead: "Your agents. Your machines.",
     titleAccent: "Your rules.",
     lead:
@@ -87,7 +87,7 @@ export const paimosAeonContent = {
     { value: "5", label: "agent harnesses" },
     { value: "6", label: "rule layers" },
     { value: "8", label: "journey stages" },
-    { value: "1", label: "event log per tenant", depthMin: "standard" },
+    { value: "1", label: "append-only event log per tenant", depthMin: "standard" },
     { value: "300+", label: "API paths, one OpenAPI 3.1 contract", depthMin: "standard" },
   ],
   theatre: {
@@ -476,7 +476,7 @@ export const paimosAeonContent = {
       simple:
         "Rules for agents are written once for the company and refined for each project, person and task, and the critical ones stay locked.",
       technical:
-        "internal/rules merges six layers into versioned publications with locked rules and one merged byte budget; a harness receives the merged set through paimos session start --rules-receive.",
+        "The rules module merges six layers into versioned publications with locked rules and one merged byte budget; a harness receives the merged set through paimos session start --rules-receive.",
     },
     deep: {
       title: "Rule merging, precisely",

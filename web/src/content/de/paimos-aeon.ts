@@ -13,7 +13,7 @@ const blob = (path: string) => `${repositoryUrl}/blob/${tag}/${path}`;
 
 export const paimosAeonContentDe = {
   name: "PAIMOS AEON",
-  category: "Agentenorientierte Arbeitsplattform",
+  category: "Arbeitsplattform für Agenten",
   canonicalUrl: `${siteUrls.paimos}/de/`,
   repositoryUrl,
   sourceTreeUrl: `${repositoryUrl}/tree/${tag}`,
@@ -39,7 +39,7 @@ export const paimosAeonContentDe = {
   ],
   serviceIntro: "Augmentoring stellt PAIMOS AEON für Teams bereit, integriert und betreibt es.",
   hero: {
-    eyebrow: "PAIMOS 7",
+    eyebrow: "PAIMOS",
     titleLead: "Ihre Agenten. Ihre Rechner.",
     titleAccent: "Ihre Regeln.",
     lead:
@@ -80,7 +80,7 @@ export const paimosAeonContentDe = {
     { value: "5", label: "Agenten-Harnesses" },
     { value: "6", label: "Regel-Ebenen" },
     { value: "8", label: "Journey-Stufen" },
-    { value: "1", label: "Ereignisprotokoll je Mandant", depthMin: "standard" },
+    { value: "1", label: "Append-only-Ereignisprotokoll je Mandant", depthMin: "standard" },
     { value: "300+", label: "API-Pfade, ein Vertrag nach OpenAPI 3.1", depthMin: "standard" },
   ],
   theatre: {
@@ -469,7 +469,7 @@ export const paimosAeonContentDe = {
       simple:
         "Regeln für Agenten werden einmal für das Unternehmen geschrieben und für jedes Projekt, jede Person und jede Aufgabe verfeinert, und die entscheidenden bleiben gesperrt.",
       technical:
-        "internal/rules führt sechs Ebenen zu versionierten Veröffentlichungen mit gesperrten Regeln und einem gemeinsamen Byte-Budget zusammen; ein Harness erhält den zusammengeführten Satz über paimos session start --rules-receive.",
+        "Das Regelmodul führt sechs Ebenen zu versionierten Veröffentlichungen mit gesperrten Regeln und einem gemeinsamen Byte-Budget zusammen; ein Harness erhält den zusammengeführten Satz über paimos session start --rules-receive.",
     },
     deep: {
       title: "Zusammenführung der Regeln, genau",

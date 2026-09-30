@@ -1,17 +1,24 @@
 ---
 /**
- * One sentence in three depths. All three ship in the static HTML; the
- * header's Details control picks which one is visible, so switching never
- * reloads or fetches. Without JavaScript, or at the default position, the
- * standard depth shows.
+ * One sentence in three depths. All three ship in the static HTML inside
+ * one copy slot; the header's Why · What · How switch picks which one is
+ * visible, so switching never reloads or fetches. Without JavaScript, or
+ * at What, the standard depth shows.
+ *
+ * mode "flow" (default): the slot takes the shown depth's height; content
+ * after it slides when a longer or shorter depth arrives. mode "stack":
+ * every depth shares one grid cell, so the slot keeps the longest depth's
+ * height and a switch is a pure crossfade; use it for copy inside glass or
+ * bordered boxes that must not change size.
  */
 interface Props {
   simple: string;
   standard: string;
   technical: string;
+  mode?: "flow" | "stack";
 }
 
-const { simple, standard, technical } = Astro.props;
+const { simple, standard, technical, mode = "flow" } = Astro.props;
 ---
 
-<span data-copy-level="simple">{simple}</span><span data-copy-level="standard">{standard}</span><span data-copy-level="technical">{technical}</span>
+<span data-copy-slot={mode === "stack" ? "stack" : ""}><span data-copy-level="simple">{simple}</span><span data-copy-level="standard">{standard}</span><span data-copy-level="technical">{technical}</span></span>

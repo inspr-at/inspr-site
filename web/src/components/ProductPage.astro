@@ -74,9 +74,6 @@ const labels = locale === "de"
       proofAria: "Produktmerkmale",
       proofLabel: "Betriebsprofil",
       specsEli10: "Einfach erklärt",
-      detailsDescription: "Wie viel Detail diese Seite zeigt",
-      detailsSimple: "Einfach",
-      detailsTechnical: "Technisch",
       specsFlipAll: "Alle umdrehen",
       specsUnflipAll: "Alle zurückdrehen",
       specsShuffle: "Eckdaten-Raster mischen",
@@ -112,9 +109,6 @@ const labels = locale === "de"
       proofAria: "Product characteristics",
       proofLabel: "Operating posture",
       specsEli10: "ELI10 mode",
-      detailsDescription: "How much detail this page shows",
-      detailsSimple: "Simple",
-      detailsTechnical: "Technical",
       specsFlipAll: "Flip all",
       specsUnflipAll: "Unflip all",
       specsShuffle: "Shuffle the specs grid",
@@ -241,15 +235,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
     nav={nav}
     locale={locale}
     languageLinks={mount ? { en: pathOf(englishUrl), de: pathOf(germanUrl) } : { en: "/", de: "/de/" }}
-    detailsSlider={{
-      label: "Details",
-      description: labels.detailsDescription,
-      levels: [
-        { id: "simple", label: labels.detailsSimple },
-        { id: "standard", label: "Standard" },
-        { id: "technical", label: labels.detailsTechnical },
-      ],
-    }}
+    detailsSlider={{}}
   />
 
   <main id="main-content">

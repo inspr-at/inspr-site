@@ -230,7 +230,7 @@ test("Overview keeps a bounded, friendly and responsive two-screen structure", a
   assert.doesNotMatch(styles, /animation:/);
 });
 
-test("Overview Details slider is wordless and its technical depth is a datasheet over the standard page", async () => {
+test("Overview Why · What · How switch is labelled and its technical depth is a datasheet over the standard page", async () => {
   const [page, header, control, stack, levels, controlStyles, styles, deploy] = await Promise.all([
     source("components/OverviewPage.astro"),
     source("components/MicrositeHeader.astro"),
@@ -242,26 +242,26 @@ test("Overview Details slider is wordless and its technical depth is a datasheet
     rootFile("deploy.sh"),
   ]);
 
-  // A wordless level slider named "Details" sits in the header before the
-  // language choice: a real slider for screen readers, no visible level
-  // names, no caption, no tooltip — and never developer, sysop or nerd.
+  // A labelled switch sits in the header before the language choice: a
+  // radio group Why · What · How with a hint per choice, the rising-bars
+  // glyph on narrow headers, and never developer, sysop or nerd.
   assert.match(page, /import DetailLevels from "\.\/DetailLevels\.astro"/);
   assert.match(page, /import OverviewStack from "\.\/OverviewStack\.astro"/);
-  assert.match(page, /detailsSlider=\{\{[\s\S]*?label: "Details",[\s\S]*?controls: "overview-details",/);
-  assert.deepEqual([...page.matchAll(/\{ id: "(simple|standard|technical)", label: /g)].map((match) => match[1]), ["simple", "standard", "technical"]);
+  assert.match(page, /detailsSlider=\{\{ controls: "overview-details" \}\}/);
   assert.match(header, /import DetailsControl from "\.\/DetailsControl\.astro"/);
   assert.match(header, /\{detailsSlider && \([\s\S]*?<DetailsControl[\s\S]*?\{languageLinks && \(/);
-  assert.match(control, /class="details-slider__track"[\s\S]*?role="slider"[\s\S]*?aria-valuemin="0"[\s\S]*?aria-valuemax="2"[\s\S]*?aria-valuetext=\{levels\[1\]\?\.label\}/);
-  assert.match(control, /class="details-slider__glyph" aria-hidden="true"><i><\/i><i><\/i><i><\/i>/);
-  assert.doesNotMatch(control, /title=\{|<span[^>]*>\{level\.label\}/);
-  assert.match(control, /"pointerdown"[\s\S]*?"pointermove"[\s\S]*?"wheel"[\s\S]*?"keydown"/);
+  assert.match(control, /role="radiogroup"[\s\S]*?aria-label=\{copy\.group\}[\s\S]*?aria-controls=\{controls\}/);
+  assert.match(control, /role="radio"[\s\S]*?aria-checked=\{id === "standard" \? "true" : "false"\}[\s\S]*?aria-label=\{copy\.names\[id\]\}[\s\S]*?aria-describedby=\{`details-hint-\$\{id\}`\}/);
+  assert.match(control, /class="details-switch__glyph" aria-hidden="true"><i><\/i><i><\/i><i><\/i>/);
+  assert.match(control, /data-details-slider/);
+  assert.match(control, /"ArrowRight"[\s\S]*?"ArrowLeft"[\s\S]*?"Home"[\s\S]*?"End"/);
   assert.match(control, /searchParams\.get\(linkParam\)/);
   assert.match(control, /\[data-specs-eli10\]/);
   assert.doesNotMatch(page + header + control + stack, /developer|sysop|nerd/i);
 
   // Every depth ships in the static HTML and swaps in place; the standard
   // depth is what renders without JavaScript.
-  assert.match(levels, /<span data-copy-level="simple">\{simple\}<\/span><span data-copy-level="standard">\{standard\}<\/span><span data-copy-level="technical">\{technical\}<\/span>/);
+  assert.match(levels, /<span data-copy-slot=\{mode === "stack" \? "stack" : ""\}><span data-copy-level="simple">\{simple\}<\/span><span data-copy-level="standard">\{standard\}<\/span><span data-copy-level="technical">\{technical\}<\/span><\/span>/);
   assert.match(controlStyles, /html:not\(\[data-details-level\]\) \[data-copy-level="standard"\]/);
   assert.equal((page.match(/<DetailLevels/g) || []).length, 6);
   assert.equal((page.match(/simple: copy\(/g) || []).length, 8);
@@ -276,7 +276,6 @@ test("Overview Details slider is wordless and its technical depth is a datasheet
   assert.equal((page.match(/    sheet: \{/g) || []).length, 4);
   assert.equal((page.match(/    mechanism: copy\(/g) || []).length, 4);
   assert.equal((page.match(/handoff: copy\(/g) || []).length, 5);
-  assert.match(page, /class="overview-flow__handoff" aria-hidden="true">\{node\.handoff\}/);
   assert.match(page, /class="overview-drawer overview-promise__mechanism" data-drawer/);
   assert.match(page, /<p class="overview-kicker" data-index="00">/);
   assert.match(page, /<p class="overview-kicker" data-index="01">/);
@@ -291,17 +290,20 @@ test("Overview Details slider is wordless and its technical depth is a datasheet
   assert.match(control, /fetch\("\/release\.json"/);
   assert.doesNotMatch(stack, /fetch\("\/release\.json"/);
   assert.match(control, /method: "HEAD"/);
-  assert.match(control, /drawer\.style\.setProperty\("--drawer-i", String\(Math\.min\(index, 8\)\)\)/);
+  assert.doesNotMatch(control, /--drawer-i/);
   assert.match(stack, /window\.addEventListener\("hashchange", followHash\)/);
   assert.match(stack, /inspr:details-request[\s\S]*?level: "technical"/);
   assert.match(stack, /event\.key !== "Escape"[\s\S]*?level: "standard"/);
   assert.doesNotMatch(stack + styles, /wheel|preserve-3d|rotateX|data-details-reading|cover/i);
-  assert.match(controlStyles, /html\[data-details-level="technical"\] \.overview-drawer \{[\s\S]*?grid-template-rows: 1fr;[\s\S]*?calc\(var\(--drawer-i\) \* 45ms\)/);
+  assert.match(controlStyles, /html:not\(\[data-details-level="technical"\]\) \[data-drawer\]:not\(\.is-holding\) \{\s*display: none;/);
+  assert.match(page, /class="overview-flow__handoff" data-depth-min="technical" aria-hidden="true">\{node\.handoff\}/);
   assert.match(styles, /html\[data-details-level="technical"\] \.overview-kicker\[data-index\]::before \{[\s\S]*?opacity: 1;/);
   assert.match(page, /class="overview-promises" data-depth-min="standard"/);
   assert.match(page, /class="overview-control" data-depth-min="standard"/);
   assert.match(styles, /@media \(max-width: 64rem\) \{[\s\S]*?\.overview-stack__row \{\s*grid-template-columns: 1fr;/);
-  assert.match(controlStyles, /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\.overview-drawer,/);
+  // Reduced motion lands a switch at once in the engine; the switch's own
+  // transitions yield too.
+  assert.match(controlStyles, /@media \(prefers-reduced-motion: reduce\) \{\s*\.details-switch__thumb,[\s\S]*?transition: none;/);
   assert.doesNotMatch(stack + control, /is:inline/);
 
   // Public content conveys the kind of machine, never an identity: no host

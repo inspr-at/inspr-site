@@ -1,70 +1,136 @@
 ---
 /**
- * The Details control: a wordless level slider, three notches, like a
- * volume control. Left of it a glyph of three rising bars fills with the
- * level. No visible level names, no caption, no tooltip; screen readers get
- * a real slider with a value text.
+ * The Details switch (INSPR-497): one labelled choice, Why · What · How
+ * (Warum · Was · Wie), naming the angle the page takes, not the reader.
  *
- *   0 simple     plain words for deciders, less on the page
- *   1 standard   the page as most readers see it (renders without JavaScript)
- *   2 technical  terms of art, more on the page; the Overview opens its scene
+ *   simple     Why   results and value, fewer technical details
+ *   standard   What  the product as it is (renders without JavaScript)
+ *   technical  How   the technical detail for engineering and IT
  *
- * The control owns the level: it stamps `data-details-level` on <html>,
- * remembers the choice like the language choice, honours `?details=` on
- * arrival so the depth travels between the family's hosts, keeps cross-host
- * links carrying it, and switches the specs grid's plain-words mode on for
- * Simple. Other scripts listen for `inspr:details-level` and may ask for a
- * change with `inspr:details-request`.
+ * A radio group with a glass thumb that slides by transform; on narrow
+ * headers it folds into the rising-bars glyph and the active name, and a
+ * tap opens the three choices in a glass popover. A change says what the
+ * page now shows in a short line beside the control.
+ *
+ * The control owns the level: it stamps `data-details-level` on <html>
+ * (the head script already did for a stored or linked level, before the
+ * first paint), remembers the choice like the language choice, honours
+ * `?details=` on arrival so the depth travels between the family's hosts,
+ * keeps cross-host links carrying it, and switches the specs grid's
+ * plain-words mode on for Why. Other scripts listen for
+ * `inspr:details-level`, `inspr:details-moving` (with the element that
+ * keeps its place) and `inspr:details-settled`, and may ask for a change
+ * with `inspr:details-request`. The motion itself lives in
+ * ../scripts/details-engine.ts.
  */
 import "../styles/details-control.css";
 
 interface Props {
-  label: string;
-  description: string;
+  locale?: "en" | "de";
+  /** The region the switch reshapes, for aria-controls. */
   controls?: string;
-  levels: Array<{ id: "simple" | "standard" | "technical"; label: string }>;
 }
 
-const { label, description, controls, levels } = Astro.props;
+const { locale = "en", controls } = Astro.props;
+
+type Id = "simple" | "standard" | "technical";
+const copy = locale === "de"
+  ? {
+      group: "Seitentiefe",
+      open: "Seitentiefe wählen",
+      names: { simple: "Warum", standard: "Was", technical: "Wie" },
+      hints: {
+        simple: "Ergebnisse und Nutzen, weniger technische Details",
+        standard: "Das Produkt, wie es ist",
+        technical: "Die technischen Details für Entwicklung und IT",
+      },
+      notes: {
+        simple: "Warum: Ergebnisse und Nutzen zuerst",
+        standard: "Was: das Produkt, wie es ist",
+        technical: "Wie: die technischen Details",
+      },
+    }
+  : {
+      group: "Page depth",
+      open: "Choose the page depth",
+      names: { simple: "Why", standard: "What", technical: "How" },
+      hints: {
+        simple: "Results and value, fewer technical details",
+        standard: "The product as it is",
+        technical: "The technical detail for engineering and IT",
+      },
+      notes: {
+        simple: "Why: results and value first",
+        standard: "What: the product as it is",
+        technical: "How: the technical detail",
+      },
+    };
+const ids: Id[] = ["simple", "standard", "technical"];
 ---
 
-<div class="details-slider" data-details-slider data-level="standard" style="--details-pos: 1;">
-  <span class="details-slider__label" aria-hidden="true">{label}</span>
-  <span class="details-slider__glyph" aria-hidden="true"><i></i><i></i><i></i></span>
-  <div
-    class="details-slider__track"
-    role="slider"
-    tabindex="0"
-    aria-label={description}
-    aria-controls={controls}
-    aria-valuemin="0"
-    aria-valuemax="2"
-    aria-valuenow="1"
-    aria-valuetext={levels[1]?.label}
-    data-details-track
+<div
+  class="details-switch"
+  data-details-slider
+  data-details-switch
+  data-level="standard"
+  style="--details-pos: 1;"
+  data-notes={JSON.stringify(copy.notes)}
+  data-names={JSON.stringify(copy.names)}
+>
+  <button
+    type="button"
+    class="details-switch__toggle"
+    aria-expanded="false"
+    aria-controls="details-switch-group"
+    aria-label={copy.open}
+    data-details-toggle
   >
-    <span class="details-slider__fill" aria-hidden="true"></span>
-    {levels.map((level, index) => (
-      <span
-        class="details-slider__notch"
-        style={`--i: ${index};`}
-        data-details-level={level.id}
-        data-details-name={level.label}
-        aria-hidden="true"
-      ></span>
+    <span class="details-switch__glyph" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span class="details-switch__current" data-details-current>{copy.names.standard}</span>
+    <svg class="details-switch__chevron" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
+      <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </button>
+  <div
+    class="details-switch__group"
+    id="details-switch-group"
+    role="radiogroup"
+    aria-label={copy.group}
+    aria-controls={controls}
+    data-details-group
+  >
+    <span class="details-switch__thumb" aria-hidden="true"></span>
+    {ids.map((id) => (
+      <button
+        type="button"
+        role="radio"
+        class="details-switch__option"
+        aria-checked={id === "standard" ? "true" : "false"}
+        tabindex={id === "standard" ? 0 : -1}
+        aria-label={copy.names[id]}
+        aria-describedby={`details-hint-${id}`}
+        data-details-choice={id}
+      >
+        <span class="details-switch__name">{copy.names[id]}</span>
+        <span class="details-switch__hint" id={`details-hint-${id}`}>{copy.hints[id]}</span>
+      </button>
     ))}
-    <span class="details-slider__knob" aria-hidden="true"></span>
   </div>
+  <span class="details-switch__note" aria-hidden="true" data-details-note></span>
+  <span class="details-switch__status" role="status" aria-live="polite" data-details-status></span>
 </div>
 
 <script>
-  type Level = "simple" | "standard" | "technical";
-  const LEVELS: Level[] = ["simple", "standard", "technical"];
-  const isLevel = (value: unknown): value is Level => LEVELS.includes(value as Level);
+  import { createDepthEngine, EASE, isLevel, LEVELS, type Level } from "../scripts/details-engine";
+
   const root = document.documentElement;
   const storageKey = "inspr-details-level";
   const legacyStorageKey = "inspr-details";
   const linkParam = "details";
+  const NOTE_MS = 3000;
+
+  // The head script (/scripts/details-level.js) applied a stored or linked
+  // level before the first paint; this reads the same sources.
   let level: Level = "standard";
   let fromLink = false;
   try {
@@ -84,147 +150,27 @@ const { label, description, controls, levels } = Astro.props;
       else if (localStorage.getItem(legacyStorageKey) === "1") level = "technical";
     } catch { /* Storage is optional. */ }
   }
+  const painted = root.getAttribute("data-details-level");
 
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const FOLD_STAGGER_MS = 25;
-  const FOLD_STAGGER_CAP = 8;
-  const FOLD_MIN_DURATION_MS = 450;
-  const FOLD_MAX_DURATION_MS = 800;
-  const FOLD_HEIGHT_CAP_PX = 1600;
-  const FOLD_TIMEOUT_BUFFER_MS = 50;
-  const folds = Array.from(document.querySelectorAll<HTMLElement>("[data-depth-min], [data-depth-max]"));
-  // Outer boxes animate too, so removing a grid column or reducing its gaps
-  // never instantly moves the following section. These boxes stay open.
-  folds.push(...document.querySelectorAll<HTMLElement>("[data-depth-layout]:not([data-depth-min]):not([data-depth-max])"));
-  folds.sort((a, b) => a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
-  const spacing = ["margin-block-start", "margin-block-end", "padding-block-start", "padding-block-end"];
-  const pending = new Map<HTMLElement, () => void>();
-  const isClosed = (element: HTMLElement, next: Level) => {
-    const depth = LEVELS.indexOf(next);
-    const min = element.dataset.depthMin;
-    const max = element.dataset.depthMax;
-    return (isLevel(min) && depth < LEVELS.indexOf(min)) || (isLevel(max) && depth > LEVELS.indexOf(max));
+  const control = document.querySelector<HTMLElement>("[data-details-switch]");
+  const group = control?.querySelector<HTMLElement>("[data-details-group]") ?? null;
+  const options = Array.from(group?.querySelectorAll<HTMLButtonElement>("[data-details-choice]") ?? []);
+  const toggle = control?.querySelector<HTMLButtonElement>("[data-details-toggle]") ?? null;
+  const current = control?.querySelector<HTMLElement>("[data-details-current]") ?? null;
+  const note = control?.querySelector<HTMLElement>("[data-details-note]") ?? null;
+  const status = control?.querySelector<HTMLElement>("[data-details-status]") ?? null;
+  const checked = () => options.find((option) => option.dataset.detailsChoice === level) ?? null;
+
+  // Fill every live fact on the page once. It starts when the browser is
+  // idle, at any level: the facts sit in folded drawers, so filling them
+  // moves nothing, and a later switch to How measures them complete.
+  let live: Promise<void> | null = null;
+  const loadLive = () => {
+    if (!document.querySelector("[data-live]")) return Promise.resolve();
+    live ??= fillLive();
+    return live;
   };
-  const settle = (element: HTMLElement, closed: boolean) => {
-    element.classList.toggle("is-folding", closed);
-    element.classList.toggle("is-folded", closed);
-    element.inert = closed;
-    element.style.height = closed ? "" : "auto";
-    element.style.removeProperty("overflow");
-    element.style.removeProperty("min-height");
-    element.style.removeProperty("opacity");
-    element.style.removeProperty("transition");
-    element.style.removeProperty("transition-delay");
-    element.style.removeProperty("transition-duration");
-    spacing.forEach((property) => element.style.removeProperty(property));
-  };
-  const foldTo = (next: Level, animate: boolean) => {
-    const previous = root.getAttribute("data-details-level");
-    const compactChanged = (previous === "simple") !== (next === "simple");
-    const activeElement = document.activeElement;
-    const active = folds.map((element) => pending.has(element)
-      || !isLevel(previous) || isClosed(element, previous) !== isClosed(element, next)
-      || (compactChanged && element.hasAttribute("data-depth-layout") && !isClosed(element, next)));
-    // Read every current box BEFORE changing copy depth or compact layout.
-    // On reversal these are the interpolated pixels, never the old endpoint.
-    const snapshots = folds.map((element) => {
-      const css = getComputedStyle(element);
-      return {
-        height: element.getBoundingClientRect().height,
-        opacity: css.opacity,
-        spacing: spacing.map((property) => css.getPropertyValue(property)),
-      };
-    });
-    root.setAttribute("data-details-level", next);
-    const closed = folds.map((element) => isClosed(element, next));
-    // Measure the complete destination layout in one pass: nested folds must
-    // already have their destination state when their parent is measured.
-    folds.forEach((element, index) => {
-      pending.get(element)?.();
-      settle(element, closed[index]);
-      element.style.transition = "none";
-    });
-    if (!animate || reducedMotion.matches) {
-      folds.forEach((element, index) => settle(element, closed[index]));
-      return;
-    }
-    const targets = folds.map((element, index) => {
-      const css = getComputedStyle(element);
-      return {
-        height: closed[index] ? 0 : element.scrollHeight + parseFloat(css.borderTopWidth) + parseFloat(css.borderBottomWidth),
-        opacity: closed[index] ? "0" : css.opacity,
-        spacing: spacing.map((property) => css.getPropertyValue(property)),
-      };
-    });
-    folds.forEach((element, index) => {
-      if (!active[index]) {
-        settle(element, closed[index]);
-        return;
-      }
-      const current = snapshots[index];
-      element.classList.remove("is-folded");
-      element.style.overflow = "hidden";
-      element.style.minHeight = "0";
-      element.style.height = `${current.height}px`;
-      element.style.opacity = current.opacity;
-      spacing.forEach((property, i) => element.style.setProperty(property, current.spacing[i]));
-      if (closed[index] && element.contains(activeElement)) track?.focus({ preventScroll: true });
-    });
-    void root.offsetHeight;
-    let activeIndex = 0;
-    folds.forEach((element, index) => {
-      if (!active[index]) return;
-      const target = targets[index];
-      const delay = Math.min(activeIndex, FOLD_STAGGER_CAP) * FOLD_STAGGER_MS;
-      const height = Math.max(snapshots[index].height, target.height);
-      const duration = FOLD_MIN_DURATION_MS
-        + (Math.min(height, FOLD_HEIGHT_CAP_PX) / FOLD_HEIGHT_CAP_PX)
-          * (FOLD_MAX_DURATION_MS - FOLD_MIN_DURATION_MS);
-      activeIndex += 1;
-      element.style.removeProperty("transition");
-      element.style.transitionDelay = `${delay}ms`;
-      element.style.transitionDuration = `${duration}ms`;
-      element.style.height = `${target.height}px`;
-      element.style.opacity = target.opacity;
-      spacing.forEach((property, i) => element.style.setProperty(property, target.spacing[i]));
-      const cancel = () => {
-        window.clearTimeout(timer);
-        element.removeEventListener("transitionend", onEnd);
-        pending.delete(element);
-      };
-      const finish = () => {
-        cancel();
-        if (isClosed(element, level) === closed[index]) settle(element, closed[index]);
-      };
-      const onEnd = (event: TransitionEvent) => {
-        if (event.target === element && event.propertyName === "height"
-          && !folds.some((child) => child !== element && element.contains(child) && pending.has(child))) finish();
-      };
-      // Zero-height elements and detached/hidden ancestors emit no height end.
-      const timer = window.setTimeout(finish, duration + delay + FOLD_TIMEOUT_BUFFER_MS);
-      element.addEventListener("transitionend", onEnd);
-      pending.set(element, cancel);
-    });
-  };
-
-  // Apply remembered folds immediately, before numbering drawers or live work.
-  foldTo(level, false);
-  const drawers = Array.from(document.querySelectorAll<HTMLElement>("[data-drawer]"));
-  drawers.forEach((drawer, index) => drawer.style.setProperty("--drawer-i", String(Math.min(index, 8))));
-  const slider = document.querySelector<HTMLElement>("[data-details-slider]");
-  const track = slider?.querySelector<HTMLElement>("[data-details-track]") ?? null;
-  const notches = Array.from(slider?.querySelectorAll<HTMLElement>("[data-details-level]") ?? []);
-  reducedMotion.addEventListener("change", () => foldTo(level, false));
-  window.addEventListener("resize", () => {
-    if (pending.size) foldTo(level, false);
-  });
-
-  // Fill every live fact on the page once, when Technical is first applied.
-  let liveLoaded = false;
-
-  const loadLive = async () => {
-    if (liveLoaded || !document.querySelector("[data-live]")) return;
-    liveLoaded = true;
+  const fillLive = async () => {
     const write = (name: string, value: string) => {
       for (const target of document.querySelectorAll<HTMLElement>(`[data-live="${name}"]`)) target.textContent = value;
     };
@@ -249,10 +195,32 @@ const { label, description, controls, levels } = Astro.props;
       write("hsts", "unavailable");
     }
   };
+  const idle = (task: () => void) => {
+    const whenIdle = (window as { requestIdleCallback?: Window["requestIdleCallback"] }).requestIdleCallback;
+    if (whenIdle) whenIdle.call(window, task, { timeout: 2500 });
+    else window.setTimeout(task, 1200);
+  };
+  idle(() => void loadLive());
 
-  if (slider && track && notches.length === 3) {
+  const engine = createDepthEngine({
+    initial: isLevel(painted) ? painted : "standard",
+    beforeMove: (_, to) => (to === "technical" ? loadLive() : undefined),
+    onMoveStart: (moving, anchor) => {
+      document.dispatchEvent(new CustomEvent("inspr:details-moving", { detail: { level: moving, anchor } }));
+    },
+    onSettled: (settled, anchor) => {
+      document.dispatchEvent(new CustomEvent("inspr:details-settled", { detail: { level: settled, anchor } }));
+    },
+    focusFallback: () => checked() ?? toggle,
+  });
+  // Land on the level at once: the page already paints it.
+  void engine.apply(level, false);
+
+  if (control && group && options.length === 3) {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const notes = JSON.parse(control.dataset.notes ?? "{}") as Record<Level, string>;
+    const names = JSON.parse(control.dataset.names ?? "{}") as Record<Level, string>;
     const familyHost = (url: URL) => url.hostname === "inspr.at" || url.hostname.endsWith(".inspr.at");
-    const nameOf = (value: Level) => notches.find((notch) => notch.dataset.detailsLevel === value)?.dataset.detailsName ?? value;
 
     // Links to other hosts of the family carry the depth, as they carry the
     // language; same-host links rely on storage.
@@ -271,13 +239,13 @@ const { label, description, controls, levels } = Astro.props;
       }
     };
 
-    // The specs grid has a plain-words mode of its own; Simple means on.
+    // The specs grid has a plain-words mode of its own; Why means on.
     const syncSpecs = () => {
       const specs = document.getElementById("specs");
-      const control = specs?.querySelector<HTMLButtonElement>("[data-specs-eli10]");
-      if (!specs || !control) return;
+      const specsControl = specs?.querySelector<HTMLButtonElement>("[data-specs-eli10]");
+      if (!specs || !specsControl) return;
       const plain = specs.getAttribute("data-eli10") === "true";
-      if (plain !== (level === "simple")) control.click();
+      if (plain !== (level === "simple")) specsControl.click();
     };
 
     const afterScripts = (task: () => void) => {
@@ -285,14 +253,46 @@ const { label, description, controls, levels } = Astro.props;
       else window.addEventListener("DOMContentLoaded", task, { once: true });
     };
 
+    // Popover and note hang from the control; on a narrow screen they shift
+    // sideways (translate, never layout) to stay a gutter inside the edges.
+    const GUTTER = 12;
+    const keepInside = (element: HTMLElement) => {
+      element.style.setProperty("--details-dx", "0px");
+      const rect = element.getBoundingClientRect();
+      const room = document.documentElement.clientWidth;
+      const dx = rect.left < GUTTER ? GUTTER - rect.left : rect.right > room - GUTTER ? room - GUTTER - rect.right : 0;
+      element.style.setProperty("--details-dx", `${Math.round(dx)}px`);
+    };
+
+    // The line beside the control: what the page now shows, or on hover
+    // what a choice would show. Motion is opacity and transform only.
+    let noteTimer = 0;
+    const showNote = (text: string, hold = NOTE_MS) => {
+      if (!note) return;
+      window.clearTimeout(noteTimer);
+      note.textContent = text;
+      keepInside(note);
+      control.classList.add("has-note");
+      if (hold > 0) noteTimer = window.setTimeout(hideNote, hold);
+    };
+    const hideNote = () => {
+      window.clearTimeout(noteTimer);
+      control.classList.remove("has-note");
+    };
+
     const setLevel = (next: Level, source: "init" | "user", persist = true) => {
+      const changed = next !== level || source === "init";
       level = next;
       const position = LEVELS.indexOf(level);
-      foldTo(level, source !== "init");
-      slider.dataset.level = level;
-      slider.style.setProperty("--details-pos", String(position));
-      track.setAttribute("aria-valuenow", String(position));
-      track.setAttribute("aria-valuetext", nameOf(level));
+      control.dataset.level = level;
+      control.style.setProperty("--details-pos", String(position));
+      for (const option of options) {
+        const on = option.dataset.detailsChoice === level;
+        option.setAttribute("aria-checked", String(on));
+        option.tabIndex = on ? 0 : -1;
+      }
+      if (current) current.textContent = names[level] ?? level;
+      if (source !== "init") void engine.apply(level, true);
       if (persist) {
         try {
           localStorage.setItem(storageKey, level);
@@ -303,80 +303,111 @@ const { label, description, controls, levels } = Astro.props;
       syncLinks();
       afterScripts(syncSpecs);
       if (level === "technical") void loadLive();
+      if (source === "user" && changed) {
+        showNote(notes[level] ?? "");
+        if (status) status.textContent = notes[level] ?? "";
+      }
       document.dispatchEvent(new CustomEvent("inspr:details-level", { detail: { level, source } }));
     };
 
-    const step = (delta: number) => {
-      const next = LEVELS[Math.min(2, Math.max(0, LEVELS.indexOf(level) + delta))];
-      if (next !== level) setLevel(next, "user");
+    // ---- The phone popover ------------------------------------------------
+    const popoverMode = () => toggle !== null && getComputedStyle(toggle).display !== "none";
+    let open = false;
+    const openPopover = () => {
+      if (open || !toggle) return;
+      open = true;
+      control.dataset.open = "";
+      toggle.setAttribute("aria-expanded", "true");
+      keepInside(group);
+      if (!reducedMotion.matches) {
+        group.animate(
+          [{ opacity: 0, transform: "translateY(-6px) scale(0.97)" }, { opacity: 1, transform: "none" }],
+          { duration: 240, easing: EASE },
+        );
+      }
+      checked()?.focus({ preventScroll: true });
     };
+    const closePopover = (refocus: boolean) => {
+      if (!open || !toggle) return;
+      open = false;
+      toggle.setAttribute("aria-expanded", "false");
+      const done = () => {
+        if (!open) delete control.dataset.open;
+      };
+      if (reducedMotion.matches) done();
+      else {
+        group.animate(
+          [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(-6px) scale(0.97)" }],
+          { duration: 180, easing: EASE },
+        ).finished.then(done, done);
+      }
+      if (refocus) toggle.focus({ preventScroll: true });
+    };
+    toggle?.addEventListener("click", () => (open ? closePopover(true) : openPopover()));
+    toggle?.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && open) {
+        event.preventDefault();
+        event.stopPropagation();
+        closePopover(true);
+      }
+    });
+    document.addEventListener("pointerdown", (event) => {
+      if (open && !control.contains(event.target as Node)) closePopover(false);
+    });
+    control.addEventListener("focusout", (event) => {
+      if (open && !control.contains(event.relatedTarget as Node | null)) closePopover(false);
+    });
 
-    // In-page navigation also works when its destination is folded.
+    // ---- Choosing ---------------------------------------------------------
+    for (const option of options) {
+      option.addEventListener("click", () => {
+        const next = option.dataset.detailsChoice;
+        if (isLevel(next) && next !== level) setLevel(next, "user");
+        if (open) closePopover(true);
+      });
+      // A fine pointer previews what a choice shows, in the same line.
+      option.addEventListener("pointerenter", (event) => {
+        if (event.pointerType !== "mouse" || popoverMode()) return;
+        const id = option.dataset.detailsChoice;
+        if (isLevel(id)) showNote(notes[id] ?? "", 0);
+      });
+      option.addEventListener("pointerleave", (event) => {
+        if (event.pointerType === "mouse" && !popoverMode()) hideNote();
+      });
+    }
+
+    // Radio-group keys: arrows move and choose, Home and End jump.
+    group.addEventListener("keydown", (event) => {
+      const index = LEVELS.indexOf(level);
+      const target =
+        event.key === "ArrowRight" || event.key === "ArrowDown" ? Math.min(2, index + 1) :
+        event.key === "ArrowLeft" || event.key === "ArrowUp" ? Math.max(0, index - 1) :
+        event.key === "Home" ? 0 :
+        event.key === "End" ? 2 : null;
+      if (event.key === "Escape" && open) {
+        event.preventDefault();
+        event.stopPropagation();
+        closePopover(true);
+        return;
+      }
+      if (target === null) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (LEVELS[target] !== level) setLevel(LEVELS[target], "user");
+      checked()?.focus({ preventScroll: true });
+    });
+
+    // In-page navigation also works when its destination is folded away.
     document.addEventListener("click", (event) => {
       const anchor = (event.target as Element | null)?.closest<HTMLAnchorElement>('a[href^="#"]');
       const id = anchor?.getAttribute("href")?.slice(1);
       const target = id ? document.getElementById(id) : null;
-      const folded = target?.closest<HTMLElement>(".is-folding, .is-folded")
-        ?? (id === "capabilities" ? target?.querySelector<HTMLElement>(".is-folding, .is-folded") : null);
-      if (!target || !folded) return;
+      if (!target || target.getClientRects().length > 0) return;
       event.preventDefault();
       setLevel("standard", "user");
       history.replaceState(history.state, "", `#${id}`);
-      window.setTimeout(
-        () => target.scrollIntoView({ behavior: reducedMotion.matches ? "instant" : "smooth" }),
-        reducedMotion.matches ? 0 : FOLD_MAX_DURATION_MS + FOLD_STAGGER_CAP * FOLD_STAGGER_MS + FOLD_TIMEOUT_BUFFER_MS,
-      );
-    });
-
-    // Click or drag anywhere on the track; the nearest notch wins.
-    const levelAt = (clientX: number): Level => {
-      const rect = track.getBoundingClientRect();
-      const inset = 8;
-      const ratio = (clientX - rect.left - inset) / Math.max(1, rect.width - inset * 2);
-      return LEVELS[Math.min(2, Math.max(0, Math.round(ratio * 2)))];
-    };
-    let dragging = false;
-    track.addEventListener("pointerdown", (event) => {
-      dragging = true;
-      track.setPointerCapture(event.pointerId);
-      const next = levelAt(event.clientX);
-      if (next !== level) setLevel(next, "user");
-      event.preventDefault();
-    });
-    track.addEventListener("pointermove", (event) => {
-      if (!dragging) return;
-      const next = levelAt(event.clientX);
-      if (next !== level) setLevel(next, "user");
-    });
-    const endDrag = () => {
-      dragging = false;
-    };
-    track.addEventListener("pointerup", endDrag);
-    track.addEventListener("pointercancel", endDrag);
-
-    // Wheel over the control nudges it; keys move it like any slider.
-    let wheelBudget = 0;
-    track.addEventListener(
-      "wheel",
-      (event) => {
-        event.preventDefault();
-        wheelBudget += event.deltaY !== 0 ? -event.deltaY : event.deltaX;
-        if (Math.abs(wheelBudget) < 40) return;
-        step(wheelBudget > 0 ? 1 : -1);
-        wheelBudget = 0;
-      },
-      { passive: false },
-    );
-    track.addEventListener("keydown", (event) => {
-      const delta =
-        event.key === "ArrowRight" || event.key === "ArrowUp" ? 1 :
-        event.key === "ArrowLeft" || event.key === "ArrowDown" ? -1 : 0;
-      if (event.key === "Home") setLevel("simple", "user");
-      else if (event.key === "End") setLevel("technical", "user");
-      else if (delta !== 0) step(delta);
-      else return;
-      event.preventDefault();
-      event.stopPropagation();
+      const reveal = () => target.scrollIntoView({ behavior: reducedMotion.matches ? "instant" : "smooth" });
+      document.addEventListener("inspr:details-settled", reveal, { once: true });
     });
 
     document.addEventListener("inspr:details-request", (event) => {

@@ -1,11 +1,29 @@
-/* Details control — a wordless level slider shared by the Overview and the
- * product microsites. The Overview's scene lives in overview-details.css.
- * The copy-depth rule (which of three sentences renders) is here too. */
+/* Details: the Why · What · How switch shared by the Overview and the
+ * product microsites (INSPR-497), and the CSS half of the depth engine in
+ * ../scripts/details-engine.ts. The Overview's scene lives in
+ * overview-details.css.
+ *
+ * Every depth rule here is keyed on <html data-details-level>, which the
+ * head script sets before the first paint, so a stored depth never flashes.
+ * Nothing here transitions height, margin or padding: the engine moves the
+ * page with transform and opacity only. */
+
+/* ---- Folds ------------------------------------------------------------ */
+
+/* An element exists at the levels its data-depth-min/-max allow; a drawer
+   (the technical datasheet) only at How. Without JavaScript the page is
+   What. .is-holding keeps a closing fold in place while it fades. */
+html[data-details-level="simple"] :is([data-depth-min="standard"], [data-depth-min="technical"]):not(.is-holding),
+:is(html:not([data-details-level]), html[data-details-level="standard"]) :is([data-depth-min="technical"], [data-depth-max="simple"]):not(.is-holding),
+html[data-details-level="technical"] :is([data-depth-max="simple"], [data-depth-max="standard"]):not(.is-holding),
+html:not([data-details-level="technical"]) [data-drawer]:not(.is-holding) {
+  display: none;
+}
 
 /* ---- Copy depth ------------------------------------------------------- */
 
 /* All three depths ship in the HTML; only the chosen one renders. Without
-   JavaScript, or at the default position, the standard depth shows. */
+   JavaScript, or at What, the standard depth shows. */
 [data-copy-level] {
   display: none;
 }
@@ -17,32 +35,52 @@ html[data-details-level="technical"] [data-copy-level="technical"] {
   display: inline;
 }
 
+/* A swap in progress: the outgoing and the incoming depth share one grid
+   cell (the engine makes the slot a grid), so the slot keeps the taller
+   box and no frame is ever empty. */
+[data-copy-slot].is-swapping > [data-copy-level] {
+  grid-area: 1 / 1;
+}
+
+html[data-details-level="simple"] [data-copy-slot].is-swapping > [data-copy-level="simple"],
+html[data-details-level="standard"] [data-copy-slot].is-swapping > [data-copy-level="standard"],
+html[data-details-level="technical"] [data-copy-slot].is-swapping > [data-copy-level="technical"],
+[data-copy-slot][data-copy-from="simple"] > [data-copy-level="simple"],
+[data-copy-slot][data-copy-from="standard"] > [data-copy-level="standard"],
+[data-copy-slot][data-copy-from="technical"] > [data-copy-level="technical"] {
+  display: block;
+}
+
+/* A stack slot holds every depth in one cell at all times: the box keeps
+   the longest depth's height, so a swap is a pure crossfade. For copy in
+   glass or bordered boxes, which must not change size. */
+[data-copy-slot="stack"] {
+  display: grid;
+}
+
+[data-copy-slot="stack"] > [data-copy-level] {
+  display: block;
+  grid-area: 1 / 1;
+  visibility: hidden;
+}
+
+html:not([data-details-level]) [data-copy-slot="stack"] > [data-copy-level="standard"],
+html[data-details-level="standard"] [data-copy-slot="stack"] > [data-copy-level="standard"],
+html[data-details-level="simple"] [data-copy-slot="stack"] > [data-copy-level="simple"],
+html[data-details-level="technical"] [data-copy-slot="stack"] > [data-copy-level="technical"],
+[data-copy-slot="stack"][data-copy-from="simple"] > [data-copy-level="simple"],
+[data-copy-slot="stack"][data-copy-from="standard"] > [data-copy-level="standard"],
+[data-copy-slot="stack"][data-copy-from="technical"] > [data-copy-level="technical"] {
+  visibility: visible;
+}
+
 /* ---- Drawers ---------------------------------------------------------- */
 
+/* A drawer is a fold (above): at How it is simply there, whole. Nothing
+   in the depth mechanics clips content. */
 .details-drawer,
 .overview-drawer {
-  --drawer-i: 0;
-  display: grid;
-  grid-template-rows: 0fr;
-  opacity: 0;
-  transition:
-    grid-template-rows 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.3s ease;
-}
-
-.details-drawer__inner,
-.overview-drawer__inner {
-  min-height: 0;
-  overflow: hidden;
-}
-
-html[data-details-level="technical"] .details-drawer,
-html[data-details-level="technical"] .overview-drawer {
-  grid-template-rows: 1fr;
-  opacity: 1;
-  transition:
-    grid-template-rows 0.65s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--drawer-i) * 45ms),
-    opacity 0.45s ease calc(var(--drawer-i) * 45ms + 120ms);
+  display: block;
 }
 
 /* ---- Product datasheets and handoffs ---------------------------------- */
@@ -67,9 +105,8 @@ html[data-details-level="technical"] .overview-drawer {
   line-height: 1.5;
 }
 
-/* Keep vertical space inside the clipped wrapper, and only while open. */
-html[data-details-level="technical"] .product-sheet .details-drawer__inner,
-html[data-details-level="technical"] .product-handoff .details-drawer__inner {
+.product-sheet .details-drawer__inner,
+.product-handoff .details-drawer__inner {
   margin-top: 1.1rem;
   padding-top: 1.1rem;
   border-top: 1px dashed var(--sheet-rule);
@@ -124,238 +161,290 @@ html[data-product="aithema"] .product-sheet dd:first-of-type,
   --sheet-rule: color-mix(in srgb, var(--night-soft) 30%, transparent);
 }
 
-@media print {
-  .product-sheet .details-drawer__inner,
-  .product-handoff .details-drawer__inner {
-    margin-top: 1.1rem;
-    padding-top: 1.1rem;
-    border-top: 1px dashed var(--sheet-rule);
-  }
-}
 
-/* ---- Header slider ---------------------------------------------------- */
+/* ---- The switch ------------------------------------------------------- */
 
-/* The header cluster stays on one row: the control is compact, its label
-   appears only on very wide screens, nothing wraps, and the grid gives the
-   actions column room. */
-.site-header__bar:has(.details-slider) {
+/* The header cluster stays on one row: nothing wraps, and the grid gives
+   the actions column room. */
+.site-header__bar:has(.details-switch) {
   grid-template-columns: minmax(10rem, 0.8fr) auto minmax(10rem, 1.2fr);
 }
 
-.site-header__actions:has(.details-slider) {
+.site-header__actions:has(.details-switch) {
   flex-wrap: nowrap;
 }
 
-.site-header__actions:has(.details-slider) > * {
+.site-header__actions:has(.details-switch) > * {
   white-space: nowrap;
 }
 
-.details-slider {
+.details-switch {
   --details-pos: 1;
   --details-ink: var(--ink, #102d42);
   --details-soft: var(--ink-soft, #536773);
-  --details-line: rgb(16 45 66 / 0.22);
+  --details-line: rgb(16 45 66 / 0.14);
   --details-teal: #147b78;
-  --details-paper: #fffdf9;
+  --details-ease: cubic-bezier(0.45, 0, 0.55, 1);
+  position: relative;
   display: inline-flex;
   min-height: 2.65rem;
   align-items: center;
-  gap: 0.55rem;
 }
 
-.details-slider__label {
-  display: none;
-  color: var(--details-soft);
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-@media (min-width: 100rem) {
-  .details-slider__label {
-    display: inline;
-  }
-}
-
-/* Three rising bars fill with the level, like a signal meter. */
-.details-slider__glyph {
-  display: inline-flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 0.82rem;
-}
-
-.details-slider__glyph i {
-  width: 3px;
-  border-radius: 1px;
-  background: var(--details-line);
-  transition: background 0.3s ease;
-}
-
-.details-slider__glyph i:nth-child(1) {
-  height: 0.32rem;
-}
-
-.details-slider__glyph i:nth-child(2) {
-  height: 0.57rem;
-}
-
-.details-slider__glyph i:nth-child(3) {
-  height: 0.82rem;
-}
-
-.details-slider[data-level="simple"] .details-slider__glyph i:nth-child(1),
-.details-slider[data-level="standard"] .details-slider__glyph i:nth-child(-n + 2),
-.details-slider[data-level="technical"] .details-slider__glyph i {
-  background: var(--details-teal);
-}
-
-.details-slider__track {
-  --inset: 0.5rem;
+/* Three equal segments on a frosted rail; the thumb is a lit glass pill
+   that slides between them by transform alone. */
+.details-switch__group {
   position: relative;
-  width: 4.6rem;
-  height: 1.75rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 3px;
   border-radius: 999px;
-  cursor: pointer;
-  touch-action: none;
-  user-select: none;
+  background: rgb(16 45 66 / 0.05);
+  box-shadow: inset 0 0 0 1px var(--details-line), inset 0 1px 2px rgb(16 45 66 / 0.06);
 }
 
-.details-slider__track:focus-visible {
+.details-switch__thumb {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc((100% - 6px) / 3);
+  border-radius: 999px;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgb(255 255 255 / 0.98), rgb(255 255 255 / 0.72) 62%, rgb(236 248 246 / 0.78)),
+    #fff;
+  box-shadow:
+    0 1px 2px rgb(16 45 66 / 0.16),
+    0 6px 16px -6px rgb(20 123 120 / 0.45),
+    inset 0 0 0 1px rgb(255 255 255 / 0.95),
+    inset 0 -1px 0 rgb(20 123 120 / 0.22);
+  transform: translateX(calc(var(--details-pos) * 100%));
+  transition: transform 0.46s var(--details-ease);
+}
+
+.details-switch__option {
+  position: relative;
+  z-index: 1;
+  min-width: 3.5rem;
+  padding: 0.45rem 0.85rem;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--details-soft);
+  font-family: var(--font-body, inherit);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.details-switch__option[aria-checked="true"] {
+  color: var(--details-ink);
+}
+
+.details-switch__option:focus-visible,
+.details-switch__toggle:focus-visible {
   outline: 2px solid var(--details-teal);
   outline-offset: 2px;
 }
 
-.details-slider__track::before {
-  content: "";
+/* Hints describe each choice to screen readers; the popover shows them. */
+.details-switch__hint {
   position: absolute;
-  top: 50%;
-  right: var(--inset);
-  left: var(--inset);
-  height: 2px;
-  border-radius: 1px;
-  background: var(--details-line);
-  transform: translateY(-50%);
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
-.details-slider__fill {
+/* The line beside the control: what the page now shows. It never takes a
+   click and never sits over the switch. */
+.details-switch__note {
   position: absolute;
-  top: 50%;
-  left: var(--inset);
-  width: calc(var(--details-pos) * (100% - 2 * var(--inset)) / 2);
-  height: 2px;
+  top: calc(100% + 0.55rem);
+  right: 0;
+  z-index: 30;
+  padding: 0.42rem 0.75rem;
+  border-radius: 999px;
+  background: rgb(255 253 249 / 0.86);
+  box-shadow: 0 8px 24px -10px rgb(16 45 66 / 0.35), inset 0 0 0 1px rgb(255 255 255 / 0.9);
+  backdrop-filter: blur(14px) saturate(1.2);
+  color: var(--details-ink);
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  translate: var(--details-dx, 0px) 0;
+  transform: translateY(-4px);
+  transition: opacity 0.32s var(--details-ease), transform 0.32s var(--details-ease);
+}
+
+.details-switch.has-note .details-switch__note {
+  opacity: 1;
+  transform: none;
+}
+
+.details-switch__status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---- Narrow headers: glyph, name, popover ----------------------------- */
+
+.details-switch__toggle {
+  display: none;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.25rem;
+  padding: 0.35rem 0.6rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(16 45 66 / 0.05);
+  box-shadow: inset 0 0 0 1px var(--details-line);
+  color: var(--details-ink);
+  font-family: var(--font-body, inherit);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Three rising bars fill with the level, like a signal meter. */
+.details-switch__glyph {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 0.8rem;
+}
+
+.details-switch__glyph i {
+  width: 3px;
   border-radius: 1px;
   background: var(--details-teal);
-  transform: translateY(-50%);
-  transition: width 0.35s cubic-bezier(0.4, 1.2, 0.5, 1);
+  opacity: 0.22;
+  transition: opacity 0.3s var(--details-ease);
 }
 
-.details-slider__notch {
-  position: absolute;
-  top: 50%;
-  left: calc(var(--inset) + var(--i) * (100% - 2 * var(--inset)) / 2);
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--details-line);
-  transform: translate(-50%, -50%);
+.details-switch__glyph i:nth-child(1) { height: 0.32rem; }
+.details-switch__glyph i:nth-child(2) { height: 0.56rem; }
+.details-switch__glyph i:nth-child(3) { height: 0.8rem; }
+
+.details-switch[data-level="simple"] .details-switch__glyph i:nth-child(1),
+.details-switch[data-level="standard"] .details-switch__glyph i:nth-child(-n + 2),
+.details-switch[data-level="technical"] .details-switch__glyph i {
+  opacity: 1;
 }
 
-.details-slider__knob {
-  position: absolute;
-  top: 50%;
-  left: calc(var(--inset) + var(--details-pos) * (100% - 2 * var(--inset)) / 2);
-  width: 0.95rem;
-  height: 0.95rem;
-  border: 2px solid var(--details-ink);
-  border-radius: 50%;
-  background: var(--details-paper);
-  box-shadow: 0 1px 3px rgb(16 45 66 / 0.25);
-  transform: translate(-50%, -50%);
-  transition:
-    left 0.35s cubic-bezier(0.4, 1.2, 0.5, 1),
-    border-color 0.3s ease,
-    box-shadow 0.3s ease;
+.details-switch__chevron {
+  color: var(--details-soft);
+  transition: transform 0.24s var(--details-ease);
 }
 
-.details-slider[data-level="technical"] .details-slider__knob {
-  border-color: var(--details-teal);
-  box-shadow: 0 0 0.6rem var(--details-teal);
+.details-switch[data-open] .details-switch__chevron {
+  transform: rotate(180deg);
 }
 
-@media (max-width: 40rem) {
-  .details-slider {
-    gap: 0.4rem;
+@media (max-width: 52rem) {
+  .details-switch__toggle {
+    display: inline-flex;
   }
 
-  .details-slider__track {
-    width: 3.8rem;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .details-slider__fill,
-  .details-slider__knob,
-  .details-slider__glyph i {
-    transition: none;
-  }
-}
-
-@media print {
-  .details-slider {
+  .details-switch__group {
     display: none;
   }
+
+  /* The popover: the same three radios, stacked, each with its hint. */
+  .details-switch[data-open] .details-switch__group {
+    position: absolute;
+    top: calc(100% + 0.45rem);
+    right: 0;
+    z-index: 40;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2px;
+    width: min(17rem, calc(100vw - 2rem));
+    padding: 0.35rem;
+    border-radius: 1rem;
+    background: rgb(255 253 249 / 0.96);
+    box-shadow: 0 18px 44px -18px rgb(16 45 66 / 0.45), inset 0 0 0 1px rgb(255 255 255 / 0.92);
+    backdrop-filter: blur(18px) saturate(1.25);
+    transform-origin: top right;
+    translate: var(--details-dx, 0px) 0;
+  }
+
+  .details-switch[data-open] .details-switch__thumb {
+    display: none;
+  }
+
+  .details-switch[data-open] .details-switch__option {
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 0.75rem;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .details-switch[data-open] .details-switch__option[aria-checked="true"] {
+    background: rgb(20 123 120 / 0.1);
+    box-shadow: inset 0 0 0 1px rgb(20 123 120 / 0.28);
+  }
+
+  .details-switch[data-open] .details-switch__name {
+    font-size: 0.82rem;
+  }
+
+  .details-switch[data-open] .details-switch__hint {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    color: var(--details-soft);
+    font-size: 0.7rem;
+    font-weight: 500;
+    line-height: 1.35;
+    white-space: normal;
+  }
+
+  .details-switch__note {
+    right: 0;
+  }
 }
 
-/* Both the opening and closing transitions yield to reduced motion. */
 @media (prefers-reduced-motion: reduce) {
-  .details-drawer,
-  .overview-drawer,
-  html[data-details-level="technical"] .details-drawer,
-  html[data-details-level="technical"] .overview-drawer {
+  .details-switch__thumb,
+  .details-switch__note,
+  .details-switch__glyph i,
+  .details-switch__chevron {
     transition: none;
   }
 }
 
 @media print {
-  .details-drawer,
-  .overview-drawer {
-    grid-template-rows: 1fr;
-    opacity: 1;
+  .details-switch {
+    display: none;
+  }
+
+  /* Paper shows every datasheet. */
+  html [data-drawer] {
+    display: block !important;
   }
 }
 
-/* Explicit pixel folds. Classes exist only after the module initializes. */
-html[data-details-level] [data-depth-min],
-html[data-details-level] [data-depth-max],
-html[data-details-level] [data-depth-layout] {
-  box-sizing: border-box;
-  transition-property: height, opacity, margin-block-start, margin-block-end, padding-block-start, padding-block-end;
-  transition-duration: 0.6s;
-  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-}
+/* ---- Compact layout at Why ------------------------------------------- */
 
-html[data-details-level] [data-depth-min].is-folding,
-html[data-details-level] [data-depth-max].is-folding {
-  min-height: 0;
-  margin-block: 0;
-  padding-block: 0;
-  opacity: 0;
-}
-
-html[data-details-level] [data-depth-min].is-folded,
-html[data-details-level] [data-depth-max].is-folded {
-  display: none;
-}
-
-/* Alternative compact copy is opt-in; Standard remains the no-JS edition. */
-html:not([data-details-level]) :is(.workflow__simple, .product-story__simple) {
-  display: none;
-}
-
+/* The engine sets data-details-compact when a switch to Why lands and lifts
+   it as a switch away starts, so the page is never shorter mid-motion than
+   at either end; the head script sets it before the first paint. */
 .workflow__simple {
   display: grid;
   grid-template-columns: repeat(var(--workflow-count), minmax(0, 1fr));
@@ -369,36 +458,36 @@ html:not([data-details-level]) :is(.workflow__simple, .product-story__simple) {
 .workflow__simple li { min-width: 0; overflow-wrap: break-word; hyphens: manual; }
 .workflow__simple p { margin-top: 0.5rem; }
 
-html[data-details-level="simple"] .workflow {
+html[data-details-compact] .workflow {
   padding-block: 1.75rem;
 }
-html[data-details-level="simple"] .workflow__intro {
+html[data-details-compact] .workflow__intro {
   display: block;
   margin-bottom: 1.25rem;
 }
-html[data-details-level="simple"] .workflow__intro h2 {
+html[data-details-compact] .workflow__intro h2 {
   max-width: none;
   font-size: clamp(1.6rem, 2.5vw, 2.3rem);
 }
-html[data-details-level="simple"] .umbrella-products { padding-block: 1rem 2rem; }
-html[data-details-level="simple"] .umbrella-products .section-intro { gap: 0.5rem; margin-bottom: 0.75rem; }
-html[data-details-level="simple"] .umbrella-products .section-intro .eyebrow { margin-bottom: 0; }
-html[data-details-level="simple"] .umbrella-products h2 { font-size: 2rem; }
-html[data-details-level="simple"] .umbrella-products .section-lead { font-size: 1rem; margin-top: 0.5rem; }
-html[data-details-level="simple"] .product-showcase {
+html[data-details-compact] .umbrella-products { padding-block: 1rem 2rem; }
+html[data-details-compact] .umbrella-products .section-intro { gap: 0.5rem; margin-bottom: 0.75rem; }
+html[data-details-compact] .umbrella-products .section-intro .eyebrow { margin-bottom: 0; }
+html[data-details-compact] .umbrella-products h2 { font-size: 2rem; }
+html[data-details-compact] .umbrella-products .section-lead { font-size: 1rem; margin-top: 0.5rem; }
+html[data-details-compact] .product-showcase {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1.5rem;
   margin-top: 1.5rem;
 }
-html[data-details-level="simple"] .product-story {
+html[data-details-compact] .product-story {
   grid-template-columns: minmax(0, 1fr);
   gap: 0;
 }
-html[data-details-level="simple"] .product-story__copy { padding: 0; }
-html[data-details-level="simple"] .product-story__identity { gap: 0.75rem; align-items: start; }
-html[data-details-level="simple"] .product-story__identity img { width: 2.5rem; height: 2.5rem; }
-html[data-details-level="simple"] .product-story__identity h3 { font-size: 1.7rem; }
-html[data-details-level="simple"] .product-story__simple { margin-top: 0.75rem; font-size: 1rem; }
+html[data-details-compact] .product-story__copy { padding: 0; }
+html[data-details-compact] .product-story__identity { gap: 0.75rem; align-items: start; }
+html[data-details-compact] .product-story__identity img { width: 2.5rem; height: 2.5rem; }
+html[data-details-compact] .product-story__identity h3 { font-size: 1.7rem; }
+html[data-details-compact] .product-story__simple { margin-top: 0.75rem; font-size: 1rem; }
 
 .overview-stack__row > *,
 .overview-stack__tools li {
@@ -408,29 +497,84 @@ html[data-details-level="simple"] .product-story__simple { margin-top: 0.75rem; 
 }
 
 @media (max-width: 72rem) {
-  .site-header__bar:has(.details-slider) { grid-template-columns: minmax(0, 1fr) auto; }
+  .site-header__bar:has(.details-switch) { grid-template-columns: minmax(0, 1fr) auto; }
 }
 @media (max-width: 42rem) {
   .workflow__simple,
-  html[data-details-level="simple"] .product-showcase { grid-template-columns: 1fr; gap: 1rem; }
+  html[data-details-compact] .product-showcase { grid-template-columns: 1fr; gap: 1rem; }
 
-  /* Both menus, language and depth fit beside the product mark at 400px. */
-  .site-header__bar:has(.details-slider) { gap: 0.35rem; }
-  .site-header__bar:has(.details-slider) .site-brand { gap: 0.3rem; min-width: 0; }
-  .site-header__bar:has(.details-slider) .site-brand img { width: 1.8rem; height: 1.8rem; flex-basis: 1.8rem; }
-  .site-header__bar:has(.details-slider) .site-brand strong { font-size: 1rem; }
-  .site-header__bar:has(.details-slider) .details-slider__track { width: 3.25rem; }
-  .site-header__bar:has(.details-slider) .details-slider { gap: 0.25rem; }
-  .site-header__actions:has(.details-slider) { gap: 0.15rem; }
-  .site-header__actions:has(.details-slider) :is(.mobile-navigation, .product-switcher) summary {
+  /* Phone header: the mark, the depth, one language target and both menus,
+     each a 44 px target, side by side down to 320 px. The bar keeps its
+     height (4rem), so nothing below moves. */
+  .site-header__bar:has(.details-switch) { gap: 0.35rem; }
+  .site-header__bar:has(.details-switch) .site-brand { gap: 0.3rem; min-width: 2.75rem; min-height: 2.75rem; justify-content: center; }
+  .site-header__bar:has(.details-switch) .site-brand img { width: 1.8rem; height: 1.8rem; flex-basis: 1.8rem; }
+  .site-header__bar:has(.details-switch) .site-brand strong { font-size: 1rem; }
+  .site-header__actions:has(.details-switch) { gap: 0.2rem; }
+  .site-header__bar:has(.details-switch) .details-switch__toggle {
     gap: 0.3rem;
-    font-size: 0.65rem;
-    padding-inline: 0.35rem;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding-inline: 0.55rem;
+    font-size: 0.7rem;
+  }
+  /* One language target: the other language; the current one is implied. */
+  .site-header__actions:has(.details-switch) .language-switch > span,
+  .site-header__actions:has(.details-switch) .language-switch a[aria-current="page"] {
+    display: none;
+  }
+  .site-header__actions:has(.details-switch) .language-switch a {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    font-size: 0.66rem;
+    font-weight: 800;
+  }
+  .site-header__actions:has(.details-switch) :is(.mobile-navigation, .product-switcher) summary {
+    gap: 0.3rem;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    font-size: 0.66rem;
+    padding-inline: 0.6rem;
   }
 }
 @media (max-width: 28rem) {
-  .site-header__bar:has(.details-slider) .site-brand span { display: none; }
+  .site-header__bar:has(.details-switch) .site-brand span { display: none; }
+  .site-header__bar:has(.details-switch) .details-switch__chevron { display: none; }
+  .site-header__bar:has(.details-switch) .details-switch__toggle { gap: 0.25rem; padding-inline: 0.5rem; }
 }
-@media (prefers-reduced-motion: reduce) {
-  html[data-details-level] :is([data-depth-min], [data-depth-max], [data-depth-layout]) { transition: none; }
+/* The narrowest phones: the two menus become icon buttons. Their words stay
+   their accessible names; only the drawing changes. */
+@media (max-width: 22.5rem) {
+  .site-header__actions:has(.details-switch) :is(.mobile-navigation, .product-switcher) summary {
+    position: relative;
+    justify-content: center;
+    width: 2.75rem;
+    padding: 0;
+    font-size: 0;
+    letter-spacing: 0;
+  }
+  .site-header__actions:has(.details-switch) :is(.mobile-navigation, .product-switcher) summary::after {
+    display: none;
+  }
+  .site-header__actions:has(.details-switch) :is(.mobile-navigation, .product-switcher) summary::before {
+    content: "";
+    width: 1rem;
+    height: 1rem;
+    background: currentColor;
+  }
+  /* Sections: three lines. Products: four squares. */
+  .site-header__actions:has(.details-switch) .mobile-navigation summary::before {
+    height: 0.75rem;
+    background:
+      linear-gradient(currentColor, currentColor) 0 0 / 100% 2px no-repeat,
+      linear-gradient(currentColor, currentColor) 0 50% / 100% 2px no-repeat,
+      linear-gradient(currentColor, currentColor) 0 100% / 100% 2px no-repeat;
+  }
+  .site-header__actions:has(.details-switch) .product-switcher summary::before {
+    background:
+      linear-gradient(currentColor, currentColor) 0 0 / 42% 42% no-repeat,
+      linear-gradient(currentColor, currentColor) 100% 0 / 42% 42% no-repeat,
+      linear-gradient(currentColor, currentColor) 0 100% / 42% 42% no-repeat,
+      linear-gradient(currentColor, currentColor) 100% 100% / 42% 42% no-repeat;
+  }
 }

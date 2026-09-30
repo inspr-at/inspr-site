@@ -982,6 +982,16 @@
     transition: opacity 0.7s var(--calm);
   }
 
+  /* A closing carousel keeps its last slide for the fade, but nothing in it
+     catches a click meant for the cards, and the slide hides with it. */
+  .specs__carousel:not(.is-open) {
+    pointer-events: none;
+  }
+
+  .specs__carousel:not(.is-open) .specs__slide.is-current {
+    visibility: inherit;
+  }
+
   .specs__carousel:focus {
     outline: none;
   }
@@ -1015,6 +1025,11 @@
       opacity 0.6s var(--calm),
       translate 0.6s var(--calm),
       visibility 0s linear 0.6s;
+  }
+
+  .specs__slide:focus-visible {
+    outline: 2px solid var(--aeon-gold-bright);
+    outline-offset: -6px;
   }
 
   .specs__slide.is-staged {

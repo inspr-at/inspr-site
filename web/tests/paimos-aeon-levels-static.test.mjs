@@ -127,14 +127,20 @@ test("no release numbers reach the reader: marketing names, and the version on h
   assert.match(plaque, /import CalendarVersion from "\.\/CalendarVersion\.astro";/, "the one calendar-version adapter draws the version");
   assert.match(plaque, /<CalendarVersion value=\{version\} scheme="inspr-calver-3" locale=\{locale\} \/>/);
   assert.doesNotMatch(plaque, /release\.label|<code>\{release\.version\}<\/code>|publishedLabel/, "no release label or raw tag on the plaque");
-  assert.match(plaque, /const ariaLabel = `\$\{label\}: \$\{release\.name\} \$\{release\.codename\}, \$\{live\}`;/);
+  assert.match(plaque, /const ariaLabel = `\$\{label\}: \$\{release\.name\} \$\{release\.codename\}, \$\{live\}, \$\{version\} · \$\{utc\}`;/, "the link names the version and its UTC time");
+  assert.match(plaque, /<span class="aeon-plaque__version" data-plaque-version inert>/, "the floating chip is inert");
   // The version chip is no nested control: the link is a sibling stretched over the glass.
   assert.match(plaque, /<div class="aeon-plaque" data-plaque>/);
   assert.match(plaque, /<a class="aeon-plaque__link" href=\{release\.url\}[^>]*><\/a>/);
   const css = await source("styles/aeon-plaque.css");
+  const row = css.slice(css.indexOf("  .aeon-plaque {"), css.indexOf("  .aeon-plaque-stage.has-lens"));
+  assert.match(row, /display: inline-flex;/, "one row");
+  assert.match(row, /flex-wrap: nowrap;/);
+  assert.doesNotMatch(css, /grid-area/, "no grid rows left");
   const chip = css.slice(css.indexOf("  .aeon-plaque__version {"), css.indexOf("  .aeon-plaque__chip {"));
-  assert.match(chip, /contain: inline-size;/, "the chip adds no width, so revealing it moves nothing");
-  assert.match(chip, /transition:\s*opacity [^;]*,\s*transform [^;]*;/, "reveal with eased opacity and transform only");
+  assert.match(chip, /position: absolute;/, "the chip floats; revealing it moves nothing");
+  assert.match(chip, /pointer-events: none;/);
+  assert.match(chip, /transition:\s*opacity 280ms [^,]*,\s*transform 280ms [^;]*;/, "reveal with eased opacity and transform only");
   assert.match(chip, /\.aeon-plaque:is\(:hover, :focus-within, \.is-revealed\) \.aeon-plaque__version/);
   assert.match(css, /\.aeon-hero\.is-paused \.aeon-plaque__version \{\s*transition: none;/);
 });

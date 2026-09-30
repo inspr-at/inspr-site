@@ -134,9 +134,13 @@
   }
 
   /* ── Hero ─────────────────────────────────────────────────────────── */
+  /* INSPR-497: the hero clips sideways only (the arc and the lights), so
+     the plaque, its shadow and its floating version chip are never cut off
+     at a level that hides what follows them. */
   .aeon-hero {
     position: relative;
-    overflow: hidden;
+    overflow-x: clip;
+    overflow-y: visible;
     padding-top: clamp(3.5rem, 7vw, 6.5rem);
     background:
       radial-gradient(48rem 30rem at 82% 22%, rgb(214 155 49 / 0.12), transparent 70%),
@@ -276,7 +280,7 @@
       inset 0 1px 0 rgb(255 255 255 / 0.95),
       inset 0 -1px 0 rgb(255 255 255 / 0.25),
       inset 0 0 18px rgb(255 255 255 / 0.25),
-      0 18px 40px rgb(10 30 45 / 0.14),
+      0 16px 32px -8px rgb(10 30 45 / 0.16),
       0 2px 6px rgb(10 30 45 / 0.06);
     -webkit-backdrop-filter: blur(18px) saturate(185%) brightness(1.06);
     backdrop-filter: blur(18px) saturate(185%) brightness(1.06);
@@ -372,18 +376,32 @@
   }
 
   /* Slots: a few hang over the frame's edge, some sit on the image. */
-  .aeon-chip--slot-1 { top: 16%; left: -5%; }
-  .aeon-chip--slot-2 { top: 44%; right: -4%; }
+  /* The chips stay inside the frame, shadows included, wherever the frame
+     meets the page edge; beside the copy column the left ones may overhang
+     it (INSPR-497: nothing is cut off at the hero's edge). */
+  .aeon-chip--slot-1 { top: 16%; left: 0.75rem; }
+  .aeon-chip--slot-2 { top: 44%; right: 0.75rem; }
   .aeon-chip--slot-3 { bottom: 8%; left: 9%; }
   .aeon-chip--slot-4 { top: 9%; right: 7%; }
   .aeon-chip--slot-5 { bottom: 20%; right: 12%; }
-  .aeon-chip--slot-6 { top: 52%; left: -3%; }
+  .aeon-chip--slot-6 { top: 52%; left: 0.75rem; }
+
+  @media (min-width: 64rem) {
+    .aeon-chip--slot-1 { left: -5%; }
+    .aeon-chip--slot-2 { right: 0; }
+    .aeon-chip--slot-6 { left: -3%; }
+  }
+
+  /* Room under the plaque at every level: its shadow and the version chip
+     that floats below it. At What and How the ribbon follows here. */
+  .aeon-hero__plaque {
+    padding-bottom: clamp(3.5rem, 6vw, 4.5rem);
+  }
 
   .aeon-ribbon {
     display: flex;
     align-items: center;
     gap: 1.25rem;
-    margin-top: clamp(3rem, 6vw, 4.5rem);
     padding: 0.85rem var(--gutter);
     color: var(--night-text);
     background: linear-gradient(90deg, var(--aeon-night), var(--aeon-night-2));
@@ -2496,8 +2514,7 @@
   @media (max-width: 40rem) {
     .aeon-chip { max-width: 12rem; padding: 0.5rem 0.75rem; }
     .aeon-chip small { display: none; }
-    .aeon-chip--slot-1, .aeon-chip--slot-6 { left: 0; }
-    .aeon-chip--slot-2, .aeon-chip--slot-4, .aeon-chip--slot-5 { right: 0; }
+    .aeon-chip--slot-4, .aeon-chip--slot-5 { right: 0.75rem; }
     .aeon-ribbon { flex-direction: column; align-items: flex-start; }
     .aeon-ribbon__track { width: 100%; }
     .specs--aeon .specs__grid { gap: 0.6rem; }

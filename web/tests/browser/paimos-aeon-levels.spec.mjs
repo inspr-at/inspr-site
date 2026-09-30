@@ -76,22 +76,69 @@ for (const { path, lang } of pages) {
     await expect(plaque).not.toContainText("14.1");
     await expect(plaque).not.toContainText("Release");
     await expect(chip).toHaveCSS("opacity", "0");
+    await expect(plaque.locator("[data-plaque-link]")).toHaveAttribute("aria-label", /260930115354\.0\.0 · 2026-09-30 11:53:54 UTC/);
     const version = chip.locator("[data-calendar-version]");
-    await expect(version).toHaveAttribute("aria-label", /260930115354\.0\.0.*UTC/);
     const segments = await version.evaluate((el) =>
       ["yy", "mm", "dd", "hh", "mi"].map((key) => el.querySelector(`.${key}`)?.textContent),
     );
     expect(segments).toEqual(["26", "09", "30", "11", "53"]);
-    const box = () => plaque.evaluate((el) => [el.offsetWidth, el.offsetHeight, el.offsetTop]);
-    const before = await box();
+
+    // Revealing the chip moves nothing: the plaque's box and the layout
+    // boxes of the hero and the sections after it stay where they were.
+    // Layout boxes: the plaque's own, and everything around it. Inside the
+    // plaque, hover scales the mark by design; the stage's chips animate.
+    const layout = () =>
+      page.evaluate(() => [
+        document.documentElement.scrollHeight,
+        ...[document.querySelector(".aeon-plaque"), ...document.querySelectorAll(".aeon-hero *, main > section")]
+          .filter((el) => el instanceof HTMLElement && (el.matches(".aeon-plaque") || !el.closest(".aeon-plaque, .aeon-hero__stage")))
+          .map((el) => [el.offsetLeft, el.offsetTop, el.offsetWidth, el.offsetHeight]),
+      ]);
+    // Page-relative, so a scroll is no shift.
+    const rect = () =>
+      plaque.evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        return [r.x + window.scrollX, r.y + window.scrollY, r.width, r.height];
+      });
+    await plaque.evaluate((el) => el.scrollIntoView({ block: "center", behavior: "instant" }));
+    const before = await layout();
+    const beforeRect = await rect();
+    await plaque.locator("[data-plaque-link]").evaluate((link) => link.focus({ preventScroll: true }));
+    await expect(chip).toHaveCSS("opacity", "1");
+    expect(await rect()).toEqual(beforeRect);
+    expect(await layout()).toEqual(before);
+    await page.locator("body").evaluate(() => (document.activeElement instanceof HTMLElement ? document.activeElement.blur() : null));
+    await expect(chip).toHaveCSS("opacity", "0");
     await plaque.hover();
     await expect(chip).toHaveCSS("opacity", "1");
-    expect(await box()).toEqual(before);
-    await page.mouse.move(2, 2);
-    await expect(chip).toHaveCSS("opacity", "0");
-    await plaque.locator("[data-plaque-link]").focus();
-    await expect(chip).toHaveCSS("opacity", "1");
-    expect(await box()).toEqual(before);
+    expect(await layout()).toEqual(before);
+  });
+
+  test(`${path} keeps the plaque on one row at every width`, async ({ page }) => {
+    for (const width of [1440, 744, 390, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      await open(page, path, lang, "standard");
+      await page.evaluate(() => document.fonts.ready);
+      const row = await page.locator("[data-plaque]").evaluate((plaque) => {
+        const items = [".aeon-plaque__mark", ".aeon-plaque__name", ".aeon-plaque__codename", ".aeon-plaque__live", ".aeon-plaque__go"]
+          .map((selector) => plaque.querySelector(selector).getBoundingClientRect());
+        const style = getComputedStyle(plaque);
+        const box = plaque.getBoundingClientRect();
+        const mark = items[0];
+        const centres = items.map((r) => r.top + r.height / 2);
+        return {
+          spread: Math.max(...centres) - Math.min(...centres),
+          height: box.height,
+          expected: mark.height + parseFloat(style.paddingTop) + parseFloat(style.paddingBottom) + parseFloat(style.borderTopWidth) * 2,
+          inside: items.every((r) => r.left >= box.left - 0.5 && r.right <= box.right + 0.5),
+          overflow: document.documentElement.scrollWidth - window.innerWidth,
+        };
+      });
+      expect(row.spread, `${width}px: one row, centred`).toBeLessThanOrEqual(2);
+      expect(Math.abs(row.height - row.expected), `${width}px: height of one row`).toBeLessThanOrEqual(2);
+      expect(row.inside, `${width}px: every item inside the glass`).toBe(true);
+      expect(row.overflow, `${width}px: no page overflow`).toBeLessThanOrEqual(0);
+    }
   });
 }
 

@@ -145,9 +145,10 @@ const segmentNote = (text: string): NoteSegment[] => {
   )}
   {/* The carousel: a full-screen dialog over the page. display:none until
       the section comes near (so the lazy images are not fetched), then
-      present but hidden, so every image is decoded before the first tap. */}
+      present but hidden, so every image is decoded before the first tap.
+      Inert while closed, the fade-out included. */}
   {field && slides && lens && (
-    <div class="specs__carousel" data-specs-carousel tabindex="-1">
+    <div class="specs__carousel" data-specs-carousel tabindex="-1" inert>
       <span class="visually-hidden" id="specs-carousel-title">{lens.labels.dialog}</span>
       <div class="specs__carousel-stage">
         {slides.map((slide, i) => (

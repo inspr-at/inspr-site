@@ -26,6 +26,7 @@ const dialogState = (page) =>
       currentAlt: current?.querySelector(".specs__slide-img")?.getAttribute("alt") ?? "",
       othersHidden: [...dialog.querySelectorAll(".specs__slide:not(.is-current)")].every((slide) => slide.getAttribute("aria-hidden") === "true"),
       focused: document.activeElement?.getAttribute("aria-label") ?? null,
+      inert: dialog.hasAttribute("inert"),
     };
   });
 
@@ -43,6 +44,8 @@ test.describe("carousel dialog state", () => {
     await page.clock.install({ time: start });
     await page.goto(`${pages[0].path}?lang=en`, { waitUntil: "domcontentloaded" });
     const button = page.locator("#specs .specs__tile .specs__open").nth(index);
+    // Centred, clear of the sticky header; focus then has nothing to scroll.
+    await button.evaluate((el) => el.scrollIntoView({ block: "center", behavior: "instant" }));
     await button.focus();
     await page.keyboard.press("Enter");
     await expect(page.locator("[data-specs-carousel]")).toHaveAttribute("role", "dialog");
@@ -53,12 +56,25 @@ test.describe("carousel dialog state", () => {
     await page.clock.pauseAt(new Date(start.getTime() + 10 * 60_000));
     await page.keyboard.press("Escape");
     await expect(page.locator("[data-specs-carousel]")).not.toHaveAttribute("role", "dialog");
-    const settling = await page.evaluate(() => ({
-      showing: document.querySelector(".specs--aeon").classList.contains("is-showing"),
-      kept: document.querySelector("[data-specs-carousel] .specs__slide.is-current")?.dataset.slide ?? null,
-    }));
+    const settling = await page.evaluate(() => {
+      const dialog = document.querySelector("[data-specs-carousel]");
+      const opener = document.activeElement;
+      // A fading control must not take focus.
+      const close = dialog.querySelector("[data-carousel-close]");
+      close.focus();
+      const closeFocusable = document.activeElement === close;
+      opener.focus();
+      return {
+        showing: document.querySelector(".specs--aeon").classList.contains("is-showing"),
+        kept: dialog.querySelector(".specs__slide.is-current")?.dataset.slide ?? null,
+        inert: dialog.hasAttribute("inert"),
+        closeFocusable,
+      };
+    });
     expect(settling.showing, "the close is still settling").toBe(true);
     expect(settling.kept, "the closing slide is kept for its fade").toBe(key);
+    expect(settling.inert, "the fading dialog is inert").toBe(true);
+    expect(settling.closeFocusable, "the fading dialog's controls take no focus").toBe(false);
   };
 
   // The fading carousel must not catch the click meant for the card: the
@@ -68,9 +84,10 @@ test.describe("carousel dialog state", () => {
       const box = el.getBoundingClientRect();
       const x = box.left + box.width / 2;
       const y = box.top + box.height / 2;
-      return { x, y, hit: el.contains(document.elementFromPoint(x, y)) };
+      const top = document.elementFromPoint(x, y);
+      return { x, y, hit: el.contains(top), top: top?.className?.baseVal ?? top?.className ?? null };
     });
-    expect(point.hit, "the closing carousel lets the card take the click").toBe(true);
+    expect(point.hit, `the closing carousel lets the card take the click (top: ${point.top})`).toBe(true);
     await button.page().mouse.click(point.x, point.y);
   };
 
@@ -87,6 +104,7 @@ test.describe("carousel dialog state", () => {
     expect(state.describedby).toEqual([`specs-slide-note-${key}`]);
     expect(state.descriptionResolves).toBe(true);
     expect(state.focused).toBe("Close");
+    expect(state.inert).toBe(false);
   };
 
   test("survives a rapid Escape and click reopen of the same card", async ({ page }) => {
@@ -176,6 +194,14 @@ test("the keyboard reaches and scrolls an overflowing caption", async ({ page })
   await expect
     .poll(() => slide.evaluate((el) => Math.ceil(el.scrollTop + el.clientHeight) >= el.scrollHeight - 1))
     .toBe(true);
+  // Paging from the focused slide hands focus to the incoming slide; the
+  // outgoing one is hidden and leaves the focus order.
+  await page.keyboard.press("ArrowRight");
+  const second = dialog.locator('.specs__slide[data-slide="02"]');
+  await expect(second).toHaveClass(/is-current/);
+  await expect(second).toBeFocused();
+  await expect(dialog.locator('.specs__slide[data-slide="01"]')).toHaveAttribute("aria-hidden", "true");
+  expect(await dialog.locator(".specs__slide[tabindex]").count()).toBe(1);
   // The trap cycles on through the arrows and back to Close.
   await page.keyboard.press("Tab");
   await expect(dialog.locator("[data-carousel-prev]")).toBeFocused();
@@ -185,9 +211,14 @@ test("the keyboard reaches and scrolls an overflowing caption", async ({ page })
   await expect(dialog.locator("[data-carousel-close]")).toBeFocused();
   await page.keyboard.press("Shift+Tab");
   await expect(dialog.locator("[data-carousel-next]")).toBeFocused();
-  // The next slide takes over the focus stop; the old one leaves the order.
+  // Paging from a button keeps focus on it; the next slide takes over the
+  // focus stop.
   await page.keyboard.press("ArrowRight");
-  await expect(dialog.locator(".specs__slide.is-current")).toHaveAttribute("data-slide", "02");
+  await expect(dialog.locator(".specs__slide.is-current")).toHaveAttribute("data-slide", "03");
+  await expect(dialog.locator("[data-carousel-next]")).toBeFocused();
   expect(await dialog.locator(".specs__slide[tabindex]").count()).toBe(1);
   await expect(dialog.locator(".specs__slide.is-current")).toHaveAttribute("tabindex", "0");
+  // Closed, the dialog is inert again.
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveAttribute("inert", "");
 });

@@ -891,6 +891,10 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
     const goTo = (id: string, direction: 1 | -1 | 0, force = false) => {
       const next = slides.get(id);
       if (!next || (id === current && !force)) return;
+      // Focus on the outgoing slide follows to the incoming one, never
+      // staying inside a slide that is about to be hidden.
+      const outgoing = current ? slides.get(current) : undefined;
+      const followFocus = Boolean(outgoing?.contains(document.activeElement));
       current = id;
       carousel.style.setProperty("--dir", String(direction));
       if (direction !== 0 && !reduced) {
@@ -901,6 +905,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       slides.forEach((slide, key) => slide.classList.toggle("is-current", key === id));
       next.scrollTop = 0;
       describe(id);
+      if (followFocus) next.focus({ preventScroll: true });
     };
 
     const step = (delta: 1 | -1) => {
@@ -917,6 +922,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       warm();
       showBg(null);
       goTo(id, 0, true);
+      carousel.removeAttribute("inert");
       carousel.setAttribute("role", "dialog");
       carousel.setAttribute("aria-modal", "true");
       // Everything outside the dialog goes inert: every sibling on the way
@@ -957,6 +963,9 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       // synthetic hover under a resting pointer lights the background.
       suppressHoverUntil = performance.now() + 700;
       opener?.focus({ preventScroll: true });
+      // Through the fade its controls leave the focus order and the
+      // accessibility tree.
+      carousel.setAttribute("inert", "");
       window.setTimeout(() => {
         if (!open) showBg(null);
       }, 0);

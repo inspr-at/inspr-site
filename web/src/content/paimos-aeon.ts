@@ -112,14 +112,14 @@ export const paimosAeonContent = {
       {
         id: "graph",
         tab: "Graph",
-        title: "Tickets, connected",
+        title: "Connected tickets",
         body: "Open tickets, their epics and typed relations as one graph.",
         alt: "The AEON tickets shown as a graph of epics, tickets and their relations.",
       },
       {
         id: "knowledge",
         tab: "Knowledge",
-        title: "Knowledge, connected",
+        title: "Connected knowledge",
         body: "Runbooks, guidelines and decisions, linked the way agents read them.",
         alt: "The AEON knowledge graph of linked runbooks, guidelines and memory entries.",
       },
@@ -135,7 +135,7 @@ export const paimosAeonContent = {
   specs: {
     eyebrow: "Specs",
     title: "What you get.",
-    lead: "Twenty capabilities, available today. Hover or tap a card for the detail.",
+    lead: "Twenty capabilities, available today. Point at a card for a preview, or open it for the detail.",
     leadEli10: "Twenty capabilities, available today. Open a card to see what each one does for you.",
     leadHow: "Twenty capabilities in Hinged Hangar. Open a card for the mechanism behind each.",
     items: [
@@ -153,7 +153,7 @@ export const paimosAeonContent = {
         group: "ai",
         note: "Lead and worker trees, live state, model and effort, and messages marked Sent, Delivered and Read.",
         noteEli10: "One screen shows every agent: what it works on, who it reports to and whether it has read your message.",
-        noteHow: "/agents lists every session. Heartbeats carry phase, activity, note, progress 0 to 100 and ready and live ETAs; after the 2-minute live window a silent unmanaged session shows Lost contact.",
+        noteHow: "/agents lists every session. Heartbeats carry phase, activity, note, progress 0 to 100 and ready and live ETAs; when an unmanaged session stays silent beyond the 2-minute live window, the view shows “Lost contact”.",
       },
       {
         label: "Your machines",
@@ -191,7 +191,7 @@ export const paimosAeonContent = {
         label: "Governed rules",
         icon: "scroll-text",
         group: "ai",
-        note: "Rules layer from company to task, publish as immutable versions, keep locked floors and share one merged byte budget.",
+        note: "Rules apply in layers from company to task, publish as immutable versions, can be locked for the layers below and share one merged byte budget.",
         noteEli10: "Your rules for agents are written once and versioned, and the critical ones stay locked.",
         noteHow: "Precedence runs company, project, person, agent role, named agent, task. The highest match wins, ties fail closed, and a lower layer never replaces a locked rule. Sets publish under a calendar version and can be restored.",
       },
@@ -220,7 +220,7 @@ export const paimosAeonContent = {
         noteHow: "Every row carries tenant_id under forced row-level security, and production needs a non-superuser database role.",
       },
       {
-        label: "One work tree",
+        label: "One tree for all work",
         icon: "list-tree",
         group: "work",
         note: "Projects, epics, tickets, releases, work orders and knowledge are nodes in one tree with typed relations.",
@@ -252,7 +252,7 @@ export const paimosAeonContent = {
         noteHow: "Eight derived stages from Inspire to Live, with person-approved gates. Deploy-target enforcement is not shipped in this release.",
       },
       {
-        label: "Clear usage",
+        label: "Transparent usage",
         icon: "eye",
         group: "ops",
         note: "Tokens per session, ticket and epic, with list-price estimates kept apart from subscription use.",
@@ -289,7 +289,7 @@ export const paimosAeonContent = {
         group: "legal",
         note: "Inspect, self-host, fork and modify AEON under AGPL-3.0-only.",
         noteEli10: "The source is open: you can read it, run it and change it.",
-        noteHow: "AGPL-3.0-only. An annotated tag builds the GHCR image and a draft GitHub release with SHA256SUMS, published only after live verification.",
+        noteHow: "AGPL-3.0-only. An annotated Git tag builds the GHCR image and a draft GitHub release with SHA256SUMS, published only after live verification.",
       },
       {
         label: "Made in Austria",
@@ -301,6 +301,12 @@ export const paimosAeonContent = {
       },
     ],
     glossary: [
+      {
+        id: "doctrine",
+        term: "Doctrine",
+        matches: ["doctrine"],
+        body: "The versioned rulebook kept in git, which AEON reads the agent rules from.",
+      },
       {
         id: "harness",
         term: "Harness",
@@ -350,13 +356,13 @@ export const paimosAeonContent = {
       title: "Sessions and pairing, precisely",
       items: [
         { term: "/agents", body: "The Agents page lists every harness session; usage lives at /agents/usage." },
-        { term: "heartbeat", body: "Each heartbeat carries phase, activity, note, progress 0 to 100 and ready and live ETAs. The live window is 2 minutes; a silent unmanaged session shows Lost contact." },
+        { term: "heartbeat", body: "Each heartbeat carries phase, activity, note and progress from 0 to 100. A ready ETA says when the work is expected to be ready for review; a live ETA is set only by coordinators. The live window is 2 minutes; when an unmanaged session stays silent longer, the view shows “Lost contact”." },
         { term: "worker lease", body: "Each generation holds a worker lease. Parent and child sessions link through --parent-session, reparenting and lead handover." },
         { term: "aeon-agentd pair", body: "Shows a 9-digit code that expires after 10 minutes. A person with account.manage approves it and picks one to five accounts. The code is display-only: redemption needs a device secret, checked by hash." },
-        { term: "transport", body: "The daemon pulls from the server over HTTPS, plain HTTP only on loopback. Local control runs over an owner-only Unix socket with a bearer token." },
+        { term: "transport", body: "The daemon pulls queued runs of work orders and inbox messages from the server over HTTPS and takes them over; plain HTTP only on loopback. Local control runs over an owner-only Unix socket with a bearer token." },
         { term: "telemetry", body: "Content-free: no vendor tokens, no raw vendor payloads, and vendor session ids stay local." },
         { term: "managed runs", body: "A managed run gets a run-local MCP server with aeon_comment, aeon_status, aeon_request_approval and aeon_terminal." },
-        { term: "messages", body: "At least once, with receipts: Read means the session acknowledged receipt, Answered that an accepted reply exists. Hooks deliver at turn boundaries; the managed agentd path also delivers mid-turn and when idle." },
+        { term: "messages", body: "At least once, with receipts: “Read” means the session acknowledged receipt, “Answered” that an accepted reply exists. Hooks deliver at turn boundaries; the managed agentd path also delivers mid-turn and when idle." },
         { term: "aeon hook", body: "aeon hook claude|codex <event> for PostToolUse, UserPromptSubmit and Stop, installed with aeon hook install." },
       ],
     },
@@ -375,7 +381,7 @@ export const paimosAeonContent = {
         icon: "sliders-horizontal",
         title: "Steer, interrupt, stop",
         body: "Redirect a managed session while it runs, or stop it cleanly.",
-        caveat: "Qualified for Claude on macOS",
+        caveat: "Currently for Claude on macOS",
       },
       {
         icon: "hard-drive",
@@ -499,7 +505,7 @@ export const paimosAeonContent = {
       { label: "Doctrine", at: 0.624 },
     ],
     points: [
-      { title: "Locked floors", body: "A higher layer can lock a rule for every layer below it." },
+      { title: "Locked rules", body: "A higher layer can lock a rule for every layer below it." },
       { title: "Byte budget", body: "One merged budget, 12,000 bytes by default and at most 64,000, keeps what an agent loads readable." },
       { title: "Drift detection", body: "aeon rules compare compares the instructions a harness loaded with the merged rules." },
     ],
@@ -520,7 +526,7 @@ export const paimosAeonContent = {
       simple:
         "Every project moves through eight stages. At each gate a person approves before it moves on, and nothing else can move it.",
       technical:
-        "The stage is a projection derived from the accepted brief, the human Shape decision, the agreed requirements revision, the current release state and live gate approvals. A heartbeat, a timer or a stage string from a client never moves the rail.",
+        "The stage is a projection derived from the accepted brief, the Shape decision by a person, the confirmed requirements revision, the current release state and live gate approvals. A heartbeat, a timer or a stage string from a client never moves the rail.",
     },
     stages: [
       {
@@ -533,7 +539,7 @@ export const paimosAeonContent = {
         name: "Shape",
         gate: true,
         scope: "journey.shape",
-        summary: "The Shape decision is a human gate: go, reduce scope, park or drop. A parked or dropped project keeps the Shape stage and can be reopened.",
+        summary: "The Shape decision is a gate for a person: go, reduce scope, park or drop. A parked or dropped project stays in the Shape stage and can be reopened.",
         decides: "A person decides the shape.",
         action: "decide",
         note: "The personal profile skips Shape after a brief is confirmed.",
@@ -541,9 +547,9 @@ export const paimosAeonContent = {
       {
         name: "Requirements",
         gate: true,
-        scope: "revision-bound requirements scope",
-        summary: "Functional requirements are requirement nodes. Agreement creates one epic per requirement and can generate tickets from accepted suggestions. A manual ticket that changes agreed scope stays marked until requirements are agreed again.",
-        decides: "A person agrees the requirements revision.",
+        scope: "scope for the requirements revision",
+        summary: "Functional requirements are requirement nodes. Confirmation creates one epic per requirement and can generate tickets from accepted suggestions. A manual ticket that changes the confirmed scope stays marked until requirements are confirmed again.",
+        decides: "A person confirms the requirements revision.",
         action: "approve_requirements",
       },
       {
@@ -565,7 +571,7 @@ export const paimosAeonContent = {
         name: "Deploy",
         gate: true,
         scope: "journey.deploy",
-        summary: "Pharos owns Deploy. It checks the reviewed artifact identity, current backup and readiness, and consumes one launch admission before a host changes. A gate can be renewed.",
+        summary: "Pharos owns Deploy. Before the start it checks the reviewed artifact identity, a current backup, readiness and capacity; only then does a host change. A gate can be renewed.",
         detail: {
           standard: "A deploy approval can name its target.",
           technical:
@@ -626,7 +632,7 @@ export const paimosAeonContent = {
         { term: "search", body: "Hybrid lexical and vector ranking over a pgvector halfvec(1536) HNSW index; lexical only unless AEON_EMBEDDING_URL is set." },
         { term: "self-hosting", body: "The image ghcr.io/inspr-at/aeon:<version>, with no latest tag, configured through AEON_* variables. AEON_DATABASE_URL is required; attachments live under AEON_FILES_DIR." },
         { term: "sign-in and secrets", body: "People sign in with OIDC (Zitadel), one tenant per session. Server secrets come from files, and the session key file is required outside development. The web app loads no analytics and no third-party runtime assets." },
-        { term: "releases", body: "INSPR-CalVer3 (YYMMDDhhmmss.0.0): this release is {version}, channel stable, sequence 113. An annotated tag builds the GHCR image and a draft GitHub release with SHA256SUMS; the draft is published only after live verification, which also updates the Homebrew tap." },
+        { term: "releases", body: "INSPR-CalVer3 (YYMMDDhhmmss.0.0): this release is {version}, channel stable, sequence 113. An annotated Git tag builds the GHCR image and a draft GitHub release with SHA256SUMS; the draft is published only after live verification, which also updates the Homebrew tap." },
       ],
     },
     diagram: {
@@ -666,7 +672,7 @@ export const paimosAeonContent = {
   },
   horizon: {
     eyebrow: "What is coming",
-    title: "Shipped today. Your agents get smarter next.",
+    title: "Shipped today. Coming next.",
     lead: "Hinged Hangar went live on 30 September. What follows can still change before it lands.",
     depths: {
       simple: "Hinged Hangar is live today. This is what comes next, and plans can still change before a release lands.",
@@ -680,7 +686,7 @@ export const paimosAeonContent = {
         when: "In progress",
         items: [
           { title: "Always an ETA", body: "Every ticket and every running agent shows an estimate and a live ETA, reported by the agents themselves." },
-          { title: "Doctrine inbox", body: "When an agent finds a better rule, it proposes it: you see a dot, review the diff and promote it to git in one click." },
+          { title: "Doctrine inbox", body: "When an agent finds a better rule, it proposes it: you see a notification dot, review the diff and promote it to git in one click." },
           { title: "Your brand in the header", body: "Your organisation's logo and short name in AEON's header." },
           { title: "Larger rule files", body: "Agent rule files up to 500 KB, with best-practice tips." },
         ],
@@ -692,7 +698,7 @@ export const paimosAeonContent = {
         when: "",
         items: [
           { title: "Cross-model review", body: "Every change an agent makes is reviewed by a different AI family before it can merge; the verdict shows on the ticket." },
-          { title: "Autopilot lanes", body: "AEON picks, sizes and dispatches the next ticket to the best available agent within your budget, and stops where a person must decide." },
+          { title: "Autopilot", body: "AEON picks, sizes and dispatches the next ticket to the best available agent within your budget, and stops where a person must decide." },
           { title: "More harnesses", body: "Gemini CLI and OpenCode, including open models, join Claude, Codex, Cursor, Grok and pi." },
           { title: "Talk to any running session", body: "Send a message into an attached Claude or Codex session straight from AEON." },
           { title: "Speed tiers per agent", body: "Default, Fast and, where vendors offer it, Ultra." },
@@ -707,14 +713,14 @@ export const paimosAeonContent = {
           { title: "Talk to AEON", body: "Voice: dictate tickets, steer agents and hear what needs you." },
           { title: "Morning briefing", body: "What your agents shipped overnight, what needs you and what it cost, every line linked to its source." },
           { title: "Approve on the go", body: "Push notifications and Face ID approvals from your phone." },
-          { title: "Always-on agents", body: "Work continues in a secure cloud lane while your laptop sleeps, within your budget and rules." },
+          { title: "Always-on agents", body: "Work continues in a secure cloud environment while your laptop sleeps, within your budget and rules." },
         ],
       },
     ],
     goodToKnow: {
       title: "Good to know",
       items: [
-        "Steering and session settings are qualified for Claude on macOS.",
+        "Steering and session settings are currently available for Claude on macOS.",
         "Attaching a running session is in early access and now works from any macOS terminal.",
         "Issues, knowledge and search run through the CLI and HTTP API.",
         "People sign in through your OIDC identity provider.",
@@ -725,10 +731,10 @@ export const paimosAeonContent = {
     eyebrow: "Open source",
     title: "Open source, AGPL-3.0.",
     body:
-      "Inspect, self-host, fork and modify AEON under AGPL-3.0-only. Every source link on this page points at this release's tag.",
+      "Inspect, self-host, fork and modify AEON under AGPL-3.0-only. Every source link on this page points to this release's Git tag.",
     depths: {
       simple: "The full source is public under an open-source license: you can inspect it, run it yourself and change it.",
-      technical: "AGPL-3.0-only. An annotated tag builds the GHCR image and a draft GitHub release with SHA256SUMS, published only after live verification. Every source link on this page is pinned to this release's tag.",
+      technical: "AGPL-3.0-only. An annotated Git tag builds the GHCR image and a draft GitHub release with SHA256SUMS, published only after live verification. Every source link on this page is pinned to this release's Git tag.",
     },
     links: [
       { label: "GitHub repository", href: repositoryUrl, external: true },

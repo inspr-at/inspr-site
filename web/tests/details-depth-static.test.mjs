@@ -11,25 +11,49 @@ const boundary = (text, marker, max = false, name = "section") => {
   assert.equal(tag.includes('data-depth-max="standard"'), max, `${marker} Technical visibility`);
 };
 
-test("shared depth folds measure live pixels, guard completion, reverse and initialize before drawers", async () => {
-  const control = await source("components/DetailsControl.astro");
-  for (const token of ["[data-depth-min], [data-depth-max]", "getBoundingClientRect", "scrollHeight", "transitionend", 'event.propertyName === "height"', "prefers-reduced-motion", "pending.get(element)?.()", "is-folding", "is-folded", "element.inert = closed"]) assert.ok(control.includes(token), token);
-  assert.ok(control.indexOf("foldTo(level, false);") < control.indexOf('querySelectorAll<HTMLElement>("[data-drawer]")'));
-  assert.ok(control.indexOf("const snapshots =") < control.indexOf('root.setAttribute("data-details-level", next)'));
-  assert.match(control, /const FOLD_STAGGER_MS = 25;/);
-  assert.match(control, /const FOLD_STAGGER_CAP = 8;/);
-  assert.match(control, /Math\.min\(activeIndex, FOLD_STAGGER_CAP\) \* FOLD_STAGGER_MS/);
-  assert.match(control, /Math\.max\(snapshots\[index\]\.height, target\.height\)/);
-  assert.match(control, /Math\.min\(height, FOLD_HEIGHT_CAP_PX\) \/ FOLD_HEIGHT_CAP_PX/);
-  assert.match(control, /style\.transitionDuration = `\$\{duration\}ms`/);
-  assert.match(control, /setTimeout\(finish, duration \+ delay \+ FOLD_TIMEOUT_BUFFER_MS\)/);
-  assert.match(control, /String\(Math\.min\(index, 8\)\)/);
+test("the depth engine moves the page by transform and opacity only, from three measured layouts", async () => {
+  const [engine, control, css, layout, boot] = await Promise.all([
+    source("scripts/details-engine.ts"),
+    source("components/DetailsControl.astro"),
+    source("styles/details-control.css"),
+    source("layouts/MicrositeLayout.astro"),
+    readFile(new URL("../public/scripts/details-level.js", import.meta.url), "utf8"),
+  ]);
+  // First, Final and Mid are measured in one task; Mid holds closing folds
+  // and stacks both copy variants, so no gap ever opens between sections.
+  for (const token of ["First", "Final", "Mid", "is-holding", "is-swapping", "data-copy-from", "data-details-compact", "data-details-moving", "overflow-anchor", "prefers-reduced-motion"]) {
+    assert.ok(engine.includes(token), token);
+  }
+  // Every keyframe the engine plays is translate or opacity.
+  const keyframes = [...engine.matchAll(/animateOn\([^,]+, \[([\s\S]*?)\], \{/g)].map((match) => match[1]);
+  assert.ok(keyframes.length >= 6, "the engine plays its motion through animateOn");
+  for (const frames of keyframes) {
+    // Point literals ({ x, y }) inside the values are offsets, not properties.
+    for (const [, key] of frames.matchAll(/\{\s*(\w+):/g)) {
+      if (key === "x" || key === "y") continue;
+      assert.ok(["translate", "opacity"].includes(key), `keyframe property ${key}`);
+    }
+  }
+  assert.match(engine, /fill: "both", id: MOTION_ID/);
+  assert.match(engine, /export const EASE = "cubic-bezier\(0\.45, 0, 0\.55, 1\)";/);
+  // The reader keeps their place: the block on the reading line holds,
+  // corrected before paint, also after late layout.
+  assert.match(engine, /const READING_LINE = 0\.3;/);
+  assert.match(engine, /window\.scrollTo\(\{ top: finalScroll, behavior: "instant" \}\)/);
+  assert.match(engine, /const STEADY_FRAMES = \d+;/);
+  // No layout property transitions anywhere in the depth styles.
+  assert.doesNotMatch(css, /transition(?:-property)?:[^;]*\b(height|margin|padding|max-height|max-width|grid-template-rows)\b/);
+  assert.match(css, /html\[data-details-level="simple"\] :is\(\[data-depth-min="standard"\], \[data-depth-min="technical"\]\):not\(\.is-holding\),/);
+  assert.match(css, /html:not\(\[data-details-level="technical"\]\) \[data-drawer\]:not\(\.is-holding\) \{\s*display: none;/);
+  assert.match(css, /\[data-copy-slot="stack"\] \{\s*display: grid;/);
+  // A stored depth is on <html> before the first paint.
+  assert.match(layout, /<script is:inline src=\{`\/scripts\/details-level\.js\?v=\$\{releaseMetadata\.releaseId\}`\}><\/script>/);
+  assert.ok(layout.indexOf("details-level.js") < layout.indexOf("</head>"));
+  assert.match(boot, /localStorage\.getItem\("inspr-details-level"\)/);
+  assert.match(boot, /root\.setAttribute\("data-details-compact", ""\)/);
+  assert.match(control, /import \{ createDepthEngine, EASE, isLevel, LEVELS, type Level \} from "\.\.\/scripts\/details-engine";/);
+  assert.match(control, /void engine\.apply\(level, false\);/);
   assert.doesNotMatch(control, /is:inline/);
-  const css = await source("styles/details-control.css");
-  assert.match(css, /transition-property: height, opacity, margin-block-start, margin-block-end, padding-block-start, padding-block-end;/);
-  assert.match(css, /transition-timing-function: cubic-bezier\(0\.22, 1, 0\.36, 1\)/);
-  assert.match(css, /\.is-folding[^}]*margin-block: 0;[^}]*padding-block: 0;/);
-  assert.match(css, /\.is-folded[^}]*display: none;/);
 });
 
 test("depth typography avoids mid-word prose breaks and leaves footers outside the fold mechanic", async () => {
@@ -42,7 +66,7 @@ test("depth typography avoids mid-word prose breaks and leaves footers outside t
   const overview = await source("components/OverviewPage.astro");
   assert.doesNotMatch(overview.slice(overview.indexOf('<footer class="overview-footer')), /data-depth-(?:min|max|layout)/);
   const depthStyles = await source("styles/details-control.css");
-  assert.doesNotMatch(depthStyles, /html\[data-details-level="simple"\] \.site-footer/);
+  assert.doesNotMatch(depthStyles, /html\[data-details-(?:level="simple"|compact)\] \.site-footer/);
   const microsites = await source("styles/microsites.css");
   assert.match(microsites, /h1,\s*h2,\s*h3,\s*h4\s*\{[^}]*text-wrap: balance;/);
   const typography = await source("styles/typography.css");
@@ -105,10 +129,10 @@ test("all six page families keep their essence and preserve technical evidence",
   }
 });
 
-test("Simple preserves the Standard hero layout and typography", async () => {
+test("Why preserves the What hero layout and typography", async () => {
   const css = await source("styles/details-control.css");
   for (const selector of ["product-hero", "umbrella-hero", "product-hero__copy", "umbrella-hero__copy", "hero-lead", "umbrella-hero__lead", "button-row"]) {
-    assert.doesNotMatch(css, new RegExp(`data-details-level="simple"[^}]*\\.${selector}`), selector);
+    assert.doesNotMatch(css, new RegExp(`data-details-(?:level="simple"|compact)[^}]*\\.${selector}`), selector);
   }
 });
 

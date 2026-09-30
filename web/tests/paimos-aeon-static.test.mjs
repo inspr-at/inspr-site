@@ -85,7 +85,7 @@ test("both editions declare their canonical, the release tag and no stray claims
     const text = await source(content);
     assert.match(text, new RegExp(`export const ${exportName} = \\{`));
     assert.match(text, canonical, `${locale} canonical`);
-    assert.match(text, /const tag = "v260930115354\.0\.0";/, `${locale} presents release 14.1`);
+    assert.match(text, /const tag = "v260930115354\.0\.0";/, `${locale} presents the Hinged Hangar tag`);
     assert.match(text, /\} satisfies AeonContent;/);
     for (const [pattern, reason] of forbidden) {
       assert.doesNotMatch(text, pattern, `${locale} content must not contain ${reason}`);

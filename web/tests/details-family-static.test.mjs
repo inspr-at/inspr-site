@@ -10,21 +10,22 @@ const rootFile = (relativePath) => readFile(new URL(relativePath, rootUrl), "utf
 
 const products = ["aithema", "paimos", "pharos", "janus"];
 
-test("every product microsite carries the Details slider before its language switch", async () => {
-  const [productPage, aithemaPage, header] = await Promise.all([
+test("every product microsite carries the Why · What · How switch before its language switch", async () => {
+  const [productPage, aithemaPage, header, control] = await Promise.all([
     source("components/ProductPage.astro"),
     source("components/AithemaProductPage.astro"),
     source("components/MicrositeHeader.astro"),
+    source("components/DetailsControl.astro"),
   ]);
-  assert.match(productPage, /detailsSlider=\{\{[\s\S]*?label: "Details",[\s\S]*?\{ id: "simple", label: labels\.detailsSimple \},[\s\S]*?\{ id: "standard", label: "Standard" \},[\s\S]*?\{ id: "technical", label: labels\.detailsTechnical \},/);
-  assert.match(header, /<DetailsControl[\s\S]*?\{languageLinks && \(/);
-  assert.match(aithemaPage, /<DetailsControl[\s\S]*?label="Details"[\s\S]*?<nav class="language-switch"/);
-  for (const page of [productPage, aithemaPage]) {
-    assert.match(page, /detailsSimple: "Einfach"/);
-    assert.match(page, /detailsTechnical: "Technisch"/);
-    assert.match(page, /detailsSimple: "Simple"/);
-    assert.match(page, /detailsTechnical: "Technical"/);
+  assert.match(productPage, /detailsSlider=\{\{\}\}/);
+  assert.match(header, /<DetailsControl locale=\{locale\} controls=\{detailsSlider\.controls\} \/>[\s\S]*?\{languageLinks && \(/);
+  assert.match(aithemaPage, /<DetailsControl locale=\{locale\} \/>[\s\S]*?<nav class="language-switch"/);
+  // One word each, naming the angle a level takes; never the reader.
+  assert.match(control, /names: \{ simple: "Why", standard: "What", technical: "How" \}/);
+  assert.match(control, /names: \{ simple: "Warum", standard: "Was", technical: "Wie" \}/);
+  for (const page of [productPage, aithemaPage, control]) {
     assert.doesNotMatch(page, /developer|sysop|nerd/i);
+    assert.doesNotMatch(page, /"Simple"|"Einfach"|"Technical"|"Technisch"/);
   }
 });
 
@@ -115,15 +116,14 @@ test("product technical drawers share typed, public datasheets and localized han
   assert.match(workflow, /<dt>\{labels\.handoffOut\}<\/dt><dd>\{handoff\.out\}<\/dd>/);
   for (const label of ["handoff in", "handoff out", "Übergabe hinein", "Übergabe hinaus"]) assert.ok(workflow.includes(`"${label}"`));
 
-  assert.match(control, /querySelectorAll<HTMLElement>\("\[data-drawer\]"\)/);
-  assert.match(control, /drawer\.style\.setProperty\("--drawer-i", String\(Math\.min\(index, 8\)\)\)/);
-  assert.doesNotMatch(stack, /--drawer-i/);
+  // A drawer is a fold of the depth engine: at How it is there, whole, and
+  // nothing in its mechanics clips or transitions layout.
+  assert.doesNotMatch(control + stack, /--drawer-i/);
   assert.doesNotMatch(control, /is:inline/);
-  assert.match(styles, /\.details-drawer,\s*\.overview-drawer \{\s*--drawer-i: 0;\s*display: grid;\s*grid-template-rows: 0fr;\s*opacity: 0;/);
-  assert.match(styles, /\.details-drawer__inner,\s*\.overview-drawer__inner \{\s*min-height: 0;\s*overflow: hidden;/);
-  assert.match(styles, /html\[data-details-level="technical"\] \.details-drawer,[\s\S]*?grid-template-rows: 1fr;\s*opacity: 1;[\s\S]*?calc\(var\(--drawer-i\) \* 45ms\)/);
-  assert.match(styles, /@media \(prefers-reduced-motion: reduce\) \{\s*\.details-drawer,[\s\S]*?html\[data-details-level="technical"\] \.details-drawer,[\s\S]*?transition: none;/);
-  assert.match(styles, /@media print \{\s*\.details-drawer,\s*\.overview-drawer \{\s*grid-template-rows: 1fr;\s*opacity: 1;/);
+  assert.match(styles, /html:not\(\[data-details-level="technical"\]\) \[data-drawer\]:not\(\.is-holding\) \{\s*display: none;/);
+  assert.match(styles, /\.details-drawer,\s*\.overview-drawer \{\s*display: block;/);
+  assert.doesNotMatch(styles, /\.details-drawer__inner,\s*\.overview-drawer__inner \{[^}]*overflow: hidden/);
+  assert.match(styles, /@media print \{[\s\S]*?html \[data-drawer\] \{\s*display: block !important;/);
   assert.match(styles, /\.product-sheet,\s*\.product-handoff \{[^}]*margin: 0;\s*padding: 0;\s*border: 0;/);
   assert.doesNotMatch(overviewStyles, /grid-template-rows: [01]fr/);
 });
@@ -149,7 +149,7 @@ test("the umbrella start page carries the Details slider, depth leads and techni
     source("components/OverviewStack.astro"),
   ]);
   assert.match(umbrella, /import DetailLevels from "\.\.\/components\/DetailLevels\.astro"/);
-  assert.match(umbrella, /languageLinks=\{\{ en: "\/", de: "\/de\/" \}\}\s*detailsSlider=\{\{[\s\S]*?label: "Details",[\s\S]*?\{ id: "technical", label: copy\("Technical", "Technisch"\) \},/);
+  assert.match(umbrella, /languageLinks=\{\{ en: "\/", de: "\/de\/" \}\}\s*detailsSlider=\{\{\}\}/);
   assert.equal((umbrella.match(/<DetailLevels/g) || []).length, 5);
   assert.match(umbrella, /leadDepths=\{\{\s*simple: copy\(/);
   for (const phrase of [
@@ -176,7 +176,7 @@ test("the umbrella start page carries the Details slider, depth leads and techni
   assert.match(spec, /AGPL-3\.0-only/);
   assert.match(spec, /copy\("1 build · 5 hostnames · 2 languages", "1 Build · 5 Hostnamen · 2 Sprachen"\)/);
   assert.match(umbrella, /\.umbrella-spec \{\s*margin: 0;\s*padding: 0;\s*border: 0;/);
-  assert.match(umbrella, /:global\(html\[data-details-level="technical"\]\) \.umbrella-spec \.details-drawer__inner \{\s*margin-top: 1\.1rem;\s*padding-top: 1\.1rem;\s*border-top: 1px dashed var\(--line\);/);
+  assert.match(umbrella, /\.umbrella-spec \.details-drawer__inner \{[^}]*margin-top: 1\.1rem;\s*padding-top: 1\.1rem;\s*border-top: 1px dashed var\(--line\);/);
   const showcase = umbrella.match(/<div class="product-showcase">[\s\S]*?<\/section>/)?.[0];
   assert.ok(showcase);
   assert.match(showcase, /<div class="product-story-item">\s*<a[\s\S]*?<\/a>\s*<dl class="product-sheet details-drawer" data-drawer>\s*<div class="details-drawer__inner">/);
@@ -186,7 +186,9 @@ test("the umbrella start page carries the Details slider, depth leads and techni
   assert.match(showcase, /product\.sheet\.command &&/);
   assert.match(showcase, /<code class="product-sheet__command">\$ \{product\.sheet\.command\}<\/code>/);
   assert.match(control, /fetch\("\/release\.json"/);
-  assert.match(control, /if \(liveLoaded \|\| !document\.querySelector\("\[data-live\]"\)\) return;\s*liveLoaded = true;/);
+  // Live facts fill once, early and idle, so a switch to How measures them.
+  assert.match(control, /if \(!document\.querySelector\("\[data-live\]"\)\) return Promise\.resolve\(\);\s*live \?\?= fillLive\(\);/);
+  assert.match(control, /beforeMove: \(_, to\) => \(to === "technical" \? loadLive\(\) : undefined\)/);
   assert.match(control, /if \(level === "technical"\) void loadLive\(\);/);
   assert.doesNotMatch(stack, /fetch\("\/release\.json"|loadLive/);
   assert.doesNotMatch(umbrella, /\b(hsb|csb|mbp)\d/i);

@@ -39,9 +39,9 @@ const stageOf = (n: number) => content.ui.stageOf.replace("{n}", String(n)).repl
       </div>
       <p class="section-lead">
         <DetailLevels
-          simple={content.depths.simple ?? content.lead}
+          simple={content.depths.simple}
           standard={content.lead}
-          technical={content.depths.technical ?? content.lead}
+          technical={content.depths.technical}
         />
       </p>
     </header>
@@ -81,6 +81,11 @@ const stageOf = (n: number) => content.ui.stageOf.replace("{n}", String(n)).repl
                 </p>
                 <h3>{stage.name}</h3>
                 <p class="aeon-stage__summary">{stage.summary}</p>
+                {stage.detail && (
+                  <p class="aeon-stage__summary aeon-stage__detail" data-depth-min="standard">
+                    <DetailLevels simple={stage.detail.standard} standard={stage.detail.standard} technical={stage.detail.technical} />
+                  </p>
+                )}
                 {stage.note && <p class="aeon-stage__note">{stage.note}</p>}
               </div>
               <dl class="aeon-stage__facts">
@@ -130,7 +135,7 @@ const stageOf = (n: number) => content.ui.stageOf.replace("{n}", String(n)).repl
       </button>
     </div>
 
-    <p class="aeon-proof">
+    <p class="aeon-proof" data-depth-min="standard">
       <span class="aeon-proof__label">{labels.proof}</span>
       {proofs.map((proof) => (
         <a href={proof.href} target="_blank" rel="noopener noreferrer">{proof.label} <span aria-hidden="true">↗</span></a>

@@ -4,7 +4,9 @@
  * has scrolled a little: slightly compacted, lifted by a shadow, a touch
  * more frost. Only transform, shadow, background and border animate, so the
  * page never reflows. Hysteresis keeps it from flickering around the
- * threshold. Included by MicrositeHeader and the Aithema page's own header.
+ * threshold. While the Details switch moves the page, the header waits and
+ * catches up once it lands, so its own transition never overlaps the depth
+ * motion. Included by MicrositeHeader and the Aithema page's own header.
  */
 ---
 
@@ -17,6 +19,7 @@
     let scheduled = false;
     const update = () => {
       scheduled = false;
+      if (document.documentElement.hasAttribute("data-details-moving")) return;
       const y = window.scrollY;
       if (!floating && y > liftAt) {
         floating = true;
@@ -35,6 +38,7 @@
       },
       { passive: true },
     );
+    document.addEventListener("inspr:details-settled", update);
     update();
   }
 </script>

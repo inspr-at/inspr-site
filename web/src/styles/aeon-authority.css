@@ -15,7 +15,10 @@
     --spring-pop: linear(0, 0.074, 0.255, 0.483, 0.714, 0.912, 1.062, 1.156, 1.2, 1.202, 1.175, 1.132, 1.084, 1.039, 1.003, 0.977, 0.963, 0.958, 0.96, 0.968, 0.977, 0.987, 0.996, 1.002, 1.006, 1.008, 1.009, 1.008, 1.006, 1.004, 1.002, 1, 0.999, 0.998, 1);
     position: relative;
     isolation: isolate;
-    overflow: clip;
+    /* Sideways only: nothing in the section is cut off at its edges when
+       a level hides the lines below the instrument (INSPR-497). */
+    overflow-x: clip;
+    overflow-y: visible;
   }
 
   .aeon-authority h2 {

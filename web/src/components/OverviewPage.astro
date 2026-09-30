@@ -276,16 +276,7 @@ const steps = [
     primaryAction={{ label: copy("Full site", "Website"), href: fullSiteUrl }}
     locale={locale}
     languageLinks={{ en: "/overview/", de: "/de/ueberblick/" }}
-    detailsSlider={{
-      label: "Details",
-      description: copy("How much detail this page shows", "Wie viel Detail diese Seite zeigt"),
-      controls: "overview-details",
-      levels: [
-        { id: "simple", label: copy("Simple", "Einfach") },
-        { id: "standard", label: "Standard" },
-        { id: "technical", label: copy("Technical", "Technisch") },
-      ],
-    }}
+    detailsSlider={{ controls: "overview-details" }}
   />
 
   <main id="main-content" class="overview-main">
@@ -340,7 +331,7 @@ const steps = [
                 <img src={node.logo.src} alt="" width="46" height="46" />
               </span>
               <span>{node.label}</span>
-              <span class="overview-flow__handoff" aria-hidden="true">{node.handoff}</span>
+              <span class="overview-flow__handoff" data-depth-min="technical" aria-hidden="true">{node.handoff}</span>
             </li>
           ))}
         </ol>

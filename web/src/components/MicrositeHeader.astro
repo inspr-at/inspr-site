@@ -15,12 +15,9 @@ interface Props {
   languageLinks?: { en: string; de: string };
   /** Brand link target when the page is not mounted at its product host root. */
   homeHref?: string;
-  /** Three-position Details control: how deep the page explains itself. */
+  /** The Why · What · How switch: how deep the page explains itself. */
   detailsSlider?: {
-    label: string;
-    description: string;
     controls?: string;
-    levels: Array<{ id: "simple" | "standard" | "technical"; label: string }>;
   };
 }
 
@@ -93,12 +90,7 @@ const productHref = (href: string) =>
 
     <div class="site-header__actions">
       {detailsSlider && (
-        <DetailsControl
-          label={detailsSlider.label}
-          description={detailsSlider.description}
-          controls={detailsSlider.controls}
-          levels={detailsSlider.levels}
-        />
+        <DetailsControl locale={locale} controls={detailsSlider.controls} />
       )}
       {languageLinks && (
         <nav class="language-switch" aria-label={labels.languages}>

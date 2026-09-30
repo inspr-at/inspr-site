@@ -1,0 +1,24 @@
+---
+/**
+ * INSPR-497: running text on the AEON page with the release version in it.
+ * No version number appears in running text: a `{version}` token becomes
+ * the Pretty chip drawn by the one calendar-version adapter, which reveals
+ * the canonical version on hover. Raw versions stay only where a command or
+ * image tag needs them.
+ */
+import CalendarVersion from "./CalendarVersion.astro";
+
+interface Props {
+  text: string;
+  /** The canonical coordinate, without the v of the tag. */
+  version: string;
+  locale?: "en" | "de";
+}
+
+const { text, version, locale = "en" } = Astro.props;
+const parts = text.split("{version}");
+---
+
+{parts.map((part, index) => (
+  <Fragment>{part}{index < parts.length - 1 && <CalendarVersion value={version} scheme="inspr-calver-3" locale={locale} />}</Fragment>
+))}

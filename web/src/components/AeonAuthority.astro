@@ -11,16 +11,19 @@
  * aeon-authority.css.
  */
 import DetailLevels from "./DetailLevels.astro";
+import AeonDeep from "./AeonDeep.astro";
 import type { AeonContent } from "../content/types";
 import "../styles/aeon-authority.css";
 
 interface Props {
   content: AeonContent["authority"];
+  version: string;
+  locale?: "en" | "de";
   proofs: Array<{ label: string; href: string }>;
   labels: { proof: string; steps: string };
 }
 
-const { content, proofs, labels } = Astro.props;
+const { content, proofs, labels, version, locale = "en" } = Astro.props;
 const total = content.steps.length;
 const stepOf = (n: number) => content.ui.stepOf.replace("{n}", String(n)).replace("{total}", String(total));
 const kindOf = (token: string) =>
@@ -44,9 +47,9 @@ const kindOf = (token: string) =>
       </div>
       <p class="section-lead">
         <DetailLevels
-          simple={content.depths.simple ?? content.lead}
+          simple={content.depths.simple}
           standard={content.lead}
-          technical={content.depths.technical ?? content.lead}
+          technical={content.depths.technical}
         />
       </p>
     </header>
@@ -106,7 +109,9 @@ const kindOf = (token: string) =>
       </button>
     </div>
 
-    <p class="aeon-proof">
+    <AeonDeep deep={content.deep} id="authority-deep" version={version} locale={locale} />
+
+    <p class="aeon-proof" data-depth-min="standard">
       <span class="aeon-proof__label">{labels.proof}</span>
       {proofs.map((proof) => (
         <a href={proof.href} target="_blank" rel="noopener noreferrer">{proof.label} <span aria-hidden="true">↗</span></a>

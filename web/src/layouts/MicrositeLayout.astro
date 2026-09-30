@@ -79,6 +79,7 @@ const {
 
     <link rel="icon" type="image/svg+xml" href={favicon} />
     <meta name="generator" content={Astro.generator} />
+    <script is:inline src={`/scripts/details-level.js?v=${releaseMetadata.releaseId}`}></script>
     {alternateEnglish && alternateGerman && (
       <script
         is:inline

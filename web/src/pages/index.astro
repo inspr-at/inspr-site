@@ -368,15 +368,7 @@ const productFlowSteps = [
     nav={nav}
     locale={locale}
     languageLinks={{ en: "/", de: "/de/" }}
-    detailsSlider={{
-      label: "Details",
-      description: copy("How much detail this page shows", "Wie viel Detail diese Seite zeigt"),
-      levels: [
-        { id: "simple", label: copy("Simple", "Einfach") },
-        { id: "standard", label: "Standard" },
-        { id: "technical", label: copy("Technical", "Technisch") },
-      ],
-    }}
+    detailsSlider={{}}
   />
 
   <main id="main-content">
@@ -867,13 +859,11 @@ const productFlowSteps = [
     line-height: 1.5;
   }
 
+  /* A drawer exists only at How (a fold of the depth engine). */
   .umbrella-spec .details-drawer__inner {
     display: flex;
     flex-wrap: wrap;
     gap: 0.8rem 1.4rem;
-  }
-
-  :global(html[data-details-level="technical"]) .umbrella-spec .details-drawer__inner {
     margin-top: 1.1rem;
     padding-top: 1.1rem;
     border-top: 1px dashed var(--line);

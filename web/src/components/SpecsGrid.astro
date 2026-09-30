@@ -14,6 +14,7 @@
  * AeonPage.astro, initSpecsCarousel.
  */
 import { getImage } from "astro:assets";
+import AeonGlassMark from "./AeonGlassMark.astro";
 import ContextIcon from "./ContextIcon.astro";
 import DetailLevels from "./DetailLevels.astro";
 import type { SpecsContent } from "../content/types";
@@ -34,6 +35,9 @@ export interface LensLabels {
   prev: string;
   next: string;
   dialog: string;
+  /** The pause and play labels of the carousel's motion button. */
+  motionPause: string;
+  motionPlay: string;
 }
 
 interface Props {
@@ -45,8 +49,10 @@ interface Props {
   /**
    * AEON only: the capability lens. `images` holds one image per spec in
    * content order (index 0 is spec 01) with its kind; `labels` the UI copy.
+   * `marks` (INSPR-498) lists the slide numbers ("06") that get the rotating
+   * glass mark (`markSrc`, the AEON mark's URL) in the centre of the image.
    */
-  lens?: { images: LensImage[]; labels: LensLabels };
+  lens?: { images: LensImage[]; labels: LensLabels; marks?: string[]; markSrc?: string };
 }
 
 const { specs, labels, variant, groupLabels, lens } = Astro.props;
@@ -155,18 +161,27 @@ const segmentNote = (text: string): NoteSegment[] => {
       <div class="specs__carousel-stage">
         {slides.map((slide, i) => (
           <figure class="specs__slide" data-slide={pad(i + 1)} aria-hidden="true">
-            <img
-              class="specs__slide-img"
-              src={slide.src}
-              srcset={slide.srcset}
-              sizes="100vw"
-              alt=""
-              data-alt={`${specs.items[i]?.label}, ${sourceLabel(lens.images[i]?.kind)}`}
-              width={slide.width}
-              height={slide.height}
-              loading="lazy"
-              decoding="async"
-            />
+            {/* The frame takes the image's place in the layout; the image fills
+                it, so an optional mark (`lens.marks`, INSPR-498) can sit
+                in the centre of exactly what is shown. */}
+            <div
+              class:list={["specs__slide-frame", lens.marks?.includes(pad(i + 1)) && "specs__slide-frame--mark"]}
+              style={`--ar: ${slide.width} / ${slide.height};`}
+            >
+              <img
+                class="specs__slide-img"
+                src={slide.src}
+                srcset={slide.srcset}
+                sizes="100vw"
+                alt=""
+                data-alt={`${specs.items[i]?.label}, ${sourceLabel(lens.images[i]?.kind)}`}
+                width={slide.width}
+                height={slide.height}
+                loading="lazy"
+                decoding="async"
+              />
+              {lens.markSrc && lens.marks?.includes(pad(i + 1)) && <AeonGlassMark mark={lens.markSrc} />}
+            </div>
             <figcaption class="specs__slide-caption">
               <span class="specs__slide-cat">
                 <span>{groupLabels?.[specs.items[i]?.group]}</span>
@@ -194,6 +209,18 @@ const segmentNote = (text: string): NoteSegment[] => {
       <div class="specs__carousel-ticks" aria-hidden="true">
         {slides.map((_, i) => <i data-tick={pad(i + 1)}></i>)}
       </div>
+      <button
+        type="button"
+        class="specs__carousel-nav specs__carousel-nav--motion"
+        data-carousel-motion
+        data-label-pause={lens.labels.motionPause}
+        data-label-play={lens.labels.motionPlay}
+        aria-label={lens.labels.motionPause}
+        hidden
+      >
+        <svg class="specs__motion-pause" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><rect x="6.5" y="5" width="3.6" height="14" rx="1.2" /><rect x="13.9" y="5" width="3.6" height="14" rx="1.2" /></svg>
+        <svg class="specs__motion-play" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M8 5.6v12.8a.8.8 0 0 0 1.22.68l10.2-6.4a.8.8 0 0 0 0-1.36L9.22 4.92A.8.8 0 0 0 8 5.6Z" /></svg>
+      </button>
       <button type="button" class="specs__carousel-nav specs__carousel-nav--close" data-carousel-close aria-label={lens.labels.close}>
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
       </button>

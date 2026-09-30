@@ -343,7 +343,7 @@ export const paimosAeonContentDe = {
       simple:
         "Eine Ansicht zeigt jeden Agenten bei der Arbeit: was er gerade tut, wem er berichtet und ob er Ihre Nachricht gelesen hat.",
       technical:
-        "AgentsView stellt Harness-Sitzungen dar, die über das Daemon-Protokoll gemeldet werden, mit Übergabe der Leitung, verwalteter Steuerung (steuern, unterbrechen, stoppen) und Wiederherstellung von Sitzungen. Zustellungen in den Posteingang werden als gesendet, zugestellt und gelesen verfolgt.",
+        "AgentsView stellt Harness-Sitzungen dar, die über das Daemon-Protokoll gemeldet werden, mit Übergabe der Leitung, Steuerung der von AEON gestarteten Läufe (steuern, unterbrechen, stoppen) und Wiederherstellung von Sitzungen. Zustellungen in den Posteingang werden als gesendet, zugestellt und gelesen verfolgt.",
     },
     deep: {
       title: "Sitzungen und Kopplung im Detail",
@@ -373,8 +373,8 @@ export const paimosAeonContentDe = {
       {
         icon: "sliders-horizontal",
         title: "Steuern, unterbrechen, stoppen",
-        body: "Lenken Sie eine verwaltete Sitzung während des Laufs um, oder stoppen Sie sie sauber.",
-        caveat: "Derzeit für Claude unter macOS",
+        body: "Lenken, unterbrechen oder stoppen Sie einen von AEON gestarteten Lauf. Name, Modell und Aufwand der Sitzung ändert nur eine Person.",
+        caveat: "Derzeit für von AEON gestartete Claude-Läufe unter macOS",
       },
       {
         icon: "hard-drive",
@@ -564,7 +564,7 @@ export const paimosAeonContentDe = {
         name: "Deploy",
         gate: true,
         scope: "journey.deploy",
-        summary: "Pharos ist für den Deploy zuständig. Vor dem Start prüft es die Identität des geprüften Artefakts, ein aktuelles Backup, die Bereitschaft und die Kapazität; erst danach ändert sich ein Host. Ein Gate kann erneuert werden.",
+        summary: "Ein Deploy startet erst mit der Freigabe einer Person, gebunden an das Release; ein externer Ausführer (etwa Pharos) lässt ihn zu und führt ihn genau einmal aus. Läuft ein Gate ab oder wird es widerrufen, bietet Journey die Erneuerung an, die eine Person bestätigt.",
         detail: {
           standard: "Eine Deploy-Freigabe kann ihr Ziel benennen.",
           technical:
@@ -693,7 +693,7 @@ export const paimosAeonContentDe = {
           { title: "Modellübergreifende Prüfung", body: "Jede Änderung eines Agenten wird von einer anderen KI-Familie geprüft, bevor sie zusammengeführt werden kann; das Urteil steht am Ticket." },
           { title: "Autopilot", body: "AEON wählt, schätzt und vergibt das nächste Ticket an den besten verfügbaren Agenten innerhalb Ihres Budgets und hält an, wo eine Person entscheiden muss." },
           { title: "Mehr Harnesses", body: "Gemini CLI und OpenCode, auch mit offenen Modellen, kommen zu Claude, Codex, Cursor, Grok und pi dazu." },
-          { title: "Mit jeder laufenden Sitzung sprechen", body: "Senden Sie eine Nachricht direkt aus AEON in eine angebundene Claude- oder Codex-Sitzung." },
+          { title: "Mit jeder laufenden Sitzung sprechen", body: "Senden Sie eine Nachricht direkt aus AEON in eine angehängte Claude- oder Codex-Sitzung." },
           { title: "Tempostufen je Agent", body: "Standard, Schnell und, wo Anbieter es anbieten, Ultra." },
         ],
       },
@@ -713,8 +713,8 @@ export const paimosAeonContentDe = {
     goodToKnow: {
       title: "Gut zu wissen",
       items: [
-        "Steuerung und Sitzungseinstellungen sind derzeit für Claude unter macOS verfügbar.",
-        "Das Anbinden einer laufenden Sitzung ist im Early Access und funktioniert jetzt aus jedem macOS-Terminal.",
+        "Lenken, Unterbrechen, Stoppen und Sitzungseinstellungen (Name, Modell, Aufwand) gibt es derzeit für von AEON gestartete Claude-Läufe unter macOS.",
+        "Laufende Claude- und Codex-Sitzungen lassen sich zum Mitlesen anhängen; Nachrichten an angehängte Sitzungen sind derzeit deaktiviert.",
         "Tickets, Wissen und Suche laufen über die CLI und die HTTP-API.",
         "Personen melden sich über Ihren OIDC-Identitätsanbieter an.",
       ],

@@ -350,7 +350,7 @@ export const paimosAeonContent = {
       simple:
         "One view shows every agent at work: what it is doing, who it reports to, and whether it has read your message.",
       technical:
-        "AgentsView renders harness sessions reported over the daemon protocol, with lead handover, managed control (steer, interrupt, stop) and session recovery; inbox deliveries are tracked as Sent, Delivered and Read.",
+        "AgentsView renders harness sessions reported over the daemon protocol, with lead handover, control of runs started by AEON (steer, interrupt, stop) and session recovery; inbox deliveries are tracked as Sent, Delivered and Read.",
     },
     deep: {
       title: "Sessions and pairing, precisely",
@@ -380,8 +380,8 @@ export const paimosAeonContent = {
       {
         icon: "sliders-horizontal",
         title: "Steer, interrupt, stop",
-        body: "Redirect a managed session while it runs, or stop it cleanly.",
-        caveat: "Currently for Claude on macOS",
+        body: "Steer, interrupt or stop a run that AEON started. Only a person can change the session's name, model and effort.",
+        caveat: "Currently for Claude runs started by AEON on macOS",
       },
       {
         icon: "hard-drive",
@@ -571,7 +571,7 @@ export const paimosAeonContent = {
         name: "Deploy",
         gate: true,
         scope: "journey.deploy",
-        summary: "Pharos owns Deploy. Before the start it checks the reviewed artifact identity, a current backup, readiness and capacity; only then does a host change. A gate can be renewed.",
+        summary: "A deploy starts only with a person's approval, bound to the release; an external executor (such as Pharos) admits it and carries it out exactly once. If a gate expires or is revoked, Journey offers renewal, which a person confirms.",
         detail: {
           standard: "A deploy approval can name its target.",
           technical:
@@ -720,8 +720,8 @@ export const paimosAeonContent = {
     goodToKnow: {
       title: "Good to know",
       items: [
-        "Steering and session settings are currently available for Claude on macOS.",
-        "Attaching a running session is in early access and now works from any macOS terminal.",
+        "Steering, interrupting, stopping and session settings (name, model, effort) are currently available for Claude runs started by AEON on macOS.",
+        "Running Claude and Codex sessions can be attached to watch; sending messages to attached sessions is currently disabled.",
         "Issues, knowledge and search run through the CLI and HTTP API.",
         "People sign in through your OIDC identity provider.",
       ],

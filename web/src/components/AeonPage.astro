@@ -52,6 +52,8 @@ import captureManifest from "../assets/products/paimos-aeon/capture-manifest.jso
 import "@fontsource-variable/geist/index.css";
 import "../styles/aeon.css";
 
+import "../styles/aeon-mark.css";
+import "../styles/aeon-polish.css";
 import aeonMark from "../assets/products/paimos/logo.svg";
 import heroPoster from "../assets/products/paimos/hero.png";
 import heroLoop from "../assets/products/paimos/hero-loop.mp4";
@@ -95,6 +97,8 @@ const labels = locale === "de"
       lensNext: "Nächste Funktion",
       lensDialog: "Funktion im Detail",
       stepsAria: "Vom Schlüssel zur Berechtigung",
+      lensMotionPause: "Bewegung anhalten",
+      lensMotionPlay: "Bewegung fortsetzen",
       tabsAria: "Ansichten der Live-Instanz",
       stagesAria: "Die acht Stufen einer Journey",
       layersAria: "Die sechs Regelebenen",
@@ -138,6 +142,8 @@ const labels = locale === "de"
       tabsAria: "Screens from the live instance",
       stagesAria: "The eight stages of a journey",
       layersAria: "The six rule layers",
+      lensMotionPause: "Pause motion",
+      lensMotionPlay: "Play motion",
       stopsAria: "Jump to a part of the rules view",
       tourPause: "Pause tour",
       tourPlay: "Play tour",
@@ -212,6 +218,16 @@ const ogImage = new URL(heroPoster.src, siteUrls.inspr).href;
 const releaseVersion = content.release.version.replace(/^v/, "");
 ---
 
+// INSPR-498: the rotating glass mark goes into the centre of the generated
+// scenes whose middle is open (a plaza or a cloud valley); a scene whose
+// composition runs through the centre, and every live screen, stays clean.
+const markSlugs = new Set(["capacity-routing", "tenant-isolation", "work-orders", "contract-first", "made-in-austria"]);
+const markSlides = content.specs.items.flatMap((_, i) => {
+  const key = String(i + 1).padStart(2, "0");
+  const hit = Object.keys(lensFiles).find((path) => path.includes(`/specs/${key}-`));
+  const slug = hit?.split(`/specs/${key}-`)[1]?.replace(/\.[a-z]+$/, "") ?? "";
+  return markSlugs.has(slug) && lensImages[i]?.kind === "art" ? [key] : [];
+});
 <MicrositeLayout
   title={content.seo.title}
   description={content.seo.description}
@@ -462,7 +478,11 @@ const releaseVersion = content.release.version.replace(/^v/, "");
         unflipAll: labels.specsUnflipAll,
         shuffle: labels.specsShuffle,
       }}
+          motionPause: labels.lensMotionPause,
+          motionPlay: labels.lensMotionPlay,
     />
+        marks: markSlides,
+        markSrc: aeonMark.src,
 
     <!-- Control room: the live sessions view. -->
     <section class="section section--ink aeon-control" id="control-room" aria-labelledby="control-title" data-section-pattern="control-room">
@@ -850,6 +870,7 @@ const releaseVersion = content.release.version.replace(/^v/, "");
             tile.style.setProperty("--i", String(i));
             tile.classList.add("is-in");
             observer.unobserve(tile);
+    const motionBtn = carousel.querySelector<HTMLButtonElement>("[data-carousel-motion]");
           });
       }, { threshold: 0.2, rootMargin: "0px 0px -4% 0px" });
       tiles.forEach((tile) => observer.observe(tile));
@@ -953,6 +974,14 @@ const releaseVersion = content.release.version.replace(/^v/, "");
       }
       slides.forEach((slide, key) => slide.classList.toggle("is-current", key === id));
       next.scrollTop = 0;
+      // The pause button shows on a slide whose mark turns (never under
+      // reduced motion, when it stands still); focus never stays on it
+      // while it leaves.
+      if (motionBtn) {
+        const moving = !reduced && Boolean(slides.get(id)?.querySelector("[data-aeon-mark]"));
+        if (!moving && document.activeElement === motionBtn) closeBtn?.focus({ preventScroll: true });
+        motionBtn.hidden = !moving;
+      }
       describe(id);
       if (followFocus) next.focus({ preventScroll: true });
     };
@@ -1062,6 +1091,15 @@ const releaseVersion = content.release.version.replace(/^v/, "");
     document.addEventListener("keydown", (event) => {
       if (!open) return;
       if (event.key === "Escape") {
+    // WCAG 2.2.2: the slide's decorative motion has a visible pause. The
+    // choice stays for the whole visit to the carousel.
+    motionBtn?.addEventListener("click", () => {
+      const paused = carousel.dataset.motion !== "paused";
+      if (paused) carousel.dataset.motion = "paused";
+      else delete carousel.dataset.motion;
+      motionBtn.toggleAttribute("data-paused", paused);
+      motionBtn.setAttribute("aria-label", (paused ? motionBtn.dataset.labelPlay : motionBtn.dataset.labelPause) ?? "");
+    });
         closeCarousel();
       } else if (event.key === "ArrowLeft") {
         event.preventDefault();
@@ -1070,10 +1108,11 @@ const releaseVersion = content.release.version.replace(/^v/, "");
         event.preventDefault();
         step(1);
       } else if (event.key === "Tab") {
-        // Focus trap over the close button, the current slide (a scroll
-        // region) and the arrows, both ways.
+        // Focus trap over the pause button (when shown), the close button,
+        // the current slide (a scroll region) and the arrows, both ways.
         const slide = current ? slides.get(current) : undefined;
-        const ring = [closeBtn, slide, prevBtn, nextBtn].filter((el): el is HTMLElement => Boolean(el));
+        const ring = [motionBtn && !motionBtn.hidden ? motionBtn : null, closeBtn, slide, prevBtn, nextBtn]
+          .filter((el): el is HTMLElement => Boolean(el));
         if (!ring.length) return;
         const index = ring.indexOf(document.activeElement as HTMLElement);
         const target = event.shiftKey
@@ -1252,3 +1291,38 @@ const releaseVersion = content.release.version.replace(/^v/, "");
   initSpecsCarousel();
   initTheatre();
 </script>
+  // INSPR-498: a fine pointer tilts the glass mark slightly: --mx and --my in
+  // -1..1 from the pointer to each visible mark's centre. Never under
+  // reduced motion, and only while a mark is on screen.
+  const initGlassMarks = () => {
+    const marks = Array.from(document.querySelectorAll<HTMLElement>("[data-aeon-mark]"));
+    if (!marks.length) return;
+    const fine = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let frame = 0;
+    let px = 0;
+    let py = 0;
+    const clamp = (value: number) => Math.max(-1, Math.min(1, value));
+    const update = () => {
+      frame = 0;
+      if (!fine.matches || calm.matches) return;
+      for (const mark of marks) {
+        if (getComputedStyle(mark).visibility === "hidden") continue;
+        const box = mark.getBoundingClientRect();
+        if (!box.width || !box.height) continue;
+        mark.style.setProperty("--mx", clamp((px - (box.left + box.width / 2)) / (window.innerWidth / 2)).toFixed(3));
+        mark.style.setProperty("--my", clamp((py - (box.top + box.height / 2)) / (window.innerHeight / 2)).toFixed(3));
+      }
+    };
+    document.addEventListener(
+      "pointermove",
+      (event) => {
+        px = event.clientX;
+        py = event.clientY;
+        if (!frame) frame = requestAnimationFrame(update);
+      },
+      { passive: true },
+    );
+  };
+
+  initGlassMarks();

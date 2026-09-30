@@ -100,3 +100,66 @@ test("both languages state the heartbeat ETAs and the transport the way the rele
   assert.match(de, /eingeplante Läufe zu Arbeitsaufträgen und Posteingangs-Nachrichten/);
   assert.match(en, /queued runs of work orders and inbox messages/);
 });
+
+// AEON-LEAD's verification (tag v260930115354.0.0), INSPR-498: two claims were
+// narrower than the copy said.
+const stage = (text, name, next) => {
+  const start = text.indexOf(`name: "${name}"`);
+  const end = text.indexOf(`name: "${next}"`);
+  assert.ok(start > 0 && end > start, `the ${name} stage is in the content`);
+  return text.slice(start, end);
+};
+
+test("the Deploy stage makes no capacity or launch-admission claim", async () => {
+  for (const [language, text] of [["de", await german()], ["en", await english()]]) {
+    const deploy = stage(text, "Deploy", "Access");
+    assert.doesNotMatch(deploy, /Kapazit|capacity/i, `${language}: the capacity check is for agent runs on accounts, never for a Deploy`);
+    assert.doesNotMatch(deploy, /Startzulassung|launch admission/i, `${language}: no launch admission in the Deploy stage`);
+    assert.doesNotMatch(deploy, /ändert sich ein Host|does a host change/i, `${language}: no host change as the consequence of a check`);
+  }
+  const de = stage(await german(), "Deploy", "Access");
+  const en = stage(await english(), "Deploy", "Access");
+  assert.match(de, /Freigabe einer Person, gebunden an das Release/);
+  assert.match(de, /ein externer Ausführer \(etwa Pharos\) lässt ihn zu und führt ihn genau einmal aus/);
+  assert.match(de, /bietet Journey die Erneuerung an, die eine Person bestätigt/);
+  assert.match(en, /only with a person's approval, bound to the release/);
+  assert.match(en, /an external executor \(such as Pharos\) admits it and carries it out exactly once/);
+  assert.match(en, /Journey offers renewal, which a person confirms/);
+});
+
+test("steering and session settings are claimed only for runs AEON started, on macOS", async () => {
+  const de = await german();
+  const en = await english();
+  // The sentence, the card caveat and the control room text all name the runs.
+  assert.match(de, /für von AEON gestartete Claude-Läufe unter macOS/i);
+  assert.match(de, /Derzeit für von AEON gestartete Claude-Läufe unter macOS/i);
+  assert.match(en, /Claude runs started by AEON on macOS/i);
+  assert.match(en, /Currently for Claude runs started by AEON on macOS/i);
+  for (const [language, text] of [["de", de], ["en", en]]) {
+    assert.doesNotMatch(text, /Steuerung und Sitzungseinstellungen sind derzeit für Claude unter macOS|Steering and session settings are currently available for Claude on macOS/,
+      `${language}: the unqualified steering sentence is retired`);
+    assert.doesNotMatch(text, /Early Access|early access/, `${language}: attaching a session is no early-access feature claim`);
+    assert.doesNotMatch(text, /jedem macOS-Terminal|any macOS terminal/, `${language}: no claim about any macOS terminal`);
+    assert.doesNotMatch(text, /verwaltete Sitzung während|managed session while/, `${language}: no steering of arbitrary sessions`);
+  }
+  // Attaching is watch-only, and talking to attached sessions is disabled.
+  assert.match(de, /zum Mitlesen anhängen; Nachrichten an angehängte Sitzungen sind derzeit deaktiviert/);
+  assert.match(en, /can be attached to watch; sending messages to attached sessions is currently disabled/);
+});
+
+test("the doctrine inbox and rule-edit pull requests stay a roadmap item", async () => {
+  for (const [language, text, inbox, planned] of [
+    ["de", await german(), /Posteingang für Doktrin-Vorschläge/, /term: "Geplant", body: "Vorschläge für Regeländerungen als Pull Requests/],
+    ["en", await english(), /Doctrine inbox/, /term: "planned", body: "Rule-edit proposals as pull requests/],
+  ]) {
+    const horizon = text.indexOf("horizon: {");
+    assert.ok(horizon > 0, `${language}: the horizon section exists`);
+    const inboxAt = text.search(inbox);
+    assert.ok(inboxAt > horizon, `${language}: the inbox is only in the roadmap`);
+    // Any pull-request wording is either the How-level planned item or the roadmap.
+    for (const match of text.matchAll(/[Pp]ull [Rr]equests?/g)) {
+      const at = match.index ?? 0;
+      assert.ok(at > horizon || planned.test(text.slice(Math.max(0, at - 70), at + 90)), `${language}: pull requests outside the roadmap must be the planned item`);
+    }
+  }
+});

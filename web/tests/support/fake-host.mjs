@@ -4,6 +4,14 @@
 // directory, rsync and scp copy for real, and docker answers the container
 // checks. deploy.sh therefore exercises its real remote steps: the lock, the
 // release-set listing, sealing, the ledger, symlink promotion and rollback.
+//
+// Fault injection (environment of one run):
+//   FAKE_SSH_FAIL=<glob>        a remote command matching it fails (exit 255)
+//   FAKE_CONTAINER_UNHEALTHY=1  the container check fails, unless `current`
+//                               points at FAKE_HEALTHY_CURRENT
+//   FAKE_DOCKER_TAMPER=<path>   a failing container check also appends to it
+//   FAKE_RSYNC_GATE=<path>      holds the upload until the file exists
+//   FAKE_TAMPER_INCOMING=<path> alters the unsealed upload before sealing
 import { spawn, spawnSync } from "node:child_process";
 import { chmod, cp, mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -31,6 +39,11 @@ command=$(cat)
 case "$command" in
   *docker-compose.yml*) exit 97 ;;
 esac
+if [ -n "\${FAKE_SSH_FAIL:-}" ]; then
+  case "$command" in
+    $FAKE_SSH_FAIL) exit 255 ;;
+  esac
+fi
 printf '%s\\n' "$command" | /bin/bash -se`,
   scp: `${logLine("scp")}
 source="\${@: -2:1}"
@@ -70,7 +83,12 @@ fi
 exit "$status"`,
   docker: `${logLine("docker")}
 case "$*" in
-  *"exec inspr-www caddy validate"*) [ -z "\${FAKE_CONTAINER_UNHEALTHY:-}" ] || exit 1 ;;
+  *"exec inspr-www caddy validate"*)
+    if [ -n "\${FAKE_CONTAINER_UNHEALTHY:-}" ] \\
+      && [ "$(readlink "$INSPR_AT_DIR/releases/current" 2>/dev/null)" != "\${FAKE_HEALTHY_CURRENT:-}" ]; then
+      [ -z "\${FAKE_DOCKER_TAMPER:-}" ] || printf 'tampered\\n' >> "$FAKE_DOCKER_TAMPER"
+      exit 1
+    fi ;;
   *wget*) printf 'Inspiration is the only limit.\\nRequirements you approve before work begins.\\n' ;;
 esac
 exit 0`,

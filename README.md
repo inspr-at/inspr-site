@@ -187,14 +187,19 @@ The deployment script:
 2. builds and validates the static site with that release identity, then
    writes its release set (`web/dist/release-set.json`);
 3. takes the host's deployment lock and re-checks the calendar history;
-4. uploads into an unreachable incoming directory;
-5. verifies the remote content byte-for-byte and against the release set;
-6. records the release-set digest in the host ledger and seals the release
-   under its unique build ID;
-7. validates a changed `Caddyfile` before promotion and restarts `inspr-www` to pick it up;
-8. switches one symlink atomically;
-9. verifies the release stamp and result through every public hostname; and
-10. preserves the previous release for rollback and releases the lock.
+4. verifies that the live release and its `Caddyfile` are an exact rollback
+   target, and stops before any change if they are not;
+5. uploads into an unreachable incoming directory, with the `Caddyfile`
+   snapshot kept outside the served root;
+6. verifies the remote content and snapshot byte-for-byte against the
+   release set;
+7. seals the release in two phases (`pending`, rename, `sealed`) in the host
+   ledger under its unique build ID;
+8. validates a changed `Caddyfile` before promotion and restarts `inspr-www` to pick it up;
+9. switches one symlink atomically;
+10. verifies the release stamp and result through every public hostname; and
+11. records the promotion event, preserves the previous release for rollback
+    and releases the lock; a failure at any of these steps fails the run.
 
 Every current site displays the release's calendar version, the shared
 site-package version, short Git revision, immutable release ID and UTC
@@ -228,32 +233,44 @@ grammar, real-date and history checks.
 
 Each calendar release is one immutable release set. After the build,
 `deploy.sh` writes `web/dist/release-set.json` (`web/release-set.mjs`): every
-output file with its path (the artifact coordinate), size and SHA-256, plus the
-full source commit, the `web/package-lock.json` digest, the Node.js version and
-the version block. The host's own SHA-256 of every uploaded file must match it
-exactly (no missing, extra, altered or non-regular files) before sealing. The
-manifest's digest is appended to `releases/events.tsv` on the host, an
-append-only ledger of `sealed`, `promoted`, `auto-rollback` and `rollback`
-events, before the build directory is sealed.
+output file with its path (the artifact coordinate), size and SHA-256, the
+`Caddyfile` the release is served with (routing and CSP, the `edge`
+artifact), the full source commit, the `web/package-lock.json` digest, the
+Node.js version and the version block. The `Caddyfile` is kept per release in
+`releases/configs/<id>/Caddyfile`, outside the served root. The host's own
+SHA-256 of every uploaded file and of that snapshot must match the set
+exactly (no missing, extra, altered or non-regular files) before sealing.
+Sealing is two-phase in `releases/events.tsv` on the host, an append-only
+ledger: `pending` records the digest before the build is renamed into
+`builds/`, `sealed` confirms it afterwards. An interrupted seal leaves either
+a removed upload whose identical retry completes, or a build that is never
+promoted or used for rollback and whose version stays used. Conflicting
+entries for one release make the ledger invalid.
 
 From the final history check through sealing, promotion and probes, one run
 holds `releases/.deploy.lock`, created atomically with `mkdir` and naming its
 owner (machine, process and release). A second deployment stops at the lock
-instead of racing for the same sequence. The lock is released on every exit;
-if a killed run leaves one behind, `deploy.sh` refuses with the owner's name
-and never removes it: check that no deployment is running, then remove that
-directory on the host by hand.
+instead of racing for the same sequence. The lock is released on every exit,
+and a lock the run cannot release fails the run; if a killed run leaves one
+behind, `deploy.sh` refuses with the owner's name and never removes it: check
+that no deployment is running, then remove that directory on the host by hand.
 
-A failed promotion relinks the previous release only after it matches the
-release-set digest the ledger recorded for it; an altered build is left alone
-and reported for operator attention. A build sealed before release sets existed
-(the legacy era) has nothing to verify and is relinked as before. To return
-production to one exact earlier calendar release, run
-`ROLLBACK_TO=<YYMMDDhhmmss.0.0> ./deploy.sh`: under the lock it verifies that
-build against its ledger digest, switches `current`, records a `rollback` event
-and probes the result, restoring the prior release if the health check fails.
-A rollback never reserves a version or sequence, so release ordering stays
-unchanged; a fix is a new release with a later version.
+Before anything changes, the live release must verify against the digest the
+ledger confirmed for it, and the live `Caddyfile` must be the one recorded for
+it; otherwise the run stops, because a failure could not be undone exactly.
+The pre-migration release has no release set: the first calendar deploy
+records a write-once legacy baseline for it under the lock
+(`releases/baselines/<id>.json`, every file's SHA-256 plus its `Caddyfile`
+snapshot, confirmed as a `baseline` ledger event). A failed promotion verifies
+the previous release again and restores it together with its `Caddyfile`; an
+altered release is never relinked and is reported for operator attention. To
+return production to one exact earlier release, run
+`ROLLBACK_TO=<YYMMDDhhmmss.0.0> ./deploy.sh` (or the legacy release's id):
+under the lock it verifies the target and the live release, validates the
+target's recorded `Caddyfile`, switches `Caddyfile` and `current` together,
+checks and probes the result, records a `rollback` event, and restores both if
+anything fails. A rollback never reserves a version or sequence, so release
+ordering stays unchanged; a fix is a new release with a later version.
 
 Footers render the version through one adapter,
 `web/src/components/CalendarVersion.astro`, around the shared INSPR renderer

@@ -22,8 +22,10 @@ concurrency:
 
 jobs:
   site:
-    runs-on: blacksmith-2vcpu-ubuntu-2404
-    timeout-minutes: 15
+    # GitHub-hosted since 2026-09-30 (INSPR-492): Blacksmith jobs stopped
+    # starting (queued, then startup_failure). Switch back once it is healthy.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
     defaults:
       run:
         working-directory: web

@@ -95,6 +95,19 @@ for (const { path, lang } of pages) {
   });
 }
 
+for (const { path, lang } of pages) {
+  test(`${path} at How names the version as the chip, not as a number`, async ({ page }) => {
+    await open(page, path, lang, "technical");
+    const chip = page.locator("#next .section-lead [data-copy-level=\"technical\"] [data-calendar-version]");
+    await expect(chip).toBeVisible();
+    await expect(chip).toHaveAttribute("aria-label", /260930115354\.0\.0.*UTC/);
+    const segments = await chip.evaluate((el) => ["yy", "mm", "dd"].map((key) => el.querySelector(`.${key}`)?.textContent));
+    expect(segments).toEqual(["26", "09", "30"]);
+    const lead = await page.locator("#next .section-lead").innerText();
+    expect(lead).not.toContain("260930115354");
+  });
+}
+
 test.describe("touch", () => {
   test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
   test("the first tap on the plaque reveals the version instead of leaving", async ({ page, browserName }) => {

@@ -48,7 +48,7 @@ export const paimosAeonContentDe = {
       simple:
         "Ihre Mitarbeitenden und Ihre KI-Agenten arbeiten an denselben Projekten. Die Agenten laufen auf Ihren eigenen Rechnern und Konten, Sie sehen, was jeder tut, und geschützte Schritte warten auf die Entscheidung einer Person.",
       technical:
-        "Hinged Hangar (v260930115354.0.0): eine Go-Binärdatei mit eingebetteter Vue-Anwendung, Postgres 18 unter Sicherheit auf Zeilenebene im FORCE-Modus, ein Append-only-Ereignisprotokoll je Mandant, ein Vertrag nach OpenAPI 3.1 und aeon-agentd, das fünf Harness-Adapter auf gekoppelten Rechnern steuert.",
+        "Hinged Hangar: eine Go-Binärdatei mit eingebetteter Vue-Anwendung, Postgres 18 unter Sicherheit auf Zeilenebene im FORCE-Modus, ein Append-only-Ereignisprotokoll je Mandant, ein Vertrag nach OpenAPI 3.1 und aeon-agentd, das fünf Harness-Adapter auf gekoppelten Rechnern steuert.",
     },
     primaryLabel: "Im Einsatz ansehen",
     primaryHref: "#screens",
@@ -130,7 +130,7 @@ export const paimosAeonContentDe = {
     title: "Was Sie bekommen.",
     lead: "Zwanzig Fähigkeiten, heute verfügbar. Fahren Sie über eine Karte oder tippen Sie darauf, um die Details zu sehen.",
     leadEli10: "Zwanzig Fähigkeiten, heute verfügbar. Öffnen Sie eine Karte, um zu sehen, was jede für Sie leistet.",
-    leadHow: "Zwanzig Fähigkeiten in Hinged Hangar: v260930115354.0.0, INSPR-CalVer3, Kanal stable, Sequenz 113. Öffnen Sie eine Karte für den Mechanismus dahinter.",
+    leadHow: "Zwanzig Fähigkeiten in Hinged Hangar. Öffnen Sie eine Karte für den Mechanismus dahinter.",
     items: [
       {
         label: "Agenten zuerst",
@@ -184,7 +184,7 @@ export const paimosAeonContentDe = {
         label: "Verwaltete Regeln",
         icon: "scroll-text",
         group: "ai",
-        note: "Regeln schichten sich vom Unternehmen bis zur Aufgabe, werden als unveränderliche Versionen veröffentlicht und behalten gesperrte Untergrenzen und Byte-Budgets.",
+        note: "Regeln schichten sich vom Unternehmen bis zur Aufgabe, werden als unveränderliche Versionen veröffentlicht, behalten gesperrte Untergrenzen und teilen sich ein gemeinsames Byte-Budget.",
         noteEli10: "Ihre Regeln für Agenten werden einmal geschrieben und versioniert, und die entscheidenden bleiben gesperrt.",
         noteHow: "Die Rangfolge lautet Unternehmen, Projekt, Person, Agentenrolle, benannter Agent, Aufgabe. Der höchste Treffer gewinnt, ein Gleichstand führt zur Ablehnung, und eine tiefere Ebene ersetzt nie eine gesperrte Regel. Regelsätze werden unter einer Kalenderversion veröffentlicht und lassen sich wiederherstellen.",
       },
@@ -192,9 +192,9 @@ export const paimosAeonContentDe = {
         label: "Doktrin aus Git",
         icon: "git-branch",
         group: "ops",
-        note: "Die Doktrin wird bei einem festgelegten Commit aus Git gelesen; aeon rules compare und aeon doctor erkennen Abweichungen.",
+        note: "Die Doktrin wird bei einem festgelegten Commit aus Git gelesen, und aeon rules compare vergleicht die Anweisungen, die ein Harness geladen hat, mit den zusammengeführten Regeln.",
         noteEli10: "Das Regelwerk liegt in der Versionsverwaltung, und AEON zeigt, wenn ein Agent mit einer veralteten Kopie arbeitet.",
-        noteHow: "Die Doktrin wird aus Git an einem gepinnten Commit gelesen. Ein Harness erhält die zusammengeführten Regeln über paimos session start --rules-receive, das eine vom Worker gemeldete Quittung schickt: ein Nachweis der Zustellung, nicht der Befolgung.",
+        noteHow: "Die Doktrin wird aus Git an einem gepinnten Commit gelesen. Ein Harness erhält die zusammengeführten Regeln über paimos session start --rules-receive, das eine vom Worker gemeldete Quittung schickt: ein Nachweis der Zustellung, nicht der Befolgung. aeon rules compare vergleicht die geladenen Anweisungen mit den zusammengeführten Regeln.",
       },
       {
         label: "Append-only-Protokoll",
@@ -240,7 +240,7 @@ export const paimosAeonContentDe = {
         label: "Journeys und Freigaben",
         icon: "waypoints",
         group: "work",
-        note: "Acht abgeleitete Stufen von Inspire bis Live, mit Freigaben durch Personen und benannten Deploy-Zielen.",
+        note: "Acht abgeleitete Stufen von Inspire bis Live, mit Freigaben durch Personen.",
         noteEli10: "Jedes Projekt durchläuft klare Stufen, und eine Person gibt frei, bevor etwas live geht.",
         noteHow: "Acht abgeleitete Stufen von Inspire bis Live, mit Toren, die eine Person freigibt. Die Durchsetzung von Deploy-Zielen ist in diesem Release noch nicht enthalten.",
       },
@@ -349,6 +349,7 @@ export const paimosAeonContentDe = {
         { term: "Transport", body: "Der Daemon holt sich Aufträge per HTTPS vom Server, unverschlüsseltes HTTP nur auf Loopback. Die lokale Steuerung läuft über einen Unix-Socket nur für den Besitzer, mit einem Bearer-Token." },
         { term: "Telemetrie", body: "Ohne Inhalte: keine Tokens der Anbieter, keine rohen Anbieterdaten, und Sitzungs-IDs der Anbieter bleiben lokal." },
         { term: "Verwaltete Läufe", body: "Ein verwalteter Lauf erhält einen eigenen MCP-Server mit aeon_comment, aeon_status, aeon_request_approval und aeon_terminal." },
+        { term: "Nachrichten", body: "Mindestens einmal, mit Quittungen: Gelesen heißt, die Sitzung hat den Empfang bestätigt, Beantwortet, dass eine angenommene Antwort vorliegt. Hooks stellen an Zuggrenzen zu; der verwaltete agentd-Pfad stellt auch mitten im Zug und im Leerlauf zu." },
         { term: "aeon hook", body: "aeon hook claude|codex <event> für PostToolUse, UserPromptSubmit und Stop, eingerichtet mit aeon hook install." },
       ],
     },
@@ -361,7 +362,7 @@ export const paimosAeonContentDe = {
       {
         icon: "radio-tower",
         title: "Nachrichten mit Empfangsbestätigung",
-        body: "Gesendet, Zugestellt, Gelesen. Die Zustellung ist garantiert, und Posteingangs-Hooks bringen Nachrichten in die Sitzung.",
+        body: "Nachrichten erreichen die Sitzung mindestens einmal, mit Quittungen für gelesen und beantwortet; Posteingangs-Hooks bringen sie hinein.",
       },
       {
         icon: "sliders-horizontal",
@@ -381,9 +382,9 @@ export const paimosAeonContentDe = {
       eyebrow: "Kopplung",
       title: "Ein neuer Rechner kommt mit einem Befehl und dem Ja einer Person dazu.",
       steps: [
-        { label: "Installieren Sie den signierten, notarisierten Daemon.", command: "brew install inspr-at/tap/aeon-agentd" },
-        { label: "Koppeln Sie aus Ihrem Arbeitsordner.", command: "aeon-agentd pair" },
-        { label: "Geben Sie den 9-stelligen Code im Browser ein und bestätigen Sie." },
+        { label: "Installieren Sie den Daemon. Unter macOS ist er signiert (Developer ID, Hardened Runtime) und notarisiert.", command: "brew install inspr-at/tap/aeon-agentd" },
+        { label: "Koppeln Sie aus Ihrem Arbeitsordner.", command: "aeon-agentd pair --url <origin>" },
+        { label: "Eine Person bestätigt den 9-stelligen Code innerhalb von 10 Minuten im Browser." },
       ],
       harnessesLabel: "Harnesses",
       harnesses: ["Claude", "Codex", "Cursor", "Grok", "pi"],
@@ -477,7 +478,9 @@ export const paimosAeonContentDe = {
         { term: "Veröffentlichen", body: "Regelsätze entstehen als Entwurf, werden unter einer Kalenderversion veröffentlicht, und jede Veröffentlichung lässt sich wiederherstellen." },
         { term: "Budget", body: "Der zusammengeführte Satz hat standardmäßig ein Budget von 12.000 Bytes und höchstens 64.000." },
         { term: "session start", body: "paimos session start --rules-preview zeigt den zusammengeführten Satz vorab; --rules-receive schreibt die Datei und schickt eine vom Worker gemeldete Quittung, die die Zustellung festhält, nicht die Befolgung." },
+        { term: "rules compare", body: "aeon rules compare vergleicht die Anweisungen, die ein Harness geladen hat, mit den zusammengeführten Regeln. Weder der Vergleich noch die Quittung belegt, dass das Modell sie befolgt." },
         { term: "Ziele", body: "claude-code, codex, grok, pi und cursor." },
+        { term: "Geplant", body: "Vorschläge für Regeländerungen als Pull Requests; sie brauchen eine GitHub App." },
       ],
     },
     stops: [
@@ -490,10 +493,9 @@ export const paimosAeonContentDe = {
     ],
     points: [
       { title: "Gesperrte Untergrenzen", body: "Eine höhere Ebene kann eine Regel für alle Ebenen darunter sperren." },
-      { title: "Byte-Budgets", body: "Jede Ebene hat ein Größenbudget, damit lesbar bleibt, was ein Agent lädt." },
-      { title: "Abweichungen erkennen", body: "aeon rules compare und aeon doctor zeigen, wo ein Harness von der veröffentlichten Fassung abweicht." },
+      { title: "Byte-Budget", body: "Ein gemeinsames Budget, standardmäßig 12.000 Bytes und höchstens 64.000, hält lesbar, was ein Agent lädt." },
+      { title: "Abweichungen erkennen", body: "aeon rules compare vergleicht die Anweisungen, die ein Harness geladen hat, mit den zusammengeführten Regeln." },
     ],
-    early: "Früh: Regeländerungen als Pull Requests, sobald ein Betreiber sie aktiviert.",
     screenAlt:
       "Die Agentenregeln in AEON: Regelsets für Unternehmen und Projekt mit ihren Sperren, ein geöffnetes Set gesperrter Kernel-Regeln, das Byte-Budget und die aus Git gepinnte Doktrin.",
     proof: [
@@ -607,12 +609,12 @@ export const paimosAeonContentDe = {
       title: "Stack und Betrieb, genau",
       items: [
         { term: "paimos serve", body: "Eine Go-Binärdatei mit eingebetteter Vue-3-Anwendung. Migrationen sind eingebettet und werden beim Start angewendet." },
-        { term: "aeon-agentd", body: "Ein eigener lokaler Supervisor auf jedem gekoppelten Rechner, ausgeliefert als Release-Dateien paimos-agentd." },
+        { term: "aeon-agentd", body: "Ein eigener lokaler Supervisor auf jedem gekoppelten Rechner, ausgeliefert als Release-Dateien paimos-agentd. Der macOS-Daemon ist signiert (Developer ID, Hardened Runtime) und notarisiert; der Linux-Build ist statisch gelinkt." },
         { term: "Postgres 18", body: "Mit pgvector. Jede Zeile trägt tenant_id unter erzwungener Sicherheit auf Zeilenebene; der Produktivbetrieb braucht eine Rolle ohne Superuser-Rechte." },
         { term: "Suche", body: "Hybride Rangfolge aus lexikalischer und Vektorsuche über einen HNSW-Index auf pgvector halfvec(1536); rein lexikalisch, solange AEON_EMBEDDING_URL nicht gesetzt ist." },
         { term: "Selbst betreiben", body: "Das Image ghcr.io/inspr-at/aeon:<version>, ohne latest-Tag, konfiguriert über AEON_*-Variablen. AEON_DATABASE_URL ist Pflicht; Anhänge liegen unter AEON_FILES_DIR." },
         { term: "Anmeldung und Geheimnisse", body: "Personen melden sich per OIDC (Zitadel) an, ein Mandant je Sitzung. Servergeheimnisse kommen aus Dateien, und außerhalb der Entwicklung ist die Session-Schlüsseldatei Pflicht. Die Web-Anwendung lädt keine Analyse-Werkzeuge und keine Laufzeit-Ressourcen Dritter." },
-        { term: "Releases", body: "INSPR-CalVer3 (YYMMDDhhmmss.0.0): dieses Release ist Kanal stable, Sequenz 113. Ein annotierter Tag baut das GHCR-Image und ein GitHub-Release im Entwurf mit SHA256SUMS; der Entwurf wird erst nach der Live-Prüfung veröffentlicht, was auch den Homebrew-Tap aktualisiert." },
+        { term: "Releases", body: "INSPR-CalVer3 (YYMMDDhhmmss.0.0): dieses Release ist {version}, Kanal stable, Sequenz 113. Ein annotierter Tag baut das GHCR-Image und ein GitHub-Release im Entwurf mit SHA256SUMS; der Entwurf wird erst nach der Live-Prüfung veröffentlicht, was auch den Homebrew-Tap aktualisiert." },
       ],
     },
     diagram: {
@@ -656,7 +658,7 @@ export const paimosAeonContentDe = {
     lead: "Hinged Hangar ist seit 30. September live. Was folgt, kann sich bis zum Release noch ändern.",
     depths: {
       simple: "Hinged Hangar ist heute live. Das kommt als Nächstes, und Pläne können sich bis zum Release noch ändern.",
-      technical: "Hinged Hangar ist v260930115354.0.0, Kanal stable, Sequenz 113. Was folgt, sind erfasste Tickets, keine Zusagen. Noch nicht enthalten: die meisten MCP-Werkzeuge, die Durchsetzung von Deploy-Zielen und Doktrin-Vorschläge als Pull Requests.",
+      technical: "Hinged Hangar ist {version}, Kanal stable, Sequenz 113. Was folgt, sind erfasste Tickets, keine Zusagen. Noch nicht enthalten: die meisten MCP-Werkzeuge, die Durchsetzung von Deploy-Zielen und Doktrin-Vorschläge als Pull Requests.",
     },
     releases: [
       {
@@ -702,8 +704,7 @@ export const paimosAeonContentDe = {
       items: [
         "Steuerung und Sitzungseinstellungen sind für Claude unter macOS qualifiziert.",
         "Das Anbinden einer laufenden Sitzung ist früh verfügbar und funktioniert jetzt aus jedem macOS-Terminal.",
-        "Tickets, Wissen und Suche laufen über die CLI und die HTTP-API; der MCP-Server ist früh verfügbar.",
-        "Regeländerungen als Pull Requests stehen bereit, sobald ein Betreiber sie aktiviert.",
+        "Tickets, Wissen und Suche laufen über die CLI und die HTTP-API.",
         "Personen melden sich über Ihren OIDC-Identitätsanbieter an.",
       ],
     },
@@ -715,7 +716,7 @@ export const paimosAeonContentDe = {
       "Sie können AEON unter AGPL-3.0-only prüfen, selbst betreiben, forken und verändern. Jeder Quellcode-Link auf dieser Seite zeigt auf den Tag dieses Releases.",
     depths: {
       simple: "Der gesamte Quellcode ist unter einer Open-Source-Lizenz öffentlich: Sie können ihn prüfen, selbst betreiben und verändern.",
-      technical: "AGPL-3.0-only. Ein annotierter Tag baut das GHCR-Image und ein GitHub-Release im Entwurf mit SHA256SUMS, veröffentlicht erst nach der Live-Prüfung. Jeder Quellcode-Link auf dieser Seite ist auf v260930115354.0.0 festgelegt.",
+      technical: "AGPL-3.0-only. Ein annotierter Tag baut das GHCR-Image und ein GitHub-Release im Entwurf mit SHA256SUMS, veröffentlicht erst nach der Live-Prüfung. Jeder Quellcode-Link auf dieser Seite ist auf den Tag dieses Releases festgelegt.",
     },
     links: [
       { label: "GitHub-Repository", href: repositoryUrl, external: true },
@@ -732,7 +733,7 @@ export const paimosAeonContentDe = {
         "Claude, Codex, Cursor, Grok und pi, einschließlich OpenRouter-Modellen über pi. Sie laufen über aeon-agentd auf Rechnern, die Sie koppeln, mit Ihren eigenen Abos.",
       depths: {
         simple: "Die führenden KI-Coding-Agenten: Claude, Codex, Cursor, Grok und pi. Sie laufen auf Rechnern, die Sie verbinden, mit Ihren eigenen Abos.",
-        technical: "Die Harnesses codex, claude, pi, cursor und grok, gesteuert von aeon-agentd auf gekoppelten Rechnern; jede Sitzung registriert sich mit einem Worker-Lease. Codex und Cursor lassen sich nur verbinden, ohne automatische Prüfung.",
+        technical: "Die Harnesses codex, claude, pi, cursor und grok, gesteuert von aeon-agentd auf gekoppelten Rechnern; jede Sitzung registriert sich mit einem Worker-Lease. Codex und Cursor lassen sich nur verbinden, ohne automatische Prüfung. pi erreicht OpenRouter-Modelle (vendor/model[:variant]) nach aeon-agentd add-harness --harness pi --provider openrouter, das den Schlüssel prüft, ohne Tokens zu verbrauchen.",
       },
     },
     {

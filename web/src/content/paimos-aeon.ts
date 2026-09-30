@@ -55,7 +55,7 @@ export const paimosAeonContent = {
       simple:
         "Your people and your AI agents work on the same projects. The agents run on your own computers and accounts, you see what each one does, and the steps you gate wait for a person's decision.",
       technical:
-        "Hinged Hangar (v260930115354.0.0): one Go binary with an embedded Vue app, Postgres 18 under FORCE row-level security, an append-only event log per tenant, one OpenAPI 3.1 contract, and aeon-agentd driving five harness adapters on paired machines.",
+        "Hinged Hangar: one Go binary with an embedded Vue app, Postgres 18 under FORCE row-level security, an append-only event log per tenant, one OpenAPI 3.1 contract, and aeon-agentd driving five harness adapters on paired machines.",
     },
     primaryLabel: "See it running",
     primaryHref: "#screens",
@@ -137,7 +137,7 @@ export const paimosAeonContent = {
     title: "What you get.",
     lead: "Twenty capabilities, available today. Hover or tap a card for the detail.",
     leadEli10: "Twenty capabilities, available today. Open a card to see what each one does for you.",
-    leadHow: "Twenty capabilities in Hinged Hangar: v260930115354.0.0, INSPR-CalVer3, channel stable, sequence 113. Open a card for the mechanism behind each.",
+    leadHow: "Twenty capabilities in Hinged Hangar. Open a card for the mechanism behind each.",
     items: [
       {
         label: "Agents first",
@@ -191,7 +191,7 @@ export const paimosAeonContent = {
         label: "Governed rules",
         icon: "scroll-text",
         group: "ai",
-        note: "Rules layer from company to task, publish as immutable versions and keep locked floors and byte budgets.",
+        note: "Rules layer from company to task, publish as immutable versions, keep locked floors and share one merged byte budget.",
         noteEli10: "Your rules for agents are written once and versioned, and the critical ones stay locked.",
         noteHow: "Precedence runs company, project, person, agent role, named agent, task. The highest match wins, ties fail closed, and a lower layer never replaces a locked rule. Sets publish under a calendar version and can be restored.",
       },
@@ -199,9 +199,9 @@ export const paimosAeonContent = {
         label: "Git-backed doctrine",
         icon: "git-branch",
         group: "ops",
-        note: "Doctrine is read from git at a pinned commit; aeon rules compare and aeon doctor detect drift.",
+        note: "Doctrine is read from git at a pinned commit, and aeon rules compare compares the instructions a harness loaded with the merged rules.",
         noteEli10: "The rulebook lives in version control, and AEON shows when an agent works from an outdated copy.",
-        noteHow: "Doctrine is read from git at a pinned commit. A harness receives the merged rules through paimos session start --rules-receive, which posts a worker-reported receipt: proof of delivery, not of obedience.",
+        noteHow: "Doctrine is read from git at a pinned commit. A harness receives the merged rules through paimos session start --rules-receive, which posts a worker-reported receipt: proof of delivery, not of obedience. aeon rules compare compares the loaded instructions with the merged rules.",
       },
       {
         label: "Append-only log",
@@ -247,7 +247,7 @@ export const paimosAeonContent = {
         label: "Journeys and gates",
         icon: "waypoints",
         group: "work",
-        note: "Eight derived stages from Inspire to Live, with person-approved gates and named deploy targets.",
+        note: "Eight derived stages from Inspire to Live, with person-approved gates.",
         noteEli10: "Every project moves through clear stages, and a person signs off before anything goes live.",
         noteHow: "Eight derived stages from Inspire to Live, with person-approved gates. Deploy-target enforcement is not shipped in this release.",
       },
@@ -356,6 +356,7 @@ export const paimosAeonContent = {
         { term: "transport", body: "The daemon pulls from the server over HTTPS, plain HTTP only on loopback. Local control runs over an owner-only Unix socket with a bearer token." },
         { term: "telemetry", body: "Content-free: no vendor tokens, no raw vendor payloads, and vendor session ids stay local." },
         { term: "managed runs", body: "A managed run gets a run-local MCP server with aeon_comment, aeon_status, aeon_request_approval and aeon_terminal." },
+        { term: "messages", body: "At least once, with receipts: Read means the session acknowledged receipt, Answered that an accepted reply exists. Hooks deliver at turn boundaries; the managed agentd path also delivers mid-turn and when idle." },
         { term: "aeon hook", body: "aeon hook claude|codex <event> for PostToolUse, UserPromptSubmit and Stop, installed with aeon hook install." },
       ],
     },
@@ -368,7 +369,7 @@ export const paimosAeonContent = {
       {
         icon: "radio-tower",
         title: "Messages with receipts",
-        body: "Sent, Delivered, Read. Delivery is guaranteed, and inbox hooks carry messages into the session.",
+        body: "Messages reach the session at least once, with read and answered receipts; inbox hooks carry them in.",
       },
       {
         icon: "sliders-horizontal",
@@ -388,9 +389,9 @@ export const paimosAeonContent = {
       eyebrow: "Pairing",
       title: "A new computer joins with one command and a person's yes.",
       steps: [
-        { label: "Install the signed, notarized daemon.", command: "brew install inspr-at/tap/aeon-agentd" },
-        { label: "Pair from your working folder.", command: "aeon-agentd pair" },
-        { label: "Enter the 9-digit code in the browser and approve." },
+        { label: "Install the daemon. On macOS it is signed (Developer ID, hardened runtime) and notarized.", command: "brew install inspr-at/tap/aeon-agentd" },
+        { label: "Pair from your working folder.", command: "aeon-agentd pair --url <origin>" },
+        { label: "A person approves the 9-digit code in the browser within 10 minutes." },
       ],
       harnessesLabel: "Harnesses",
       harnesses: ["Claude", "Codex", "Cursor", "Grok", "pi"],
@@ -484,7 +485,9 @@ export const paimosAeonContent = {
         { term: "publishing", body: "Rule sets are drafted, then published under a calendar version, and every publication can be restored." },
         { term: "budget", body: "The merged set has a budget of 12,000 bytes by default and at most 64,000." },
         { term: "session start", body: "paimos session start --rules-preview previews the merged set; --rules-receive writes the file and posts a worker-reported receipt, which records delivery, not that the model obeyed." },
+        { term: "rules compare", body: "aeon rules compare compares the instructions a harness loaded with the merged rules. Neither it nor the receipt proves that the model follows them." },
         { term: "targets", body: "claude-code, codex, grok, pi and cursor." },
+        { term: "planned", body: "Rule-edit proposals as pull requests; they need a GitHub App." },
       ],
     },
     stops: [
@@ -497,10 +500,9 @@ export const paimosAeonContent = {
     ],
     points: [
       { title: "Locked floors", body: "A higher layer can lock a rule for every layer below it." },
-      { title: "Byte budgets", body: "Each layer has a size budget, so what an agent loads stays readable." },
-      { title: "Drift detection", body: "aeon rules compare and aeon doctor show where a harness differs from what was published." },
+      { title: "Byte budget", body: "One merged budget, 12,000 bytes by default and at most 64,000, keeps what an agent loads readable." },
+      { title: "Drift detection", body: "aeon rules compare compares the instructions a harness loaded with the merged rules." },
     ],
-    early: "Early access: rule edits as pull requests, once an operator enables them.",
     screenAlt:
       "The AEON agent rules view: company and project rule sets with their locks, one opened set of locked kernel rules, the byte budget and doctrine pinned from git.",
     proof: [
@@ -614,12 +616,12 @@ export const paimosAeonContent = {
       title: "Stack and operations, precisely",
       items: [
         { term: "paimos serve", body: "One Go binary with the Vue 3 web app embedded. Migrations are embedded and applied at startup." },
-        { term: "aeon-agentd", body: "A separate local supervisor on each paired machine, shipped as the paimos-agentd release assets." },
+        { term: "aeon-agentd", body: "A separate local supervisor on each paired machine, shipped as the paimos-agentd release assets. The macOS daemon is signed (Developer ID, hardened runtime) and notarized; the Linux build is static." },
         { term: "Postgres 18", body: "With pgvector. Every row carries tenant_id under forced row-level security; production needs a non-superuser role." },
         { term: "search", body: "Hybrid lexical and vector ranking over a pgvector halfvec(1536) HNSW index; lexical only unless AEON_EMBEDDING_URL is set." },
         { term: "self-hosting", body: "The image ghcr.io/inspr-at/aeon:<version>, with no latest tag, configured through AEON_* variables. AEON_DATABASE_URL is required; attachments live under AEON_FILES_DIR." },
         { term: "sign-in and secrets", body: "People sign in with OIDC (Zitadel), one tenant per session. Server secrets come from files, and the session key file is required outside development. The web app loads no analytics and no third-party runtime assets." },
-        { term: "releases", body: "INSPR-CalVer3 (YYMMDDhhmmss.0.0): this release is channel stable, sequence 113. An annotated tag builds the GHCR image and a draft GitHub release with SHA256SUMS; the draft is published only after live verification, which also updates the Homebrew tap." },
+        { term: "releases", body: "INSPR-CalVer3 (YYMMDDhhmmss.0.0): this release is {version}, channel stable, sequence 113. An annotated tag builds the GHCR image and a draft GitHub release with SHA256SUMS; the draft is published only after live verification, which also updates the Homebrew tap." },
       ],
     },
     diagram: {
@@ -663,7 +665,7 @@ export const paimosAeonContent = {
     lead: "Hinged Hangar went live on 30 September. What follows can still change before it lands.",
     depths: {
       simple: "Hinged Hangar is live today. This is what comes next, and plans can still change before a release lands.",
-      technical: "Hinged Hangar is v260930115354.0.0, channel stable, sequence 113. What follows are filed tickets, not commitments. Not shipped yet: most MCP tools, deploy-target enforcement and doctrine pull-request proposals.",
+      technical: "Hinged Hangar is {version}, channel stable, sequence 113. What follows are filed tickets, not commitments. Not shipped yet: most MCP tools, deploy-target enforcement and doctrine pull-request proposals.",
     },
     releases: [
       {
@@ -709,8 +711,7 @@ export const paimosAeonContent = {
       items: [
         "Steering and session settings are qualified for Claude on macOS.",
         "Attaching a running session is in early access and now works from any macOS terminal.",
-        "Issues, knowledge and search run through the CLI and HTTP API; the MCP server is in early access.",
-        "Rule edits as pull requests are available once an operator enables them.",
+        "Issues, knowledge and search run through the CLI and HTTP API.",
         "People sign in through your OIDC identity provider.",
       ],
     },
@@ -722,7 +723,7 @@ export const paimosAeonContent = {
       "Inspect, self-host, fork and modify AEON under AGPL-3.0-only. Every source link on this page points at this release's tag.",
     depths: {
       simple: "The full source is public under an open-source license: you can inspect it, run it yourself and change it.",
-      technical: "AGPL-3.0-only. An annotated tag builds the GHCR image and a draft GitHub release with SHA256SUMS, published only after live verification. Every source link on this page is pinned to v260930115354.0.0.",
+      technical: "AGPL-3.0-only. An annotated tag builds the GHCR image and a draft GitHub release with SHA256SUMS, published only after live verification. Every source link on this page is pinned to this release's tag.",
     },
     links: [
       { label: "GitHub repository", href: repositoryUrl, external: true },
@@ -739,7 +740,7 @@ export const paimosAeonContent = {
         "Claude, Codex, Cursor, Grok and pi, including OpenRouter models through pi. They run through aeon-agentd on computers you pair, with your own subscriptions.",
       depths: {
         simple: "The major AI coding agents: Claude, Codex, Cursor, Grok and pi. They run on computers you connect, with your own subscriptions.",
-        technical: "The harnesses codex, claude, pi, cursor and grok, driven by aeon-agentd on paired machines; each session registers with a worker lease. Codex and Cursor are connect-only, without automatic verification.",
+        technical: "The harnesses codex, claude, pi, cursor and grok, driven by aeon-agentd on paired machines; each session registers with a worker lease. Codex and Cursor are connect-only, without automatic verification. pi reaches OpenRouter models (vendor/model[:variant]) after aeon-agentd add-harness --harness pi --provider openrouter, which checks the key without spending tokens.",
       },
     },
     {

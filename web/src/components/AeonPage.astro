@@ -45,6 +45,7 @@ import AeonJourney from "./AeonJourney.astro";
 import AeonRulesPan from "./AeonRulesPan.astro";
 import AeonReleasePlaque from "./AeonReleasePlaque.astro";
 import AeonDeep from "./AeonDeep.astro";
+import AeonText from "./AeonText.astro";
 import type { AeonContent, AeonProof } from "../content/types";
 import { siteUrls } from "../content/urls";
 import captureManifest from "../assets/products/paimos-aeon/capture-manifest.json";
@@ -78,7 +79,6 @@ const labels = locale === "de"
   ? {
       viewSource: "Quellcode ansehen",
       proof: "Nachweis im Quellcode",
-      early: "Früh",
       figuresAria: "AEON in Zahlen",
       detailsDescription: "Wie viel Detail diese Seite zeigt",
       detailsSimple: "Einfach",
@@ -119,7 +119,6 @@ const labels = locale === "de"
   : {
       viewSource: "View the source",
       proof: "Proof in the source",
-      early: "Early",
       figuresAria: "AEON in figures",
       detailsDescription: "How much detail this page shows",
       detailsSimple: "Simple",
@@ -209,7 +208,8 @@ const lensImages: LensImage[] = content.specs.items.map((item, i) => {
 const captionTail = content.theatre.note;
 
 const ogImage = new URL(heroPoster.src, siteUrls.inspr).href;
-const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh): /, "");
+// The canonical coordinate for the version chips (the tag carries a v).
+const releaseVersion = content.release.version.replace(/^v/, "");
 ---
 
 <MicrositeLayout
@@ -543,7 +543,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
           </ol>
         </div>
 
-        <AeonDeep deep={content.controlRoom.deep} id="control-deep" ink />
+        <AeonDeep deep={content.controlRoom.deep} id="control-deep" version={releaseVersion} locale={locale} ink />
 
         <p class="aeon-proof aeon-proof--ink" data-depth-min="standard">
           <span class="aeon-proof__label">{labels.proof}</span>
@@ -554,7 +554,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       </div>
     </section>
 
-    <AeonAuthority content={content.authority} proofs={content.authority.proof.map((proof) => ({ label: proof.label, href: proofHref(proof) }))} labels={{ proof: labels.proof, steps: labels.stepsAria }} />
+    <AeonAuthority content={content.authority} version={releaseVersion} locale={locale} proofs={content.authority.proof.map((proof) => ({ label: proof.label, href: proofHref(proof) }))} labels={{ proof: labels.proof, steps: labels.stepsAria }} />
 
     <!-- Rules: six layers, shown as the live rules view panning past. -->
     <section class="section section--tint aeon-rules" id="rules" aria-labelledby="rules-title" data-section-pattern="rules-pan" data-depth-min="standard">
@@ -577,8 +577,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
               </div>
             ))}
           </dl>
-          <p class="aeon-early"><span class="aeon-badge aeon-badge--early">{labels.early}</span>{stripPrefix(content.rules.early)}</p>
-          <AeonDeep deep={content.rules.deep} id="rules-deep" />
+          <AeonDeep deep={content.rules.deep} id="rules-deep" version={releaseVersion} locale={locale} />
           <p class="aeon-proof">
             <span class="aeon-proof__label">{labels.proof}</span>
             {content.rules.proof.map((proof) => (
@@ -664,7 +663,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
           ))}
         </ol>
 
-        <AeonDeep deep={content.architecture.deep} id="architecture-deep" ink />
+        <AeonDeep deep={content.architecture.deep} id="architecture-deep" version={releaseVersion} locale={locale} ink />
       </div>
     </section>
 
@@ -677,11 +676,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
             <h2 id="horizon-title">{content.horizon.title}</h2>
           </div>
           <p class="section-lead" data-copy-slot>
-            <DetailLevels
-              simple={content.horizon.depths.simple}
-              standard={content.horizon.lead}
-              technical={content.horizon.depths.technical}
-            />
+            <span data-copy-level="simple">{content.horizon.depths.simple}</span><span data-copy-level="standard">{content.horizon.lead}</span><span data-copy-level="technical"><AeonText text={content.horizon.depths.technical} version={releaseVersion} locale={locale} /></span>
           </p>
         </header>
         <ol class="aeon-horizon__list" aria-label={labels.horizonAria}>

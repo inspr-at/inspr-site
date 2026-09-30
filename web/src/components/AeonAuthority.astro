@@ -17,11 +17,13 @@ import "../styles/aeon-authority.css";
 
 interface Props {
   content: AeonContent["authority"];
+  version: string;
+  locale?: "en" | "de";
   proofs: Array<{ label: string; href: string }>;
   labels: { proof: string; steps: string };
 }
 
-const { content, proofs, labels } = Astro.props;
+const { content, proofs, labels, version, locale = "en" } = Astro.props;
 const total = content.steps.length;
 const stepOf = (n: number) => content.ui.stepOf.replace("{n}", String(n)).replace("{total}", String(total));
 const kindOf = (token: string) =>
@@ -107,7 +109,7 @@ const kindOf = (token: string) =>
       </button>
     </div>
 
-    <AeonDeep deep={content.deep} id="authority-deep" />
+    <AeonDeep deep={content.deep} id="authority-deep" version={version} locale={locale} />
 
     <p class="aeon-proof" data-depth-min="standard">
       <span class="aeon-proof__label">{labels.proof}</span>

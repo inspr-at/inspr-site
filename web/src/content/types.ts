@@ -384,7 +384,6 @@ export type AeonContent = {
     /** Section starts in the rules capture, as a fraction of its height. */
     stops: Array<{ label: string; at: number }>;
     points: Array<{ title: string; body: string }>;
-    early: string;
     screenAlt: string;
     proof: AeonProof[];
   };

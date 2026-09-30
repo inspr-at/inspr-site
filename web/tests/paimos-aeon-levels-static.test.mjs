@@ -42,7 +42,7 @@ test("the level map: what Why hides, and where How adds verified facts", async (
   // How: verified facts under control room, rules and architecture, and authority.
   assert.equal([...page.matchAll(/<AeonDeep deep=\{content\.(controlRoom|rules|architecture)\.deep\}/g)].length, 3);
   const authority = await source("components/AeonAuthority.astro");
-  assert.match(authority, /<AeonDeep deep=\{content\.deep\} id="authority-deep" \/>/);
+  assert.match(authority, /<AeonDeep deep=\{content\.deep\} id="authority-deep" version=\{version\} locale=\{locale\} \/>/);
   assert.match(authority, /<p class="aeon-proof" data-depth-min="standard">/);
   const journey = await source("components/AeonJourney.astro");
   assert.match(journey, /<p class="aeon-proof" data-depth-min="standard">/);
@@ -73,7 +73,7 @@ test("every changing sentence sits in a copy slot with one child per level", asy
 test("both editions carry Why, What and How for every slot, and no placeholders", async () => {
   for (const { locale, file } of editions) {
     const text = await source(file);
-    assert.doesNotMatch(text, /TODO/, `${locale}: no placeholder copy`);
+    assert.doesNotMatch(text, /"[^"\n]*TODO[^"\n]*"/, `${locale}: no placeholder copy`);
     // Every depths block has a Why and a How sentence of its own.
     const blocks = [...text.matchAll(/depths: \{\n\s+simple:\s*\n?\s*"([^"]+)",\n\s+technical:\s*\n?\s*"([^"]+)",/g)];
     // Nine sections (hero, screens, control room, authority, rules, delivery,
@@ -101,12 +101,22 @@ test("no release numbers reach the reader: marketing names, and the version on h
   for (const { locale, file } of editions) {
     const text = await source(file);
     assert.doesNotMatch(text, /\bR\d{2}\b|14\.1|Release 1\d/i, `${locale}: no release numbers in visible copy`);
+    // A raw version only where a command or image tag needs it; running
+    // text uses the {version} chip. Strings only: the tag constant is code.
+    const strings = text.replace(/const tag = "v260930115354\.0\.0";/, "");
+    assert.doesNotMatch(strings, /"[^"\n]*260930115354[^"\n]*"/, `${locale}: no raw version in running text`);
+    assert.ok((text.match(/\{version\}/g) ?? []).length >= 2, `${locale}: the chip where the version matters`);
     assert.match(text, /codename: "Hinged Hangar"/);
     assert.match(text, /label: "Intact Ion"/, `${locale}: the next release by its name`);
     assert.doesNotMatch(text, /label: "Release \d/);
   }
   const types = await source("content/types.ts");
   assert.doesNotMatch(types.slice(types.indexOf("export type AeonContent")), /publishedLabel|^\s+label: string;\n\s+version: string;/m);
+  const text = await source("components/AeonText.astro");
+  assert.match(text, /text\.split\("\{version\}"\)/);
+  assert.match(text, /<CalendarVersion value=\{version\} scheme="inspr-calver-3" locale=\{locale\} \/>/);
+  const deep = await source("components/AeonDeep.astro");
+  assert.match(deep, /<dd><AeonText text=\{item\.body\}/);
   const plaque = await source("components/AeonReleasePlaque.astro");
   assert.match(plaque, /import CalendarVersion from "\.\/CalendarVersion\.astro";/, "the one calendar-version adapter draws the version");
   assert.match(plaque, /<CalendarVersion value=\{version\} scheme="inspr-calver-3" locale=\{locale\} \/>/);

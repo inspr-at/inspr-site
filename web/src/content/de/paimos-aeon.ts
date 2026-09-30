@@ -468,7 +468,7 @@ export const paimosAeonContentDe = {
       simple:
         "Regeln für Agenten werden einmal für das Unternehmen geschrieben und für jedes Projekt, jede Person und jede Aufgabe verfeinert, und die entscheidenden bleiben gesperrt.",
       technical:
-        "internal/rules führt sechs Ebenen zu unveränderlichen, versionierten Veröffentlichungen mit gesperrten Untergrenzen und Byte-Budgets je Ebene zusammen. Die Doktrin aus Git wird bei einem festgelegten Commit gelesen; aeon rules compare und aeon doctor melden Abweichungen gegenüber dem zusammengeführten Regelsatz.",
+        "internal/rules führt sechs Ebenen zu versionierten Veröffentlichungen mit gesperrten Regeln und einem gemeinsamen Byte-Budget zusammen; ein Harness erhält den zusammengeführten Satz über paimos session start --rules-receive.",
     },
     deep: {
       title: "Zusammenführung der Regeln, genau",

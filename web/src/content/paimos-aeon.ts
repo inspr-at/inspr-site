@@ -475,7 +475,7 @@ export const paimosAeonContent = {
       simple:
         "Rules for agents are written once for the company and refined for each project, person and task, and the critical ones stay locked.",
       technical:
-        "internal/rules merges six layers into immutable, versioned publications with locked floors and per-layer byte budgets. Git-backed doctrine is read at a pinned commit; aeon rules compare and aeon doctor report drift against the merged set.",
+        "internal/rules merges six layers into versioned publications with locked rules and one merged byte budget; a harness receives the merged set through paimos session start --rules-receive.",
     },
     deep: {
       title: "Rule merging, precisely",

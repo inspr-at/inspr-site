@@ -13,6 +13,7 @@ import ConstraintRegister from "./ConstraintRegister.astro";
 import type { PreviewProductContent } from "../content/types";
 import { productLinks, siteUrls } from "../content/urls";
 import { releaseMetadata } from "../../release-metadata.mjs";
+import CalendarVersion from "./CalendarVersion.astro";
 
 import aithemaHero from "../assets/products/aithema/hero.png";
 import aithemaHeroLoop from "../assets/products/aithema/hero-loop.mp4";
@@ -544,6 +545,18 @@ const deployedAtLabel = releaseMetadata.deployedAt
         aria-label={labels.releaseAria}
         data-release-id={releaseMetadata.releaseId}
       >
+        {releaseMetadata.calendarVersion && releaseMetadata.versionScheme && (
+          <div>
+            <dt>Version</dt>
+            <dd>
+              <CalendarVersion
+                value={releaseMetadata.calendarVersion}
+                scheme={releaseMetadata.versionScheme}
+                locale={locale}
+              />
+            </dd>
+          </div>
+        )}
         <div>
           <dt>Site</dt>
           <dd class="site-footer__release-token" title={`${labels.package} ${releaseMetadata.packageName}`}>v{releaseMetadata.version}</dd>

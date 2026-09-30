@@ -182,7 +182,8 @@ in nixcfg; release content and the bind-mounted `Caddyfile` change here.
 
 The deployment script:
 
-1. assigns one UTC deployment timestamp, Git revision and immutable release ID;
+1. assigns one UTC deployment timestamp, Git revision and immutable release ID,
+   and reserves the release's calendar version from that same timestamp;
 2. builds and validates the static site with that release identity;
 3. uploads into an unreachable incoming directory;
 4. verifies the remote content byte-for-byte;
@@ -192,15 +193,49 @@ The deployment script:
 8. verifies the release stamp and result through every public hostname; and
 9. preserves the previous release for rollback.
 
-Every current site displays the shared site-package version, short Git
-revision, immutable release ID and UTC deployment time in its footer. The
-deployment transaction supplies `INSPR_GIT_SHA`, `INSPR_GIT_DIRTY`,
-`INSPR_RELEASE_ID` and `INSPR_DEPLOYED_AT` only to the build process, which
-also records the allowlisted values in `web/dist/release.json`. A direct local
-build is labelled `local build` and never invents a deployment timestamp.
+Every current site displays the release's calendar version, the shared
+site-package version, short Git revision, immutable release ID and UTC
+deployment time in its footer. The deployment transaction supplies
+`INSPR_GIT_SHA`, `INSPR_GIT_DIRTY`, `INSPR_RELEASE_ID`, `INSPR_DEPLOYED_AT`,
+`INSPR_CALENDAR_VERSION`, `INSPR_RELEASE_SEQUENCE` and `INSPR_CALENDAR_ANCHOR`
+only to the build process, which also records the allowlisted values in
+`web/dist/release.json`. A direct local build is labelled `local build`, shows
+no calendar version and never invents a deployment timestamp.
 `SKIP_BUILD=1` accepts only a previously prepared deploy build with a valid
 release manifest. Production deployment also requires a clean working tree
 and re-checks the source revision after the build before any remote write.
+
+The site follows INSPR Calendar Versioning (`inspr-calver-3`, INSPR-493). A
+release version is `YYMMDDhhmmss.0.0` in UTC and is reserved only by
+`deploy.sh`, from the same second as the deployment timestamp. Before the
+build it reads every sealed `releases/builds/*/release.json` on the host and
+requires the new version to be strictly later than the channel's latest one;
+a same-second collision waits for the next second and a skewed clock fails
+closed. The release sequence continues from the highest sequence on the host,
+so a rollback never leads to a reused version. The same check runs again
+before the first remote write, which also covers `SKIP_BUILD=1`, and the
+probes confirm that the live `release.json` declares the scheme and that the
+footers render the version. `release.json` uses schema version 2 with an
+explicit `version` block (`scheme`, `value`, `channel` `stable`, `sequence`,
+and the legacy-to-calendar `anchor` recorded by the first calendar release);
+earlier schema-1 manifests stay unchanged as the legacy era. The build never
+reads a clock for the version, and `web/calendar-version.mjs` holds the
+grammar, real-date and history checks.
+
+Footers render the version through one adapter,
+`web/src/components/CalendarVersion.astro`, around the shared INSPR renderer
+vendored in `web/src/vendor/calendar-version-display/`. The web default is the
+Pretty display; hovering or focusing it reveals the full version with the
+shared transition, and clicking it or pressing Enter copies the exact
+canonical version. Auto colours follow the page's `--secondary` branding
+token. The bundle is produced by `inspr-at/inspr`'s
+`scripts/versioning-bundle.mjs` and pinned in
+`web/scripts/calendar-version-bundle-pin.json` (source commit, config digest
+and reviewed manifest digest). `npm run build` first runs
+`npm run calendar-version:check`, which rejects missing, extra, altered,
+non-regular or untracked bundle files. To upgrade the presentation, vendor a
+new bundle into a fresh directory with that script, review the manifest
+digest independently, and change the pin in the same reviewed change.
 
 Run production deployment from the repository root with the configured SSH
 alias:

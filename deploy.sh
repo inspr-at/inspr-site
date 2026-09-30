@@ -37,9 +37,19 @@
 #   PROBE_ATTEMPTS      attempts while routing converges (default: 20)
 #   PROBE_RESOLVE_IP    optional IPv4 override for fresh-DNS cutover probes
 #
-# deploy.sh supplies INSPR_GIT_SHA, INSPR_GIT_DIRTY, INSPR_RELEASE_ID and
-# INSPR_DEPLOYED_AT only to the Astro build process. They are non-secret,
+# deploy.sh supplies INSPR_GIT_SHA, INSPR_GIT_DIRTY, INSPR_RELEASE_ID,
+# INSPR_DEPLOYED_AT, INSPR_CALENDAR_VERSION, INSPR_RELEASE_SEQUENCE and
+# INSPR_CALENDAR_ANCHOR only to the Astro build process. They are non-secret,
 # allowlisted release evidence and are written into web/dist/release.json.
+#
+# INSPR Calendar Versioning (inspr-calver-3, INSPR-493): this script is the
+# only place that reserves a release coordinate. It reads every sealed
+# builds/*/release.json on the host, derives YYMMDDhhmmss.0.0 from the one UTC
+# deployment timestamp and requires it to be strictly later than the channel's
+# latest coordinate (waiting for the next second on a same-second collision).
+# The release sequence continues from the highest one on the host, so a
+# rollback never causes a reused version or sequence. Build nodes never derive
+# a version from their own clocks; a direct local build carries none.
 #
 # Releases are retained on the server. `previous` points at the prior healthy
 # release; older immutable builds remain available for an operator-selected
@@ -140,6 +150,19 @@ remote_hash() {
   remote_ssh "sha256sum '$REMOTE_DIR/$relative_path' 2>/dev/null | awk '{print \$1}'" || true
 }
 
+# Print every sealed release manifest on the host as "--- <build-id>" followed
+# by its release.json. Read-only; an absent builds/ directory prints nothing.
+read_release_inventory() {
+  remote_ssh "set -eu
+    cd '$REMOTE_RELEASE_ROOT/builds' 2>/dev/null || exit 0
+    for manifest in */release.json; do
+      [ -f \"\$manifest\" ] || continue
+      printf -- '--- %s\\n' \"\${manifest%/release.json}\"
+      cat \"\$manifest\"
+      printf '\\n'
+    done"
+}
+
 read_release_manifest() {
   local manifest_path="$1"
 
@@ -153,8 +176,10 @@ const deployedAt = manifest?.deployment?.deployedAt;
 const gitRevision = manifest?.source?.git;
 const gitDirty = manifest?.source?.dirty;
 const version = manifest?.package?.version;
+const calendarVersion = manifest?.version?.value;
+const releaseSequence = manifest?.version?.sequence;
 
-if (manifest?.schemaVersion !== 1) throw new Error("unsupported release manifest schema");
+if (manifest?.schemaVersion !== 2) throw new Error("unsupported release manifest schema");
 if (!/^[a-z0-9][a-z0-9._-]{0,127}$/i.test(releaseId) || releaseId === "local") {
   throw new Error("release manifest has no deployable release id");
 }
@@ -168,6 +193,13 @@ if (typeof gitDirty !== "boolean") throw new Error("release manifest has no Git 
 if (typeof version !== "string" || !version.trim()) {
   throw new Error("release manifest has no package version");
 }
+// Full scheme, date and history checks run in web/scripts/calendar-reservation.mjs.
+if (manifest?.version?.scheme !== "inspr-calver-3" || typeof calendarVersion !== "string") {
+  throw new Error("release manifest declares no inspr-calver-3 version");
+}
+if (!Number.isSafeInteger(releaseSequence) || releaseSequence < 1) {
+  throw new Error("release manifest has no release sequence");
+}
 
 process.stdout.write([
   releaseId,
@@ -175,6 +207,8 @@ process.stdout.write([
   gitRevision.toLowerCase(),
   gitDirty ? "1" : "0",
   version,
+  calendarVersion,
+  String(releaseSequence),
 ].join("\t"));
 NODE
 }
@@ -449,6 +483,32 @@ else
     GIT_DIRTY=1
   fi
   [ "$GIT_DIRTY" = "0" ] || die "refusing to deploy a dirty working tree; commit the release first"
+
+  # Reserve the calendar coordinate once from the deployment timestamp. It
+  # must be strictly later than every coordinate already sealed on the host;
+  # a same-second collision waits for the next second instead of inventing a
+  # tie-breaker. A larger gap means a skewed clock and fails closed.
+  say "reserving the calendar version against the host's release history"
+  RELEASE_INVENTORY="$(read_release_inventory)" || \
+    die "unable to read the host's release history; refusing to reserve a version"
+  RESERVATION=""
+  for reservation_attempt in 1 2 3 4 5 6; do
+    set +e
+    RESERVATION=$(printf '%s' "$RELEASE_INVENTORY" | \
+      node "$ROOT/web/scripts/calendar-reservation.mjs" reserve "$DEPLOYED_AT")
+    reservation_status=$?
+    set -e
+    [ "$reservation_status" = "0" ] && break
+    [ "$reservation_status" = "3" ] && [ "$reservation_attempt" -lt 6 ] || \
+      die "calendar version reservation failed"
+    sleep 1
+    DEPLOYED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  done
+  IFS=$'\t' read -r CALENDAR_VERSION RELEASE_SEQUENCE CALENDAR_ANCHOR <<<"$RESERVATION"
+  [[ "$CALENDAR_VERSION" =~ ^[1-9][0-9](0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])([01][0-9]|2[0-3])[0-5][0-9][0-5][0-9]\.0\.0$ ]] || \
+    die "reserved calendar version is not canonical"
+  ok "reserved calendar version $CALENDAR_VERSION (inspr-calver-3, sequence $RELEASE_SEQUENCE)"
+
   RELEASE_TIMESTAMP="${DEPLOYED_AT//[-:]/}"
   RELEASE_ID="$RELEASE_TIMESTAMP-$GIT_SHORT"
 
@@ -459,6 +519,9 @@ else
       INSPR_GIT_DIRTY="$GIT_DIRTY" \
       INSPR_RELEASE_ID="$RELEASE_ID" \
       INSPR_DEPLOYED_AT="$DEPLOYED_AT" \
+      INSPR_CALENDAR_VERSION="$CALENDAR_VERSION" \
+      INSPR_RELEASE_SEQUENCE="$RELEASE_SEQUENCE" \
+      INSPR_CALENDAR_ANCHOR="$CALENDAR_ANCHOR" \
       npm run build
   )
 fi
@@ -499,13 +562,16 @@ shared_asset_path="/_astro/${shared_asset##*/}"
 MANIFEST_FIELDS=$(read_release_manifest "$ROOT/web/dist/release.json") || \
   die "release manifest validation failed"
 IFS=$'\t' read -r MANIFEST_RELEASE_ID MANIFEST_DEPLOYED_AT MANIFEST_GIT_SHA \
-  MANIFEST_GIT_DIRTY MANIFEST_VERSION <<<"$MANIFEST_FIELDS"
+  MANIFEST_GIT_DIRTY MANIFEST_VERSION MANIFEST_CALENDAR_VERSION \
+  MANIFEST_RELEASE_SEQUENCE <<<"$MANIFEST_FIELDS"
 
 if [ "${SKIP_BUILD:-}" != "1" ]; then
   [ "$MANIFEST_RELEASE_ID" = "$RELEASE_ID" ] || die "release id changed during the build"
   [ "$MANIFEST_DEPLOYED_AT" = "$DEPLOYED_AT" ] || die "deployment timestamp changed during the build"
   [ "$MANIFEST_GIT_SHA" = "${GIT_SHA:0:12}" ] || die "Git revision changed during the build"
   [ "$MANIFEST_GIT_DIRTY" = "$GIT_DIRTY" ] || die "Git state changed during the build"
+  [ "$MANIFEST_CALENDAR_VERSION" = "$CALENDAR_VERSION" ] || die "calendar version changed during the build"
+  [ "$MANIFEST_RELEASE_SEQUENCE" = "$RELEASE_SEQUENCE" ] || die "release sequence changed during the build"
 fi
 
 CURRENT_GIT_SHA="$(git -C "$ROOT" rev-parse --verify HEAD)"
@@ -543,6 +609,17 @@ if ! remote_ssh "test -f '$REMOTE_DIR/site/index.html'"; then
   die "remote v1 archive is missing; refusing to create an empty archive mount"
 fi
 ok "remote v1 archive present"
+
+# Re-read the host history right before the first write. This also covers
+# SKIP_BUILD=1 and any release sealed while this build ran: the manifest must
+# be exactly the channel's next calendar version, sequence and anchor.
+RELEASE_INVENTORY="$(read_release_inventory)" || \
+  die "unable to read the host's release history before upload"
+printf '%s' "$RELEASE_INVENTORY" | \
+  node "$ROOT/web/scripts/calendar-reservation.mjs" verify "$ROOT/web/dist/release.json" >/dev/null || \
+  die "calendar version $MANIFEST_CALENDAR_VERSION is not the channel's next release; rebuild to reserve a new one"
+CALENDAR_VERSION="$MANIFEST_CALENDAR_VERSION"
+ok "calendar version $CALENDAR_VERSION (sequence $MANIFEST_RELEASE_SEQUENCE) is later than every release on the host"
 
 # A non-symlink `current` is an unknown layout and must never be overwritten.
 remote_ssh "set -eu
@@ -719,6 +796,10 @@ else
   probe_page "Janus microsite" "https://janus.inspr.at/" "Use secrets. Keep values hidden." "text/html" "$RELEASE_ID"
   probe_page "Janus German microsite" "https://janus.inspr.at/de/" "Geheimnisse nutzen. Werte verbergen." "text/html" "$RELEASE_ID"
   probe_page "v1 archive" "https://v1.inspr.at/" "Upstream of any substrate" "text/html"
+  probe_page "release manifest scheme" "https://www.inspr.at/release.json" '"scheme": "inspr-calver-3"' "application/json"
+  probe_page "release manifest calendar version" "https://www.inspr.at/release.json" "\"value\": \"$CALENDAR_VERSION\"" "application/json"
+  probe_page "umbrella footer calendar version" "https://www.inspr.at/" "data-calendar-version=\"$CALENDAR_VERSION\"" "text/html"
+  probe_page "Paimos footer calendar version" "https://paimos.inspr.at/" "data-calendar-version=\"$CALENDAR_VERSION\"" "text/html"
   probe_page "shared product asset" "https://paimos.inspr.at$shared_asset_path" "" "text/css"
   probe_redirect "legacy edition redirect" "https://www.inspr.at/v1/" "301,302,307,308" "https://v1.inspr.at/v1/" "1"
   probe_redirect "legacy ELI10 redirect" "https://www.inspr.at/eli10/" "301,302,307,308" "https://www.inspr.at/overview/" "1"
@@ -744,4 +825,4 @@ fi
 
 PROMOTION_STARTED=0
 trap - EXIT INT TERM
-ok "deployment complete: $RELEASE_ID"
+ok "deployment complete: $RELEASE_ID, version $CALENDAR_VERSION"

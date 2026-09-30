@@ -893,6 +893,14 @@ test("one validated release identity is visible across the site family", async (
       INSPR_GIT_DIRTY: "0",
       INSPR_RELEASE_ID: releaseId,
       INSPR_DEPLOYED_AT: deployedAt,
+      INSPR_CALENDAR_VERSION: "260718153000.0.0",
+      INSPR_RELEASE_SEQUENCE: "1",
+      INSPR_CALENDAR_ANCHOR: JSON.stringify({
+        legacyScheme: "legacy",
+        lastLegacyVersion: null,
+        firstCalendarVersion: "260718153000.0.0",
+        firstCalendarSequence: 1,
+      }),
     },
     { revision: "ffffffffffffffffffffffffffffffffffffffff", dirty: true },
   );
@@ -1051,6 +1059,15 @@ test("direct SSH deployment overrides preserve one pinned host identity", async 
 
     await Promise.all([
       writeFile(join(fixtureRoot, "deploy.sh"), deploy),
+      // deploy.sh verifies the calendar version with the shipped helpers.
+      writeFile(
+        join(fixtureRoot, "web", "calendar-version.mjs"),
+        await readFile(new URL("../calendar-version.mjs", import.meta.url)),
+      ),
+      mkdir(join(fixtureRoot, "web", "scripts"), { recursive: true }).then(async () => writeFile(
+        join(fixtureRoot, "web", "scripts", "calendar-reservation.mjs"),
+        await readFile(new URL("../scripts/calendar-reservation.mjs", import.meta.url)),
+      )),
       writeFile(join(fixtureRoot, "Caddyfile"), "fixture caddy configuration\n"),
       // Deliberately differs from the historical remote hash below. Static
       // release transport must not inspect or reconcile either snapshot.
@@ -1076,12 +1093,24 @@ test("direct SSH deployment overrides preserve one pinned host identity", async 
       writeFile(
         join(fixtureRoot, "web", "dist", "release.json"),
         `${JSON.stringify({
-          schemaVersion: 1,
+          schemaVersion: 2,
           package: { version: "1.0.0" },
           source: { git: gitRevision.slice(0, 12), dirty: false },
           deployment: {
             releaseId,
             deployedAt: "2026-07-19T00:00:00Z",
+          },
+          version: {
+            scheme: "inspr-calver-3",
+            value: "260719000000.0.0",
+            channel: "stable",
+            sequence: 1,
+            anchor: {
+              legacyScheme: "legacy",
+              lastLegacyVersion: null,
+              firstCalendarVersion: "260719000000.0.0",
+              firstCalendarSequence: 1,
+            },
           },
         })}\n`,
       ),

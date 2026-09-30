@@ -2,14 +2,22 @@
 /**
  * INSPR-492: the hero release plaque, a small liquid-glass object.
  *
- * One link: the AEON mark, the name and codename, a live pulse for the
- * current release, and the release label, version and date. It sits on a
+ * One row: the AEON mark, AEON, the marketing name, a live pulse and an
+ * arrow; the whole glass links to the release (a stretched link).
+ * INSPR-497: no release numbers. The calendar version appears only on
+ * hover, keyboard focus or a first tap, as a glass pill floating below the
+ * plaque in the footer's style: a history glyph and "26·09·30 11:53", drawn
+ * by the one calendar-version adapter (the pinned renderer collapses the
+ * seconds). The pill is absolutely positioned and inert, so revealing it
+ * moves nothing; the link's accessible name carries the canonical version
+ * and its UTC time. It sits on a
  * light of its own (two slow orbs and faint era arcs) so the glass has
  * something to blur and, in Chromium, to refract through a bezel map. The
  * specular rim follows a fine pointer; hover lifts it and deepens the
  * glass. Reduced motion keeps the glass and stops the light, the pulse and
  * the lift. Styles in aeon-plaque.css.
  */
+import CalendarVersion from "./CalendarVersion.astro";
 import type { AeonContent } from "../content/types";
 import "../styles/aeon-plaque.css";
 
@@ -19,12 +27,18 @@ interface Props {
   mark: string;
   /** Accessible prefix, e.g. "Current release". */
   label: string;
+  locale?: "en" | "de";
 }
 
-const { release, mark, label } = Astro.props;
+const { release, mark, label, locale = "en" } = Astro.props;
 // The same word in both editions.
 const live = "Live";
-const ariaLabel = `${label}: ${release.name} ${release.codename}, ${release.label}, ${release.version}, ${release.publishedLabel}, ${live}`;
+// The tag carries a v; the adapter takes the canonical coordinate.
+const version = release.version.replace(/^v/, "");
+// The canonical version and its UTC time, as the renderer labels it.
+const [yy, mm, dd, hh, mi, ss] = version.slice(0, 12).match(/\d{2}/g) ?? [];
+const utc = `20${yy}-${mm}-${dd} ${hh}:${mi}:${ss} UTC`;
+const ariaLabel = `${label}: ${release.name} ${release.codename}, ${live}, ${version} · ${utc}`;
 
 // The refraction map, a 96px SVG image: red ramps across x, green down y,
 // 128 (no shift) in the middle and a bend at each edge, so the backdrop
@@ -54,28 +68,34 @@ const bezelMap = `data:image/svg+xml,${encodeURIComponent(bezelSvg)}`;
       <feDisplacementMap in="SourceGraphic" in2="bezel" scale="18" xChannelSelector="R" yChannelSelector="G" />
     </filter>
   </svg>
-  <a class="aeon-plaque" href={release.url} target="_blank" rel="noopener noreferrer" aria-label={ariaLabel}>
+  <div class="aeon-plaque" data-plaque>
     <span class="aeon-plaque__sheen" aria-hidden="true"></span>
+    <a class="aeon-plaque__link" href={release.url} target="_blank" rel="noopener noreferrer" aria-label={ariaLabel} data-plaque-link></a>
     <span class="aeon-plaque__mark" aria-hidden="true">
       <img src={mark} alt="" width="48" height="48" />
     </span>
-    <span class="aeon-plaque__title">
+    <span class="aeon-plaque__title" aria-hidden="true">
       <span class="aeon-plaque__name">{release.name}</span>
       <span class="aeon-plaque__codename">{release.codename}</span>
     </span>
-    <span class="aeon-plaque__live">
-      <i aria-hidden="true"></i>
+    <span class="aeon-plaque__live" aria-hidden="true">
+      <i></i>
       {live}
     </span>
-    <span class="aeon-plaque__meta">
-      <span class="aeon-plaque__label">{release.label}</span>
-      <code>{release.version}</code>
-      <time datetime={release.publishedAt}>{release.publishedLabel}</time>
+    <span class="aeon-plaque__version" data-plaque-version inert>
+      <span class="aeon-plaque__chip">
+        <svg class="aeon-plaque__chip-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" />
+          <path d="M12 7v5l4 2" />
+        </svg>
+        <CalendarVersion value={version} scheme="inspr-calver-3" locale={locale} />
+      </span>
     </span>
     <span class="aeon-plaque__go" aria-hidden="true">
       <svg viewBox="0 0 16 16" focusable="false"><path d="M4 12 L12 4 M6 4 H12 V10" /></svg>
     </span>
-  </a>
+  </div>
 </div>
 
 <script>
@@ -107,4 +127,22 @@ const bezelMap = `data:image/svg+xml,${encodeURIComponent(bezelSvg)}`;
   };
 
   initPlaque();
+</script>
+
+<script>
+  // Touch has no hover: the first tap on the plaque shows the version chip,
+  // the next one follows the link. A tap elsewhere hides it again.
+  const coarse = window.matchMedia("(hover: none)");
+  for (const plaque of document.querySelectorAll<HTMLElement>("[data-plaque]")) {
+    const link = plaque.querySelector<HTMLAnchorElement>("[data-plaque-link]");
+    if (!link) continue;
+    link.addEventListener("click", (event) => {
+      if (!coarse.matches || plaque.classList.contains("is-revealed")) return;
+      event.preventDefault();
+      plaque.classList.add("is-revealed");
+    });
+    document.addEventListener("pointerdown", (event) => {
+      if (event.target instanceof Node && !plaque.contains(event.target)) plaque.classList.remove("is-revealed");
+    });
+  }
 </script>

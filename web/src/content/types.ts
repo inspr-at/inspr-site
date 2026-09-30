@@ -73,6 +73,8 @@ export type SpecsContent = {
     noteEli10: string;
     /** AEON only (INSPR-497): the card note at the How level. */
     noteHow?: string;
+    /** AEON only (INSPR-498): what the carousel image shows, for screen readers. */
+    alt?: string;
     group: "security" | "ops" | "ai" | "legal" | "work" | "place";
   }>;
   glossary?: Array<{

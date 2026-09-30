@@ -46,11 +46,14 @@ import AeonRulesPan from "./AeonRulesPan.astro";
 import AeonReleasePlaque from "./AeonReleasePlaque.astro";
 import AeonDeep from "./AeonDeep.astro";
 import AeonText from "./AeonText.astro";
+import AeonPolish from "./AeonPolish.astro";
 import type { AeonContent, AeonProof } from "../content/types";
 import { siteUrls } from "../content/urls";
 import captureManifest from "../assets/products/paimos-aeon/capture-manifest.json";
 import "@fontsource-variable/geist/index.css";
 import "../styles/aeon.css";
+import "../styles/aeon-mark.css";
+import "../styles/aeon-polish.css";
 
 import aeonMark from "../assets/products/paimos/logo.svg";
 import heroPoster from "../assets/products/paimos/hero.png";
@@ -84,27 +87,29 @@ const labels = locale === "de"
       specsFlipAll: "Alle umdrehen",
       specsUnflipAll: "Alle zurückdrehen",
       specsShuffle: "Eckdaten-Raster mischen",
-      lensLive: "Live-Bildschirm, aeon.barta.cm",
+      lensLive: "Live-Ansicht, aeon.barta.cm",
       lensIllustration: "Illustration",
       lensWeb: "Öffentliches Repository, github.com",
       lensClose: "Schließen",
-      lensPrev: "Vorherige Fähigkeit",
-      lensNext: "Nächste Fähigkeit",
-      lensDialog: "Fähigkeit im Detail",
-      stepsAria: "Vom Schlüssel zur Freigabe",
-      tabsAria: "Bildschirme der Live-Instanz",
+      lensPrev: "Vorherige Funktion",
+      lensNext: "Nächste Funktion",
+      lensDialog: "Funktion im Detail",
+      lensMotionPause: "Bewegung anhalten",
+      lensMotionPlay: "Bewegung fortsetzen",
+      stepsAria: "Vom Schlüssel zur Berechtigung",
+      tabsAria: "Ansichten der Live-Instanz",
       stagesAria: "Die acht Stufen einer Journey",
-      layersAria: "Die sechs Regel-Ebenen",
+      layersAria: "Die sechs Regelebenen",
       stopsAria: "Zu einem Teil der Regelansicht springen",
       tourPause: "Tour pausieren",
-      tourPlay: "Tour abspielen",
+      tourPlay: "Tour starten",
       panPause: "Bewegung pausieren",
       panResume: "Bewegung fortsetzen",
-      panViewport: "Die Regelansicht von AEON, ziehbar",
-      panHint: "Ziehen, scrollen oder mit den Pfeiltasten bewegen. Die Knöpfe darunter springen zu einem Abschnitt.",
+      panViewport: "Die Regelansicht von AEON, verschiebbar",
+      panHint: "Ziehen, scrollen oder mit den Pfeiltasten bewegen. Die Schaltflächen darunter springen zu einem Abschnitt.",
       enterFull: "Vollbild",
       exitFull: "Vollbild beenden",
-      layerLocked: "Gesperrte Untergrenze",
+      layerLocked: "Gesperrte Regel",
       diagramAria: "Architektur von PAIMOS AEON",
       horizonAria: "Release-Zeitleiste",
       faqEyebrow: "Praktische Fragen",
@@ -112,6 +117,9 @@ const labels = locale === "de"
       ribbonAria: "Beispielhafte Ereignisse im Ereignisprotokoll",
       releaseAria: "Aktuelles Release",
       codename: "Codename",
+      copyCommand: "Befehl kopieren",
+      copied: "Kopiert",
+      theatreHint: "Ziehen zum Erkunden · Tippen zum Vergrößern",
     }
   : {
       viewSource: "View the source",
@@ -128,6 +136,8 @@ const labels = locale === "de"
       lensPrev: "Previous capability",
       lensNext: "Next capability",
       lensDialog: "Capability in detail",
+      lensMotionPause: "Pause motion",
+      lensMotionPlay: "Play motion",
       stepsAria: "From key to grant",
       tabsAria: "Screens from the live instance",
       stagesAria: "The eight stages of a journey",
@@ -141,7 +151,7 @@ const labels = locale === "de"
       panHint: "Drag, scroll or use the arrow keys to move it. The buttons below jump to a section.",
       enterFull: "Full screen",
       exitFull: "Exit full screen",
-      layerLocked: "Locked floor",
+      layerLocked: "Locked rule",
       diagramAria: "PAIMOS AEON architecture",
       horizonAria: "Release timeline",
       faqEyebrow: "Practical questions",
@@ -149,6 +159,9 @@ const labels = locale === "de"
       ribbonAria: "Illustrative events in the event log",
       releaseAria: "Current release",
       codename: "Codename",
+      copyCommand: "Copy command",
+      copied: "Copied",
+      theatreHint: "Drag to explore · tap to enlarge",
     };
 
 const proofHref = (proof: AeonProof) => {
@@ -178,6 +191,10 @@ const screens = await Promise.all(
   })),
 );
 const controlFull = await lightbox(sessionsDark);
+// INSPR-498: each capture's box states its own aspect ratio. Without it a lazy
+// image is laid out from its width and height attributes and, once loaded,
+// from the ratio of the chosen (rounded) rendition: a fraction of a pixel
+// that moves every section below it by a rounding step.
 
 // The capability lens: one image per capability, keyed by the NN prefix of
 // src/assets/products/paimos-aeon/specs/NN-slug.{jpg,png,webp} in content
@@ -198,6 +215,16 @@ const lensImages: LensImage[] = content.specs.items.map((item, i) => {
   const kind = recorded ? lensKinds[recorded.kind] : undefined;
   if (!kind) throw new Error(`INSPR-492: lens image ${name} has no known kind in capture-manifest.json`);
   return { image: hit[1], kind };
+});
+// INSPR-498: the rotating glass mark goes into the centre of the generated
+// scenes whose middle is open (a plaza or a cloud valley); a scene whose
+// composition runs through the centre, and every live screen, stays clean.
+const markSlugs = new Set(["capacity-routing", "tenant-isolation", "work-orders", "contract-first", "made-in-austria"]);
+const markSlides = content.specs.items.flatMap((_, i) => {
+  const key = String(i + 1).padStart(2, "0");
+  const hit = Object.keys(lensFiles).find((path) => path.includes(`/specs/${key}-`));
+  const slug = hit?.split(`/specs/${key}-`)[1]?.replace(/\.[a-z]+$/, "") ?? "";
+  return markSlugs.has(slug) && lensImages[i]?.kind === "art" ? [key] : [];
 });
 const captionTail = content.theatre.note;
 
@@ -411,13 +438,15 @@ const releaseVersion = content.release.version.replace(/^v/, "");
                 <Image
                   src={screen.image}
                   alt={screen.alt}
+                  style={`aspect-ratio: ${screen.image.width} / ${screen.image.height};`}
                   widths={[800, 1200, 1600, 2400]}
-                  sizes="(min-width: 90rem) 88rem, 94vw"
+                  sizes="(max-width: 40rem) 1080px, (min-width: 90rem) 88rem, 94vw"
                   format="webp"
                   quality={84}
                 />
                 <span class="aeon-shot__zoom" aria-hidden="true">{content.theatre.openLabel} ⤢</span>
               </a>
+              <p class="aeon-theatre__pan-hint" aria-hidden="true">{labels.theatreHint}</p>
               <p class="aeon-theatre__caption"><strong>{screen.title}</strong> {screen.body}</p>
             </div>
           ))}
@@ -440,7 +469,11 @@ const releaseVersion = content.release.version.replace(/^v/, "");
           prev: labels.lensPrev,
           next: labels.lensNext,
           dialog: labels.lensDialog,
+          motionPause: labels.lensMotionPause,
+          motionPlay: labels.lensMotionPlay,
         },
+        marks: markSlides,
+        markSrc: aeonMark.src,
       }}
       labels={{
         eli10: labels.specsEli10,
@@ -482,6 +515,7 @@ const releaseVersion = content.release.version.replace(/^v/, "");
             <Image
               src={sessionsDark}
               alt={content.controlRoom.screenAlt}
+              style={`aspect-ratio: ${sessionsDark.width} / ${sessionsDark.height};`}
               widths={[800, 1200, 1600, 2400]}
               sizes="(min-width: 90rem) 88rem, 94vw"
               format="webp"
@@ -519,7 +553,13 @@ const releaseVersion = content.release.version.replace(/^v/, "");
                 <span class="aeon-terminal__body">
                   <span>{step.label}</span>
                   {step.command ? (
-                    <code><span aria-hidden="true">$ </span>{step.command}</code>
+                    <span class="aeon-cmd">
+                      <code><span aria-hidden="true">$ </span>{step.command}</code>
+                      <button type="button" class="aeon-copy" data-copy={step.command} data-copied-text={labels.copied} aria-label={`${labels.copyCommand}: ${step.command}`}>
+                        <svg class="aeon-copy__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="9" y="9" width="11" height="11" rx="2.5" /><path d="M5 15V6.5A2.5 2.5 0 0 1 7.5 4H15" /></svg>
+                        <svg class="aeon-copy__done" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+                      </button>
+                    </span>
                   ) : (
                     <span class="aeon-code" aria-hidden="true"><i></i><i></i><i></i><b></b><i></i><i></i><i></i><b></b><i></i><i></i><i></i></span>
                   )}
@@ -527,6 +567,7 @@ const releaseVersion = content.release.version.replace(/^v/, "");
               </li>
             ))}
           </ol>
+          <span class="visually-hidden" role="status" aria-live="polite" data-copy-status></span>
         </div>
 
         <AeonDeep deep={content.controlRoom.deep} id="control-deep" version={releaseVersion} locale={locale} ink />
@@ -728,6 +769,8 @@ const releaseVersion = content.release.version.replace(/^v/, "");
     </section>
   </main>
 
+  <AeonPolish />
+
   <MicrositeFooter
     name={content.name}
     repositoryUrl={content.repositoryUrl}
@@ -819,6 +862,7 @@ const releaseVersion = content.release.version.replace(/^v/, "");
     const order = [...slides.keys()];
     const indexEl = carousel.querySelector<HTMLElement>("[data-carousel-index]");
     const closeBtn = carousel.querySelector<HTMLButtonElement>("[data-carousel-close]");
+    const motionBtn = carousel.querySelector<HTMLButtonElement>("[data-carousel-motion]");
     const prevBtn = carousel.querySelector<HTMLButtonElement>("[data-carousel-prev]");
     const nextBtn = carousel.querySelector<HTMLButtonElement>("[data-carousel-next]");
     const tileOf = (target: EventTarget | null) =>
@@ -833,11 +877,16 @@ const releaseVersion = content.release.version.replace(/^v/, "");
           .map((entry) => entry.target as HTMLElement)
           .sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
           .forEach((tile, i) => {
-            tile.style.setProperty("--i", String(i));
+            tile.style.setProperty("--i", String(Math.min(i, 8)));
+            // The theatre tour moves while it is on screen: the tiles wait a
+            // beat so the two never start on the same scroll moment.
+            const theatre = document.querySelector<HTMLElement>("[data-theatre]");
+            const theatreOn = theatre ? theatre.getBoundingClientRect().bottom > window.innerHeight * 0.3 : false;
+            tile.style.setProperty("--base", theatreOn ? "400ms" : "0ms");
             tile.classList.add("is-in");
             observer.unobserve(tile);
           });
-      }, { threshold: 0.2, rootMargin: "0px 0px -4% 0px" });
+      }, { threshold: 0.05, rootMargin: "0px 0px 8% 0px" });
       tiles.forEach((tile) => observer.observe(tile));
     }
 
@@ -917,6 +966,14 @@ const releaseVersion = content.release.version.replace(/^v/, "");
       carousel.setAttribute("aria-describedby", `specs-slide-note-${id}`);
       if (indexEl) indexEl.textContent = id;
       ticks.forEach((tick, key) => tick.classList.toggle("is-current", key === id));
+      // The pause button shows on a slide whose mark turns (never under
+      // reduced motion, when it stands still); focus never stays on it
+      // while it leaves.
+      if (motionBtn) {
+        const moving = !reduced && Boolean(slides.get(id)?.querySelector("[data-aeon-mark]"));
+        if (!moving && document.activeElement === motionBtn) closeBtn?.focus({ preventScroll: true });
+        motionBtn.hidden = !moving;
+      }
     };
 
     // Slides move sideways in the direction of travel: the incoming one is
@@ -1026,6 +1083,15 @@ const releaseVersion = content.release.version.replace(/^v/, "");
       }, true);
     }
     closeBtn?.addEventListener("click", closeCarousel);
+    // WCAG 2.2.2: the slide's decorative motion has a visible pause. The
+    // choice stays for the whole visit to the carousel.
+    motionBtn?.addEventListener("click", () => {
+      const paused = carousel.dataset.motion !== "paused";
+      if (paused) carousel.dataset.motion = "paused";
+      else delete carousel.dataset.motion;
+      motionBtn.toggleAttribute("data-paused", paused);
+      motionBtn.setAttribute("aria-label", (paused ? motionBtn.dataset.labelPlay : motionBtn.dataset.labelPause) ?? "");
+    });
     prevBtn?.addEventListener("click", () => step(-1));
     nextBtn?.addEventListener("click", () => step(1));
 
@@ -1056,10 +1122,11 @@ const releaseVersion = content.release.version.replace(/^v/, "");
         event.preventDefault();
         step(1);
       } else if (event.key === "Tab") {
-        // Focus trap over the close button, the current slide (a scroll
-        // region) and the arrows, both ways.
+        // Focus trap over the pause button (when shown), the close button,
+        // the current slide (a scroll region) and the arrows, both ways.
         const slide = current ? slides.get(current) : undefined;
-        const ring = [closeBtn, slide, prevBtn, nextBtn].filter((el): el is HTMLElement => Boolean(el));
+        const ring = [motionBtn && !motionBtn.hidden ? motionBtn : null, closeBtn, slide, prevBtn, nextBtn]
+          .filter((el): el is HTMLElement => Boolean(el));
         if (!ring.length) return;
         const index = ring.indexOf(document.activeElement as HTMLElement);
         const target = event.shiftKey
@@ -1233,8 +1300,43 @@ const releaseVersion = content.release.version.replace(/^v/, "");
     else run();
   };
 
+  // INSPR-498: a fine pointer tilts the glass mark slightly: --mx and --my in
+  // -1..1 from the pointer to each visible mark's centre. Never under
+  // reduced motion, and only while a mark is on screen.
+  const initGlassMarks = () => {
+    const marks = Array.from(document.querySelectorAll<HTMLElement>("[data-aeon-mark]"));
+    if (!marks.length) return;
+    const fine = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let frame = 0;
+    let px = 0;
+    let py = 0;
+    const clamp = (value: number) => Math.max(-1, Math.min(1, value));
+    const update = () => {
+      frame = 0;
+      if (!fine.matches || calm.matches) return;
+      for (const mark of marks) {
+        if (getComputedStyle(mark).visibility === "hidden") continue;
+        const box = mark.getBoundingClientRect();
+        if (!box.width || !box.height) continue;
+        mark.style.setProperty("--mx", clamp((px - (box.left + box.width / 2)) / (window.innerWidth / 2)).toFixed(3));
+        mark.style.setProperty("--my", clamp((py - (box.top + box.height / 2)) / (window.innerHeight / 2)).toFixed(3));
+      }
+    };
+    document.addEventListener(
+      "pointermove",
+      (event) => {
+        px = event.clientX;
+        py = event.clientY;
+        if (!frame) frame = requestAnimationFrame(update);
+      },
+      { passive: true },
+    );
+  };
+
   initReveal();
   initChips();
   initSpecsCarousel();
+  initGlassMarks();
   initTheatre();
 </script>

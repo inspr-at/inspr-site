@@ -1,0 +1,43 @@
+---
+/**
+ * INSPR-498: a rotating glass PAIMOS AEON mark for screens that would
+ * otherwise be empty. A slab extruded from the mark's silhouette turns
+ * slowly in front of its frame: decorative, hidden from assistive tech, the
+ * parent frame supplies the space (position: relative). Styles and the
+ * motion contract in aeon-mark.css; a fine pointer tilts it slightly
+ * (initGlassMarks in AeonPage.astro). Markup only: the AEON page imports
+ * the styles, so a page that merely imports SpecsGrid pays nothing.
+ */
+interface Props {
+  /** The AEON mark as a URL (the SVG the header uses). */
+  mark: string;
+}
+
+const { mark } = Astro.props;
+// The body's depth: layers 0 to 21, centred on the slab; many thin layers
+// keep the sides smooth when the slab turns edge-on.
+const layers = Array.from({ length: 22 }, (_, i) => i);
+---
+
+<span class="aeon-mark" data-aeon-mark aria-hidden="true" style={`--aeon-mark-src: url("${mark}");`}>
+  <span class="aeon-mark__halo"></span>
+  <span class="aeon-mark__lens"></span>
+  <span class="aeon-mark__floor"></span>
+  <span class="aeon-mark__stage">
+    <span class="aeon-mark__tilt">
+      <span class="aeon-mark__float">
+        <span class="aeon-mark__spin">
+          <span class="aeon-mark__slab">
+            {layers.map((i) => <i class="aeon-mark__layer" style={`--i: ${i};`}></i>)}
+            <i class="aeon-mark__back"></i>
+            <span class="aeon-mark__front">
+              <img src={mark} alt="" width="1254" height="1254" decoding="async" />
+              <i class="aeon-mark__gloss"></i>
+              <span class="aeon-mark__sheen"><b></b></span>
+            </span>
+          </span>
+        </span>
+      </span>
+    </span>
+  </span>
+</span>

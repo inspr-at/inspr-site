@@ -143,15 +143,18 @@ for (const { path, lang } of pages) {
 }
 
 for (const { path, lang } of pages) {
-  test(`${path} at How names the version as the chip, not as a number`, async ({ page }) => {
+  test(`${path} at How prints no version in running text`, async ({ page }) => {
     await open(page, path, lang, "technical");
-    const chip = page.locator("#next .section-lead [data-copy-level=\"technical\"] [data-calendar-version]");
-    await expect(chip).toBeVisible();
-    await expect(chip).toHaveAttribute("aria-label", /260930115354\.0\.0.*UTC/);
-    const segments = await chip.evaluate((el) => ["yy", "mm", "dd"].map((key) => el.querySelector(`.${key}`)?.textContent));
-    expect(segments).toEqual(["26", "09", "30"]);
-    const lead = await page.locator("#next .section-lead").innerText();
-    expect(lead).not.toContain("260930115354");
+    const lead = page.locator("#next .section-lead");
+    await expect(lead).toBeVisible();
+    const text = (await page.locator("main").innerText()) ?? "";
+    expect(text).not.toMatch(/260930115354|\b(?:Sequence|Sequenz)\s+\d+/i);
+    // The only calendar versions on the page are the plaque's hover chip
+    // and the footer's: none sits inside running text.
+    const inline = await page.evaluate(() =>
+      [...document.querySelectorAll("[data-calendar-version]")].filter((el) => !el.closest("[data-plaque-version], footer")).length,
+    );
+    expect(inline, "no inline version chip").toBe(0);
   });
 }
 

@@ -1,0 +1,162 @@
+---
+/**
+ * INSPR-498 round 1: small behaviours for the AEON page, in one bundled
+ * module (no inline script; CSP script-src 'self').
+ *
+ *   copy buttons    a `[data-copy]` button copies its text, swaps its icon
+ *                   for a check and announces the confirmation in the
+ *                   `[data-copy-status]` live region.
+ *   count-up        the figures count up once, on first view. The real text
+ *                   stays in the DOM for assistive technology the whole time.
+ *   tile light      a fine pointer moves a soft light across a capability tile.
+ *   hero parallax   a fine pointer moves the scene and its notes a few pixels.
+ *   theatre hint    the phone hint fades after the first drag.
+ *
+ * Everything that moves is off under reduced motion, the pointer effects are
+ * off on touch, and the hero parallax also stops while the hero is paused.
+ */
+---
+
+<script>
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const fine = window.matchMedia("(hover: hover) and (pointer: fine)");
+
+  // ── Copy buttons ──
+  const timers = new WeakMap<HTMLElement, number>();
+  const legacyCopy = (text: string) => {
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.cssText = "position:fixed;top:0;left:0;opacity:0;";
+    document.body.append(area);
+    area.select();
+    let ok = false;
+    try {
+      ok = document.execCommand("copy");
+    } catch {
+      ok = false;
+    }
+    area.remove();
+    return ok;
+  };
+  document.addEventListener("click", async (event) => {
+    const button = (event.target as Element | null)?.closest<HTMLButtonElement>("[data-copy]");
+    if (!button) return;
+    const text = button.dataset.copy ?? "";
+    let ok = false;
+    try {
+      await navigator.clipboard.writeText(text);
+      ok = true;
+    } catch {
+      ok = legacyCopy(text);
+    }
+    if (!ok) return;
+    button.classList.add("is-copied");
+    const status = document.querySelector<HTMLElement>("[data-copy-status]");
+    if (status) {
+      // A cleared region re-announces the same word on a second copy.
+      status.textContent = "";
+      window.requestAnimationFrame(() => {
+        status.textContent = button.dataset.copiedText ?? "Copied";
+      });
+    }
+    window.clearTimeout(timers.get(button));
+    timers.set(button, window.setTimeout(() => button.classList.remove("is-copied"), 1800));
+  });
+
+  // ── Count-up ──
+  if (!reduced.matches && "IntersectionObserver" in window) {
+    const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+    const run = (el: HTMLElement, vis: HTMLElement, to: number, suffix: string, final: string) => {
+      const start = performance.now();
+      const duration = 1100;
+      const tick = (now: number) => {
+        const t = Math.min(1, (now - start) / duration);
+        vis.textContent = `${Math.round(to * ease(t))}${suffix}`;
+        if (t < 1) window.requestAnimationFrame(tick);
+        else el.textContent = final;
+      };
+      window.requestAnimationFrame(tick);
+    };
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          io.unobserve(entry.target);
+          const job = jobs.get(entry.target as HTMLElement);
+          if (job) run(entry.target as HTMLElement, job.vis, job.to, job.suffix, job.final);
+        }
+      },
+      { threshold: 0.6 },
+    );
+    const jobs = new Map<HTMLElement, { vis: HTMLElement; to: number; suffix: string; final: string }>();
+    for (const el of document.querySelectorAll<HTMLElement>(".aeon-figures__value")) {
+      const final = el.textContent?.trim() ?? "";
+      const match = /^(\d+)(\D*)$/.exec(final);
+      if (!match) continue;
+      // The number stays readable as text for assistive technology; the
+      // animated copy is decoration. The box keeps its final width.
+      const width = el.getBoundingClientRect().width;
+      const sr = document.createElement("span");
+      sr.className = "visually-hidden";
+      sr.textContent = final;
+      const vis = document.createElement("span");
+      vis.setAttribute("aria-hidden", "true");
+      vis.style.fontVariantNumeric = "tabular-nums";
+      vis.textContent = `0${match[2]}`;
+      el.textContent = "";
+      el.append(sr, vis);
+      if (width > 0) el.style.minWidth = `${Math.ceil(width)}px`;
+      jobs.set(el, { vis, to: Number(match[1]), suffix: match[2], final });
+      io.observe(el);
+    }
+  }
+
+  // ── Tile light, hero parallax (fine pointer, motion allowed) ──
+  if (fine.matches && !reduced.matches) {
+    const grid = document.querySelector<HTMLElement>(".specs--aeon .specs__grid");
+    let lightFrame = 0;
+    grid?.addEventListener("pointermove", (event) => {
+      const face = (event.target as Element | null)?.closest<HTMLElement>(".specs__face");
+      if (!face) return;
+      const { clientX, clientY } = event;
+      window.cancelAnimationFrame(lightFrame);
+      lightFrame = window.requestAnimationFrame(() => {
+        const box = face.getBoundingClientRect();
+        face.style.setProperty("--mx", `${clientX - box.left}px`);
+        face.style.setProperty("--my", `${clientY - box.top}px`);
+      });
+    });
+
+    const hero = document.querySelector<HTMLElement>(".aeon-hero");
+    const stage = hero?.querySelector<HTMLElement>(".aeon-hero__stage");
+    let heroFrame = 0;
+    const setDrift = (x: number, y: number) => {
+      stage?.style.setProperty("--px", x.toFixed(3));
+      stage?.style.setProperty("--py", y.toFixed(3));
+    };
+    hero?.addEventListener("pointermove", (event) => {
+      if (hero.classList.contains("is-paused")) return;
+      const { clientX, clientY } = event;
+      window.cancelAnimationFrame(heroFrame);
+      heroFrame = window.requestAnimationFrame(() => {
+        const box = hero.getBoundingClientRect();
+        setDrift(((clientX - box.left) / box.width) * 2 - 1, ((clientY - box.top) / Math.max(1, box.height)) * 2 - 1);
+      });
+    });
+    hero?.addEventListener("pointerleave", () => {
+      window.cancelAnimationFrame(heroFrame);
+      setDrift(0, 0);
+    });
+  }
+
+  // ── Theatre hint on phones ──
+  const theatreStage = document.querySelector<HTMLElement>(".aeon-theatre__stage");
+  theatreStage?.addEventListener(
+    "scroll",
+    () => {
+      for (const hint of document.querySelectorAll<HTMLElement>(".aeon-theatre__pan-hint")) hint.classList.add("is-used");
+    },
+    { capture: true, passive: true },
+  );
+</script>

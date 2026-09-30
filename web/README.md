@@ -50,8 +50,10 @@ without a calendar version. `deploy.sh` injects the non-secret
 `INSPR_GIT_SHA`, `INSPR_GIT_DIRTY`, `INSPR_RELEASE_ID`, `INSPR_DEPLOYED_AT`,
 `INSPR_CALENDAR_VERSION`, `INSPR_RELEASE_SEQUENCE` and `INSPR_CALENDAR_ANCHOR`
 values so all five production footers and the manifest identify the exact
-immutable release transaction and its `inspr-calver-3` version. The footers
-show that version through `src/components/CalendarVersion.astro`, the one
+immutable release transaction and its `inspr-calver-3` version. `deploy.sh`
+then enumerates the build in `dist/release-set.json` (`release-set.mjs`). The
+footers, including the overview's, show that version through
+`src/components/CalendarVersion.astro`, the one
 adapter around the pinned INSPR renderer in `src/vendor/calendar-version-display/`;
 `npm run build` verifies that bundle against
 `scripts/calendar-version-bundle-pin.json` before anything else (see the root

@@ -4,7 +4,15 @@ import { expect, test } from "@playwright/test";
 // the shared renderer. A direct local build has no version and says so; a
 // deployment build (deploy.sh supplies the reservation) renders Pretty, reveals
 // on hover or keyboard focus, and copies the exact canonical version.
-const footers = ["/", "/aithema/", "/paimos/", "/pharos/de/", "/janus/"];
+const footers = [
+  { path: "/", container: ".site-footer__release" },
+  { path: "/aithema/", container: ".site-footer__release" },
+  { path: "/paimos/", container: ".site-footer__release" },
+  { path: "/pharos/de/", container: ".site-footer__release" },
+  { path: "/janus/", container: ".site-footer__release" },
+  { path: "/overview/", container: ".overview-footer" },
+  { path: "/de/ueberblick/", container: ".overview-footer" },
+];
 
 async function releaseVersion(request) {
   const manifest = await (await request.get("/release.json")).json();
@@ -12,16 +20,16 @@ async function releaseVersion(request) {
   return manifest.version;
 }
 
-for (const path of footers) {
+for (const { path, container } of footers) {
   test(`${path} footer shows the release version truthfully`, async ({ page, request }) => {
     const version = await releaseVersion(request);
     await page.goto(path, { waitUntil: "load" });
-    const release = page.locator(".site-footer__release");
+    const release = page.locator(container);
     const coordinate = release.locator("[data-calendar-version]");
 
     if (!version) {
       await expect(coordinate).toHaveCount(0);
-      await expect(release).toContainText(/Local build|Lokaler Build/);
+      if (container === ".site-footer__release") await expect(release).toContainText(/Local build|Lokaler Build/);
       return;
     }
 

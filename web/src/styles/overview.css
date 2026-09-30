@@ -702,6 +702,23 @@
   text-underline-offset: 0.2em;
 }
 
+/* The release version (INSPR-493). The shared renderer draws it; this only
+   picks the brand token for its Auto colours. The footer sits on light paper,
+   so the page's --accent is the legible brand colour here. */
+.overview-footer__release {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  --calendar-version-brand: var(--accent);
+}
+
+.overview-footer__release > span:first-child {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 @media (max-width: 80rem) {
   .overview-steps {
     grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -184,14 +184,17 @@ The deployment script:
 
 1. assigns one UTC deployment timestamp, Git revision and immutable release ID,
    and reserves the release's calendar version from that same timestamp;
-2. builds and validates the static site with that release identity;
-3. uploads into an unreachable incoming directory;
-4. verifies the remote content byte-for-byte;
-5. seals the release under its unique build ID;
-6. validates a changed `Caddyfile` before promotion and restarts `inspr-www` to pick it up;
-7. switches one symlink atomically;
-8. verifies the release stamp and result through every public hostname; and
-9. preserves the previous release for rollback.
+2. builds and validates the static site with that release identity, then
+   writes its release set (`web/dist/release-set.json`);
+3. takes the host's deployment lock and re-checks the calendar history;
+4. uploads into an unreachable incoming directory;
+5. verifies the remote content byte-for-byte and against the release set;
+6. records the release-set digest in the host ledger and seals the release
+   under its unique build ID;
+7. validates a changed `Caddyfile` before promotion and restarts `inspr-www` to pick it up;
+8. switches one symlink atomically;
+9. verifies the release stamp and result through every public hostname; and
+10. preserves the previous release for rollback and releases the lock.
 
 Every current site displays the release's calendar version, the shared
 site-package version, short Git revision, immutable release ID and UTC
@@ -215,12 +218,42 @@ closed. The release sequence continues from the highest sequence on the host,
 so a rollback never leads to a reused version. The same check runs again
 before the first remote write, which also covers `SKIP_BUILD=1`, and the
 probes confirm that the live `release.json` declares the scheme and that the
-footers render the version. `release.json` uses schema version 2 with an
+footers (including `/overview/` and `/de/ueberblick/`) render the version.
+`release.json` uses schema version 2 with an
 explicit `version` block (`scheme`, `value`, `channel` `stable`, `sequence`,
 and the legacy-to-calendar `anchor` recorded by the first calendar release);
 earlier schema-1 manifests stay unchanged as the legacy era. The build never
 reads a clock for the version, and `web/calendar-version.mjs` holds the
 grammar, real-date and history checks.
+
+Each calendar release is one immutable release set. After the build,
+`deploy.sh` writes `web/dist/release-set.json` (`web/release-set.mjs`): every
+output file with its path (the artifact coordinate), size and SHA-256, plus the
+full source commit, the `web/package-lock.json` digest, the Node.js version and
+the version block. The host's own SHA-256 of every uploaded file must match it
+exactly (no missing, extra, altered or non-regular files) before sealing. The
+manifest's digest is appended to `releases/events.tsv` on the host, an
+append-only ledger of `sealed`, `promoted`, `auto-rollback` and `rollback`
+events, before the build directory is sealed.
+
+From the final history check through sealing, promotion and probes, one run
+holds `releases/.deploy.lock`, created atomically with `mkdir` and naming its
+owner (machine, process and release). A second deployment stops at the lock
+instead of racing for the same sequence. The lock is released on every exit;
+if a killed run leaves one behind, `deploy.sh` refuses with the owner's name
+and never removes it: check that no deployment is running, then remove that
+directory on the host by hand.
+
+A failed promotion relinks the previous release only after it matches the
+release-set digest the ledger recorded for it; an altered build is left alone
+and reported for operator attention. A build sealed before release sets existed
+(the legacy era) has nothing to verify and is relinked as before. To return
+production to one exact earlier calendar release, run
+`ROLLBACK_TO=<YYMMDDhhmmss.0.0> ./deploy.sh`: under the lock it verifies that
+build against its ledger digest, switches `current`, records a `rollback` event
+and probes the result, restoring the prior release if the health check fails.
+A rollback never reserves a version or sequence, so release ordering stays
+unchanged; a fix is a new release with a later version.
 
 Footers render the version through one adapter,
 `web/src/components/CalendarVersion.astro`, around the shared INSPR renderer
@@ -228,7 +261,7 @@ vendored in `web/src/vendor/calendar-version-display/`. The web default is the
 Pretty display; hovering or focusing it reveals the full version with the
 shared transition, and clicking it or pressing Enter copies the exact
 canonical version. Auto colours follow the page's `--secondary` branding
-token. The bundle is produced by `inspr-at/inspr`'s
+token on the night footers and `--accent` on the light overview footer. The bundle is produced by `inspr-at/inspr`'s
 `scripts/versioning-bundle.mjs` and pinned in
 `web/scripts/calendar-version-bundle-pin.json` (source commit, config digest
 and reviewed manifest digest). `npm run build` first runs

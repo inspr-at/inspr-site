@@ -51,6 +51,23 @@
 # rollback never causes a reused version or sequence. Build nodes never derive
 # a version from their own clocks; a direct local build carries none.
 #
+# Every calendar release is one immutable release set: web/dist/release-set.json
+# enumerates each output file (its path is the artifact coordinate) with size
+# and SHA-256, plus the full source commit and the web/package-lock.json
+# digest. The host copies are verified against it before sealing, its digest
+# is recorded in the append-only ledger releases/events.tsv, and a build is
+# verified against that ledger digest again before any rollback relinks it.
+# From the final history check through sealing, promotion and probes, one
+# deployment holds the atomic remote lock releases/.deploy.lock (mkdir). A
+# lock left by a killed run is never broken automatically; the script refuses
+# and names its owner.
+#
+# ROLLBACK_TO=<YYMMDDhhmmss.0.0> rolls production back to that exact sealed
+# calendar release instead of deploying: it verifies the build against its
+# ledger digest under the lock, switches `current`, records a rollback event
+# and probes. Release ordering and sequences are untouched. Builds sealed
+# before the ledger existed (the legacy era) are not selectable this way.
+#
 # Releases are retained on the server. `previous` points at the prior healthy
 # release; older immutable builds remain available for an operator-selected
 # rollback. Production execution remains user-driven.
@@ -77,6 +94,14 @@ CURRENT_RELEASE=""
 RELEASE_ID=""
 ROLLBACK_DIR=""
 REMOTE_INCOMING=""
+REMOTE_LOCK="$REMOTE_RELEASE_ROOT/.deploy.lock"
+REMOTE_EVENTS="$REMOTE_RELEASE_ROOT/events.tsv"
+LOCK_HELD=0
+LOCK_TOKEN=""
+RELEASE_SET_DIGEST=""
+CALENDAR_VERSION=""
+MANIFEST_RELEASE_SEQUENCE=""
+ROLLBACK_TO="${ROLLBACK_TO:-}"
 
 say() { printf '\033[1;36m->\033[0m %s\n' "$*"; }
 ok()  { printf '\033[1;32mOK\033[0m %s\n' "$*"; }
@@ -226,13 +251,142 @@ atomic_release_link() {
     mv -Tf '.$link_name-$nonce' '$link_name'"
 }
 
+# Atomic remote deployment lock. mkdir either creates the directory or fails,
+# so exactly one run holds it. The owner token names this machine, process and
+# release. A stale lock is reported with its owner and never broken here.
+acquire_deploy_lock() {
+  local label owner status
+  label="$(hostname 2>/dev/null || true)"
+  [[ "$label" =~ ^[[:alnum:]._-]{1,64}$ ]] || label="local"
+  LOCK_TOKEN="$label:$$:${1:-deploy}:$(date -u +%Y%m%dT%H%M%SZ)"
+  [[ "$LOCK_TOKEN" =~ ^[[:alnum:]._:-]+$ ]] || die "unsafe deployment lock token"
+  set +e
+  owner=$(remote_ssh "set -eu
+    mkdir -p '$REMOTE_RELEASE_ROOT'
+    if mkdir '$REMOTE_LOCK' 2>/dev/null; then
+      printf '%s\n' '$LOCK_TOKEN' > '$REMOTE_LOCK/owner'
+      exit 0
+    fi
+    cat '$REMOTE_LOCK/owner' 2>/dev/null || printf 'owner unknown\n'
+    exit 73")
+  status=$?
+  set -e
+  if [ "$status" = "0" ]; then
+    LOCK_HELD=1
+    ok "deployment lock acquired ($LOCK_TOKEN)"
+  elif [ "$status" = "73" ]; then
+    die "another deployment holds $REMOTE_LOCK (${owner//$'\n'/ }); if none is running, inspect the host and remove that directory by hand"
+  else
+    die "unable to acquire the deployment lock $REMOTE_LOCK"
+  fi
+}
+
+# Release only a lock this run owns; never remove somebody else's.
+release_deploy_lock() {
+  [ "$LOCK_HELD" = "1" ] || return 0
+  if remote_ssh "set -eu
+    [ \"\$(cat '$REMOTE_LOCK/owner' 2>/dev/null)\" = '$LOCK_TOKEN' ] || exit 74
+    rm -f -- '$REMOTE_LOCK/owner'
+    rmdir -- '$REMOTE_LOCK'"; then
+    LOCK_HELD=0
+  else
+    printf '\033[1;31mERROR\033[0m deployment lock %s was not released; inspect it before the next deploy\n' "$REMOTE_LOCK" >&2
+  fi
+}
+
+# Print one build directory on the host for release-set verification: the
+# manifest bytes (base64), any non-regular entry, and the host's own SHA-256
+# of every other regular file.
+remote_release_listing() {
+  local directory="$1"
+  remote_ssh "set -eu
+    cd '$directory'
+    if [ -f release-set.json ] && [ ! -L release-set.json ]; then
+      printf 'manifest %s\n' \"\$(base64 -w0 release-set.json)\"
+    else
+      printf 'manifest-missing\n'
+    fi
+    find . -mindepth 1 ! -type f ! -type d -print | sed 's/^/other /'
+    find . -type f ! -path ./release-set.json -print0 | LC_ALL=C sort -z | xargs -0 -r sha256sum | sed 's/^/file /'"
+}
+
+# Append one event to the host's release ledger. Values are validated here
+# because they are embedded in the remote command.
+record_release_event() {
+  local event="$1" id="$2" version="$3" sequence="$4" digest="$5"
+  [[ "$event" =~ ^(sealed|promoted|auto-rollback|rollback)$ ]] && [[ "$id" =~ ^[[:alnum:]._-]+$ ]] \
+    && [[ "$version" =~ ^[1-9][0-9]{11}\.0\.0$ ]] && [[ "$sequence" =~ ^[1-9][0-9]*$ ]] \
+    && [[ "$digest" =~ ^[0-9a-f]{64}$ ]] || return 1
+  remote_ssh "set -eu
+    printf '%s\t%s\t%s\t%s\t%s\t%s\n' \"\$(date -u +%Y-%m-%dT%H:%M:%SZ)\" '$event' '$id' '$version' '$sequence' '$digest' >> '$REMOTE_EVENTS'"
+}
+
+# Verify one sealed build ("builds/<id>") against the release-set digest its
+# ledger entry recorded at sealing. Prints "version<TAB>sequence<TAB>digest".
+# Exit 4: the build predates the ledger (legacy era), so nothing can verify it.
+verify_sealed_build() {
+  local target="$1" id events entry status version sequence digest
+  id="${target#builds/}"
+  [[ "$target" =~ ^builds/[[:alnum:]_.-]+$ ]] || return 1
+  events=$(remote_ssh "cat '$REMOTE_EVENTS' 2>/dev/null || true") || return 1
+  entry=$(printf '%s' "$events" | node "$ROOT/web/scripts/release-set.mjs" lookup "$id")
+  status=$?
+  if [ "$status" = "4" ]; then
+    # Without a ledger entry only a build that carries no release set is legacy.
+    remote_ssh "test ! -e '$REMOTE_RELEASE_ROOT/$target/release-set.json'" && return 4
+    return 1
+  fi
+  [ "$status" = "0" ] || return 1
+  IFS=$'\t' read -r _ version sequence digest <<<"$entry"
+  remote_release_listing "$REMOTE_RELEASE_ROOT/$target" | \
+    node "$ROOT/web/scripts/release-set.mjs" verify "$digest" "$id" "$version" >/dev/null || return 1
+  printf '%s\t%s\t%s\n' "$version" "$sequence" "$digest"
+}
+
+# The promoted release must answer inside the container before the public
+# probes run.
+check_promoted_release() {
+  say "checking promoted release inside inspr-www"
+  remote_ssh "set -eu
+    docker exec inspr-www caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null
+    attempt=0
+    while [ \"\$attempt\" -lt 20 ]; do
+      if docker exec inspr-www wget -qO- --header='Host: www.inspr.at' http://127.0.0.1/ | grep -Fq 'Inspiration is the only limit.' &&
+         docker exec inspr-www wget -qO- --header='Host: aithema.inspr.at' http://127.0.0.1/ | grep -Fq 'Requirements you approve before work begins.'; then
+        exit 0
+      fi
+      attempt=\$((attempt + 1))
+      sleep 1
+    done
+    exit 1" || die "promoted release failed the internal container check"
+  ok "promoted release is healthy inside Caddy"
+}
+
 rollback_deployment() {
   set +e
+  local verified status rollback_version rollback_sequence rollback_digest
   printf '\033[1;33mROLLBACK\033[0m restoring the last known deployment\n' >&2
 
   if [ "$SYMLINK_SWITCHED" = "1" ]; then
     if [ -n "$CURRENT_RELEASE" ]; then
-      atomic_release_link "$CURRENT_RELEASE" "current" "${RELEASE_ID}-rollback"
+      # Relink only a build that still matches its sealed release set. A
+      # legacy build (sealed before the ledger) has no release set to check.
+      verified=$(verify_sealed_build "$CURRENT_RELEASE")
+      status=$?
+      if [ "$status" = "0" ]; then
+        atomic_release_link "$CURRENT_RELEASE" "current" "${RELEASE_ID}-rollback" && {
+          IFS=$'\t' read -r rollback_version rollback_sequence rollback_digest <<<"$verified"
+          record_release_event auto-rollback "${CURRENT_RELEASE#builds/}" "$rollback_version" \
+            "$rollback_sequence" "$rollback_digest" || \
+            printf '\033[1;31mERROR\033[0m rollback event was not recorded in %s\n' "$REMOTE_EVENTS" >&2
+          printf '\033[1;33mROLLBACK\033[0m restored %s (release set verified)\n' "$CURRENT_RELEASE" >&2
+        }
+      elif [ "$status" = "4" ]; then
+        printf '\033[1;33mROLLBACK\033[0m %s predates release sets; relinking it unverified\n' "$CURRENT_RELEASE" >&2
+        atomic_release_link "$CURRENT_RELEASE" "current" "${RELEASE_ID}-rollback"
+      else
+        printf '\033[1;31mERROR\033[0m %s does not match its sealed release set; current was NOT relinked and needs operator attention\n' "$CURRENT_RELEASE" >&2
+      fi
     else
       # There was no release link before the initial cutover. Keep the failed
       # release recoverable, but restore the exact absence of `current`.
@@ -255,7 +409,11 @@ rollback_deployment() {
       printf '\033[1;31mERROR\033[0m automatic web edge rollback needs operator attention\n' >&2
   fi
 
-  printf '\033[1;33mROLLBACK\033[0m failed release retained as builds/%s\n' "$RELEASE_ID" >&2
+  if [ -n "$ROLLBACK_TO" ]; then
+    printf '\033[1;33mROLLBACK\033[0m the requested rollback to %s was reverted\n' "$ROLLBACK_TO" >&2
+  else
+    printf '\033[1;33mROLLBACK\033[0m failed release retained as builds/%s\n' "$RELEASE_ID" >&2
+  fi
 }
 
 on_exit() {
@@ -278,6 +436,7 @@ on_exit() {
     fi
   fi
 
+  release_deploy_lock
   exit "$status"
 }
 
@@ -470,6 +629,48 @@ probe_redirect() {
   ok "$label -> $code, target verified"
 }
 
+# 0. ROLLBACK_TO: return production to one exact sealed calendar release.
+if [ -n "$ROLLBACK_TO" ]; then
+  [[ "$ROLLBACK_TO" =~ ^[1-9][0-9](0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])([01][0-9]|2[0-3])[0-5][0-9][0-5][0-9]\.0\.0$ ]] || \
+    die "ROLLBACK_TO must be a canonical calendar version (YYMMDDhhmmss.0.0)"
+  RELEASE_ID="rollback-${ROLLBACK_TO%.0.0}"
+  acquire_deploy_lock "$RELEASE_ID"
+
+  ROLLBACK_ENTRY=$(remote_ssh "cat '$REMOTE_EVENTS' 2>/dev/null || true" | \
+    node "$ROOT/web/scripts/release-set.mjs" lookup "$ROLLBACK_TO") || \
+    die "$ROLLBACK_TO is not a sealed calendar release in $REMOTE_EVENTS"
+  IFS=$'\t' read -r ROLLBACK_RELEASE_ID _ ROLLBACK_SEQUENCE ROLLBACK_DIGEST <<<"$ROLLBACK_ENTRY"
+  ROLLBACK_TARGET="builds/$ROLLBACK_RELEASE_ID"
+  verify_sealed_build "$ROLLBACK_TARGET" >/dev/null || \
+    die "$ROLLBACK_TARGET does not match its sealed release set; refusing to roll back to it"
+  ok "rollback target $ROLLBACK_TO ($ROLLBACK_TARGET) matches release set ${ROLLBACK_DIGEST:0:12}"
+
+  CURRENT_RELEASE=$(remote_ssh "set -eu
+    if [ -L '$REMOTE_RELEASE_ROOT/current' ]; then
+      readlink '$REMOTE_RELEASE_ROOT/current'
+    fi")
+  [[ "$CURRENT_RELEASE" =~ ^builds/[[:alnum:]_.-]+$ ]] || die "remote current link has an unexpected target"
+  [ "$CURRENT_RELEASE" != "$ROLLBACK_TARGET" ] || die "$ROLLBACK_TO is already current"
+
+  # A failed health check restores the release that was live before.
+  PROMOTION_STARTED=1
+  atomic_release_link "$ROLLBACK_TARGET" "current" "$RELEASE_ID"
+  SYMLINK_SWITCHED=1
+  record_release_event rollback "$ROLLBACK_RELEASE_ID" "$ROLLBACK_TO" "$ROLLBACK_SEQUENCE" "$ROLLBACK_DIGEST" || \
+    die "rollback event could not be recorded"
+  check_promoted_release
+  if [ "${SKIP_PROBE:-}" != "1" ]; then
+    probe_page "INSPR umbrella after rollback" "https://www.inspr.at/" "Inspiration is the only limit." "text/html" "$ROLLBACK_RELEASE_ID"
+    probe_page "release manifest after rollback" "https://www.inspr.at/release.json" "\"value\": \"$ROLLBACK_TO\"" "application/json"
+  fi
+  atomic_release_link "$CURRENT_RELEASE" "previous" "$RELEASE_ID"
+  PROMOTION_STARTED=0
+  release_deploy_lock
+  trap - EXIT INT TERM
+  ok "rolled back to $ROLLBACK_TO ($ROLLBACK_TARGET); release ordering unchanged"
+  exit 0
+fi
+
 # 1. Build the single static application with one truthful release identity.
 if [ "${SKIP_BUILD:-}" = "1" ]; then
   say "build skipped (SKIP_BUILD=1); reusing web/dist/"
@@ -588,7 +789,16 @@ RELEASE_ID="$MANIFEST_RELEASE_ID"
 DEPLOYED_AT="$MANIFEST_DEPLOYED_AT"
 ok "build contract verified for site v$MANIFEST_VERSION, release $RELEASE_ID"
 
-# 4. Fingerprint the rendered content. The release id already embedded in the
+# 4. Enumerate the immutable release set: every output file with its size and
+# SHA-256, the full source commit and the dependency-lock digest. It is sealed
+# with the build; its digest goes into the host ledger at sealing.
+RELEASE_SET_DIGEST=$(node "$ROOT/web/scripts/release-set.mjs" create \
+  "$ROOT/web/dist" "$CURRENT_GIT_SHA" "$ROOT/web/package-lock.json") || \
+  die "release-set manifest could not be created"
+[[ "$RELEASE_SET_DIGEST" =~ ^[0-9a-f]{64}$ ]] || die "release-set digest is invalid"
+ok "release set ${RELEASE_SET_DIGEST:0:12} enumerates the build"
+
+# Fingerprint the rendered content. The release id already embedded in the
 # build combines its deployment transaction timestamp and source revision;
 # the full content hash remains the byte-level verification identity.
 BUILD_HASH=$(
@@ -610,9 +820,14 @@ if ! remote_ssh "test -f '$REMOTE_DIR/site/index.html'"; then
 fi
 ok "remote v1 archive present"
 
-# Re-read the host history right before the first write. This also covers
-# SKIP_BUILD=1 and any release sealed while this build ran: the manifest must
-# be exactly the channel's next calendar version, sequence and anchor.
+# From here through sealing, promotion and probes exactly one deployment may
+# act on the host; a concurrent run stops at this lock instead of racing.
+acquire_deploy_lock "$RELEASE_ID"
+
+# Re-read the host history right before the first write, under the lock. This
+# also covers SKIP_BUILD=1 and any release sealed while this build ran: the
+# manifest must be exactly the channel's next calendar version, sequence and
+# anchor.
 RELEASE_INVENTORY="$(read_release_inventory)" || \
   die "unable to read the host's release history before upload"
 printf '%s' "$RELEASE_INVENTORY" | \
@@ -659,6 +874,18 @@ if [ -d "$ROOT/web/src/pages/aithema" ]; then
     die "uploaded release is missing Aithema"
 fi
 
+# The host's own digests of the upload must match the release set exactly:
+# no missing, extra, altered or non-regular files, and the same manifest.
+remote_release_listing "$REMOTE_INCOMING" | \
+  node "$ROOT/web/scripts/release-set.mjs" verify "$RELEASE_SET_DIGEST" "$RELEASE_ID" "$CALENDAR_VERSION" >/dev/null || \
+  die "the uploaded release does not match its release set"
+ok "uploaded release matches release set ${RELEASE_SET_DIGEST:0:12}"
+
+# Record the release-set digest in the ledger before sealing: a build that is
+# sealed without its ledger entry could never be verified for a rollback.
+record_release_event sealed "$RELEASE_ID" "$CALENDAR_VERSION" "$MANIFEST_RELEASE_SEQUENCE" "$RELEASE_SET_DIGEST" || \
+  die "unable to record the release set in $REMOTE_EVENTS"
+
 remote_ssh "set -eu
   test -f '$REMOTE_INCOMING/index.html'
   test -f '$REMOTE_INCOMING/paimos/index.html'
@@ -670,6 +897,7 @@ remote_ssh "set -eu
   test -f '$REMOTE_INCOMING/pharos/de/index.html'
   test -f '$REMOTE_INCOMING/janus/index.html'
   test -f '$REMOTE_INCOMING/janus/de/index.html'
+  test -f '$REMOTE_INCOMING/release-set.json'
   test -n \"\$(find '$REMOTE_INCOMING/_astro' -maxdepth 1 -type f -name '*.css' -print -quit)\"
   mv '$REMOTE_INCOMING' '$REMOTE_RELEASE'"
 RELEASE_SEALED=1
@@ -744,20 +972,7 @@ fi
 
 # Verify Caddy against the promoted symlink from inside the container before
 # asking public DNS, TLS and Traefik to participate in the final smoke tests.
-say "checking promoted release inside inspr-www"
-remote_ssh "set -eu
-  docker exec inspr-www caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null
-  attempt=0
-  while [ \"\$attempt\" -lt 20 ]; do
-    if docker exec inspr-www wget -qO- --header='Host: www.inspr.at' http://127.0.0.1/ | grep -Fq 'Inspiration is the only limit.' &&
-       docker exec inspr-www wget -qO- --header='Host: aithema.inspr.at' http://127.0.0.1/ | grep -Fq 'Requirements you approve before work begins.'; then
-      exit 0
-    fi
-    attempt=\$((attempt + 1))
-    sleep 1
-  done
-  exit 1" || die "promoted release failed the internal container check"
-ok "promoted release is healthy inside Caddy"
+check_promoted_release
 
 # 7. Centralised, read-only smoke probes. Pages are checked for recognizable
 # content, content type and security headers, not just a green status code.
@@ -798,8 +1013,12 @@ else
   probe_page "v1 archive" "https://v1.inspr.at/" "Upstream of any substrate" "text/html"
   probe_page "release manifest scheme" "https://www.inspr.at/release.json" '"scheme": "inspr-calver-3"' "application/json"
   probe_page "release manifest calendar version" "https://www.inspr.at/release.json" "\"value\": \"$CALENDAR_VERSION\"" "application/json"
+  probe_page "release set" "https://www.inspr.at/release-set.json" "\"value\": \"$CALENDAR_VERSION\"" "application/json"
   probe_page "umbrella footer calendar version" "https://www.inspr.at/" "data-calendar-version=\"$CALENDAR_VERSION\"" "text/html"
   probe_page "Paimos footer calendar version" "https://paimos.inspr.at/" "data-calendar-version=\"$CALENDAR_VERSION\"" "text/html"
+  probe_page "Aithema footer calendar version" "https://aithema.inspr.at/" "data-calendar-version=\"$CALENDAR_VERSION\"" "text/html"
+  probe_page "overview footer calendar version" "https://www.inspr.at/overview/" "data-calendar-version=\"$CALENDAR_VERSION\"" "text/html"
+  probe_page "German overview footer calendar version" "https://www.inspr.at/de/ueberblick/" "data-calendar-version=\"$CALENDAR_VERSION\"" "text/html"
   probe_page "shared product asset" "https://paimos.inspr.at$shared_asset_path" "" "text/css"
   probe_redirect "legacy edition redirect" "https://www.inspr.at/v1/" "301,302,307,308" "https://v1.inspr.at/v1/" "1"
   probe_redirect "legacy ELI10 redirect" "https://www.inspr.at/eli10/" "301,302,307,308" "https://www.inspr.at/overview/" "1"
@@ -822,7 +1041,10 @@ fi
 if [ -n "$CURRENT_RELEASE" ] && [ "$CURRENT_RELEASE" != "$RELEASE_TARGET" ]; then
   atomic_release_link "$CURRENT_RELEASE" "previous" "$RELEASE_ID"
 fi
+record_release_event promoted "$RELEASE_ID" "$CALENDAR_VERSION" "$MANIFEST_RELEASE_SEQUENCE" "$RELEASE_SET_DIGEST" || \
+  printf '\033[1;31mERROR\033[0m promotion event was not recorded in %s\n' "$REMOTE_EVENTS" >&2
 
 PROMOTION_STARTED=0
+release_deploy_lock
 trap - EXIT INT TERM
-ok "deployment complete: $RELEASE_ID, version $CALENDAR_VERSION"
+ok "deployment complete: $RELEASE_ID, version $CALENDAR_VERSION, release set $RELEASE_SET_DIGEST"

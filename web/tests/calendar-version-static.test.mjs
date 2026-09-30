@@ -4,7 +4,6 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
 import {
-  chmod,
   cp,
   mkdir,
   mkdtemp,
@@ -15,6 +14,7 @@ import {
   unlink,
   writeFile,
 } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -35,6 +35,7 @@ import {
   PIN_PATH,
   verifyCalendarVersionBundle,
 } from "../scripts/verify-calendar-version-bundle.mjs";
+import { createCheckout, createHost, seedBuild } from "./support/fake-host.mjs";
 
 const webRoot = fileURLToPath(new URL("../", import.meta.url));
 const repositoryRoot = fileURLToPath(new URL("../../", import.meta.url));
@@ -347,65 +348,6 @@ test("the reservation CLI speaks deploy.sh's contract", () => {
   assert.equal(run(["unknown"], "").status, 1);
 });
 
-async function deployFixture({ inventory, release = null }) {
-  const root = await mkdtemp(join(tmpdir(), "inspr-calendar-deploy-"));
-  const fakeBin = join(root, "fake-bin");
-  const dist = join(root, "web", "dist");
-  const documents = [
-    "index.html", "overview/index.html", "de/ueberblick/index.html",
-    "paimos/index.html", "paimos/de/index.html", "paimos-legacy/index.html", "paimos-legacy/de/index.html",
-    "paimos-aeon/index.html", "paimos-aeon/de/index.html", "pharos/index.html", "pharos/de/index.html",
-    "janus/index.html", "janus/de/index.html",
-  ];
-  for (const directory of [fakeBin, join(root, "site"), join(dist, "_astro"), join(root, "web", "scripts")]) {
-    await mkdir(directory, { recursive: true });
-  }
-  for (const document of documents) {
-    await mkdir(join(dist, document, ".."), { recursive: true });
-    await writeFile(join(dist, document), "fixture\n");
-  }
-  await writeFile(join(dist, "_astro", "fixture.css"), "body{}\n");
-  await writeFile(join(root, "site", "index.html"), "fixture archive\n");
-  await writeFile(join(root, "Caddyfile"), "fixture\n");
-  await writeFile(join(root, "inventory.txt"), inventory);
-  if (release) await writeFile(join(dist, "release.json"), `${JSON.stringify(release, null, 2)}\n`);
-  await cp(join(repositoryRoot, "deploy.sh"), join(root, "deploy.sh"));
-  for (const file of ["package.json", "release-metadata.mjs", "calendar-version.mjs", "scripts/calendar-reservation.mjs", "scripts/write-release-manifest.mjs"]) {
-    await cp(join(webRoot, file), join(root, "web", file));
-  }
-  const executable = async (name, body) => {
-    await writeFile(join(fakeBin, name), `#!/bin/sh\n${body}\n`);
-    await chmod(join(fakeBin, name), 0o755);
-  };
-  // The fake host answers the release-history read with the fixture inventory.
-  await executable("ssh", `command=$(cat)
-printf 'ssh\\n' >> "$FIXTURE_LOG"
-case "$command" in
-  *'*/release.json'*) cat "$FIXTURE_ROOT/inventory.txt" ;;
-esac`);
-  await executable("scp", 'printf "scp\\n" >> "$FIXTURE_LOG"');
-  await executable("rsync", 'printf "rsync\\n" >> "$FIXTURE_LOG"');
-  await executable("python3", "exit 0");
-  await executable("git", `case "$*" in
-  *rev-parse*) printf '%s\\n' 0123456789abcdef0123456789abcdef01234567 ;;
-  *status*) exit 0 ;;
-  *) exit 92 ;;
-esac`);
-  // A fake build writes release.json through the real metadata helper.
-  await executable("npm", 'exec node scripts/write-release-manifest.mjs');
-  const env = {
-    PATH: `${fakeBin}:${process.env.PATH}`,
-    FIXTURE_ROOT: root,
-    FIXTURE_LOG: join(root, "log.txt"),
-    SKIP_PROBE: "1",
-    ...(release ? { SKIP_BUILD: "1" } : {}),
-  };
-  const result = spawnSync("/bin/bash", [join(root, "deploy.sh")], { cwd: root, encoding: "utf8", env });
-  const log = await readFile(join(root, "log.txt"), "utf8").catch(() => "");
-  const manifest = await readFile(join(dist, "release.json"), "utf8").then(JSON.parse).catch(() => null);
-  return { root, result, log, manifest };
-}
-
 test("deploy.sh reserves the coordinate from its timestamp and passes it to the build", async () => {
   const deploy = await readFile(join(repositoryRoot, "deploy.sh"), "utf8");
   assert.match(deploy, /read_release_inventory\(\) \{/);
@@ -426,39 +368,44 @@ test("deploy.sh reserves the coordinate from its timestamp and passes it to the 
   const ahead = new Date(Math.floor(Date.now() / 1000) * 1000 + 1000);
   const aheadVersion = calendarVersionFromUtc(ahead.toISOString().replace(/\.\d{3}Z$/, "Z"));
   const anchor = anchorFor("260930154712.0.0", "20260930T144629Z-095391814e7b");
-  const history = inventoryText([
-    legacyManifest("20260930T144629Z-095391814e7b", "2026-09-30T14:46:29Z"),
-    calendarManifest("260930154712.0.0", 1, anchor),
-    calendarManifest(aheadVersion, 7, anchor),
-  ]);
-  const fixture = await deployFixture({ inventory: history });
+  const host = await createHost();
+  await seedBuild(host, "20260930T144629Z-095391814e7b", legacyManifest("20260930T144629Z-095391814e7b", "2026-09-30T14:46:29Z"));
+  await seedBuild(host, "calendar-1", calendarManifest("260930154712.0.0", 1, anchor));
+  await seedBuild(host, "calendar-7", calendarManifest(aheadVersion, 7, anchor));
+  const checkout = await createCheckout(host);
   try {
-    assert.equal(fixture.result.status, 0, `${fixture.result.stderr}\n${fixture.result.stdout}`);
-    const { version, deployment } = fixture.manifest;
+    const result = checkout.run();
+    assert.equal(result.status, 0, `${result.stderr}\n${result.stdout}`);
+    const { version, deployment } = await checkout.release();
     assert.equal(version.scheme, "inspr-calver-3");
     assert.equal(version.sequence, 8);
     assert.deepEqual(version.anchor, anchor);
     assert.equal(compareCalendarVersions(version.value, aheadVersion), 1);
     assert.equal(version.value, calendarVersionFromUtc(deployment.deployedAt));
     assert.equal(deployment.releaseId.slice(0, 16), deployment.deployedAt.replace(/[-:]/g, ""));
-    assert.match(fixture.result.stdout, /reserved calendar version \d{12}\.0\.0 \(inspr-calver-3, sequence 8\)/);
+    assert.match(result.stdout, /reserved calendar version \d{12}\.0\.0 \(inspr-calver-3, sequence 8\)/);
   } finally {
-    await rm(fixture.root, { recursive: true, force: true });
+    await rm(host.root, { recursive: true, force: true });
+    await rm(checkout.root, { recursive: true, force: true });
   }
 });
 
 test("deploy.sh refuses a manifest that is not the channel's next release before any upload", async () => {
-  const anchor = anchorFor("260719000000.0.0");
-  const later = inventoryText([calendarManifest("260720000000.0.0", 1, anchorFor("260720000000.0.0"))]);
-  const fixture = await deployFixture({ inventory: later, release: calendarManifest("260719000000.0.0", 1, anchor) });
+  const host = await createHost();
+  await seedBuild(host, "calendar-1", calendarManifest("260720000000.0.0", 1, anchorFor("260720000000.0.0")));
+  const checkout = await createCheckout(host, { release: calendarManifest("260719000000.0.0", 1, anchorFor("260719000000.0.0")) });
   try {
-    assert.equal(fixture.result.status, 1);
-    assert.match(fixture.result.stderr, /is not the channel's next release/);
-    assert.match(fixture.log, /ssh/);
-    assert.doesNotMatch(fixture.log, /rsync|scp/);
-    assert.doesNotMatch(fixture.result.stdout, /uploading immutable release/);
+    const result = checkout.run();
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /is not the channel's next release/);
+    const log = await readFile(checkout.transportLog, "utf8");
+    assert.match(log, /^ssh/m);
+    assert.doesNotMatch(log, /^(rsync|scp)/m);
+    assert.doesNotMatch(result.stdout, /uploading immutable release/);
+    assert.equal(existsSync(join(host.releases, ".deploy.lock")), false, "the lock is released on failure");
   } finally {
-    await rm(fixture.root, { recursive: true, force: true });
+    await rm(host.root, { recursive: true, force: true });
+    await rm(checkout.root, { recursive: true, force: true });
   }
 });
 
@@ -486,6 +433,28 @@ test("every release footer shows the version through the one adapter", async () 
   }
   for (const footer of ["src/components/MicrositeFooter.astro", "src/components/AithemaProductPage.astro"]) {
     assert.match(await read(footer), /<dt>Version<\/dt>/, footer);
+  }
+  // The overview (/overview/, /de/ueberblick/) has its own footer and the same adapter.
+  const overview = await read("src/components/OverviewPage.astro");
+  assert.match(overview, /<footer class="overview-footer page-shell">[\s\S]*<CalendarVersion[\s\S]*<\/footer>/);
+  assert.match(overview, /<span>Version<\/span>/);
+  const deploy = await readFile(join(repositoryRoot, "deploy.sh"), "utf8");
+  for (const url of ["https://www.inspr.at/", "https://paimos.inspr.at/", "https://aithema.inspr.at/", "https://www.inspr.at/overview/", "https://www.inspr.at/de/ueberblick/"]) {
+    assert.ok(deploy.includes(`"${url}" "data-calendar-version=\\"$CALENDAR_VERSION\\""`), `deploy.sh probes the version in ${url}`);
+  }
+  assert.match(await read("src/styles/overview.css"), /\.overview-footer__release \{[^}]*--calendar-version-brand: var\(--accent\);/);
+
+  // Every served footer is one of these three; the retired section footers
+  // are not imported anywhere.
+  const served = new Set(["src/components/MicrositeFooter.astro", "src/components/AithemaProductPage.astro", "src/components/OverviewPage.astro"]);
+  const astroFiles = execFileSync("git", ["-C", webRoot, "ls-files", "-co", "--exclude-standard", "src"], { encoding: "utf8" })
+    .split("\n").filter((file) => file.endsWith(".astro"));
+  const sources = new Map(await Promise.all(astroFiles.map(async (file) => [file, await read(file)])));
+  for (const [file, source] of sources) {
+    if (!source.includes("<footer") || served.has(file)) continue;
+    const name = file.split("/").pop();
+    const importers = [...sources].filter(([, other]) => other.includes(`/${name}"`)).map(([other]) => other);
+    assert.deepEqual(importers, [], `${file} renders a footer without the release version`);
   }
 
   // Retired labels never appear on a surface.

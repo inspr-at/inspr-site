@@ -11,6 +11,11 @@
 import { Image } from "astro:assets";
 import type { ImageMetadata } from "astro";
 
+// INSPR-498: `sizes` states the real rendered width so a retina screen takes
+// the 1600w or 2328w candidate, not a soft one. Desktop: the viewer is the
+// wide grid column (about 570px at 72rem, 745px at 1440, 763px at the 88rem
+// shell), so min(52vw, 48rem) is an honest, slightly generous bound. Phones:
+// the track is 165% of the window (aeon.css), about 155vw.
 interface Props {
   image: ImageMetadata;
   alt: string;
@@ -70,7 +75,7 @@ const hintId = "aeon-pan-hint";
           src={image}
           alt={alt}
           widths={[700, 1100, 1600, 2328]}
-          sizes="(min-width: 72rem) 44vw, 94vw"
+          sizes="(min-width: 72rem) min(52vw, 48rem), 155vw"
           format="webp"
           quality={84}
           draggable="false"

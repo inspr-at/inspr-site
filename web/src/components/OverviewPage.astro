@@ -31,6 +31,8 @@ interface Props {
 
 const locale: "en" | "de" = Astro.props.locale === "de" ? "de" : "en";
 const copy = (english: string, german: string) => locale === "de" ? german : english;
+const productHref = (href: string) =>
+  locale === "de" ? `${href}/de/?lang=de` : href;
 
 const openSourceUrl = "https://github.com/inspr-at";
 const englishUrl = siteUrls.overview;
@@ -391,7 +393,7 @@ const steps = [
           <li class="overview-step-item">
             <a
               class="overview-step"
-              href={step.href}
+              href={productHref(step.href)}
               data-product={step.id}
               data-hero-loop-interaction
               aria-labelledby={`overview-step-${step.id}-title`}

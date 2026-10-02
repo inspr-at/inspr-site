@@ -675,7 +675,7 @@ test("the July 18 editorial product showcase remains accessible", async () => {
   assert.match(showcase, /rel="noopener noreferrer"/);
   assert.match(showcase, /aria-labelledby=\{`product-\$\{product\.name\.toLowerCase\(\)\}-link`\}/);
   assert.match(showcase, /opens in a new tab/);
-  assert.equal(showcase.match(/href=\{product\.href\}/g)?.length, 1);
+  assert.equal(showcase.match(/href=\{productHref\(product\.href\)\}/g)?.length, 1);
   assert.match(umbrella, /\.product-story-link:focus-visible/);
   assert.doesNotMatch(showcase, /ProductConstellation|product-constellation/);
   assert.doesNotMatch(showcase, /<a class="product-story__visual"/);
@@ -1172,4 +1172,37 @@ test("every content icon and group resolves in ContextIcon and the tile type", a
       assert.ok(groups.has(group), `${slug}: group "${group}" is not in the specs group union`);
     }
   }
+});
+
+test("English pages link English business and legal pages; German pages stay German (INSPR-524)", async () => {
+  const urls = await source("content/urls.ts");
+  const footer = await source("components/MicrositeFooter.astro");
+  const ribbon = await source("components/ServiceRibbon.astro");
+  const aithema = await source("components/AithemaProductPage.astro");
+  const header = await source("components/MicrositeHeader.astro");
+  const umbrella = await source("pages/index.astro");
+  const overview = await source("components/OverviewPage.astro");
+
+  assert.match(urls, /export const localeUrls = \(locale: "en" \| "de"\) =>/);
+  assert.match(urls, /business: `\$\{siteUrls\.business\}\/en\/`,/);
+  assert.match(urls, /imprint: `\$\{siteUrls\.business\}\/en\/imprint\/`,/);
+  assert.match(urls, /privacy: `\$\{siteUrls\.business\}\/en\/privacy\/`,/);
+  assert.match(urls, /\? \{ business: siteUrls\.business, imprint: siteUrls\.imprint, privacy: siteUrls\.privacy \}/);
+
+  for (const [name, component] of [["footer", footer], ["aithema", aithema]]) {
+    assert.match(component, /const links = localeUrls\(locale\);/, `${name} resolves locale-aware links`);
+    assert.match(component, /href=\{links\.imprint\}/, `${name} legal notice link`);
+    assert.match(component, /href=\{links\.privacy\}/, `${name} privacy link`);
+    assert.match(component, /href=\{links\.business\}/, `${name} services link`);
+    assert.doesNotMatch(component, /siteUrls\.(?:imprint|privacy|business)\b/, `${name} must not bypass the locale map`);
+  }
+  assert.match(ribbon, /href=\{localeUrls\(locale\)\.business\}/);
+  assert.doesNotMatch(ribbon, /siteUrls\.business/);
+  assert.match(header, /locale === "de" \? `\$\{siteUrls\[active\]\}\/de\/` : siteUrls\[active\]/);
+  assert.match(umbrella, /const productHref = \(href: string\) =>\s*locale === "de" \? `\$\{href\}\/de\/\?lang=de` : href;/);
+  assert.match(umbrella, /href=\{productHref\(product\.href\)\}/);
+  for (const slug of ["aithema", "paimos", "pharos", "janus"]) {
+    assert.match(umbrella, new RegExp(`href: productHref\\(siteUrls\\.${slug}\\),\\s*external: true`), `${slug} flow reference keeps the language`);
+  }
+  assert.match(overview, /href=\{productHref\(step\.href\)\}/);
 });

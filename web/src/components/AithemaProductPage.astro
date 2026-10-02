@@ -11,7 +11,7 @@ import FeatureExperience from "./FeatureExperience.astro";
 import AudiencePaths from "./AudiencePaths.astro";
 import ConstraintRegister from "./ConstraintRegister.astro";
 import type { PreviewProductContent } from "../content/types";
-import { productLinks, siteUrls } from "../content/urls";
+import { productLinks, siteUrls, localeUrls } from "../content/urls";
 import { releaseMetadata } from "../../release-metadata.mjs";
 import CalendarVersion from "./CalendarVersion.astro";
 
@@ -157,6 +157,7 @@ const productHref = (href: string) =>
 
 const ogImage = new URL(aithemaHero.src, content.canonicalUrl).href;
 const year = new Date().getUTCFullYear();
+const links = localeUrls(locale);
 const deployedAtLabel = releaseMetadata.deployedAt
   ? `${new Intl.DateTimeFormat(locale === "de" ? "de-AT" : "en-GB", {
       dateStyle: "medium",
@@ -281,7 +282,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
         <div class="button-row">
           <a
             class="button"
-            href={siteUrls.business}
+            href={links.business}
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -452,7 +453,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
         </a>
         <a
           class="button button--ghost"
-          href={siteUrls.business}
+          href={links.business}
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -493,7 +494,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
       </div>
       <a
         class="button button--light"
-        href={siteUrls.business}
+        href={links.business}
         target="_blank"
         rel="noopener noreferrer"
       >
@@ -532,17 +533,17 @@ const deployedAtLabel = releaseMetadata.deployedAt
 
       <nav aria-label={labels.operateAria}>
         <p class="footer-label">{labels.operate}</p>
-        <a href={siteUrls.business} target="_blank" rel="noopener noreferrer">
+        <a href={links.business} target="_blank" rel="noopener noreferrer">
           {labels.services} <span aria-hidden="true">↗</span>
         </a>
         <a href={siteUrls.identity} target="_blank" rel="noopener noreferrer">
           {labels.identity} <span aria-hidden="true">↗</span>
         </a>
         <a href="mailto:hello@inspr.at">hello@inspr.at</a>
-        <a href={siteUrls.imprint} target="_blank" rel="noopener noreferrer">
+        <a href={links.imprint} target="_blank" rel="noopener noreferrer">
           {labels.legal} <span aria-hidden="true">↗</span>
         </a>
-        <a href={siteUrls.privacy} target="_blank" rel="noopener noreferrer">
+        <a href={links.privacy} target="_blank" rel="noopener noreferrer">
           {labels.privacy} <span aria-hidden="true">↗</span>
         </a>
       </nav>

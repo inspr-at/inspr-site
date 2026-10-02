@@ -1191,7 +1191,7 @@ test("English pages link English business and legal pages; German pages stay Ger
   const overview = await source("components/OverviewPage.astro");
 
   assert.match(urls, /export const localeUrls = \(locale: "en" \| "de"\) =>/);
-  assert.match(urls, /locale === "de"\s*\? \{ business: siteUrls\.business, imprint: siteUrls\.legalGerman, privacy: siteUrls\.privacyGerman \}\s*: \{ business: `\$\{siteUrls\.business\}\/en\/`, imprint: siteUrls\.legal, privacy: siteUrls\.privacy \}/);
+  assert.match(urls, /locale === "de"\s*\? \{ business: siteUrls\.business, imprint: `\$\{siteUrls\.legalGerman\}\?lang=de`, privacy: `\$\{siteUrls\.privacyGerman\}\?lang=de` \}\s*: \{ business: `\$\{siteUrls\.business\}\/en\/`, imprint: `\$\{siteUrls\.legal\}\?lang=en`, privacy: `\$\{siteUrls\.privacy\}\?lang=en` \}/);
   assert.doesNotMatch(urls, /locale === "en"\s*\?/);
 
   for (const [name, component] of [["footer", footer], ["aithema", aithema]]) {
@@ -1280,9 +1280,15 @@ test("INSPR publishes its own operator and privacy notices, named for Markus Bar
   assert.ok(!legal.includes("\u2014"), "legal copy contains an em dash");
   assert.match(page, /<!--email_off--><a href="mailto:\$\{operator\.email\}">/, "the operator address is shielded from email rewriting");
 
-  for (const route of ["pages/legal/index.astro", "pages/privacy/index.astro", "pages/de/impressum/index.astro", "pages/de/datenschutz/index.astro"]) {
-    const source_ = await source(route);
-    assert.match(source_, /<LegalPage kind="(?:legal|privacy)" locale="(?:en|de)" \/>/, route);
+  const routes = {
+    "pages/legal/index.astro": ["legal", "en"],
+    "pages/privacy/index.astro": ["privacy", "en"],
+    "pages/de/impressum/index.astro": ["legal", "de"],
+    "pages/de/datenschutz/index.astro": ["privacy", "de"],
+  };
+  for (const [route, [kind, locale]] of Object.entries(routes)) {
+    const routeSource = await source(route);
+    assert.ok(routeSource.includes(`<LegalPage kind="${kind}" locale="${locale}" />`), `${route} renders ${kind} in ${locale}`);
   }
   for (const loc of ["legal/", "de/impressum/", "privacy/", "de/datenschutz/"]) {
     assert.match(sitemap, new RegExp(`<loc>https://www\\.inspr\\.at/${loc.replace("/", "\\/")}</loc>`), `${loc} is in the www sitemap`);
@@ -1307,4 +1313,14 @@ test("INSPR publishes its own operator and privacy notices, named for Markus Bar
     assert.match(legal, claim);
   }
   assert.doesNotMatch(legal, /Augmentoring GmbH (?:operates|betreibt)/);
+  // Local-storage wording must not claim the choice never reaches the server: ?lang= and ?details= travel in links.
+  assert.doesNotMatch(legal, /never sent to the server|nie an den Server gesendet/);
+  assert.match(legal, /short parameters \(for example \?lang=de\)/);
+  assert.match(legal, /kurze Parameter an den Link angehängt \(zum Beispiel \?lang=de\)/);
+  assert.match(legal, /privacy policy describes the safeguards for such transfers and its retention periods/);
+  assert.match(legal, /Datenschutzerklärung von Cloudflare beschreibt die Schutzmaßnahmen/);
+  assert.match(legal, /Providing this data is technically necessary/);
+  assert.match(legal, /Writing to me is voluntary/);
+  const css = await source("styles/legal.css");
+  assert.match(css, /\.legal-updated \{[^}]*color: var\(--ink-soft\);/, "the updated date meets text contrast");
 });

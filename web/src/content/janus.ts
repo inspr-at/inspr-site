@@ -4,6 +4,16 @@ import type { ProductContent } from "./types";
 const repositoryUrl = "https://github.com/inspr-at/janus";
 const releaseUrl = "https://github.com/inspr-at/janus/releases";
 
+// INSPR-534: the release statement on the Janus page names one verified release.
+// Both layers were tagged together (rust-engine-v... and go-envelope-v...).
+// Bump when the site adopts a newer Janus release and re-check the README status.
+export const janusRelease = {
+  version: "260927081542.0.0",
+  date: "2026-09-27",
+  engineTag: "rust-engine-v260927081542.0.0",
+  envelopeTag: "go-envelope-v260927081542.0.0",
+} as const;
+
 export const janusContent = {
   slug: "janus",
   name: "Janus",
@@ -254,7 +264,7 @@ export const janusContent = {
           icon: "badge-check",
           title: "Role-gated workspace",
           body:
-            "The deployed envelope uses admin, auditor, operator and viewer roles across the catalog, request, access, ledger, assurance and settings surfaces.",
+            "The deployed envelope maps nine roles from ZITADEL project roles: viewer, operator, admin (owner), approver, auditor, security admin, break-glass admin, service admin and workload admin. They gate the catalog, request, access, ledger, assurance and settings surfaces.",
           meta: "ZITADEL OIDC with explicit role bindings",
         },
         {
@@ -420,11 +430,11 @@ export const janusContent = {
         name: "ZITADEL OIDC",
         status: "Live in oversight plane",
         description:
-          "The deployed Go envelope uses OIDC, nonce, PKCE and explicit role bindings for human access. Broader invited-user automation is still being hardened.",
+          "The deployed Go envelope signs people in through ZITADEL OIDC with nonce and PKCE. A valid identity gets no Janus access until a reviewed subject or role claim matches policy. Broader invited-user automation is still being hardened.",
       },
       {
         name: "Pharos",
-        status: "Released in the current engine line",
+        status: `Released in engine ${janusRelease.version}`,
         description:
           "A concrete credential-retirement contract handles one Pharos beacon credential with durable lifecycle state, value-free evidence and reconciliation.",
       },
@@ -452,7 +462,7 @@ export const janusContent = {
       "The current web interface cannot reveal secrets. Human reveal remains deferred because the web container intentionally has no decryption identity.",
       "The released Warden uses local MCP stdio. HTTP transport and multi-tenant remote operation are not shipped.",
       "Native age storage and the secretspec adapter are implemented. General OpenBao, OS keyring, Pass, KMS and HSM integrations remain planned or deployment-specific.",
-      "The live envelope has four roles: admin, auditor, operator and viewer. The broader separation-of-duties model in the design is not fully implemented.",
+      "The live envelope maps nine roles from ZITADEL project roles. The Rust engine implements durable separation of duties behind explicit accountability postures; runtime surfaces stay in the legacy posture until the all-surface cutover is released.",
       "The engine provides local value-free audit contracts and durable local registries, but remote append-only audit and SIEM export are not shipped.",
       "Janus is not a human password manager and does not provide browser autofill, mobile clients or password synchronization.",
       "Production adoption should start with explicit workflows, a reviewed threat model, recovery evidence and named operational ownership.",
@@ -462,7 +472,7 @@ export const janusContent = {
     eyebrow: "OPEN SOURCE",
     title: "Inspect every layer.",
     body:
-      "Janus is public under AGPL-3.0-only. Source, tests, release workflows, image signatures, SPDX SBOMs and build-provenance attestations are available for both the active Rust 0.1.x engine line and the Go oversight envelope.",
+      `Janus is public under AGPL-3.0-only. Source, tests, release workflows, image signatures, SPDX SBOMs and build-provenance attestations are available for the current releases of the Rust engine and the Go oversight envelope, both ${janusRelease.version} (${janusRelease.date}). The project is pre-1.0: interfaces and deployment contracts may still evolve.`,
     links: [
       {
         label: "GitHub repository",

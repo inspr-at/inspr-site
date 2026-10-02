@@ -1,5 +1,6 @@
 import { siteUrls } from "../urls";
 import type { ProductContent } from "../types";
+import { janusRelease } from "../janus";
 
 const repositoryUrl = "https://github.com/inspr-at/janus";
 const releaseUrl = "https://github.com/inspr-at/janus/releases";
@@ -257,7 +258,7 @@ export const janusContentDe = {
           icon: "badge-check",
           title: "Rollengeschützter Arbeitsbereich",
           body:
-            "Die produktive Hülle verwendet die Rollen Admin, Auditor, Operator und Viewer über Katalog-, Anfrage-, Zugriffs-, Register-, Assurance- und Einstellungsflächen hinweg.",
+            "Die produktive Hülle bildet neun Rollen aus ZITADEL-Projektrollen ab: Viewer, Operator, Admin (Owner), Approver, Auditor, Security-Admin, Break-Glass-Admin, Service-Admin und Workload-Admin. Sie steuern den Zugang zu Katalog-, Anfrage-, Zugriffs-, Register-, Assurance- und Einstellungsflächen.",
           meta: "ZITADEL OIDC mit expliziten Rollenbindungen",
         },
         {
@@ -423,11 +424,11 @@ export const janusContentDe = {
         name: "ZITADEL OIDC",
         status: "Live in der Aufsichtsebene",
         description:
-          "Die produktive Go-Hülle verwendet OIDC, Nonce, PKCE und explizite Rollenbindungen für menschlichen Zugriff. Die breitere Automatisierung eingeladener Nutzer wird noch gehärtet.",
+          "Die produktive Go-Hülle meldet Menschen über ZITADEL OIDC mit Nonce und PKCE an. Eine gültige Identität erhält keinen Janus-Zugriff, bis ein geprüfter Subject- oder Rollen-Claim zur Richtlinie passt. Die breitere Automatisierung eingeladener Nutzer wird noch gehärtet.",
       },
       {
         name: "Pharos",
-        status: "In der aktuellen Engine-Linie veröffentlicht",
+        status: `In Engine ${janusRelease.version} veröffentlicht`,
         description:
           "Ein konkreter Stilllegungsvertrag behandelt ein Pharos-Beacon-Zugangsdatum mit dauerhaftem Lebenszyklus-Zustand, wertfreien Nachweisen und Abgleich.",
       },
@@ -455,7 +456,7 @@ export const janusContentDe = {
       "Die aktuelle Weboberfläche kann keine Geheimnisse offenlegen. Menschliches Reveal bleibt aufgeschoben, weil der Web-Container bewusst keine Entschlüsselungsidentität besitzt.",
       "Der veröffentlichte Warden nutzt lokales MCP-stdio. HTTP-Transport und mandantenfähiger Fernbetrieb sind nicht ausgeliefert.",
       "Native age-Speicherung und der secretspec-Adapter sind umgesetzt. Allgemeine Integrationen für OpenBao, OS-Schlüsselbund, Pass, KMS und HSM bleiben geplant oder deploymentspezifisch.",
-      "Die produktive Hülle kennt vier Rollen: Admin, Auditor, Operator und Viewer. Das breitere Funktionstrennungsmodell des Entwurfs ist noch nicht vollständig umgesetzt.",
+      "Die produktive Hülle bildet neun Rollen aus ZITADEL-Projektrollen ab. Die Rust-Engine setzt dauerhafte Funktionstrennung hinter expliziten Accountability-Postures um; die Laufzeitoberflächen bleiben bis zum Release des Gesamt-Cutovers in der Legacy-Posture.",
       "Die Engine liefert lokale wertfreie Audit-Verträge und dauerhafte lokale Register, aber entferntes Nur-Anfügen-Audit und SIEM-Export sind nicht ausgeliefert.",
       "Janus ist kein Passwortmanager für Menschen und bietet weder Browser-Autofill noch Mobil-Clients oder Passwort-Synchronisation.",
       "Eine Produktionsübernahme sollte mit expliziten Abläufen, einem geprüften Bedrohungsmodell, Wiederherstellungsnachweisen und benannter Betriebsverantwortung beginnen.",
@@ -465,7 +466,7 @@ export const janusContentDe = {
     eyebrow: "OPEN SOURCE",
     title: "Jede Schicht prüfen.",
     body:
-      "Janus ist öffentlich unter AGPL-3.0-only. Quellcode, Tests, Release-Workflows, Image-Signaturen, SPDX-SBOMs und Build-Provenienz-Attestierungen stehen für die aktive Rust-0.1.x-Engine-Linie und die Go-Aufsichtshülle bereit.",
+      `Janus ist öffentlich unter AGPL-3.0-only. Quellcode, Tests, Release-Workflows, Image-Signaturen, SPDX-SBOMs und Build-Provenienz-Attestierungen stehen für die aktuellen Releases der Rust-Engine und der Go-Aufsichtshülle bereit, beide ${janusRelease.version} (${janusRelease.date}). Das Projekt ist vor 1.0: Schnittstellen und Deployment-Verträge können sich noch ändern.`,
     links: [
       {
         label: "GitHub-Repository",

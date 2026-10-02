@@ -258,7 +258,7 @@ export const janusContentDe = {
           icon: "badge-check",
           title: "Rollengeschützter Arbeitsbereich",
           body:
-            "Die produktive Hülle verwendet die Rollen Admin, Auditor, Operator und Viewer über Katalog-, Anfrage-, Zugriffs-, Register-, Assurance- und Einstellungsflächen hinweg.",
+            "Die produktive Hülle bildet neun Rollen aus ZITADEL-Projektrollen ab: Viewer, Operator, Admin (Owner), Approver, Auditor, Security-Admin, Break-Glass-Admin, Service-Admin und Workload-Admin. Sie steuern den Zugang zu Katalog-, Anfrage-, Zugriffs-, Register-, Assurance- und Einstellungsflächen.",
           meta: "ZITADEL OIDC mit expliziten Rollenbindungen",
         },
         {
@@ -424,7 +424,7 @@ export const janusContentDe = {
         name: "ZITADEL OIDC",
         status: "Live in der Aufsichtsebene",
         description:
-          "Die produktive Go-Hülle meldet Menschen über ZITADEL OIDC mit Nonce und PKCE an. Eine gültige Identität erhält keinen Janus-Zugriff, bis genau ein geprüfter Subject- oder Rollen-Claim zur Richtlinie passt. Die breitere Automatisierung eingeladener Nutzer wird noch gehärtet.",
+          "Die produktive Go-Hülle meldet Menschen über ZITADEL OIDC mit Nonce und PKCE an. Eine gültige Identität erhält keinen Janus-Zugriff, bis ein geprüfter Subject- oder Rollen-Claim zur Richtlinie passt. Die breitere Automatisierung eingeladener Nutzer wird noch gehärtet.",
       },
       {
         name: "Pharos",
@@ -456,7 +456,7 @@ export const janusContentDe = {
       "Die aktuelle Weboberfläche kann keine Geheimnisse offenlegen. Menschliches Reveal bleibt aufgeschoben, weil der Web-Container bewusst keine Entschlüsselungsidentität besitzt.",
       "Der veröffentlichte Warden nutzt lokales MCP-stdio. HTTP-Transport und mandantenfähiger Fernbetrieb sind nicht ausgeliefert.",
       "Native age-Speicherung und der secretspec-Adapter sind umgesetzt. Allgemeine Integrationen für OpenBao, OS-Schlüsselbund, Pass, KMS und HSM bleiben geplant oder deploymentspezifisch.",
-      "Die produktive Hülle kennt vier Rollen: Admin, Auditor, Operator und Viewer. Das breitere Funktionstrennungsmodell des Entwurfs ist noch nicht vollständig umgesetzt.",
+      "Die produktive Hülle bildet neun Rollen aus ZITADEL-Projektrollen ab. Das breitere Funktionstrennungsmodell des Entwurfs ist noch nicht vollständig umgesetzt.",
       "Die Engine liefert lokale wertfreie Audit-Verträge und dauerhafte lokale Register, aber entferntes Nur-Anfügen-Audit und SIEM-Export sind nicht ausgeliefert.",
       "Janus ist kein Passwortmanager für Menschen und bietet weder Browser-Autofill noch Mobil-Clients oder Passwort-Synchronisation.",
       "Eine Produktionsübernahme sollte mit expliziten Abläufen, einem geprüften Bedrohungsmodell, Wiederherstellungsnachweisen und benannter Betriebsverantwortung beginnen.",

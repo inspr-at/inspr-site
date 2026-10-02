@@ -707,7 +707,7 @@ test("the INSPR product flow stays ordered, human-approved and ownership-led", a
   assert.match(flow, /Staging waits for your review\./);
   assert.match(flow, /Production waits for your approval\./);
   assert.match(flow, /Access changes wait for your approval\./);
-  assert.match(flow, /Sign-in runs through ZITADEL with four roles in the oversight plane; broader permissions, invited-user automation and deeper role separation are planned for later\./);
+  assert.match(flow, /Sign-in runs through ZITADEL with role-based access in the oversight plane; broader permissions, invited-user automation and enforced separation of duties are planned for later\./);
   assert.doesNotMatch(flow, /title: "(?:Intent|Context|Bounded action|Evidence)"/);
   assert.match(umbrella, /Inspiration is the only limit\./);
   assert.match(umbrella, /At the end, everything is yours: the requirements, the source, the infrastructure, the permissions and the evidence behind every decision\./);
@@ -772,7 +772,7 @@ test("the local v2 route remains a compatibility alias for the chosen Fable copy
   assert.match(umbrella, /Pick the server\. Prove the backup\. Then deploy\./);
   assert.match(umbrella, /The work moves\. You decide when\./);
   assert.match(umbrella, /Built so you can say no\./);
-  assert.match(umbrella, /Sign-in runs through ZITADEL with four roles in the oversight plane; broader permissions, invited-user automation and deeper role separation are planned for later\./);
+  assert.match(umbrella, /Sign-in runs through ZITADEL with role-based access in the oversight plane; broader permissions, invited-user automation and enforced separation of duties are planned for later\./);
   assert.match(umbrella, /All four products remain open source\./);
   assert.doesNotMatch(umbrella, /Janus enforces which people/);
 });
@@ -1255,7 +1255,11 @@ test("Janus release line and ZITADEL status are consistent across site and page 
   }
   // The umbrella must not call ZITADEL sign-in "planned" while the Janus page lists it live.
   assert.doesNotMatch(umbrella, /ZITADEL integration are planned/);
-  assert.equal((umbrella.match(/Sign-in runs through ZITADEL with four roles in the oversight plane/g) ?? []).length, 2);
+  assert.equal((umbrella.match(/Sign-in runs through ZITADEL with role-based access in the oversight plane/g) ?? []).length, 2);
   assert.match(en, /status: "Live in oversight plane"/);
-  assert.match(en, /four roles: admin, auditor, operator and viewer/);
+  assert.match(en, /maps nine roles from ZITADEL project roles/);
+  assert.doesNotMatch(en, /four roles|admin, auditor, operator and viewer/);
+  assert.doesNotMatch(de, /vier Rollen|Admin, Auditor, Operator und Viewer/);
+  assert.doesNotMatch(umbrella, /four roles|vier Rollen/);
+  assert.doesNotMatch(en + de, /until one reviewed|genau ein geprüfter/);
 });

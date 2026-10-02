@@ -264,7 +264,7 @@ export const janusContent = {
           icon: "badge-check",
           title: "Role-gated workspace",
           body:
-            "The deployed envelope uses admin, auditor, operator and viewer roles across the catalog, request, access, ledger, assurance and settings surfaces.",
+            "The deployed envelope maps nine roles from ZITADEL project roles: viewer, operator, admin (owner), approver, auditor, security admin, break-glass admin, service admin and workload admin. They gate the catalog, request, access, ledger, assurance and settings surfaces.",
           meta: "ZITADEL OIDC with explicit role bindings",
         },
         {
@@ -430,7 +430,7 @@ export const janusContent = {
         name: "ZITADEL OIDC",
         status: "Live in oversight plane",
         description:
-          "The deployed Go envelope signs people in through ZITADEL OIDC with nonce and PKCE. A valid identity gets no Janus access until one reviewed subject or role claim matches policy. Broader invited-user automation is still being hardened.",
+          "The deployed Go envelope signs people in through ZITADEL OIDC with nonce and PKCE. A valid identity gets no Janus access until a reviewed subject or role claim matches policy. Broader invited-user automation is still being hardened.",
       },
       {
         name: "Pharos",
@@ -462,7 +462,7 @@ export const janusContent = {
       "The current web interface cannot reveal secrets. Human reveal remains deferred because the web container intentionally has no decryption identity.",
       "The released Warden uses local MCP stdio. HTTP transport and multi-tenant remote operation are not shipped.",
       "Native age storage and the secretspec adapter are implemented. General OpenBao, OS keyring, Pass, KMS and HSM integrations remain planned or deployment-specific.",
-      "The live envelope has four roles: admin, auditor, operator and viewer. The broader separation-of-duties model in the design is not fully implemented.",
+      "The live envelope maps nine roles from ZITADEL project roles. The broader separation-of-duties model in the design is not fully implemented.",
       "The engine provides local value-free audit contracts and durable local registries, but remote append-only audit and SIEM export are not shipped.",
       "Janus is not a human password manager and does not provide browser autofill, mobile clients or password synchronization.",
       "Production adoption should start with explicit workflows, a reviewed threat model, recovery evidence and named operational ownership.",

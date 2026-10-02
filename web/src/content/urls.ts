@@ -20,6 +20,19 @@ export const siteUrls = {
   privacy: "https://augmentoring.com/datenschutz/",
 } as const;
 
+// INSPR-524: the business site publishes English editions of its home, legal
+// notice and privacy pages under /en/. English INSPR pages link those so a
+// reader never lands on a German-only page; German pages keep the German
+// originals. Derived from the configurable business origin, never hardcoded.
+export const localeUrls = (locale: "en" | "de") =>
+  locale === "de"
+    ? { business: siteUrls.business, imprint: siteUrls.imprint, privacy: siteUrls.privacy }
+    : {
+        business: `${siteUrls.business}/en/`,
+        imprint: `${siteUrls.business}/en/imprint/`,
+        privacy: `${siteUrls.business}/en/privacy/`,
+      };
+
 export const productTaxonomy = {
   inspr: "Open product family",
   paimos: "Project context",

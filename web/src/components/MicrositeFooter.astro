@@ -1,5 +1,5 @@
 ---
-import { productLinks, siteUrls } from "../content/urls";
+import { localeUrls, productLinks, siteUrls } from "../content/urls";
 import { releaseMetadata } from "../../release-metadata.mjs";
 import CalendarVersion from "./CalendarVersion.astro";
 
@@ -24,6 +24,7 @@ const {
 } = Astro.props;
 
 const year = new Date().getUTCFullYear();
+const links = localeUrls(locale);
 
 // Product hosts serve their German edition at /de/; ?lang=de records the
 // choice on the destination origin (localStorage does not cross hosts).
@@ -93,7 +94,7 @@ const labels = locale === "de"
       <h2 id="footer-cta-title">{ctaTitle}</h2>
       <p>{ctaBody}</p>
     </div>
-    <a class="button button--light" href={siteUrls.business} target="_blank" rel="noopener noreferrer">
+    <a class="button button--light" href={links.business} target="_blank" rel="noopener noreferrer">
       {labels.servicesCta} <span aria-hidden="true">↗</span>
     </a>
   </section>
@@ -121,11 +122,11 @@ const labels = locale === "de"
 
     <nav aria-label={labels.operateAria}>
       <p class="footer-label">{labels.operate}</p>
-      <a href={siteUrls.business} target="_blank" rel="noopener noreferrer">{labels.services} <span aria-hidden="true">↗</span></a>
+      <a href={links.business} target="_blank" rel="noopener noreferrer">{labels.services} <span aria-hidden="true">↗</span></a>
       <a href={siteUrls.identity} target="_blank" rel="noopener noreferrer">{labels.identity} <span aria-hidden="true">↗</span></a>
       <a href="mailto:hello@inspr.at">hello@inspr.at</a>
-      <a href={siteUrls.imprint} target="_blank" rel="noopener noreferrer">{labels.legal} <span aria-hidden="true">↗</span></a>
-      <a href={siteUrls.privacy} target="_blank" rel="noopener noreferrer">{labels.privacy} <span aria-hidden="true">↗</span></a>
+      <a href={links.imprint} target="_blank" rel="noopener noreferrer">{labels.legal} <span aria-hidden="true">↗</span></a>
+      <a href={links.privacy} target="_blank" rel="noopener noreferrer">{labels.privacy} <span aria-hidden="true">↗</span></a>
     </nav>
   </div>
 

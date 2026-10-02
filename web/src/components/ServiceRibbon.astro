@@ -1,5 +1,5 @@
 ---
-import { siteUrls } from "../content/urls";
+import { localeUrls } from "../content/urls";
 
 interface Props {
   text: string;
@@ -13,5 +13,5 @@ const label = locale === "de" ? "Professionelle Services" : "Professional servic
 <aside class="service-ribbon page-shell" aria-label={label}>
   <span class="service-ribbon__signal" aria-hidden="true"></span>
   <p>{text}</p>
-  <a href={siteUrls.business} target="_blank" rel="noopener noreferrer">{label} <span aria-hidden="true">↗</span></a>
+  <a href={localeUrls(locale).business} target="_blank" rel="noopener noreferrer">{label} <span aria-hidden="true">↗</span></a>
 </aside>

@@ -46,7 +46,7 @@ test("locale, hreflang and the brand link work under both hosts", async () => {
   assert.match(page, /homeHref=\{localLinks\.home\}/);
   const header = await source("components/MicrositeHeader.astro");
   assert.ok(header.includes("if (!/^(https?:)?\\//.test(href)) return `${href}?lang=${choice}`;"), "relative language links keep their path");
-  assert.match(header, /href=\{homeHref \?\? siteUrls\[active\]\}/);
+  assert.match(header, /href=\{homeHref \?\? \(locale === "de" \? `\$\{siteUrls\[active\]\}\/de\/` : siteUrls\[active\]\)\}/);
 });
 
 test("the retired Paimos page lives at /paimos-legacy, noindex and unlisted", async () => {

@@ -87,7 +87,7 @@ test("Overview path cards preview the matching approved loops on deliberate inte
     );
   }
 
-  assert.match(component, /<a[\s\S]*?class="overview-step"[\s\S]*?href=\{step\.href\}[\s\S]*?data-product=\{step\.id\}[\s\S]*?data-hero-loop-interaction/);
+  assert.match(component, /<a[\s\S]*?class="overview-step"[\s\S]*?href=\{productHref\(step\.href\)\}[\s\S]*?data-product=\{step\.id\}[\s\S]*?data-hero-loop-interaction/);
   assert.doesNotMatch(component, /<h3[^>]*><a/);
   assert.match(component, /aria-labelledby=\{`overview-step-\$\{step\.id\}-title`\}/);
   assert.match(component, /aria-describedby=\{`overview-step-\$\{step\.id\}-role overview-step-\$\{step\.id\}-body overview-step-\$\{step\.id\}-approval`\}/);

@@ -37,6 +37,10 @@ import zitadelLogo from "../assets/brands/zitadel-logo-solo-dark-icon.svg";
 
 const locale: "en" | "de" = Astro.props.locale === "de" ? "de" : "en";
 const copy = (english: string, german: string) => locale === "de" ? german : english;
+// Product hosts serve their German edition at /de/; ?lang=de records the
+// choice on the destination origin (localStorage does not cross hosts).
+const productHref = (href: string) =>
+  locale === "de" ? `${href}/de/?lang=de` : href;
 
 const repositoryUrl = "https://github.com/inspr-at/inspr-site";
 const siteLicenseUrl = `${repositoryUrl}/blob/main/LICENSE`;
@@ -274,7 +278,7 @@ const productFlowSteps = [
     ),
     reference: {
       label: copy("Open Aithema", "Aithema öffnen"),
-      href: siteUrls.aithema,
+      href: productHref(siteUrls.aithema),
       external: true,
     },
   },
@@ -293,7 +297,7 @@ const productFlowSteps = [
     ),
     reference: {
       label: copy("Open Paimos", "Paimos öffnen"),
-      href: siteUrls.paimos,
+      href: productHref(siteUrls.paimos),
       external: true,
     },
   },
@@ -312,7 +316,7 @@ const productFlowSteps = [
     ),
     reference: {
       label: copy("Open Pharos", "Pharos öffnen"),
-      href: siteUrls.pharos,
+      href: productHref(siteUrls.pharos),
       external: true,
     },
   },
@@ -331,7 +335,7 @@ const productFlowSteps = [
     ),
     reference: {
       label: copy("Open Janus", "Janus öffnen"),
-      href: siteUrls.janus,
+      href: productHref(siteUrls.janus),
       external: true,
     },
   },
@@ -553,7 +557,7 @@ const productFlowSteps = [
           <div class="product-story-item">
             <a
               class="product-story-link"
-              href={product.href}
+              href={productHref(product.href)}
               target="_blank"
               rel="noopener noreferrer"
               aria-labelledby={`product-${product.name.toLowerCase()}-link`}

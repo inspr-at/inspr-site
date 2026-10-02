@@ -1,0 +1,118 @@
+---
+import MicrositeLayout from "../layouts/MicrositeLayout.astro";
+import MicrositeHeader from "./MicrositeHeader.astro";
+import MicrositeFooter from "./MicrositeFooter.astro";
+import { legalContent, operator } from "../content/legal";
+import { productTaxonomy, siteUrls } from "../content/urls";
+import insprLogo from "../assets/products/inspr/logo.svg";
+import "../styles/legal.css";
+
+interface Props {
+  kind: "legal" | "privacy";
+  locale?: "en" | "de";
+}
+
+const { kind, locale = "en" } = Astro.props;
+const copy = (english: string, german: string) => locale === "de" ? german : english;
+const doc = legalContent[kind][locale];
+
+const urls = {
+  legal: { en: siteUrls.legal, de: siteUrls.legalGerman, enPath: "/legal/", dePath: "/de/impressum/" },
+  privacy: { en: siteUrls.privacy, de: siteUrls.privacyGerman, enPath: "/privacy/", dePath: "/de/datenschutz/" },
+};
+const here = urls[kind];
+const canonicalUrl = locale === "de" ? here.de : here.en;
+const repositoryUrl = "https://github.com/inspr-at/inspr-site";
+
+const nav = [
+  {
+    label: copy("Legal notice", "Impressum"),
+    href: locale === "de" ? siteUrls.legalGerman : siteUrls.legal,
+    current: kind === "legal",
+  },
+  {
+    label: copy("Privacy", "Datenschutz"),
+    href: locale === "de" ? siteUrls.privacyGerman : siteUrls.privacy,
+    current: kind === "privacy",
+  },
+];
+---
+
+<MicrositeLayout
+  title={doc.seoTitle}
+  description={doc.description}
+  canonical={canonicalUrl}
+  locale={locale}
+  alternateEnglish={here.en}
+  alternateGerman={here.de}
+  ogImage={`${siteUrls.inspr}/og.jpg`}
+  ogImageAlt={copy(
+    "INSPR: from idea to running software, with a person at every handoff",
+    "INSPR: von der Idee zur laufenden Software, mit Menschen an jeder Übergabe",
+  )}
+  favicon={insprLogo.src}
+  theme="inspr"
+>
+  <MicrositeHeader
+    name="INSPR"
+    category={copy(productTaxonomy.inspr, "Offene Produktfamilie")}
+    logo={insprLogo.src}
+    active="inspr"
+    nav={nav}
+    showProductSwitcher={false}
+    locale={locale}
+    languageLinks={{ en: here.enPath, de: here.dePath }}
+  />
+
+  <main id="main-content" class="legal-main">
+    <div class="legal-shell">
+      <p class="eyebrow">{doc.eyebrow}</p>
+      <h1>{doc.title}</h1>
+      <p class="legal-lead">{doc.lead}</p>
+
+      {doc.blocks.map((block) => (
+        <section class="legal-block">
+          <h2>{block.heading}</h2>
+          {block.paragraphs?.map((text) => <p>{text}</p>)}
+          {block.contact && (
+            <ul class="legal-contact">
+              <li><strong>{operator.name}</strong></li>
+              <li>{operator.place[locale]}</li>
+              <li>
+                {doc.emailLabel}:
+                <Fragment set:html={`<!--email_off--><a href="mailto:${operator.email}">${operator.email}</a><!--/email_off-->`} />
+              </li>
+            </ul>
+          )}
+          {block.items && (
+            <ul>
+              {block.items.map((item) => <li>{item}</li>)}
+            </ul>
+          )}
+          {block.links && (
+            <ul class="legal-links">
+              {block.links.map((link) => (
+                <li><a href={link.href} target="_blank" rel="noopener noreferrer">{link.label} <span aria-hidden="true">↗</span></a></li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ))}
+
+      <p class="legal-updated">{doc.updated}</p>
+    </div>
+  </main>
+
+  <MicrositeFooter
+    name="INSPR"
+    repositoryUrl={repositoryUrl}
+    licenseName="AGPL-3.0-only"
+    licenseUrl={`${repositoryUrl}/blob/main/LICENSE`}
+    ctaTitle={copy("Prefer not to run it alone?", "Möchten Sie den offenen Stack nicht allein betreiben?")}
+    ctaBody={copy(
+      "Augmentoring provides architecture, integration, rollout and operating support as a professional service. All four products remain open source.",
+      "Augmentoring bietet Architektur, Integration, Rollout und Betriebsunterstützung als professionelle Dienstleistung. Alle vier Produkte bleiben Open Source.",
+    )}
+    locale={locale}
+  />
+</MicrositeLayout>

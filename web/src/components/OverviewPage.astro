@@ -19,7 +19,7 @@ import {
   products as familyProducts,
   trustContexts,
 } from "../content/family";
-import { productTaxonomy, productTaxonomyDe, siteUrls } from "../content/urls";
+import { localeUrls, productTaxonomy, productTaxonomyDe, siteUrls } from "../content/urls";
 import insprHero from "../assets/products/inspr/hero.png";
 import insprLogo from "../assets/products/inspr/logo.svg";
 import aithemaHero from "../assets/products/aithema/hero.png";
@@ -40,6 +40,7 @@ interface Props {
 }
 
 const locale: "en" | "de" = Astro.props.locale === "de" ? "de" : "en";
+const legalLinks = localeUrls(locale);
 const copy = (english: string, german: string) => locale === "de" ? german : english;
 const productHref = (href: string) =>
   locale === "de" ? `${href}/de/?lang=de` : href;
@@ -564,6 +565,10 @@ const steps = [
         />
       </p>
     )}
+    <nav class="overview-footer__legal" aria-label={copy("Legal", "Rechtliches")}>
+      <a href={legalLinks.imprint}>{copy("Legal notice", "Impressum")}</a>
+      <a href={legalLinks.privacy}>{copy("Privacy", "Datenschutz")}</a>
+    </nav>
     <a href={fullSiteUrl}>{copy("Full site", "Ganze Website")} <span aria-hidden="true">→</span></a>
   </footer>
 </MicrositeLayout>

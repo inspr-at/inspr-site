@@ -68,7 +68,8 @@ const labels = locale === "de"
       sourceAria: "Quellcode, Lizenz und Verfügbarkeit",
       source: "Quellcode",
       releases: "Releases",
-      license: "Open-Source-Kern: AGPL-3.0-only",
+      license: "Projektlizenz: AGPL-3.0-only",
+      agplText: "Offizieller AGPL-3.0-Text",
       viewSource: "Quellcode ansehen",
       operateAria: "Services und Identität",
       operate: "Betrieb",
@@ -116,7 +117,8 @@ const labels = locale === "de"
       sourceAria: "Source, license and availability",
       source: "Source",
       releases: "Releases",
-      license: "Open-source core: AGPL-3.0-only",
+      license: "Project license: AGPL-3.0-only",
+      agplText: "Official AGPL-3.0 text",
       viewSource: "View the source",
       operateAria: "Services and identity",
       operate: "Operate",
@@ -523,7 +525,8 @@ const deployedAtLabel = releaseMetadata.deployedAt
         <p class="footer-label">{labels.source}</p>
         <a href={content.repositoryUrl} target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
         <a href={content.releaseUrl} target="_blank" rel="noopener noreferrer">{labels.releases} <span aria-hidden="true">↗</span></a>
-        <a href={siteUrls.agpl} target="_blank" rel="noopener noreferrer">{labels.license} <span aria-hidden="true">↗</span></a>
+        <a href={content.licenseUrl} target="_blank" rel="noopener noreferrer">{labels.license} <span aria-hidden="true">↗</span></a>
+        <a href={siteUrls.agpl} target="_blank" rel="noopener noreferrer">{labels.agplText} <span aria-hidden="true">↗</span></a>
         <p class="footer-text">{labels.byInvitation}</p>
       </nav>
 

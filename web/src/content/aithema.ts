@@ -42,7 +42,7 @@ export const aithemaContent = {
     "Speak, type or share files",
     "Requirements stay reviewable",
     "A person chooses Continue",
-    "Reusable open-source module planned",
+    "Reusable core published under AGPL-3.0-only",
   ],
   problem: {
     eyebrow: "Before the build",

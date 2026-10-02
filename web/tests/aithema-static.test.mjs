@@ -50,7 +50,8 @@ test("Aithema states its preview maturity without invented source claims", async
   assert.match(content, /licenseUrl: "https:\/\/github\.com\/inspr-at\/aithema\/blob\/main\/LICENSE"/);
   assert.match(content, /under AGPL-3\.0-only, with tagged releases/);
   assert.match(content, /satisfies PreviewProductContent/);
-  assert.doesNotMatch(content, /module is planned|is claimed|Not yet\./);
+  assert.doesNotMatch(content, /module is planned|module planned|is claimed|Not yet\./);
+  assert.match(content, /"Reusable core published under AGPL-3\.0-only"/);
   assert.match(page, /Request access/);
   assert.match(page, /Hosted workspace by invitation/);
   assert.match(page, /<nav aria-label=\{labels\.sourceAria\}>[\s\S]*?<p class="footer-text">\{labels\.byInvitation\}<\/p>/);
@@ -64,7 +65,8 @@ test("Aithema states its preview maturity without invented source claims", async
   assert.match(styles, /\.site-footer nav a,\s*\.site-footer nav \.footer-text,\s*\.site-footer__group \.footer-text \{[^}]*color: var\(--night-soft\);/);
   assert.match(styles, /\.site-footer nav \.footer-text/);
   assert.match(page, /viewSource: "View the source"/);
-  assert.match(page, /license: "Open-source core: AGPL-3\.0-only"/);
+  assert.match(page, /license: "Project license: AGPL-3\.0-only"/);
+  assert.match(page, /<a href=\{content\.licenseUrl\}/);
   assert.match(page, /<a href=\{content\.repositoryUrl\} target="_blank" rel="noopener noreferrer">GitHub/);
   assert.match(page, /<a href=\{content\.releaseUrl\}/);
   assert.match(page, /<a href=\{siteUrls\.agpl\}/);
@@ -131,6 +133,8 @@ test("documentation and test discovery include the Aithema microsite", async () 
   assert.match(webReadme, /product page is live at[\s\S]*`aithema\.inspr\.at`/i);
   assert.doesNotMatch(webReadme, /edge routing and DNS are in place/i);
   assert.match(webReadme, /workspace itself is not built by this repository/);
+  assert.match(webReadme, /links the published core's repository, releases\s+and project license/);
+  assert.doesNotMatch(webReadme, /until inspectable product\s+source exists/);
   assert.doesNotMatch(webReadme, /start\.augmentoring\.com/);
   assert.match(packageJson, /node --test tests\/\*-static\.test\.mjs/);
   assert.match(sectionAudit, /name: "aithema"[\s\S]*minimum: 11, expectedRails: 0/);

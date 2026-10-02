@@ -101,7 +101,8 @@ test("German product content keeps canonical /de/ URLs and the shared copy rules
   assert.ok(!aithema.includes("—"), "Aithema German content contains an em dash");
   assert.match(aithema, /repositoryUrl: "https:\/\/github\.com\/inspr-at\/aithema"/);
   assert.match(aithema, /unter AGPL-3\.0-only veröffentlicht, mit getaggten Releases/);
-  assert.doesNotMatch(aithema, /ist geplant|Noch nicht\./);
+  assert.doesNotMatch(aithema, /ist geplant|Modul geplant|Noch nicht\./);
+  assert.match(aithema, /"Wiederverwendbarer Kern unter AGPL-3\.0-only veröffentlicht"/);
 });
 
 test("German product hero headlines stay inside the shared copy column", async () => {

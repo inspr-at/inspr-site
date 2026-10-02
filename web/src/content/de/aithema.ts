@@ -45,7 +45,7 @@ export const aithemaContentDe = {
     "Sprechen, schreiben oder Dateien teilen",
     "Anforderungen bleiben prüfbar",
     "Ein Mensch wählt „Weiter“",
-    "Wiederverwendbares Open-Source-Modul geplant",
+    "Wiederverwendbarer Kern unter AGPL-3.0-only veröffentlicht",
   ],
   problem: {
     eyebrow: "Vor dem Bau",

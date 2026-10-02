@@ -1,5 +1,6 @@
 import { siteUrls } from "../urls";
 import type { ProductContent } from "../types";
+import { pharosBlob, pharosRelease } from "../pharos";
 
 // German edition of the Pharos product page, served at pharos.inspr.at/de/.
 // Facts, links, icons and structure mirror ../pharos.ts; only language-visible
@@ -13,7 +14,7 @@ export const pharosContentDe = {
   releaseUrl: "https://github.com/inspr-at/pharos/releases",
   license: {
     name: "AGPL-3.0-only",
-    url: "https://github.com/inspr-at/pharos/blob/main/LICENSE",
+    url: `${pharosBlob}/LICENSE`,
     note: "Das Pharos-Repository deklariert die SPDX-Lizenz AGPL-3.0-only.",
   },
   seo: {
@@ -28,7 +29,7 @@ export const pharosContentDe = {
       gate: "Backup-Nachweis, Build-Ergebnis, Autorisierung und eine explizite Bestätigung werden festgehalten, bevor der Host etwas anwenden darf.",
       artefact: "Host-Berichte, Backup- und Restore-Nachweise, das Prüfprotokoll.",
       interfaces: "UI, Beacon, OIDC",
-      maturity: "veröffentlicht, AGPL-3.0-only",
+      maturity: "frühes Release, AGPL-3.0-only",
     },
     eyebrow: "PHAROS / FLOTTENBETRIEB",
     title: "Flottenwahrheit vor Aktion.",
@@ -118,7 +119,7 @@ export const pharosContentDe = {
         signal: "Frische Host-Nachweise, beim Empfang gestempelt.",
         reference: {
           label: "Den Host-Meldevertrag prüfen",
-          href: "https://github.com/inspr-at/pharos/blob/main/crates/pharos-core/src/lib.rs#L206-L250",
+          href: `${pharosBlob}/crates/pharos-core/src/lib.rs#L3872-L3905`,
           external: true,
         },
       },
@@ -133,7 +134,7 @@ export const pharosContentDe = {
         signal: "Beobachtet und deklariert bleiben getrennt.",
         reference: {
           label: "Das Fünf-Zustands-Wahrheitsmodell ansehen",
-          href: "https://github.com/inspr-at/pharos/blob/main/README.md#L37-L47",
+          href: `${pharosBlob}/README.md#L42-L48`,
           external: true,
         },
       },
@@ -148,7 +149,7 @@ export const pharosContentDe = {
         signal: "Keine Prüfung, kein Lease, keine Aktion.",
         reference: {
           label: "Den abgesicherten Ablauf prüfen",
-          href: "https://github.com/inspr-at/pharos/blob/main/README.md#L323-L340",
+          href: `${pharosBlob}/README.md#L785-L825`,
           external: true,
         },
       },
@@ -163,7 +164,7 @@ export const pharosContentDe = {
         signal: "Eine frische Meldung schließt den Kreis.",
         reference: {
           label: "Verifikation und Wiederherstellung nachvollziehen",
-          href: "https://github.com/inspr-at/pharos/blob/main/README.md#L329-L340",
+          href: `${pharosBlob}/README.md#L806-L822`,
           external: true,
         },
       },
@@ -186,7 +187,7 @@ export const pharosContentDe = {
           icon: "radio-tower",
           reference: {
             label: "Den Herzschlag-Vertrag lesen",
-            href: "https://github.com/inspr-at/pharos/blob/main/crates/pharos-core/src/lib.rs#L219-L246",
+            href: `${pharosBlob}/crates/pharos-core/src/lib.rs#L3603-L3612`,
             external: true,
           },
         },
@@ -277,7 +278,7 @@ export const pharosContentDe = {
         {
           title: "Anbieter-gestützte Jobs",
           body:
-            "Das geprüfte Job-Modell deckt Provisionierung, Bootstrap, ersten Herzschlag und Backup-Stand ab. Authentifizierte Nur-Lese-Anbieterprüfungen sind live; verwaltete Anlage- und Aufräum-Ausführung bleibt bis zur begleiteten Produktionsabnahme deaktiviert.",
+            "Das geprüfte Job-Modell deckt Provisionierung, Bootstrap, ersten Herzschlag und Backup-Stand ab. Authentifizierte Nur-Lese-Anbieterprüfungen sind live; verwaltete Anlage- und Aufräum-Ausführung läuft nur mit jeder Voraussetzung und einer begrenzten Autorisierung.",
         },
       ],
     },
@@ -295,7 +296,7 @@ export const pharosContentDe = {
           icon: "shield-check",
           reference: {
             label: "Die persistierten Ablaufphasen prüfen",
-            href: "https://github.com/inspr-at/pharos/blob/main/README.md#L323-L340",
+            href: `${pharosBlob}/README.md#L806-L816`,
             external: true,
           },
         },
@@ -378,7 +379,7 @@ export const pharosContentDe = {
           "ZITADEL liefert OIDC-Identität. Pharos wendet seine eigene Betreiber- und Pro-Host-Zugriffsrichtlinie an, mit einer standardmäßig leeren Ansicht für angemeldete Nutzer ohne Berechtigungen.",
         reference: {
           label: "Fail-closed-Zugriffsrechte prüfen",
-          href: "https://github.com/inspr-at/pharos/blob/main/crates/pharosd/src/auth.rs#L293-L329",
+          href: `${pharosBlob}/crates/pharosd/src/auth.rs#L196-L262`,
           external: true,
         },
       },
@@ -398,7 +399,7 @@ export const pharosContentDe = {
           "Der native Beacon läuft als unprivilegierter Systemnutzer mit no-new-privileges, striktem Dateisystemschutz, eingeschränkten Namespaces und einem schmalen Satz an Netzwerk-Adressfamilien.",
         reference: {
           label: "Beacon-Härtung prüfen",
-          href: "https://github.com/inspr-at/pharos/blob/main/nix/modules/pharos-beacon.nix#L172-L197",
+          href: `${pharosBlob}/nix/modules/pharos-beacon.nix#L239-L270`,
           external: true,
         },
       },
@@ -450,7 +451,7 @@ export const pharosContentDe = {
         name: "Hetzner Cloud",
         status: "Nur-Lese live",
         description:
-          "Authentifizierte Verbindungs-, SSH-Schlüssel-, Firewall-, Katalog- und Preisprüfungen sind live und nur lesend. Verwaltete Ausführung bleibt bis zur begleiteten Produktionsabnahme deaktiviert.",
+          "Authentifizierte Verbindungs-, SSH-Schlüssel-, Firewall-, Katalog- und Preisprüfungen sind live und nur lesend. Verwaltete Anlage bleibt deaktiviert, bis der Betreiber jede Voraussetzung und eine begrenzte Autorisierung bereitstellt; dann folgt sie persistierter Prüfung, Autorisierung und einem expliziten Anlegen.",
       },
       {
         name: "netcup",
@@ -460,9 +461,9 @@ export const pharosContentDe = {
       },
       {
         name: "AWS, Google Cloud und Oracle Cloud",
-        status: "Geplant",
+        status: "Geführt",
         description:
-          "Künftige Konnektoren müssen Berechtigung, Kontingent, Region, Ablauf, Budget und Kapazität live verifizieren, statt generische Gratis-Infrastruktur zu versprechen.",
+          "Geführter Import eines bestehenden Hosts; Pharos verspricht weder Bestellung, Abrechnung noch Gratis-Kontingente. Ein nativer Konnektor wird erst angeboten, wenn er Berechtigung, Kontingent, Region, Ablauf, Budget und Kapazität live verifiziert.",
       },
     ],
   },
@@ -479,14 +480,14 @@ export const pharosContentDe = {
       "Eine gemergte Deklaration gilt erst als angewendet, wenn der Host den passenden Wert meldet.",
       "Das Entfernen eines Hosts löscht weder Server noch Platten, Dienste oder Anwendungsdaten.",
       "Persistenz ist heute JSON, menschliche Sitzungen liegen im Speicher. Nach einem Server-Neustart ist eine erneute Anmeldung nötig.",
-      "Authentifizierte Hetzner-Anbieterprüfungen sind live und nur lesend. Verwaltete Ausführung bleibt bis zur begleiteten Produktionsabnahme deaktiviert; andere Cloud-Konnektoren sind geführt oder geplant.",
+      "Authentifizierte Hetzner-Anbieterprüfungen sind live und nur lesend. Verwaltete Anlage läuft nur mit jeder Voraussetzung und einer begrenzten Autorisierung; netcup, AWS, Google Cloud und Oracle Cloud nutzen geführte Importpfade.",
     ],
   },
   openSource: {
     eyebrow: "QUELLCODE UND SELF-HOSTING",
     title: "Betreiben Sie es zu Ihren Bedingungen.",
     body:
-      "Die aktive 0.1.x-Release-Linie umfasst Steuerungsebene, Beacon, Docker-Compose-Vorlage, NixOS-Modul und portablen Installer. Der vollständige Quellcode und die Release-Nachweise liegen im Pharos-Repository unter AGPL-3.0-only.",
+      `Das aktuelle Release ${pharosRelease.version} (Kalenderversion, ${pharosRelease.date}) umfasst Steuerungsebene, Beacon, Docker-Compose-Vorlage, NixOS-Modul und portablen Installer. Der vollständige Quellcode und die Release-Nachweise liegen im Pharos-Repository unter AGPL-3.0-only; jeder Quellcode-Link auf dieser Seite zeigt auf dieses Release.`,
     links: [
       {
         label: "Quell-Repository",
@@ -495,7 +496,7 @@ export const pharosContentDe = {
       },
       {
         label: "Projektlizenz (AGPL-3.0-only)",
-        href: "https://github.com/inspr-at/pharos/blob/main/LICENSE",
+        href: `${pharosBlob}/LICENSE`,
         external: true,
       },
       {
@@ -544,7 +545,7 @@ export const pharosContentDe = {
     {
       question: "Wie steht es um verwaltete Cloud-Provisionierung?",
       answer:
-        "Authentifizierte Hetzner-Cloud-Verbindungs-, SSH-Schlüssel-, Firewall-, Katalog- und Preisprüfungen sind live und nur lesend. Verwaltete Anlage- und Aufräum-Ausführung bleibt bis zur begleiteten Produktionsabnahme deaktiviert. netcup ist ein geführter Importpfad. Konnektoren für AWS, Google Cloud und Oracle Cloud sind geplant.",
+        "Authentifizierte Hetzner-Cloud-Verbindungs-, SSH-Schlüssel-, Firewall-, Katalog- und Preisprüfungen sind live und nur lesend. Verwaltete Anlage läuft nur, wenn der Betreiber jede Voraussetzung und eine begrenzte Autorisierung bereitstellt, über persistierte Prüfung, Autorisierung und ein explizites Anlegen. netcup, AWS, Google Cloud und Oracle Cloud nutzen geführte Importpfade; Pharos verspricht dafür weder Bestellung, Abrechnung noch Gratis-Kontingente.",
     },
     {
       question: "Kann ich Pharos ohne Augmentoring nutzen?",

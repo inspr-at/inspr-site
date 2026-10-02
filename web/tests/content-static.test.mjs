@@ -643,7 +643,9 @@ test("Pharos states release and provider maturity without overclaiming", async (
   assert.doesNotMatch(pharos, /v0\.1\.4[13]/);
   assert.match(pharos, /status: "Read-only live"/);
   assert.match(pharos, /read-only provider checks are live/);
-  assert.match(pharos, /Managed execution is disabled pending attended production acceptance/);
+  assert.match(pharos, /Managed creation stays disabled unless the operator supplies every prerequisite and a bounded authorization/);
+  assert.match(pharos, /maturity: "early release, AGPL-3\.0-only"/);
+  assert.doesNotMatch(pharos, /status: "Planned"/);
   assert.doesNotMatch(pharos, /connector is implemented and deployed/);
 });
 
@@ -720,7 +722,9 @@ test("Aithema joins the product family at its public visitor home", async () => 
   assert.match(urls, /aithema: "Requirements"/);
   assert.match(urls, /author: "https:\/\/github\.com\/markus-barta"/);
   assert.match(urls, /\{ label: "Aithema", role: productTaxonomy\.aithema, href: siteUrls\.aithema \}/);
-  assert.match(footer, /Open-source repositories: AGPL-3\.0-only/);
+  assert.match(footer, /projectLicense: "Project license: AGPL-3\.0-only"/);
+  assert.match(footer, /repositories: "Official AGPL-3\.0 text"/);
+  assert.match(footer, /\{licenseUrl && \(\s*<a href=\{licenseUrl\}/);
   assert.match(footer, /href=\{siteUrls\.author\}/);
   assert.match(footer, />Markus Barta<\/a> · INSPR/);
   assert.doesNotMatch(footer, /© \{year\} Augmentoring GmbH/);
@@ -1206,4 +1210,22 @@ test("English pages link English business and legal pages; German pages stay Ger
     assert.match(umbrella, new RegExp(`href: productHref\\(siteUrls\\.${slug}\\),\\s*external: true`), `${slug} flow reference keeps the language`);
   }
   assert.match(overview, /href=\{productHref\(step\.href\)\}/);
+});
+
+test("Pharos facts are pinned to one verified release (INSPR-532)", async () => {
+  const en = await source("content/pharos.ts");
+  const de = await source("content/de/pharos.ts");
+
+  assert.match(en, /export const pharosRelease = \{\s*version: "(\d{12})\.0\.0",\s*tag: "v\1\.0\.0",\s*date: "\d{4}-\d{2}-\d{2}",\s*\} as const;/);
+  assert.match(en, /export const pharosBlob = `https:\/\/github\.com\/inspr-at\/pharos\/blob\/\$\{pharosRelease\.tag\}`;/);
+  assert.match(de, /import \{ pharosBlob, pharosRelease \} from "\.\.\/pharos";/);
+  for (const [name, content] of [["en", en], ["de", de]]) {
+    assert.doesNotMatch(content, /blob\/main/, `${name} must not link the moving main branch`);
+    assert.doesNotMatch(content, /0\.1\.x/, `${name} must not name the retired 0.1.x line`);
+    assert.doesNotMatch(content, /pending attended production acceptance|bis zur begleiteten Produktionsabnahme/, `${name} Hetzner wording must match the README`);
+    const anchors = content.match(/\$\{pharosBlob\}\/[^`]*#L\d+-L\d+/g) ?? [];
+    assert.equal(anchors.length, 8, `${name} carries exactly eight pinned deep links`);
+    assert.match(content, /\$\{pharosRelease\.version\}/, `${name} release statement derives from the pin`);
+  }
+  assert.deepEqual(en.match(/\$\{pharosBlob\}\/[^`]*/g), de.match(/\$\{pharosBlob\}\/[^`]*/g), "EN and DE link the same pinned targets");
 });

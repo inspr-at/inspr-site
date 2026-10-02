@@ -23,12 +23,14 @@ export const siteUrls = {
 } as const;
 
 // INSPR-524, INSPR-539: English pages link the English business home; the
-// operator and privacy notices are INSPR's own, one pair per language. Derived
-// from the configurable business origin and the www notice URLs, never hardcoded.
+// operator and privacy notices are INSPR's own, one pair per language. The
+// notice links carry ?lang= because a language stored on the www host would
+// otherwise redirect the arrival to the other edition. Derived from the
+// configurable business origin and the www notice URLs, never hardcoded.
 export const localeUrls = (locale: "en" | "de") =>
   locale === "de"
-    ? { business: siteUrls.business, imprint: siteUrls.legalGerman, privacy: siteUrls.privacyGerman }
-    : { business: `${siteUrls.business}/en/`, imprint: siteUrls.legal, privacy: siteUrls.privacy };
+    ? { business: siteUrls.business, imprint: `${siteUrls.legalGerman}?lang=de`, privacy: `${siteUrls.privacyGerman}?lang=de` }
+    : { business: `${siteUrls.business}/en/`, imprint: `${siteUrls.legal}?lang=en`, privacy: `${siteUrls.privacy}?lang=en` };
 
 // INSPR-542: each product role is "‹Verb›: ‹short role›", derived from the
 // shared GUI-22 copy in family.ts; the INSPR entry stays the umbrella.

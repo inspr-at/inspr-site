@@ -1317,8 +1317,12 @@ test("INSPR publishes its own operator and privacy notices, named for Markus Bar
   assert.doesNotMatch(legal, /never sent to the server|nie an den Server gesendet/);
   assert.match(legal, /short parameters \(for example \?lang=de\)/);
   assert.match(legal, /kurze Parameter an den Link angehängt \(zum Beispiel \?lang=de\)/);
-  assert.match(legal, /privacy policy describes the safeguards for such transfers and its retention periods/);
-  assert.match(legal, /Datenschutzerklärung von Cloudflare beschreibt die Schutzmaßnahmen/);
+  assert.match(legal, /I do not set or control Cloudflare's retention periods/);
+  assert.match(legal, /Ich lege die Speicherfristen von Cloudflare weder fest noch steuere ich sie/);
+  // Only storage the built pages really use may be named: language and detail level, not a colour theme.
+  assert.doesNotMatch(legal, /colour theme|Farbschema/);
+  assert.match(legal, /your language and level of detail in your browser's local storage/);
+  assert.match(legal, /Sprache und Detailstufe im lokalen Speicher/);
   assert.match(legal, /Providing this data is technically necessary/);
   assert.match(legal, /Writing to me is voluntary/);
   const css = await source("styles/legal.css");

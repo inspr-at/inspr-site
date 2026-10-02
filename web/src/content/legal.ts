@@ -152,13 +152,13 @@ export const legalContent: Record<"legal" | "privacy", Record<"en" | "de", Legal
         {
           heading: "Settings stored in your browser",
           paragraphs: [
-            "The pages remember your language, colour theme and level of detail in your browser's local storage so that the choice survives a reload. This stays on your device. When you follow a link to another INSPR site or switch language, the language and level of detail are added to the link as short parameters (for example ?lang=de) so that the next page matches. They reach the server as part of the address and are not used to identify you. You can delete the stored settings in your browser.",
+            "The pages remember your language and level of detail in your browser's local storage so that the choice survives a reload. This stays on your device. When you follow a link to another INSPR site or switch language, the language and level of detail are added to the link as short parameters (for example ?lang=de) so that the next page matches. They reach the server as part of the address and are not used to identify you. You can delete the stored settings in your browser.",
           ],
         },
         {
           heading: "Connection data",
           paragraphs: [
-            "To deliver a page, your browser sends your IP address, the time, the requested address and technical details such as the browser type. The websites are delivered through Cloudflare, which processes this data to deliver the pages quickly and to protect them from abuse (Art. 6(1)(f) GDPR, legitimate interest in reliable and secure operation). Providing this data is technically necessary to open the pages; without it they cannot be delivered. Cloudflare may process data outside the EU; its privacy policy describes the safeguards for such transfers and its retention periods.",
+            "To deliver a page, your browser sends your IP address, the time, the requested address and technical details such as the browser type. The websites are delivered through Cloudflare, which processes this data to deliver the pages quickly and to protect them from abuse (Art. 6(1)(f) GDPR, legitimate interest in reliable and secure operation). Providing this data is technically necessary to open the pages; without it they cannot be delivered. Cloudflare may process data outside the EU. I do not set or control Cloudflare's retention periods; Cloudflare's privacy policy is the authoritative source for the safeguards that apply to such transfers and for how long it keeps data.",
             "The web servers behind Cloudflare are configured without access logs.",
           ],
           links: [{ label: "Cloudflare privacy policy", href: "https://www.cloudflare.com/privacypolicy/" }],
@@ -208,13 +208,13 @@ export const legalContent: Record<"legal" | "privacy", Record<"en" | "de", Legal
         {
           heading: "Einstellungen in Ihrem Browser",
           paragraphs: [
-            "Die Seiten merken sich Sprache, Farbschema und Detailstufe im lokalen Speicher Ihres Browsers, damit Ihre Auswahl ein erneutes Laden übersteht. Das bleibt auf Ihrem Gerät. Wenn Sie einem Link zu einer anderen INSPR-Website folgen oder die Sprache wechseln, werden Sprache und Detailstufe als kurze Parameter an den Link angehängt (zum Beispiel ?lang=de), damit die nächste Seite passt. Sie gelangen als Teil der Adresse zum Server und dienen nicht dazu, Sie zu identifizieren. Die gespeicherten Einstellungen können Sie in den Browsereinstellungen löschen.",
+            "Die Seiten merken sich Sprache und Detailstufe im lokalen Speicher Ihres Browsers, damit Ihre Auswahl ein erneutes Laden übersteht. Das bleibt auf Ihrem Gerät. Wenn Sie einem Link zu einer anderen INSPR-Website folgen oder die Sprache wechseln, werden Sprache und Detailstufe als kurze Parameter an den Link angehängt (zum Beispiel ?lang=de), damit die nächste Seite passt. Sie gelangen als Teil der Adresse zum Server und dienen nicht dazu, Sie zu identifizieren. Die gespeicherten Einstellungen können Sie in den Browsereinstellungen löschen.",
           ],
         },
         {
           heading: "Verbindungsdaten",
           paragraphs: [
-            "Zur Auslieferung einer Seite sendet Ihr Browser Ihre IP-Adresse, die Uhrzeit, die angeforderte Adresse und technische Angaben wie den Browsertyp. Die Websites werden über Cloudflare ausgeliefert. Cloudflare verarbeitet diese Daten, um die Seiten schnell auszuliefern und vor Missbrauch zu schützen (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse an zuverlässigem und sicherem Betrieb). Die Bereitstellung dieser Daten ist technisch nötig, um die Seiten zu öffnen; ohne sie können die Seiten nicht ausgeliefert werden. Cloudflare kann Daten auch außerhalb der EU verarbeiten; die Datenschutzerklärung von Cloudflare beschreibt die Schutzmaßnahmen für solche Übermittlungen und die Speicherfristen.",
+            "Zur Auslieferung einer Seite sendet Ihr Browser Ihre IP-Adresse, die Uhrzeit, die angeforderte Adresse und technische Angaben wie den Browsertyp. Die Websites werden über Cloudflare ausgeliefert. Cloudflare verarbeitet diese Daten, um die Seiten schnell auszuliefern und vor Missbrauch zu schützen (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse an zuverlässigem und sicherem Betrieb). Die Bereitstellung dieser Daten ist technisch nötig, um die Seiten zu öffnen; ohne sie können die Seiten nicht ausgeliefert werden. Cloudflare kann Daten auch außerhalb der EU verarbeiten. Ich lege die Speicherfristen von Cloudflare weder fest noch steuere ich sie; maßgeblich für die Schutzmaßnahmen bei solchen Übermittlungen und für die Dauer der Speicherung ist die Datenschutzerklärung von Cloudflare.",
             "Die Webserver hinter Cloudflare sind ohne Zugriffsprotokolle konfiguriert.",
           ],
           links: [{ label: "Datenschutzerklärung von Cloudflare", href: "https://www.cloudflare.com/privacypolicy/" }],

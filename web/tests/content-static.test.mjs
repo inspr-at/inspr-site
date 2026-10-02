@@ -1224,7 +1224,17 @@ test("Pharos facts are pinned to one verified release (INSPR-532)", async () => 
     assert.doesNotMatch(content, /0\.1\.x/, `${name} must not name the retired 0.1.x line`);
     assert.doesNotMatch(content, /pending attended production acceptance|bis zur begleiteten Produktionsabnahme/, `${name} Hetzner wording must match the README`);
     const anchors = content.match(/\$\{pharosBlob\}\/[^`]*#L\d+-L\d+/g) ?? [];
-    assert.equal(anchors.length, 8, `${name} carries exactly eight pinned deep links`);
+    // Verified by hand against inspr-at/pharos at v260925163010.0.0 (INSPR-532).
+    assert.deepEqual(anchors, [
+      "${pharosBlob}/crates/pharos-core/src/lib.rs#L3872-L3905",
+      "${pharosBlob}/README.md#L42-L48",
+      "${pharosBlob}/README.md#L785-L825",
+      "${pharosBlob}/README.md#L806-L824",
+      "${pharosBlob}/crates/pharos-core/src/lib.rs#L3603-L3624",
+      "${pharosBlob}/README.md#L806-L819",
+      "${pharosBlob}/crates/pharosd/src/auth.rs#L1066-L1092",
+      "${pharosBlob}/nix/modules/pharos-beacon.nix#L239-L270",
+    ], `${name} deep links match the verified anchors`);
     assert.match(content, /\$\{pharosRelease\.version\}/, `${name} release statement derives from the pin`);
   }
   assert.deepEqual(en.match(/\$\{pharosBlob\}\/[^`]*/g), de.match(/\$\{pharosBlob\}\/[^`]*/g), "EN and DE link the same pinned targets");

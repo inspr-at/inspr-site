@@ -164,7 +164,7 @@ export const pharosContentDe = {
         signal: "Eine frische Meldung schließt den Kreis.",
         reference: {
           label: "Verifikation und Wiederherstellung nachvollziehen",
-          href: `${pharosBlob}/README.md#L806-L822`,
+          href: `${pharosBlob}/README.md#L806-L824`,
           external: true,
         },
       },
@@ -187,7 +187,7 @@ export const pharosContentDe = {
           icon: "radio-tower",
           reference: {
             label: "Den Herzschlag-Vertrag lesen",
-            href: `${pharosBlob}/crates/pharos-core/src/lib.rs#L3603-L3612`,
+            href: `${pharosBlob}/crates/pharos-core/src/lib.rs#L3603-L3624`,
             external: true,
           },
         },
@@ -296,7 +296,7 @@ export const pharosContentDe = {
           icon: "shield-check",
           reference: {
             label: "Die persistierten Ablaufphasen prüfen",
-            href: `${pharosBlob}/README.md#L806-L816`,
+            href: `${pharosBlob}/README.md#L806-L819`,
             external: true,
           },
         },
@@ -379,7 +379,7 @@ export const pharosContentDe = {
           "ZITADEL liefert OIDC-Identität. Pharos wendet seine eigene Betreiber- und Pro-Host-Zugriffsrichtlinie an, mit einer standardmäßig leeren Ansicht für angemeldete Nutzer ohne Berechtigungen.",
         reference: {
           label: "Fail-closed-Zugriffsrechte prüfen",
-          href: `${pharosBlob}/crates/pharosd/src/auth.rs#L196-L262`,
+          href: `${pharosBlob}/crates/pharosd/src/auth.rs#L1066-L1092`,
           external: true,
         },
       },
@@ -487,7 +487,7 @@ export const pharosContentDe = {
     eyebrow: "QUELLCODE UND SELF-HOSTING",
     title: "Betreiben Sie es zu Ihren Bedingungen.",
     body:
-      `Das aktuelle Release ${pharosRelease.version} (Kalenderversion, ${pharosRelease.date}) umfasst Steuerungsebene, Beacon, Docker-Compose-Vorlage, NixOS-Modul und portablen Installer. Der vollständige Quellcode und die Release-Nachweise liegen im Pharos-Repository unter AGPL-3.0-only; jeder Quellcode-Link auf dieser Seite zeigt auf dieses Release.`,
+      `Das aktuelle Release ${pharosRelease.version} (Kalenderversion, ${pharosRelease.date}) umfasst Steuerungsebene, Beacon, Docker-Compose-Vorlage, NixOS-Modul und portablen Installer. Der vollständige Quellcode und die Release-Nachweise liegen im Pharos-Repository unter AGPL-3.0-only; jeder auf dieser Seite verlinkte Quellcode-Auszug stammt aus diesem Release.`,
     links: [
       {
         label: "Quell-Repository",

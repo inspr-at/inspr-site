@@ -170,7 +170,7 @@ export const pharosContent = {
         signal: "A fresh report closes the loop.",
         reference: {
           label: "Trace verification and recovery",
-          href: `${pharosBlob}/README.md#L806-L822`,
+          href: `${pharosBlob}/README.md#L806-L824`,
           external: true,
         },
       },
@@ -193,7 +193,7 @@ export const pharosContent = {
           icon: "radio-tower",
           reference: {
             label: "Read the heartbeat contract",
-            href: `${pharosBlob}/crates/pharos-core/src/lib.rs#L3603-L3612`,
+            href: `${pharosBlob}/crates/pharos-core/src/lib.rs#L3603-L3624`,
             external: true,
           },
         },
@@ -302,7 +302,7 @@ export const pharosContent = {
           icon: "shield-check",
           reference: {
             label: "Inspect the persisted action stages",
-            href: `${pharosBlob}/README.md#L806-L816`,
+            href: `${pharosBlob}/README.md#L806-L819`,
             external: true,
           },
         },
@@ -385,7 +385,7 @@ export const pharosContent = {
           "ZITADEL provides OIDC identity. Pharos applies its own operator and per-host access policy, with an empty view by default for authenticated users who have no grants.",
         reference: {
           label: "Inspect fail-closed access grants",
-          href: `${pharosBlob}/crates/pharosd/src/auth.rs#L196-L262`,
+          href: `${pharosBlob}/crates/pharosd/src/auth.rs#L1066-L1092`,
           external: true,
         },
       },
@@ -493,7 +493,7 @@ export const pharosContent = {
     eyebrow: "SOURCE AND SELF-HOSTING",
     title: "Run it on your terms.",
     body:
-      `The current release ${pharosRelease.version} (calendar version, ${pharosRelease.date}) includes the control plane, beacon, Docker Compose template, NixOS module and portable installer. The complete source and release evidence are available in the Pharos repository under AGPL-3.0-only; every source link on this page points at that release.`,
+      `The current release ${pharosRelease.version} (calendar version, ${pharosRelease.date}) includes the control plane, beacon, Docker Compose template, NixOS module and portable installer. The complete source and release evidence are available in the Pharos repository under AGPL-3.0-only; every source excerpt linked on this page is taken from that release.`,
     links: [
       {
         label: "Source repository",

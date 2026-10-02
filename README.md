@@ -22,9 +22,9 @@ This repository powers the bilingual INSPR site family:
 
 Aithema (pronounced **AI-Thema**) is the first product in the family sequence
 and owns requirements. Its product page is live at `aithema.inspr.at`. The
-working public preview is hosted separately at
-[start.augmentoring.com](https://start.augmentoring.com) and is not built by
-this repository. A reusable open-source Aithema template or module is planned;
+hosted Aithema workspace is available by invitation through Augmentoring and
+is not built by this repository. A reusable open-source Aithema template or
+module is planned;
 neither a product repository nor a product license is claimed before that
 source exists.
 
@@ -428,8 +428,8 @@ bootstrap token. The checked `.env.example` contains placeholders only.
 ## Product sources
 
 - **Aithema** - product page: [aithema.inspr.at](https://aithema.inspr.at);
-  reusable open-source template or module planned; public preview at
-  [start.augmentoring.com](https://start.augmentoring.com)
+  reusable open-source template or module planned; hosted workspace by
+  invitation through [Augmentoring](https://augmentoring.com)
 - [Paimos](https://github.com/inspr-at/paimos)
 - [Pharos](https://github.com/inspr-at/pharos)
 - [Janus](https://github.com/inspr-at/janus)

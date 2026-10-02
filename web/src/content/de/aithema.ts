@@ -9,7 +9,6 @@ export const aithemaContentDe = {
   name: "Aithema",
   category: "Anforderungen",
   canonicalUrl: `${siteUrls.aithema}/de/`,
-  previewUrl: siteUrls.aithemaPreview,
   seo: {
     title: "Aithema | Anforderungen, die Sie vor Arbeitsbeginn freigeben",
     description:
@@ -17,12 +16,12 @@ export const aithemaContentDe = {
   },
   hero: {
     sheet: {
-      repo: "offenes Modul geplant; heute gehostete Vorschau",
-      runtime: "Gehostete Web-Vorschau.",
+      repo: "offenes Modul geplant; heute gehosteter Arbeitsbereich auf Einladung",
+      runtime: "Gehosteter Web-Arbeitsbereich.",
       gate: "Ein Mensch prüft den Anforderungssatz und wählt Weiter; nichts Nachgelagertes startet auf einem Entwurf.",
       artefact: "Strukturierter, versionierter Anforderungssatz mit seinen Quellen.",
-      interfaces: "Web-Vorschau",
-      maturity: "Vorschau",
+      interfaces: "Web-Arbeitsbereich",
+      maturity: "auf Einladung",
     },
     eyebrow: "Anforderungen, prüfbar gemacht",
     title: "Anforderungen, die Sie vor Arbeitsbeginn freigeben.",
@@ -35,10 +34,10 @@ export const aithemaContentDe = {
     lead:
       "Sprechen, schreiben oder Dateien teilen. Aithema hilft, aus diesem Input klare Anforderungen zu machen, und wartet dann darauf, dass Sie sie prüfen und „Weiter“ wählen.",
     alt: "Ein Anforderungsprisma bündelt diffuses türkis-goldenes Licht zu einem präzisen Entscheidungsobjekt",
-    primaryLabel: "Gehostete Vorschau öffnen",
+    primaryLabel: "Zugang anfragen",
   },
   serviceIntro:
-    "Augmentoring stellt die gehostete Aithema-Vorschau bereit und begleitet Anforderungen professionell.",
+    "Augmentoring stellt den gehosteten Aithema-Arbeitsbereich auf Einladung bereit und begleitet Anforderungen professionell.",
   proof: [
     "Sprechen, schreiben oder Dateien teilen",
     "Anforderungen bleiben prüfbar",
@@ -225,11 +224,11 @@ export const aithemaContentDe = {
   },
   limits: {
     eyebrow: "Aktuelle Grenze",
-    title: "Vorschau jetzt. Wiederverwendbares Modul später.",
+    title: "Auf Einladung jetzt. Wiederverwendbares Modul später.",
     lead:
-      "Die gehostete Vorschau ist heute verfügbar. Das wiederverwendbare Open-Source-Modul von Aithema ist noch nicht veröffentlicht.",
+      "Der gehostete Aithema-Arbeitsbereich ist heute auf Einladung verfügbar. Das wiederverwendbare Open-Source-Modul von Aithema folgt.",
     items: [
-      "Die öffentliche Anwendung läuft derzeit auf start.augmentoring.com.",
+      "Der Zugang zum gehosteten Arbeitsbereich erfolgt auf Einladung; Augmentoring schaltet ihn für Sie frei.",
       "Vor der Veröffentlichung des wiederverwendbaren Moduls wird kein Aithema-Quell-Repository und keine Produktlizenz behauptet.",
       "Aithema unterstützt das Formen und Prüfen von Anforderungen; es gibt nichts still frei und beginnt keine Umsetzung.",
       "Aussagen zu Release, Integration und Self-Hosting warten auf prüfbare Belege.",
@@ -239,13 +238,13 @@ export const aithemaContentDe = {
     eyebrow: "Open-Source-Weg",
     title: "Das wiederverwendbare Modul ist geplant.",
     body:
-      "Aithema soll ein Open-Source-Template oder -Modul werden. Bis dieses Release existiert, ist die gehostete Vorschau der ehrliche Weg, es zu nutzen.",
+      "Aithema soll ein Open-Source-Template oder -Modul werden. Bis dieses Release existiert, ist der gehostete Arbeitsbereich auf Einladung der ehrliche Weg, es zu nutzen.",
   },
   faq: [
     {
       question: "Kann ich Aithema jetzt ausprobieren?",
       answer:
-        "Ja. Die öffentliche Vorschau ist auf start.augmentoring.com verfügbar.",
+        "Ja, auf Einladung. Fragen Sie Augmentoring nach Zugang und arbeiten Sie im gehosteten Aithema-Arbeitsbereich.",
     },
     {
       question: "Ist Aithema heute Open Source?",
@@ -260,12 +259,12 @@ export const aithemaContentDe = {
     {
       question: "Wem gehört Aithema?",
       answer:
-        "Aithema ist ein Produkt von Markus Barta. Augmentoring stellt die gehostete Vorschau bereit und bietet professionelle Services, die sie nutzen.",
+        "Aithema ist ein Produkt von Markus Barta. Augmentoring stellt den gehosteten Arbeitsbereich auf Einladung bereit und bietet professionelle Services, die ihn nutzen.",
     },
   ],
   finalCta: {
     title: "Hilfe beim ersten Briefing?",
     body:
-      "Nutzen Sie die gehostete Vorschau direkt, oder arbeiten Sie mit Augmentoring, wenn die Anforderungen einen professionellen Serviceweg brauchen.",
+      "Fragen Sie nach einer Einladung in den gehosteten Arbeitsbereich, oder arbeiten Sie mit Augmentoring, wenn die Anforderungen einen professionellen Serviceweg brauchen.",
   },
 } satisfies PreviewProductContent;

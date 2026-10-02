@@ -1187,7 +1187,8 @@ test("English pages link English business and legal pages; German pages stay Ger
   assert.match(urls, /business: `\$\{siteUrls\.business\}\/en\/`,/);
   assert.match(urls, /imprint: `\$\{siteUrls\.business\}\/en\/imprint\/`,/);
   assert.match(urls, /privacy: `\$\{siteUrls\.business\}\/en\/privacy\/`,/);
-  assert.match(urls, /\? \{ business: siteUrls\.business, imprint: siteUrls\.imprint, privacy: siteUrls\.privacy \}/);
+  assert.match(urls, /locale === "de"\s*\? \{ business: siteUrls\.business, imprint: siteUrls\.imprint, privacy: siteUrls\.privacy \}\s*: \{\s*business: `\$\{siteUrls\.business\}\/en\/`/);
+  assert.doesNotMatch(urls, /locale === "en"\s*\?/);
 
   for (const [name, component] of [["footer", footer], ["aithema", aithema]]) {
     assert.match(component, /const links = localeUrls\(locale\);/, `${name} resolves locale-aware links`);

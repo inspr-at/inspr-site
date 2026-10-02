@@ -21,8 +21,8 @@ one Astro application.
 | `/janus/` | `janus.inspr.at` |
 | `/janus/de/` | `janus.inspr.at/de/` German edition |
 
-The Aithema page links to the working hosted preview at
-`start.augmentoring.com`; the preview itself is not built by this repository.
+The Aithema page describes a hosted workspace available by invitation; the
+workspace itself is not built by this repository.
 
 Caddy performs the host-to-directory mapping in production. The local Astro
 server exposes the same pages by path.
@@ -102,10 +102,9 @@ The umbrella and products are authored by
 [Markus Barta](https://github.com/markus-barta). Augmentoring is the
 professional-services path that uses and supports them; it is not presented as
 their owner. The canonical product sequence is **Aithema, Paimos, Pharos,
-Janus**. The Aithema page links to its hosted preview at
-`start.augmentoring.com`, while its product page is live at
-`aithema.inspr.at`. Its reusable template or module is planned for an
-open-source release.
+Janus**. The Aithema product page is live at `aithema.inspr.at` and offers
+its hosted workspace by invitation. Its reusable template or module is planned
+for an open-source release.
 
 ## License
 

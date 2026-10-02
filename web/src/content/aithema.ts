@@ -6,7 +6,6 @@ export const aithemaContent = {
   name: "Aithema",
   category: productTaxonomy.aithema,
   canonicalUrl: siteUrls.aithema,
-  previewUrl: siteUrls.aithemaPreview,
   seo: {
     title: "Aithema | Requirements you approve before work begins",
     description:
@@ -14,12 +13,12 @@ export const aithemaContent = {
   },
   hero: {
     sheet: {
-      repo: "open module planned; hosted preview today",
-      runtime: "Hosted web preview.",
+      repo: "open module planned; hosted workspace by invitation today",
+      runtime: "Hosted web workspace.",
       gate: "A person reviews the requirement set and chooses Continue; nothing downstream starts on a draft.",
       artefact: "Structured, versioned requirement set with its sources.",
-      interfaces: "web preview",
-      maturity: "preview",
+      interfaces: "web workspace",
+      maturity: "by invitation",
     },
     eyebrow: "Requirements, made reviewable",
     title: "Requirements you approve before work begins.",
@@ -32,10 +31,10 @@ export const aithemaContent = {
     lead:
       "Speak, type or share files. Aithema helps turn that input into clear requirements, then waits for you to review them and choose Continue.",
     alt: "A Requirement Prism resolving diffuse teal and gold light into one precise decision object",
-    primaryLabel: "Open the hosted preview",
+    primaryLabel: "Request access",
   },
   serviceIntro:
-    "Augmentoring provides the hosted Aithema preview and professional requirements support.",
+    "Augmentoring provides the hosted Aithema workspace by invitation and professional requirements support.",
   proof: [
     "Speak, type or share files",
     "Requirements stay reviewable",
@@ -222,11 +221,11 @@ export const aithemaContent = {
   },
   limits: {
     eyebrow: "Current boundary",
-    title: "Preview now. Reusable module later.",
+    title: "By invitation now. Reusable module later.",
     lead:
-      "The hosted preview is available today. The reusable open-source Aithema module has not been released yet.",
+      "The hosted Aithema workspace is available today by invitation. The reusable open-source Aithema module follows.",
     items: [
-      "The public experience currently runs at start.augmentoring.com.",
+      "Access to the hosted workspace is by invitation; Augmentoring opens it for you.",
       "No Aithema source repository or product license is claimed before the reusable module ships.",
       "Aithema supports requirement shaping and review; it does not silently approve or begin implementation.",
       "Published release, integration and self-hosting claims will wait for inspectable evidence.",
@@ -236,13 +235,13 @@ export const aithemaContent = {
     eyebrow: "Open-source path",
     title: "The reusable module is planned.",
     body:
-      "Aithema is intended to become an open-source template or module. Until that release exists, the hosted preview is the honest way to use it.",
+      "Aithema is intended to become an open-source template or module. Until that release exists, the hosted workspace by invitation is the honest way to use it.",
   },
   faq: [
     {
       question: "Can I try Aithema now?",
       answer:
-        "Yes. The working public preview is available at start.augmentoring.com.",
+        "Yes, by invitation. Ask Augmentoring for access and you work in the hosted Aithema workspace.",
     },
     {
       question: "Is Aithema open source today?",
@@ -257,12 +256,12 @@ export const aithemaContent = {
     {
       question: "Who owns Aithema?",
       answer:
-        "Aithema is a product by Markus Barta. Augmentoring provides the hosted preview and professional services that use it.",
+        "Aithema is a product by Markus Barta. Augmentoring provides the hosted workspace by invitation and professional services that use it.",
     },
   ],
   finalCta: {
     title: "Need help shaping the first brief?",
     body:
-      "Use the hosted preview directly, or work with Augmentoring when the requirements need a professional service path.",
+      "Ask for an invitation to the hosted workspace, or work with Augmentoring when the requirements need a professional service path.",
   },
 } satisfies PreviewProductContent;

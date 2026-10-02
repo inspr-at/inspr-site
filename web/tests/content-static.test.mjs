@@ -686,7 +686,7 @@ test("the July 18 editorial product showcase remains accessible", async () => {
   assert.match(showcase, /<p class="product-story__detail">/);
   assert.match(umbrella, /Speak, type or add files; Aithema drafts the requirements\./);
   assert.match(umbrella, /a reusable open-source module is planned/);
-  assert.match(umbrella, /start\.augmentoring\.com/);
+  assert.match(umbrella, /hosted workspace is open by invitation/);
   assert.match(umbrella, /Conversation · requirements · Continue/);
   assert.match(showcase, /index % 2 === 0/);
 });
@@ -716,7 +716,7 @@ test("Aithema joins the product family at its public visitor home", async () => 
   const footer = await source("components/MicrositeFooter.astro");
 
   assert.match(urls, /aithema: "https:\/\/aithema\.inspr\.at"/);
-  assert.match(urls, /aithemaPreview: "https:\/\/start\.augmentoring\.com"/);
+  assert.doesNotMatch(urls, /aithemaPreview|start\.augmentoring\.com/);
   assert.match(urls, /aithema: "Requirements"/);
   assert.match(urls, /author: "https:\/\/github\.com\/markus-barta"/);
   assert.match(urls, /\{ label: "Aithema", role: productTaxonomy\.aithema, href: siteUrls\.aithema \}/);
@@ -738,7 +738,8 @@ test("the self-hosting answer separates today's open repositories from Aithema's
 
   assert.match(umbrella, /Paimos, Pharos and Janus, yes: they are open source and built to self-host/);
   assert.match(umbrella, /Aithema's reusable module is planned/);
-  assert.match(umbrella, /public preview at start\.augmentoring\.com/);
+  assert.match(umbrella, /hosted workspace by invitation is the way in/);
+  assert.doesNotMatch(umbrella, /start\.augmentoring\.com/);
   assert.doesNotMatch(umbrella, /(?:all|every) product is open source/i);
 });
 

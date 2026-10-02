@@ -8,7 +8,7 @@ const rootUrl = new URL("../../", import.meta.url);
 const webFile = (path) => readFile(new URL(path, webUrl), "utf8");
 const rootFile = (path) => readFile(new URL(path, rootUrl), "utf8");
 
-test("Aithema has a canonical product route separate from its hosted preview", async () => {
+test("Aithema has a canonical product route and no public preview link", async () => {
   const route = await webFile("src/pages/aithema/index.astro");
   const content = await webFile("src/content/aithema.ts");
   const urls = await webFile("src/content/urls.ts");
@@ -17,9 +17,9 @@ test("Aithema has a canonical product route separate from its hosted preview", a
   assert.match(route, /import \{ aithemaContent \} from "\.\.\/\.\.\/content\/aithema"/);
   assert.match(route, /<AithemaProductPage content=\{aithemaContent\} \/>/);
   assert.match(urls, /aithema: "https:\/\/aithema\.inspr\.at"/);
-  assert.match(urls, /aithemaPreview: "https:\/\/start\.augmentoring\.com"/);
+  assert.doesNotMatch(urls, /aithemaPreview|start\.augmentoring\.com/);
   assert.match(content, /canonicalUrl: siteUrls\.aithema/);
-  assert.match(content, /previewUrl: siteUrls\.aithemaPreview/);
+  assert.doesNotMatch(content, /previewUrl|start\.augmentoring\.com/);
 });
 
 test("Aithema keeps approval with the person who chooses Continue", async () => {
@@ -50,7 +50,16 @@ test("Aithema states its preview maturity without invented source claims", async
   assert.match(content, /satisfies PreviewProductContent/);
   assert.doesNotMatch(content, /github\.com/);
   assert.doesNotMatch(content, /AGPL|MIT|repositoryUrl|releaseUrl/);
-  assert.match(page, /Use the hosted preview/);
+  assert.match(page, /Request access/);
+  assert.match(page, /Hosted workspace by invitation/);
+  assert.match(page, /<div class="site-footer__group" aria-label=\{labels\.availabilityAria\}>[\s\S]*?<p class="footer-text">\{labels\.byInvitation\}<\/p>/);
+  assert.doesNotMatch(page, /previewUrl|hosted preview|start\.augmentoring\.com/);
+  const overview = await webFile("src/components/OverviewPage.astro");
+  const styles = await webFile("src/styles/microsites.css");
+  assert.match(overview, /hosted workspace by invitation today/);
+  assert.match(overview, /maturity: copy\("by invitation", "auf Einladung"\)/);
+  assert.doesNotMatch(overview, /web preview|Web-Vorschau|hosted preview|gehostete Vorschau/);
+  assert.match(styles, /\.site-footer nav a,\s*\.site-footer__group \.footer-text \{[^}]*color: var\(--night-soft\);/);
   assert.match(page, /Reusable open-source module planned/);
   assert.doesNotMatch(page, /View the source|Open-source repositories: AGPL|repositoryUrl|licenseUrl/);
 });
@@ -107,11 +116,13 @@ test("documentation and test discovery include the Aithema microsite", async () 
   assert.match(rootReadme, /\[aithema\.inspr\.at\]\(https:\/\/aithema\.inspr\.at\) - requirements a person reviews/i);
   assert.doesNotMatch(rootReadme, /planned Aithema product host/i);
   assert.doesNotMatch(rootReadme, /pending edge routing/i);
-  assert.match(rootReadme, /working public preview[\s\S]*start\.augmentoring\.com/);
+  assert.match(rootReadme, /hosted Aithema workspace is available by invitation/);
+  assert.doesNotMatch(rootReadme, /start\.augmentoring\.com/);
   assert.match(webReadme, /`\/aithema\/` \| `aithema\.inspr\.at`/);
   assert.match(webReadme, /product page is live at[\s\S]*`aithema\.inspr\.at`/i);
   assert.doesNotMatch(webReadme, /edge routing and DNS are in place/i);
-  assert.match(webReadme, /preview itself is not built by this repository/);
+  assert.match(webReadme, /workspace itself is not built by this repository/);
+  assert.doesNotMatch(webReadme, /start\.augmentoring\.com/);
   assert.match(packageJson, /node --test tests\/\*-static\.test\.mjs/);
   assert.match(sectionAudit, /name: "aithema"[\s\S]*minimum: 11, expectedRails: 0/);
   assert.match(page, /<section\s+class="proof-console page-shell"[\s\S]*data-section-pattern="proof-strip"/);

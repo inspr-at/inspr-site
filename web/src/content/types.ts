@@ -186,7 +186,6 @@ export type PreviewProductContent = {
   name: string;
   category: string;
   canonicalUrl: string;
-  previewUrl: string;
   seo: {
     title: string;
     description: string;

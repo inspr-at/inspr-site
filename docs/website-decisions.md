@@ -338,10 +338,10 @@ products; it is not their author or owner.
 
 Aithema is the first product in the family sequence and owns the
 **Requirements** responsibility. Its
-public preview remains at `start.augmentoring.com` while a reusable template or
-module is prepared for an open-source release. Until then, the umbrella links
-to that real visitor path without claiming that the hosted service is already a
-self-hostable repository.
+hosted workspace is available by invitation (decision 2026-10-02, INSPR-519:
+no public preview link) while a reusable template or module is prepared for an
+open-source release. Until then, the umbrella states that invitation path
+without claiming that the hosted service is already a self-hostable repository.
 
 The canonical product sequence is **Aithema, Paimos, Pharos, Janus** everywhere
 the family is presented in order. Product rows still alternate visual and copy

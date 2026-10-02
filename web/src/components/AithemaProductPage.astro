@@ -40,7 +40,6 @@ const labels = locale === "de"
       navPath: "Weg",
       navCapabilities: "Funktionen",
       navLimits: "Grenzen",
-      navPreview: "Vorschau",
       detailsDescription: "Wie viel Detail diese Seite zeigt",
       detailsSimple: "Einfach",
       detailsTechnical: "Technisch",
@@ -55,7 +54,7 @@ const labels = locale === "de"
       proofAria: "Produktmerkmale",
       proofLabel: "Aktueller Stand",
       workflowAlt: "Das Aithema-Anforderungsprisma markiert den Weg vom Input zur geprüften Entscheidung",
-      usePreview: "Gehostete Vorschau nutzen",
+      requestAccess: "Zugang anfragen",
       faqEyebrow: "Praktische Fragen",
       faqTitle: "Bevor Sie es verwenden.",
       path: "Professioneller Weg",
@@ -65,7 +64,7 @@ const labels = locale === "de"
       family: "Produktfamilie",
       availabilityAria: "Aithema-Verfügbarkeit",
       availability: "Verfügbarkeit",
-      hostedPreview: "Gehostete Vorschau",
+      byInvitation: "Gehosteter Arbeitsbereich auf Einladung",
       modulePlanned: "Wiederverwendbares Open-Source-Modul geplant",
       operateAria: "Services und Identität",
       operate: "Betrieb",
@@ -85,7 +84,6 @@ const labels = locale === "de"
       navPath: "Path",
       navCapabilities: "Capabilities",
       navLimits: "Limits",
-      navPreview: "Preview",
       detailsDescription: "How much detail this page shows",
       detailsSimple: "Simple",
       detailsTechnical: "Technical",
@@ -100,7 +98,7 @@ const labels = locale === "de"
       proofAria: "Product characteristics",
       proofLabel: "Current posture",
       workflowAlt: "The Aithema Requirement Prism marking the path from input to a reviewed decision",
-      usePreview: "Use the hosted preview",
+      requestAccess: "Request access",
       faqEyebrow: "Practical questions",
       faqTitle: "Before you use it.",
       path: "Professional path",
@@ -110,7 +108,7 @@ const labels = locale === "de"
       family: "Product family",
       availabilityAria: "Aithema availability",
       availability: "Availability",
-      hostedPreview: "Hosted preview",
+      byInvitation: "Hosted workspace by invitation",
       modulePlanned: "Reusable open-source module planned",
       operateAria: "Services and identity",
       operate: "Operate",
@@ -126,12 +124,11 @@ const labels = locale === "de"
       localBuild: "Local build",
     };
 
-const nav = [
+const nav: { label: string; href: string; external?: boolean }[] = [
   { label: labels.navWhy, href: "#why" },
   { label: labels.navPath, href: "#model" },
   { label: labels.navCapabilities, href: "#capabilities" },
   { label: labels.navLimits, href: "#limits" },
-  { label: labels.navPreview, href: content.previewUrl, external: true },
 ];
 
 // Same host-relative choice links MicrositeHeader renders; the shared
@@ -274,7 +271,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
         <div class="button-row">
           <a
             class="button"
-            href={content.previewUrl}
+            href={siteUrls.business}
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -437,11 +434,11 @@ const deployedAtLabel = releaseMetadata.deployedAt
       <div>
         <a
           class="button"
-          href={content.previewUrl}
+          href={siteUrls.business}
           target="_blank"
           rel="noopener noreferrer"
         >
-          {labels.usePreview} <span aria-hidden="true">↗</span>
+          {labels.requestAccess} <span aria-hidden="true">↗</span>
         </a>
       </div>
     </section>
@@ -506,13 +503,11 @@ const deployedAtLabel = releaseMetadata.deployedAt
         ))}
       </nav>
 
-      <nav aria-label={labels.availabilityAria}>
+      <div class="site-footer__group" aria-label={labels.availabilityAria}>
         <p class="footer-label">{labels.availability}</p>
-        <a href={content.previewUrl} target="_blank" rel="noopener noreferrer">
-          {labels.hostedPreview} <span aria-hidden="true">↗</span>
-        </a>
+        <p class="footer-text">{labels.byInvitation}</p>
         <small>{labels.modulePlanned}</small>
-      </nav>
+      </div>
 
       <nav aria-label={labels.operateAria}>
         <p class="footer-label">{labels.operate}</p>

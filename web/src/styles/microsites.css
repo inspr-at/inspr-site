@@ -2656,17 +2656,23 @@
     font-size: 0.9rem;
   }
 
-  .site-footer nav {
+  .site-footer nav,
+  .site-footer__group {
     display: grid;
     align-content: start;
     gap: 0.55rem;
   }
 
-  .site-footer nav a {
+  .site-footer nav a,
+  .site-footer__group .footer-text {
     width: fit-content;
     color: var(--night-soft);
     font-size: 0.88rem;
     text-decoration: none;
+  }
+
+  .site-footer__group .footer-text {
+    margin: 0;
   }
 
   .site-footer nav a:hover {

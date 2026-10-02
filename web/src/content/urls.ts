@@ -16,22 +16,23 @@ export const siteUrls = {
   identity: "https://auth.inspr.at",
   author: "https://github.com/markus-barta",
   agpl: "https://www.gnu.org/licenses/agpl-3.0.html",
-  imprint: "https://augmentoring.com/impressum/",
-  privacy: "https://augmentoring.com/datenschutz/",
+  // INSPR-539: the operator and privacy notices are INSPR's own, published once
+  // on the www host and linked from every host's footer.
+  legal: "https://www.inspr.at/legal/",
+  legalGerman: "https://www.inspr.at/de/impressum/",
+  privacy: "https://www.inspr.at/privacy/",
+  privacyGerman: "https://www.inspr.at/de/datenschutz/",
 } as const;
 
-// INSPR-524: the business site publishes English editions of its home, legal
-// notice and privacy pages under /en/. English INSPR pages link those so a
-// reader never lands on a German-only page; German pages keep the German
-// originals. Derived from the configurable business origin, never hardcoded.
+// INSPR-524, INSPR-539: English pages link the English business home; the
+// operator and privacy notices are INSPR's own, one pair per language. The
+// notice links carry ?lang= because a language stored on the www host would
+// otherwise redirect the arrival to the other edition. Derived from the
+// configurable business origin and the www notice URLs, never hardcoded.
 export const localeUrls = (locale: "en" | "de") =>
   locale === "de"
-    ? { business: siteUrls.business, imprint: siteUrls.imprint, privacy: siteUrls.privacy }
-    : {
-        business: `${siteUrls.business}/en/`,
-        imprint: `${siteUrls.business}/en/imprint/`,
-        privacy: `${siteUrls.business}/en/privacy/`,
-      };
+    ? { business: siteUrls.business, imprint: `${siteUrls.legalGerman}?lang=de`, privacy: `${siteUrls.privacyGerman}?lang=de` }
+    : { business: `${siteUrls.business}/en/`, imprint: `${siteUrls.legal}?lang=en`, privacy: `${siteUrls.privacy}?lang=en` };
 
 export const productTaxonomy = {
   inspr: "Open product family",

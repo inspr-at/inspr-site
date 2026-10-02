@@ -284,7 +284,7 @@ export const pharosContent = {
         {
           title: "Provider-backed jobs",
           body:
-            "The reviewed job model covers provisioning, bootstrap, first heartbeat and backup posture. Authenticated read-only provider checks are live; managed create and cleanup execution runs only with every prerequisite and a bounded authorization in place.",
+            "The reviewed job model covers provisioning, bootstrap, first heartbeat and backup posture. Authenticated read-only provider checks are live; managed creation runs only with every prerequisite and a bounded authorization in place, and cleanup of a recorded server needs operator access, an explicit confirmation and a verified ownership match.",
         },
       ],
     },

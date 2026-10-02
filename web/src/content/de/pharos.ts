@@ -278,7 +278,7 @@ export const pharosContentDe = {
         {
           title: "Anbieter-gestützte Jobs",
           body:
-            "Das geprüfte Job-Modell deckt Provisionierung, Bootstrap, ersten Herzschlag und Backup-Stand ab. Authentifizierte Nur-Lese-Anbieterprüfungen sind live; verwaltete Anlage- und Aufräum-Ausführung läuft nur mit jeder Voraussetzung und einer begrenzten Autorisierung.",
+            "Das geprüfte Job-Modell deckt Provisionierung, Bootstrap, ersten Herzschlag und Backup-Stand ab. Authentifizierte Nur-Lese-Anbieterprüfungen sind live; verwaltete Anlage läuft nur mit jeder Voraussetzung und einer begrenzten Autorisierung, und das Aufräumen eines erfassten Servers braucht Betreiberzugriff, eine explizite Bestätigung und einen verifizierten Eigentumsabgleich.",
         },
       ],
     },

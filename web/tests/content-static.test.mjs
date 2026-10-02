@@ -707,7 +707,7 @@ test("the INSPR product flow stays ordered, human-approved and ownership-led", a
   assert.match(flow, /Staging waits for your review\./);
   assert.match(flow, /Production waits for your approval\./);
   assert.match(flow, /Access changes wait for your approval\./);
-  assert.match(flow, /Broader permissions, users, roles and ZITADEL integration are planned for later\./);
+  assert.match(flow, /Sign-in runs through ZITADEL with four roles in the oversight plane; broader permissions, invited-user automation and deeper role separation are planned for later\./);
   assert.doesNotMatch(flow, /title: "(?:Intent|Context|Bounded action|Evidence)"/);
   assert.match(umbrella, /Inspiration is the only limit\./);
   assert.match(umbrella, /At the end, everything is yours: the requirements, the source, the infrastructure, the permissions and the evidence behind every decision\./);
@@ -772,7 +772,7 @@ test("the local v2 route remains a compatibility alias for the chosen Fable copy
   assert.match(umbrella, /Pick the server\. Prove the backup\. Then deploy\./);
   assert.match(umbrella, /The work moves\. You decide when\./);
   assert.match(umbrella, /Built so you can say no\./);
-  assert.match(umbrella, /Broader permissions, users, roles and ZITADEL integration are planned for later\./);
+  assert.match(umbrella, /Sign-in runs through ZITADEL with four roles in the oversight plane; broader permissions, invited-user automation and deeper role separation are planned for later\./);
   assert.match(umbrella, /All four products remain open source\./);
   assert.doesNotMatch(umbrella, /Janus enforces which people/);
 });
@@ -1238,4 +1238,24 @@ test("Pharos facts are pinned to one verified release (INSPR-532)", async () => 
     assert.match(content, /\$\{pharosRelease\.version\}/, `${name} release statement derives from the pin`);
   }
   assert.deepEqual(en.match(/\$\{pharosBlob\}\/[^`]*/g), de.match(/\$\{pharosBlob\}\/[^`]*/g), "EN and DE link the same pinned targets");
+});
+
+test("Janus release line and ZITADEL status are consistent across site and page (INSPR-534)", async () => {
+  const en = await source("content/janus.ts");
+  const de = await source("content/de/janus.ts");
+  const umbrella = await source("pages/index.astro");
+
+  assert.match(en, /export const janusRelease = \{\s*version: "(\d{12})\.0\.0",\s*date: "\d{4}-\d{2}-\d{2}",\s*engineTag: "rust-engine-v\1\.0\.0",\s*envelopeTag: "go-envelope-v\1\.0\.0",\s*\} as const;/);
+  assert.match(de, /import \{ janusRelease \} from "\.\.\/janus";/);
+  for (const [name, content] of [["en", en], ["de", de]]) {
+    assert.doesNotMatch(content, /0\.1\.x/, `${name} must not name the retired 0.1.x line`);
+    assert.doesNotMatch(content, /current engine line|aktuellen Engine-Linie|aktive Rust-0\.1\.x/, `${name} must name the release, not an unnamed line`);
+    assert.match(content, /\$\{janusRelease\.version\}/, `${name} release statements derive from the pin`);
+    assert.match(content, /ZITADEL OIDC/, `${name} keeps the ZITADEL row`);
+  }
+  // The umbrella must not call ZITADEL sign-in "planned" while the Janus page lists it live.
+  assert.doesNotMatch(umbrella, /ZITADEL integration are planned/);
+  assert.equal((umbrella.match(/Sign-in runs through ZITADEL with four roles in the oversight plane/g) ?? []).length, 2);
+  assert.match(en, /status: "Live in oversight plane"/);
+  assert.match(en, /four roles: admin, auditor, operator and viewer/);
 });

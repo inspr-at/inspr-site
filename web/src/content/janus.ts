@@ -4,6 +4,16 @@ import type { ProductContent } from "./types";
 const repositoryUrl = "https://github.com/inspr-at/janus";
 const releaseUrl = "https://github.com/inspr-at/janus/releases";
 
+// INSPR-534: the release statement on the Janus page names one verified release.
+// Both layers were tagged together (rust-engine-v... and go-envelope-v...).
+// Bump when the site adopts a newer Janus release and re-check the README status.
+export const janusRelease = {
+  version: "260927081542.0.0",
+  date: "2026-09-27",
+  engineTag: "rust-engine-v260927081542.0.0",
+  envelopeTag: "go-envelope-v260927081542.0.0",
+} as const;
+
 export const janusContent = {
   slug: "janus",
   name: "Janus",
@@ -420,11 +430,11 @@ export const janusContent = {
         name: "ZITADEL OIDC",
         status: "Live in oversight plane",
         description:
-          "The deployed Go envelope uses OIDC, nonce, PKCE and explicit role bindings for human access. Broader invited-user automation is still being hardened.",
+          "The deployed Go envelope signs people in through ZITADEL OIDC with nonce and PKCE. A valid identity gets no Janus access until one reviewed subject or role claim matches policy. Broader invited-user automation is still being hardened.",
       },
       {
         name: "Pharos",
-        status: "Released in the current engine line",
+        status: `Released in engine ${janusRelease.version}`,
         description:
           "A concrete credential-retirement contract handles one Pharos beacon credential with durable lifecycle state, value-free evidence and reconciliation.",
       },
@@ -462,7 +472,7 @@ export const janusContent = {
     eyebrow: "OPEN SOURCE",
     title: "Inspect every layer.",
     body:
-      "Janus is public under AGPL-3.0-only. Source, tests, release workflows, image signatures, SPDX SBOMs and build-provenance attestations are available for both the active Rust 0.1.x engine line and the Go oversight envelope.",
+      `Janus is public under AGPL-3.0-only. Source, tests, release workflows, image signatures, SPDX SBOMs and build-provenance attestations are available for the current releases of the Rust engine and the Go oversight envelope, both ${janusRelease.version} (${janusRelease.date}). The project is pre-1.0: interfaces and deployment contracts may still evolve.`,
     links: [
       {
         label: "GitHub repository",

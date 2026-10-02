@@ -1,5 +1,6 @@
 import { siteUrls } from "../urls";
 import type { ProductContent } from "../types";
+import { janusRelease } from "../janus";
 
 const repositoryUrl = "https://github.com/inspr-at/janus";
 const releaseUrl = "https://github.com/inspr-at/janus/releases";
@@ -423,11 +424,11 @@ export const janusContentDe = {
         name: "ZITADEL OIDC",
         status: "Live in der Aufsichtsebene",
         description:
-          "Die produktive Go-Hülle verwendet OIDC, Nonce, PKCE und explizite Rollenbindungen für menschlichen Zugriff. Die breitere Automatisierung eingeladener Nutzer wird noch gehärtet.",
+          "Die produktive Go-Hülle meldet Menschen über ZITADEL OIDC mit Nonce und PKCE an. Eine gültige Identität erhält keinen Janus-Zugriff, bis genau ein geprüfter Subject- oder Rollen-Claim zur Richtlinie passt. Die breitere Automatisierung eingeladener Nutzer wird noch gehärtet.",
       },
       {
         name: "Pharos",
-        status: "In der aktuellen Engine-Linie veröffentlicht",
+        status: `In Engine ${janusRelease.version} veröffentlicht`,
         description:
           "Ein konkreter Stilllegungsvertrag behandelt ein Pharos-Beacon-Zugangsdatum mit dauerhaftem Lebenszyklus-Zustand, wertfreien Nachweisen und Abgleich.",
       },
@@ -465,7 +466,7 @@ export const janusContentDe = {
     eyebrow: "OPEN SOURCE",
     title: "Jede Schicht prüfen.",
     body:
-      "Janus ist öffentlich unter AGPL-3.0-only. Quellcode, Tests, Release-Workflows, Image-Signaturen, SPDX-SBOMs und Build-Provenienz-Attestierungen stehen für die aktive Rust-0.1.x-Engine-Linie und die Go-Aufsichtshülle bereit.",
+      `Janus ist öffentlich unter AGPL-3.0-only. Quellcode, Tests, Release-Workflows, Image-Signaturen, SPDX-SBOMs und Build-Provenienz-Attestierungen stehen für die aktuellen Releases der Rust-Engine und der Go-Aufsichtshülle bereit, beide ${janusRelease.version} (${janusRelease.date}). Das Projekt ist vor 1.0: Schnittstellen und Deployment-Verträge können sich noch ändern.`,
     links: [
       {
         label: "GitHub-Repository",

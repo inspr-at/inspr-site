@@ -49,7 +49,8 @@ const labels = locale === "de"
       opensInNewTab: "öffnet in einem neuen Tab",
       sourceAria: "Quellcode und Lizenz",
       source: "Quellcode",
-      repositories: "Open-Source-Repositories: AGPL-3.0-only",
+      projectLicense: "Projektlizenz: AGPL-3.0-only",
+      repositories: "Offizieller AGPL-3.0-Text",
       operateAria: "Services und Identität",
       operate: "Betrieb",
       services: "Professionelle Services",
@@ -72,7 +73,8 @@ const labels = locale === "de"
       opensInNewTab: "opens in a new tab",
       sourceAria: "Source and license",
       source: "Source",
-      repositories: "Open-source repositories: AGPL-3.0-only",
+      projectLicense: "Project license: AGPL-3.0-only",
+      repositories: "Official AGPL-3.0 text",
       operateAria: "Services and identity",
       operate: "Operate",
       services: "Professional services",
@@ -114,6 +116,12 @@ const labels = locale === "de"
     <nav aria-label={labels.sourceAria}>
       <p class="footer-label">{labels.source}</p>
       <a href={repositoryUrl} target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+      {licenseUrl && (
+        <a href={licenseUrl} target="_blank" rel="noopener noreferrer">
+          {labels.projectLicense}
+          <span aria-hidden="true">↗</span>
+        </a>
+      )}
       <a href={siteUrls.agpl} target="_blank" rel="noopener noreferrer">
         {labels.repositories}
         <span aria-hidden="true">↗</span>

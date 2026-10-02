@@ -685,7 +685,7 @@ test("the July 18 editorial product showcase remains accessible", async () => {
   assert.match(umbrella, /hero: aithemaHero/);
   assert.match(showcase, /<p class="product-story__detail">/);
   assert.match(umbrella, /Speak, type or add files; Aithema drafts the requirements\./);
-  assert.match(umbrella, /a reusable open-source module is planned/);
+  assert.match(umbrella, /The reusable core is open source, and the hosted workspace is open by invitation/);
   assert.match(umbrella, /hosted workspace is open by invitation/);
   assert.match(umbrella, /Conversation · requirements · Continue/);
   assert.match(showcase, /index % 2 === 0/);
@@ -733,12 +733,13 @@ test("Aithema joins the product family at its public visitor home", async () => 
   assert.ok(aithema < paimos && paimos < pharos && pharos < janus);
 });
 
-test("the self-hosting answer separates today's open repositories from Aithema's planned release", async () => {
+test("the self-hosting answer presents all four products as open source", async () => {
   const umbrella = await source("pages/index.astro");
 
-  assert.match(umbrella, /Paimos, Pharos and Janus, yes: they are open source and built to self-host/);
-  assert.match(umbrella, /Aithema's reusable module is planned/);
-  assert.match(umbrella, /hosted workspace by invitation is the way in/);
+  assert.match(umbrella, /Yes, all four: Aithema, Paimos, Pharos and Janus are open source and built to self-host/);
+  assert.match(umbrella, /All four tools are open for anyone to read and run\./);
+  assert.doesNotMatch(umbrella, /module is planned|The fourth is on its way/);
+  assert.match(umbrella, /hosted workspace is also available by invitation/);
   assert.doesNotMatch(umbrella, /start\.augmentoring\.com/);
   assert.doesNotMatch(umbrella, /(?:all|every) product is open source/i);
 });
@@ -768,7 +769,7 @@ test("the local v2 route remains a compatibility alias for the chosen Fable copy
   assert.match(umbrella, /The work moves\. You decide when\./);
   assert.match(umbrella, /Built so you can say no\./);
   assert.match(umbrella, /Broader permissions, users, roles and ZITADEL integration are planned for later\./);
-  assert.match(umbrella, /Aithema's reusable module is planned to join them\./);
+  assert.match(umbrella, /All four products remain open source\./);
   assert.doesNotMatch(umbrella, /Janus enforces which people/);
 });
 

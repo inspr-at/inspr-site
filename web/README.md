@@ -102,9 +102,9 @@ The umbrella and products are authored by
 [Markus Barta](https://github.com/markus-barta). Augmentoring is the
 professional-services path that uses and supports them; it is not presented as
 their owner. The canonical product sequence is **Aithema, Paimos, Pharos,
-Janus**. The Aithema product page is live at `aithema.inspr.at` and offers
-its hosted workspace by invitation. Its reusable template or module is planned
-for an open-source release.
+Janus**. The Aithema product page is live at `aithema.inspr.at`, links its
+open-source core at `github.com/inspr-at/aithema` (AGPL-3.0-only) and offers
+its hosted workspace by invitation.
 
 ## License
 

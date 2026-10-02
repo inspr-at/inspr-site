@@ -45,23 +45,30 @@ test("Aithema states its preview maturity without invented source claims", async
 
   assert.match(types, /export type PreviewProductContent/);
   assert.match(types, /slug: "aithema"/);
-  assert.match(content, /Reusable open-source module planned/);
-  assert.match(content, /No Aithema source repository or product license is claimed/);
+  assert.match(content, /repositoryUrl: "https:\/\/github\.com\/inspr-at\/aithema"/);
+  assert.match(content, /releaseUrl: "https:\/\/github\.com\/inspr-at\/aithema\/releases"/);
+  assert.match(content, /licenseUrl: "https:\/\/github\.com\/inspr-at\/aithema\/blob\/main\/LICENSE"/);
+  assert.match(content, /under AGPL-3\.0-only, with tagged releases/);
   assert.match(content, /satisfies PreviewProductContent/);
-  assert.doesNotMatch(content, /github\.com/);
-  assert.doesNotMatch(content, /AGPL|MIT|repositoryUrl|releaseUrl/);
+  assert.doesNotMatch(content, /module is planned|is claimed|Not yet\./);
   assert.match(page, /Request access/);
   assert.match(page, /Hosted workspace by invitation/);
-  assert.match(page, /<div class="site-footer__group" aria-label=\{labels\.availabilityAria\}>[\s\S]*?<p class="footer-text">\{labels\.byInvitation\}<\/p>/);
+  assert.match(page, /<nav aria-label=\{labels\.sourceAria\}>[\s\S]*?<p class="footer-text">\{labels\.byInvitation\}<\/p>/);
   assert.doesNotMatch(page, /previewUrl|hosted preview|start\.augmentoring\.com/);
   const overview = await webFile("src/components/OverviewPage.astro");
   const styles = await webFile("src/styles/microsites.css");
-  assert.match(overview, /hosted workspace by invitation today/);
+  assert.match(overview, /github\.com\/inspr-at\/aithema; hosted workspace by invitation/);
+  assert.doesNotMatch(overview, /module is planned|still being built/);
   assert.match(overview, /maturity: copy\("by invitation", "auf Einladung"\)/);
   assert.doesNotMatch(overview, /web preview|Web-Vorschau|hosted preview|gehostete Vorschau/);
-  assert.match(styles, /\.site-footer nav a,\s*\.site-footer__group \.footer-text \{[^}]*color: var\(--night-soft\);/);
-  assert.match(page, /Reusable open-source module planned/);
-  assert.doesNotMatch(page, /View the source|Open-source repositories: AGPL|repositoryUrl|licenseUrl/);
+  assert.match(styles, /\.site-footer nav a,\s*\.site-footer nav \.footer-text,\s*\.site-footer__group \.footer-text \{[^}]*color: var\(--night-soft\);/);
+  assert.match(styles, /\.site-footer nav \.footer-text/);
+  assert.match(page, /viewSource: "View the source"/);
+  assert.match(page, /license: "Open-source core: AGPL-3\.0-only"/);
+  assert.match(page, /<a href=\{content\.repositoryUrl\} target="_blank" rel="noopener noreferrer">GitHub/);
+  assert.match(page, /<a href=\{content\.releaseUrl\}/);
+  assert.match(page, /<a href=\{siteUrls\.agpl\}/);
+  assert.doesNotMatch(page, /modulePlanned|module planned/);
 });
 
 test("Aithema uses the approved hero and native Requirement Prism", async () => {
@@ -116,7 +123,9 @@ test("documentation and test discovery include the Aithema microsite", async () 
   assert.match(rootReadme, /\[aithema\.inspr\.at\]\(https:\/\/aithema\.inspr\.at\) - requirements a person reviews/i);
   assert.doesNotMatch(rootReadme, /planned Aithema product host/i);
   assert.doesNotMatch(rootReadme, /pending edge routing/i);
-  assert.match(rootReadme, /hosted Aithema workspace is available by invitation/);
+  assert.match(rootReadme, /hosted Aithema workspace is available\s+by invitation/);
+  assert.match(rootReadme, /\[github\.com\/inspr-at\/aithema\]\(https:\/\/github\.com\/inspr-at\/aithema\)/);
+  assert.match(rootReadme, /The four open-source product repositories/);
   assert.doesNotMatch(rootReadme, /start\.augmentoring\.com/);
   assert.match(webReadme, /`\/aithema\/` \| `aithema\.inspr\.at`/);
   assert.match(webReadme, /product page is live at[\s\S]*`aithema\.inspr\.at`/i);

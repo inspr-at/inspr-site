@@ -190,7 +190,7 @@ test("German homepage copy is complete across editorial and interactive surfaces
     "Bestimmen Sie, was handeln darf. Geheimnisse bleiben verborgen.",
     "Die Arbeit kommt voran. Sie bestimmen, wann.",
     "Quellcode, Daten, Server und Nachweise bleiben bei Ihnen.",
-    "Aithemas wiederverwendbares Modul ist geplant",
+    "Der wiederverwendbare Kern ist Open Source; der gehostete Arbeitsbereich ist auf Einladung offen.",
     "Umfassendere Berechtigungen, Benutzer, Rollen und die ZITADEL-Integration sind für später geplant",
   ]) {
     assert.ok(homepage.includes(phrase), `missing German homepage copy: ${phrase}`);

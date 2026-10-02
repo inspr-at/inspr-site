@@ -6,6 +6,9 @@ export const aithemaContent = {
   name: "Aithema",
   category: productTaxonomy.aithema,
   canonicalUrl: siteUrls.aithema,
+  repositoryUrl: "https://github.com/inspr-at/aithema",
+  releaseUrl: "https://github.com/inspr-at/aithema/releases",
+  licenseUrl: "https://github.com/inspr-at/aithema/blob/main/LICENSE",
   seo: {
     title: "Aithema | Requirements you approve before work begins",
     description:
@@ -13,12 +16,12 @@ export const aithemaContent = {
   },
   hero: {
     sheet: {
-      repo: "open module planned; hosted workspace by invitation today",
+      repo: "github.com/inspr-at/aithema",
       runtime: "Hosted web workspace.",
       gate: "A person reviews the requirement set and chooses Continue; nothing downstream starts on a draft.",
       artefact: "Structured, versioned requirement set with its sources.",
       interfaces: "web workspace",
-      maturity: "by invitation",
+      maturity: "core released, AGPL-3.0-only; hosted workspace by invitation",
     },
     eyebrow: "Requirements, made reviewable",
     title: "Requirements you approve before work begins.",
@@ -221,21 +224,21 @@ export const aithemaContent = {
   },
   limits: {
     eyebrow: "Current boundary",
-    title: "By invitation now. Reusable module later.",
+    title: "Open core today. Hosted workspace by invitation.",
     lead:
-      "The hosted Aithema workspace is available today by invitation. The reusable open-source Aithema module follows.",
+      "Aithema's reusable core is published as open source with tagged releases. The hosted workspace that runs it is available by invitation.",
     items: [
+      "The reusable core is public on GitHub as inspr-at/aithema under AGPL-3.0-only, with tagged releases.",
       "Access to the hosted workspace is by invitation; Augmentoring opens it for you.",
-      "No Aithema source repository or product license is claimed before the reusable module ships.",
       "Aithema supports requirement shaping and review; it does not silently approve or begin implementation.",
-      "Published release, integration and self-hosting claims will wait for inspectable evidence.",
+      "Integration and self-hosting guidance follows the core's release notes; claims beyond them wait for inspectable evidence.",
     ],
   },
   releasePath: {
-    eyebrow: "Open-source path",
-    title: "The reusable module is planned.",
+    eyebrow: "Open source",
+    title: "The reusable core is published.",
     body:
-      "Aithema is intended to become an open-source template or module. Until that release exists, the hosted workspace by invitation is the honest way to use it.",
+      "Aithema's core is open-source software under AGPL-3.0-only. Read it, run it and change it under those terms; the hosted workspace by invitation is the fastest way to use it today.",
   },
   faq: [
     {
@@ -246,7 +249,7 @@ export const aithemaContent = {
     {
       question: "Is Aithema open source today?",
       answer:
-        "Not yet. A reusable open-source module is planned, but no Aithema repository or license is presented before that release exists.",
+        "Yes. The reusable core is published on GitHub under AGPL-3.0-only, with tagged releases. The hosted workspace is available by invitation.",
     },
     {
       question: "Does Aithema approve requirements for me?",

@@ -176,16 +176,20 @@ export type ProductContent = {
 };
 
 /**
- * Product content for a working hosted preview whose reusable source release
- * has not shipped yet. Keeping this separate from ProductContent prevents a
- * preview from inheriting repository, license, release, integration or
- * architecture claims that only make sense for released products.
+ * Product content for Aithema: a published open-source core (repository,
+ * license and releases are real, inspectable links) whose hosted workspace is
+ * available by invitation. Keeping this separate from ProductContent keeps the
+ * integration and architecture rails of the fully self-hosted products out of
+ * the page until Aithema publishes that evidence (INSPR-528 follow-up).
  */
 export type PreviewProductContent = {
   slug: "aithema";
   name: string;
   category: string;
   canonicalUrl: string;
+  repositoryUrl: string;
+  releaseUrl: string;
+  licenseUrl: string;
   seo: {
     title: string;
     description: string;

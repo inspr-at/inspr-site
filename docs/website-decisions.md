@@ -339,9 +339,10 @@ products; it is not their author or owner.
 Aithema is the first product in the family sequence and owns the
 **Requirements** responsibility. Its
 hosted workspace is available by invitation (decision 2026-10-02, INSPR-519:
-no public preview link) while a reusable template or module is prepared for an
-open-source release. Until then, the umbrella states that invitation path
-without claiming that the hosted service is already a self-hostable repository.
+no public preview link), and its reusable core is published as open source at
+`inspr-at/aithema` under AGPL-3.0-only (INSPR-528, which supersedes the earlier
+"module planned" boundary). The umbrella states both paths without claiming
+that the hosted service itself is a self-hostable repository.
 
 The canonical product sequence is **Aithema, Paimos, Pharos, Janus** everywhere
 the family is presented in order. Product rows still alternate visual and copy

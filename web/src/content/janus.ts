@@ -462,7 +462,7 @@ export const janusContent = {
       "The current web interface cannot reveal secrets. Human reveal remains deferred because the web container intentionally has no decryption identity.",
       "The released Warden uses local MCP stdio. HTTP transport and multi-tenant remote operation are not shipped.",
       "Native age storage and the secretspec adapter are implemented. General OpenBao, OS keyring, Pass, KMS and HSM integrations remain planned or deployment-specific.",
-      "The live envelope maps nine roles from ZITADEL project roles. The broader separation-of-duties model in the design is not fully implemented.",
+      "The live envelope maps nine roles from ZITADEL project roles. The Rust engine implements durable separation of duties behind explicit accountability postures; runtime surfaces stay in the legacy posture until the all-surface cutover is released.",
       "The engine provides local value-free audit contracts and durable local registries, but remote append-only audit and SIEM export are not shipped.",
       "Janus is not a human password manager and does not provide browser autofill, mobile clients or password synchronization.",
       "Production adoption should start with explicit workflows, a reviewed threat model, recovery evidence and named operational ownership.",

@@ -707,7 +707,7 @@ test("the INSPR product flow stays ordered, human-approved and ownership-led", a
   assert.match(flow, /Staging waits for your review\./);
   assert.match(flow, /Production waits for your approval\./);
   assert.match(flow, /Access changes wait for your approval\./);
-  assert.match(flow, /Sign-in runs through ZITADEL with role-based access in the oversight plane; broader permissions, invited-user automation and enforced separation of duties are planned for later\./);
+  assert.match(flow, /Sign-in runs through ZITADEL with role-based access in the oversight plane; broader permissions and invited-user automation are planned for later\./);
   assert.doesNotMatch(flow, /title: "(?:Intent|Context|Bounded action|Evidence)"/);
   assert.match(umbrella, /Inspiration is the only limit\./);
   assert.match(umbrella, /At the end, everything is yours: the requirements, the source, the infrastructure, the permissions and the evidence behind every decision\./);
@@ -772,7 +772,7 @@ test("the local v2 route remains a compatibility alias for the chosen Fable copy
   assert.match(umbrella, /Pick the server\. Prove the backup\. Then deploy\./);
   assert.match(umbrella, /The work moves\. You decide when\./);
   assert.match(umbrella, /Built so you can say no\./);
-  assert.match(umbrella, /Sign-in runs through ZITADEL with role-based access in the oversight plane; broader permissions, invited-user automation and enforced separation of duties are planned for later\./);
+  assert.match(umbrella, /Sign-in runs through ZITADEL with role-based access in the oversight plane; broader permissions and invited-user automation are planned for later\./);
   assert.match(umbrella, /All four products remain open source\./);
   assert.doesNotMatch(umbrella, /Janus enforces which people/);
 });
@@ -1256,6 +1256,9 @@ test("Janus release line and ZITADEL status are consistent across site and page 
   // The umbrella must not call ZITADEL sign-in "planned" while the Janus page lists it live.
   assert.doesNotMatch(umbrella, /ZITADEL integration are planned/);
   assert.equal((umbrella.match(/Sign-in runs through ZITADEL with role-based access in the oversight plane/g) ?? []).length, 2);
+  assert.doesNotMatch(umbrella, /separation of duties|Funktionstrennung/, "the umbrella makes no separation-of-duties claim the Janus sources contradict");
+  assert.match(en, /runtime surfaces stay in the legacy posture until the all-surface cutover is released/);
+  assert.match(de, /Laufzeitoberflächen bleiben bis zum Release des Gesamt-Cutovers in der Legacy-Posture/);
   assert.match(en, /status: "Live in oversight plane"/);
   assert.match(en, /maps nine roles from ZITADEL project roles/);
   assert.doesNotMatch(en, /four roles|admin, auditor, operator and viewer/);

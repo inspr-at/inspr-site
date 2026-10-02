@@ -191,7 +191,7 @@ test("German homepage copy is complete across editorial and interactive surfaces
     "Die Arbeit kommt voran. Sie bestimmen, wann.",
     "Quellcode, Daten, Server und Nachweise bleiben bei Ihnen.",
     "Der wiederverwendbare Kern ist Open Source; der gehostete Arbeitsbereich ist auf Einladung offen.",
-    "Die Anmeldung läuft über ZITADEL mit rollenbasiertem Zugriff in der Aufsichtsebene; umfassendere Berechtigungen, automatisierte Einladungen und eine durchgesetzte Funktionstrennung sind für später geplant",
+    "Die Anmeldung läuft über ZITADEL mit rollenbasiertem Zugriff in der Aufsichtsebene; umfassendere Berechtigungen und automatisierte Einladungen sind für später geplant",
   ]) {
     assert.ok(homepage.includes(phrase), `missing German homepage copy: ${phrase}`);
   }

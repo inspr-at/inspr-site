@@ -456,7 +456,7 @@ export const janusContentDe = {
       "Die aktuelle Weboberfläche kann keine Geheimnisse offenlegen. Menschliches Reveal bleibt aufgeschoben, weil der Web-Container bewusst keine Entschlüsselungsidentität besitzt.",
       "Der veröffentlichte Warden nutzt lokales MCP-stdio. HTTP-Transport und mandantenfähiger Fernbetrieb sind nicht ausgeliefert.",
       "Native age-Speicherung und der secretspec-Adapter sind umgesetzt. Allgemeine Integrationen für OpenBao, OS-Schlüsselbund, Pass, KMS und HSM bleiben geplant oder deploymentspezifisch.",
-      "Die produktive Hülle bildet neun Rollen aus ZITADEL-Projektrollen ab. Das breitere Funktionstrennungsmodell des Entwurfs ist noch nicht vollständig umgesetzt.",
+      "Die produktive Hülle bildet neun Rollen aus ZITADEL-Projektrollen ab. Die Rust-Engine setzt dauerhafte Funktionstrennung hinter expliziten Accountability-Postures um; die Laufzeitoberflächen bleiben bis zum Release des Gesamt-Cutovers in der Legacy-Posture.",
       "Die Engine liefert lokale wertfreie Audit-Verträge und dauerhafte lokale Register, aber entferntes Nur-Anfügen-Audit und SIEM-Export sind nicht ausgeliefert.",
       "Janus ist kein Passwortmanager für Menschen und bietet weder Browser-Autofill noch Mobil-Clients oder Passwort-Synchronisation.",
       "Eine Produktionsübernahme sollte mit expliziten Abläufen, einem geprüften Bedrohungsmodell, Wiederherstellungsnachweisen und benannter Betriebsverantwortung beginnen.",

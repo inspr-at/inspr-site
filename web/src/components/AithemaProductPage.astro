@@ -503,11 +503,11 @@ const deployedAtLabel = releaseMetadata.deployedAt
         ))}
       </nav>
 
-      <nav aria-label={labels.availabilityAria}>
+      <div class="site-footer__group" aria-label={labels.availabilityAria}>
         <p class="footer-label">{labels.availability}</p>
-        <p>{labels.byInvitation}</p>
+        <p class="footer-text">{labels.byInvitation}</p>
         <small>{labels.modulePlanned}</small>
-      </nav>
+      </div>
 
       <nav aria-label={labels.operateAria}>
         <p class="footer-label">{labels.operate}</p>

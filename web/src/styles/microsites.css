@@ -2664,6 +2664,7 @@
   }
 
   .site-footer nav a,
+  .site-footer nav .footer-text,
   .site-footer__group .footer-text {
     width: fit-content;
     color: var(--night-soft);
@@ -2671,6 +2672,7 @@
     text-decoration: none;
   }
 
+  .site-footer nav .footer-text,
   .site-footer__group .footer-text {
     margin: 0;
   }

@@ -65,7 +65,12 @@ const labels = locale === "de"
       availabilityAria: "Aithema-Verfügbarkeit",
       availability: "Verfügbarkeit",
       byInvitation: "Gehosteter Arbeitsbereich auf Einladung",
-      modulePlanned: "Wiederverwendbares Open-Source-Modul geplant",
+      sourceAria: "Quellcode, Lizenz und Verfügbarkeit",
+      source: "Quellcode",
+      releases: "Releases",
+      license: "Projektlizenz: AGPL-3.0-only",
+      agplText: "Offizieller AGPL-3.0-Text",
+      viewSource: "Quellcode ansehen",
       operateAria: "Services und Identität",
       operate: "Betrieb",
       services: "Professionelle Services",
@@ -109,7 +114,12 @@ const labels = locale === "de"
       availabilityAria: "Aithema availability",
       availability: "Availability",
       byInvitation: "Hosted workspace by invitation",
-      modulePlanned: "Reusable open-source module planned",
+      sourceAria: "Source, license and availability",
+      source: "Source",
+      releases: "Releases",
+      license: "Project license: AGPL-3.0-only",
+      agplText: "Official AGPL-3.0 text",
+      viewSource: "View the source",
       operateAria: "Services and identity",
       operate: "Operate",
       services: "Professional services",
@@ -431,9 +441,17 @@ const deployedAtLabel = releaseMetadata.deployedAt
         <h2 id="release-path-title">{content.releasePath.title}</h2>
         <p class="section-lead">{content.releasePath.body}</p>
       </div>
-      <div>
+      <div class="button-row">
         <a
           class="button"
+          href={content.repositoryUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {labels.viewSource} <span aria-hidden="true">↗</span>
+        </a>
+        <a
+          class="button button--ghost"
           href={siteUrls.business}
           target="_blank"
           rel="noopener noreferrer"
@@ -503,11 +521,14 @@ const deployedAtLabel = releaseMetadata.deployedAt
         ))}
       </nav>
 
-      <div class="site-footer__group" aria-label={labels.availabilityAria}>
-        <p class="footer-label">{labels.availability}</p>
+      <nav aria-label={labels.sourceAria}>
+        <p class="footer-label">{labels.source}</p>
+        <a href={content.repositoryUrl} target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+        <a href={content.releaseUrl} target="_blank" rel="noopener noreferrer">{labels.releases} <span aria-hidden="true">↗</span></a>
+        <a href={content.licenseUrl} target="_blank" rel="noopener noreferrer">{labels.license} <span aria-hidden="true">↗</span></a>
+        <a href={siteUrls.agpl} target="_blank" rel="noopener noreferrer">{labels.agplText} <span aria-hidden="true">↗</span></a>
         <p class="footer-text">{labels.byInvitation}</p>
-        <small>{labels.modulePlanned}</small>
-      </div>
+      </nav>
 
       <nav aria-label={labels.operateAria}>
         <p class="footer-label">{labels.operate}</p>

@@ -60,8 +60,8 @@ test("Overview presents the human-approved product path truthfully in both langu
   assert.deepEqual(names, ["Aithema", "Paimos", "Pharos", "Janus"]);
   assert.equal((component.match(/approval: copy\(/g) || []).length, 4);
   assert.doesNotMatch(component, /manage users|user management|role management|ZITADEL integration/i);
-  assert.match(component, /Aithema's module is planned\./);
-  assert.match(component, /Aithemas Modul ist geplant\./);
+  assert.match(component, /Aithema, Paimos, Pharos and Janus are AGPL-3\.0-only on GitHub\./);
+  assert.match(component, /Aithema, Paimos, Pharos und Janus sind AGPL-3\.0-only auf GitHub\./);
 });
 
 test("Overview path cards preview the matching approved loops on deliberate interaction", async () => {

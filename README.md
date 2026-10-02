@@ -22,11 +22,10 @@ This repository powers the bilingual INSPR site family:
 
 Aithema (pronounced **AI-Thema**) is the first product in the family sequence
 and owns requirements. Its product page is live at `aithema.inspr.at`. The
-hosted Aithema workspace is available by invitation through Augmentoring and
-is not built by this repository. A reusable open-source Aithema template or
-module is planned;
-neither a product repository nor a product license is claimed before that
-source exists.
+reusable core is published as open source at
+[github.com/inspr-at/aithema](https://github.com/inspr-at/aithema) under
+`AGPL-3.0-only` with tagged releases. The hosted Aithema workspace is available
+by invitation through Augmentoring and is not built by this repository.
 
 The product sites are intentionally lightweight. INSPR and its products are
 open work by [Markus Barta](https://github.com/markus-barta). The sites explain
@@ -427,15 +426,15 @@ bootstrap token. The checked `.env.example` contains placeholders only.
 
 ## Product sources
 
-- **Aithema** - product page: [aithema.inspr.at](https://aithema.inspr.at);
-  reusable open-source template or module planned; hosted workspace by
+- [Aithema](https://github.com/inspr-at/aithema) - product page:
+  [aithema.inspr.at](https://aithema.inspr.at); hosted workspace by
   invitation through [Augmentoring](https://augmentoring.com)
 - [Paimos](https://github.com/inspr-at/paimos)
 - [Pharos](https://github.com/inspr-at/pharos)
 - [Janus](https://github.com/inspr-at/janus)
 - [INSPR operating modules](https://github.com/inspr-at/inspr-modules)
 
-The three open-source product repositories use `AGPL-3.0-only`. Each hosted
+The four open-source product repositories use `AGPL-3.0-only`. Each hosted
 product page links to its source, project license, official AGPL text, and
 professional services.
 

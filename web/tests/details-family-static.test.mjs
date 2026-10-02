@@ -157,8 +157,8 @@ test("the umbrella start page carries the Details slider, depth leads and techni
     "Sagen Sie, was Sie bauen wollen. Vier Werkzeuge übernehmen es von da an, Schritt für Schritt, und jeder Schritt wartet auf Ihr Ja.",
     "Every handoff is an explicit human approval gate.",
     "Jede Übergabe ist ein explizites menschliches Freigabe-Gate.",
-    "Three of the four tools are open for anyone to read and run. The fourth is on its way.",
-    "Drei der vier Werkzeuge sind offen, jeder kann sie lesen und betreiben. Das vierte ist unterwegs.",
+    "All four tools are open for anyone to read and run.",
+    "Alle vier Werkzeuge sind offen, jeder kann sie lesen und betreiben.",
   ]) {
     assert.ok(umbrella.includes(phrase), `missing umbrella depth copy: ${phrase}`);
   }

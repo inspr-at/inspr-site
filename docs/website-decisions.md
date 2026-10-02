@@ -339,9 +339,10 @@ products; it is not their author or owner.
 Aithema is the first product in the family sequence and owns the
 **Requirements** responsibility. Its
 hosted workspace is available by invitation (decision 2026-10-02, INSPR-519:
-no public preview link) while a reusable template or module is prepared for an
-open-source release. Until then, the umbrella states that invitation path
-without claiming that the hosted service is already a self-hostable repository.
+no public preview link), and its reusable core is published as open source at
+`inspr-at/aithema` under AGPL-3.0-only (INSPR-528, which supersedes the earlier
+"module planned" boundary). The umbrella states both paths without claiming
+that the hosted service itself is a self-hostable repository.
 
 The canonical product sequence is **Aithema, Paimos, Pharos, Janus** everywhere
 the family is presented in order. Product rows still alternate visual and copy
@@ -410,8 +411,9 @@ language chooses the first supported language until a visitor explicitly
 chooses DE or EN, after which local storage preserves that choice.
 
 The ordered family path is **Aithema, Paimos, Pharos, Janus**. Aithema owns
-requirements and links its current hosted preview without claiming a source
-repository or license. Its reusable open-source module remains planned. The
+requirements. Since 2026-10-02 (INSPR-528) its page links the published
+open-source core `inspr-at/aithema` (AGPL-3.0-only, tagged releases since
+2026-09-22) and presents the hosted workspace as available by invitation. The
 two-screen `/eli10/` route explains the same human-approved path in the most
 compact form. Copyright and source authorship belong to Markus Barta;
 Augmentoring remains the professional-services path around the products.
@@ -425,13 +427,12 @@ heroes. On the INSPR homepage, the Aithema graphic alone starts the loop on a
 non-touch hover and returns to the exact approved poster when the pointer
 leaves; touch and reduced-motion presentations remain static.
 
-Aithema participates in the section-pattern audit, but deliberately requires
-zero inspectable rails while it is only a hosted preview. Adding source,
-release, integration or architecture rails before the FOSS module exists would
-invent evidence. The audit still requires all eleven visible Aithema sections
-to declare a bounded presentation pattern. When the module ships, a new
-decision must remove this explicit preview exemption and add real inspectable
-evidence.
+Aithema participates in the section-pattern audit and still declares zero
+inspectable rails. Its source, license and release links are real since
+INSPR-528, but the integration and architecture rails the self-hosted products
+show are added only with published evidence from the Aithema core (tracked as
+the INSPR-528 follow-up). The audit still requires all eleven visible Aithema
+sections to declare a bounded presentation pattern.
 
 The application repository owns Caddy host routing and static release content,
 not the csb1 Traefik runtime. `NIX-408` added and applied the edge route and DNS

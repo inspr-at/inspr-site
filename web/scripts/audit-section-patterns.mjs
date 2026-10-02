@@ -2,9 +2,9 @@ import { readFile } from "node:fs/promises";
 
 const pages = [
   { name: "www", path: new URL("../dist/index.html", import.meta.url), minimum: 9 },
-  // Aithema is a hosted preview, not yet an inspectable FOSS product. Its
-  // explicit zero-rail contract prevents invented source or architecture
-  // evidence while still putting every visible section under this audit.
+  // Aithema's open-source core is published (INSPR-528), but its integration
+  // and architecture rails wait for published evidence from that core. The
+  // explicit zero-rail contract keeps every visible section under this audit.
   { name: "aithema", path: new URL("../dist/aithema/index.html", import.meta.url), minimum: 11, expectedRails: 0 },
   { name: "paimos-legacy", path: new URL("../dist/paimos-legacy/index.html", import.meta.url), minimum: 15, expectedRails: 2 },
   { name: "pharos", path: new URL("../dist/pharos/index.html", import.meta.url), minimum: 15, expectedRails: 2 },

@@ -9,6 +9,9 @@ export const aithemaContentDe = {
   name: "Aithema",
   category: "Anforderungen",
   canonicalUrl: `${siteUrls.aithema}/de/`,
+  repositoryUrl: "https://github.com/inspr-at/aithema",
+  releaseUrl: "https://github.com/inspr-at/aithema/releases",
+  licenseUrl: "https://github.com/inspr-at/aithema/blob/main/LICENSE",
   seo: {
     title: "Aithema | Anforderungen, die Sie vor Arbeitsbeginn freigeben",
     description:
@@ -16,12 +19,12 @@ export const aithemaContentDe = {
   },
   hero: {
     sheet: {
-      repo: "offenes Modul geplant; heute gehosteter Arbeitsbereich auf Einladung",
+      repo: "github.com/inspr-at/aithema",
       runtime: "Gehosteter Web-Arbeitsbereich.",
       gate: "Ein Mensch prüft den Anforderungssatz und wählt Weiter; nichts Nachgelagertes startet auf einem Entwurf.",
       artefact: "Strukturierter, versionierter Anforderungssatz mit seinen Quellen.",
       interfaces: "Web-Arbeitsbereich",
-      maturity: "auf Einladung",
+      maturity: "Kern veröffentlicht, AGPL-3.0-only; gehosteter Arbeitsbereich auf Einladung",
     },
     eyebrow: "Anforderungen, prüfbar gemacht",
     title: "Anforderungen, die Sie vor Arbeitsbeginn freigeben.",
@@ -42,7 +45,7 @@ export const aithemaContentDe = {
     "Sprechen, schreiben oder Dateien teilen",
     "Anforderungen bleiben prüfbar",
     "Ein Mensch wählt „Weiter“",
-    "Wiederverwendbares Open-Source-Modul geplant",
+    "Wiederverwendbarer Kern unter AGPL-3.0-only veröffentlicht",
   ],
   problem: {
     eyebrow: "Vor dem Bau",
@@ -224,21 +227,21 @@ export const aithemaContentDe = {
   },
   limits: {
     eyebrow: "Aktuelle Grenze",
-    title: "Auf Einladung jetzt. Wiederverwendbares Modul später.",
+    title: "Offener Kern heute. Gehosteter Arbeitsbereich auf Einladung.",
     lead:
-      "Der gehostete Aithema-Arbeitsbereich ist heute auf Einladung verfügbar. Das wiederverwendbare Open-Source-Modul von Aithema folgt.",
+      "Aithemas wiederverwendbarer Kern ist als Open Source mit getaggten Releases veröffentlicht. Der gehostete Arbeitsbereich, der ihn betreibt, ist auf Einladung verfügbar.",
     items: [
+      "Der wiederverwendbare Kern ist als inspr-at/aithema öffentlich auf GitHub unter AGPL-3.0-only, mit getaggten Releases.",
       "Der Zugang zum gehosteten Arbeitsbereich erfolgt auf Einladung; Augmentoring schaltet ihn für Sie frei.",
-      "Vor der Veröffentlichung des wiederverwendbaren Moduls wird kein Aithema-Quell-Repository und keine Produktlizenz behauptet.",
       "Aithema unterstützt das Formen und Prüfen von Anforderungen; es gibt nichts still frei und beginnt keine Umsetzung.",
-      "Aussagen zu Release, Integration und Self-Hosting warten auf prüfbare Belege.",
+      "Hinweise zu Integration und Self-Hosting folgen den Release-Notes des Kerns; weitergehende Aussagen warten auf prüfbare Belege.",
     ],
   },
   releasePath: {
-    eyebrow: "Open-Source-Weg",
-    title: "Das wiederverwendbare Modul ist geplant.",
+    eyebrow: "Open Source",
+    title: "Der wiederverwendbare Kern ist veröffentlicht.",
     body:
-      "Aithema soll ein Open-Source-Template oder -Modul werden. Bis dieses Release existiert, ist der gehostete Arbeitsbereich auf Einladung der ehrliche Weg, es zu nutzen.",
+      "Aithemas Kern ist Open-Source-Software unter AGPL-3.0-only. Lesen, betreiben und verändern Sie ihn unter diesen Bedingungen; der gehostete Arbeitsbereich auf Einladung ist heute der schnellste Weg, ihn zu nutzen.",
   },
   faq: [
     {
@@ -249,7 +252,7 @@ export const aithemaContentDe = {
     {
       question: "Ist Aithema heute Open Source?",
       answer:
-        "Noch nicht. Ein wiederverwendbares Open-Source-Modul ist geplant, aber vor diesem Release wird kein Aithema-Repository und keine Lizenz präsentiert.",
+        "Ja. Der wiederverwendbare Kern ist auf GitHub unter AGPL-3.0-only veröffentlicht, mit getaggten Releases. Der gehostete Arbeitsbereich ist auf Einladung verfügbar.",
     },
     {
       question: "Gibt Aithema Anforderungen für mich frei?",

@@ -84,8 +84,8 @@ const products = [
       "Am Anfang steht ein Gespräch. Am Ende stehen klare Anforderungen.",
     ),
     body: copy(
-      "Speak, type or add files; Aithema drafts the requirements. Read them and choose Continue when they say what you mean. The hosted workspace is open by invitation, and a reusable open-source module is planned.",
-      "Sprechen Sie, schreiben Sie oder fügen Sie Dateien hinzu. Aithema entwirft daraus Anforderungen. Prüfen Sie sie und wählen Sie „Weiter“, sobald sie wirklich passen. Der gehostete Arbeitsbereich ist auf Einladung offen; ein wiederverwendbares Open-Source-Modul ist geplant.",
+      "Speak, type or add files; Aithema drafts the requirements. Read them and choose Continue when they say what you mean. The reusable core is open source, and the hosted workspace is open by invitation.",
+      "Sprechen Sie, schreiben Sie oder fügen Sie Dateien hinzu. Aithema entwirft daraus Anforderungen. Prüfen Sie sie und wählen Sie „Weiter“, sobald sie wirklich passen. Der wiederverwendbare Kern ist Open Source; der gehostete Arbeitsbereich ist auf Einladung offen.",
     ),
     detail: copy(
       "Conversation · requirements · Continue",
@@ -739,16 +739,16 @@ const productFlowSteps = [
         <p class="section-lead">
           <DetailLevels
             simple={copy(
-              "Three of the four tools are open for anyone to read and run. The fourth is on its way.",
-              "Drei der vier Werkzeuge sind offen, jeder kann sie lesen und betreiben. Das vierte ist unterwegs.",
+              "All four tools are open for anyone to read and run.",
+              "Alle vier Werkzeuge sind offen, jeder kann sie lesen und betreiben.",
             )}
             standard={copy(
-              "Paimos, Pharos and Janus are open-source software by Markus Barta, licensed AGPL-3.0-only. Aithema's reusable module is planned as open source. What is published, you can inspect, run yourself and change.",
-              "Paimos, Pharos und Janus sind Open-Source-Software von Markus Barta unter AGPL-3.0-only. Aithemas wiederverwendbares Modul ist als Open Source geplant. Veröffentlichtes können Sie prüfen, selbst betreiben und verändern.",
+              "Aithema, Paimos, Pharos and Janus are open-source software by Markus Barta, licensed AGPL-3.0-only. What is published, you can inspect, run yourself and change.",
+              "Aithema, Paimos, Pharos und Janus sind Open-Source-Software von Markus Barta unter AGPL-3.0-only. Veröffentlichtes können Sie prüfen, selbst betreiben und verändern.",
             )}
             technical={copy(
-              "Paimos, Pharos and Janus are AGPL-3.0-only on GitHub, by Markus Barta. Aithema's reusable module is planned as open source. Published code can be inspected, self-hosted and modified under those terms.",
-              "Paimos, Pharos und Janus stehen unter AGPL-3.0-only auf GitHub, von Markus Barta. Aithemas wiederverwendbares Modul ist als Open Source geplant. Veröffentlichter Code kann unter diesen Bedingungen geprüft, selbst betrieben und verändert werden.",
+              "Aithema, Paimos, Pharos and Janus are AGPL-3.0-only on GitHub, by Markus Barta. Published code can be inspected, self-hosted and modified under those terms.",
+              "Aithema, Paimos, Pharos und Janus stehen unter AGPL-3.0-only auf GitHub, von Markus Barta. Veröffentlichter Code kann unter diesen Bedingungen geprüft, selbst betrieben und verändert werden.",
             )}
           />
         </p>
@@ -758,7 +758,7 @@ const productFlowSteps = [
           <span>{copy("INSPR site", "INSPR-Website")}</span><small>{copy("This page and the product microsites", "Diese Seite und die Produkt-Microsites")}</small><b aria-hidden="true">↗</b>
         </a>
         <a href={productSourcesUrl} target="_blank" rel="noopener noreferrer">
-          <span>{copy("Product sources", "Produktquellen")}</span><small>{copy("Aithema's boundary and the published repositories", "Aithemas Abgrenzung und die veröffentlichten Repositories")}</small><b aria-hidden="true">↗</b>
+          <span>{copy("Product sources", "Produktquellen")}</span><small>{copy("The four published product repositories", "Die vier veröffentlichten Produkt-Repositories")}</small><b aria-hidden="true">↗</b>
         </a>
         <a href={modulesUrl} target="_blank" rel="noopener noreferrer">
           <span>INSPR modules</span><small>{copy("Shared doctrine and operating modules", "Gemeinsame Doktrin und Betriebsmodule")}</small><b aria-hidden="true">↗</b>
@@ -801,8 +801,8 @@ const productFlowSteps = [
           <summary>{copy("Can we run the products ourselves?", "Können wir die Produkte selbst betreiben?")}</summary>
           <p>
             {copy(
-              "Paimos, Pharos and Janus, yes: they are open source and built to self-host. Aithema's reusable module is planned; until it ships, the hosted workspace by invitation is the way in.",
-              "Paimos, Pharos und Janus: ja. Sie sind Open Source und für den Eigenbetrieb gebaut. Aithemas wiederverwendbares Modul ist geplant; bis es erscheint, führt der Weg über den gehosteten Arbeitsbereich auf Einladung.",
+              "Yes, all four: Aithema, Paimos, Pharos and Janus are open source and built to self-host. Aithema's hosted workspace is also available by invitation when you prefer not to run it yourself.",
+              "Ja, alle vier: Aithema, Paimos, Pharos und Janus sind Open Source und für den Eigenbetrieb gebaut. Aithemas gehosteter Arbeitsbereich ist zusätzlich auf Einladung verfügbar, wenn Sie ihn nicht selbst betreiben möchten.",
             )}
           </p>
         </details>
@@ -817,8 +817,8 @@ const productFlowSteps = [
     licenseUrl={siteLicenseUrl}
     ctaTitle={copy("Prefer not to run it alone?", "Möchten Sie den offenen Stack nicht allein betreiben?")}
     ctaBody={copy(
-      "Augmentoring provides architecture, integration, rollout and operating support as a professional service. Paimos, Pharos and Janus remain open source; Aithema's reusable module is planned to join them.",
-      "Augmentoring bietet Architektur, Integration, Rollout und Betriebsunterstützung als professionelle Dienstleistung. Paimos, Pharos und Janus bleiben Open Source; Aithemas wiederverwendbares Modul soll später dazukommen.",
+      "Augmentoring provides architecture, integration, rollout and operating support as a professional service. All four products remain open source.",
+      "Augmentoring bietet Architektur, Integration, Rollout und Betriebsunterstützung als professionelle Dienstleistung. Alle vier Produkte bleiben Open Source.",
     )}
     locale={locale}
   />

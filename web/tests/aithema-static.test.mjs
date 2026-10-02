@@ -59,7 +59,7 @@ test("Aithema states its preview maturity without invented source claims", async
   assert.match(overview, /hosted workspace by invitation today/);
   assert.match(overview, /maturity: copy\("by invitation", "auf Einladung"\)/);
   assert.doesNotMatch(overview, /web preview|Web-Vorschau|hosted preview|gehostete Vorschau/);
-  assert.match(styles, /\.site-footer__group \.footer-text \{[\s\S]*?color: var\(--night-soft\);/);
+  assert.match(styles, /\.site-footer nav a,\s*\.site-footer__group \.footer-text \{[^}]*color: var\(--night-soft\);/);
   assert.match(page, /Reusable open-source module planned/);
   assert.doesNotMatch(page, /View the source|Open-source repositories: AGPL|repositoryUrl|licenseUrl/);
 });

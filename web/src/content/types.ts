@@ -1,3 +1,9 @@
+/** A string in both site languages; the shared GUI-22 copy is built from these. */
+export type Bilingual = { en: string; de: string };
+
+/** How much of a claim has shipped: only "live" may be stated as present. */
+export type Status = "live" | "partly" | "planned";
+
 /** One lead in two extra depths; the standard depth is the field itself. */
 export type Depths = {
   simple?: string;

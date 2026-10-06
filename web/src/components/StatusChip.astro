@@ -1,0 +1,67 @@
+---
+import { statusLabels, type Status } from "../content/family";
+
+// INSPR-542: how far a claim has shipped. The label is always text; the dot
+// shape (filled, half, ring) and the border style repeat it without colour.
+interface Props {
+  status: Status;
+  locale?: "en" | "de";
+}
+
+const { status, locale = "en" } = Astro.props;
+---
+
+<span class={`status-chip status-chip--${status}`}>
+  <span class="status-chip__dot" aria-hidden="true"></span>
+  {statusLabels[status][locale]}
+</span>
+
+<style>
+  .status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.18em 0.62em;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 620;
+    letter-spacing: 0.08em;
+    line-height: 1.3;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .status-chip__dot {
+    width: 0.52em;
+    height: 0.52em;
+    flex: none;
+    border: 1.5px solid currentColor;
+    border-radius: 50%;
+  }
+
+  .status-chip--live {
+    color: var(--accent-strong);
+    background: var(--accent-soft);
+  }
+
+  .status-chip--live .status-chip__dot {
+    background: currentColor;
+  }
+
+  .status-chip--partly {
+    color: var(--ink);
+    background: var(--secondary-soft);
+  }
+
+  .status-chip--partly .status-chip__dot {
+    background: linear-gradient(90deg, currentColor 50%, transparent 50%);
+  }
+
+  .status-chip--planned {
+    color: var(--ink-soft);
+    border-style: dashed;
+    background: transparent;
+  }
+</style>

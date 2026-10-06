@@ -719,7 +719,7 @@ test("Aithema joins the product family at its public visitor home", async () => 
 
   assert.match(urls, /aithema: "https:\/\/aithema\.inspr\.at"/);
   assert.doesNotMatch(urls, /aithemaPreview|start\.augmentoring\.com/);
-  assert.match(urls, /aithema: "Requirements"/);
+  assert.match(urls, /aithema: productRole\("aithema"\)/);
   assert.match(urls, /author: "https:\/\/github\.com\/markus-barta"/);
   assert.match(urls, /\{ label: "Aithema", role: productTaxonomy\.aithema, href: siteUrls\.aithema \}/);
   assert.match(footer, /projectLicense: "Project license: AGPL-3\.0-only"/);

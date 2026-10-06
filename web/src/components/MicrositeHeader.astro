@@ -2,6 +2,7 @@
 import DetailsControl from "./DetailsControl.astro";
 import SiteHeaderMotion from "./SiteHeaderMotion.astro";
 import { productLinks, siteUrls } from "../content/urls";
+import { products } from "../content/family";
 
 interface Props {
   name: string;
@@ -37,6 +38,12 @@ const {
   homeHref,
   detailsSlider,
 } = Astro.props;
+
+// INSPR-542: a product page names its verb ("Paimos · What"); the umbrella
+// keeps its descriptor.
+const eyebrow = active === "inspr"
+  ? category
+  : `${products[active].name[locale]} · ${products[active].verb[locale]}`;
 
 const labels = locale === "de"
   ? {
@@ -83,7 +90,7 @@ const productHref = (href: string) =>
       <img src={logo} alt="" width="48" height="48" />
       <span>
         <strong>{name}</strong>
-        <small>{category}</small>
+        <small>{eyebrow}</small>
       </span>
     </a>
 

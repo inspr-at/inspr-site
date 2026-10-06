@@ -314,7 +314,7 @@ const featurePresentations: Record<string, FeaturePresentation> = {
 
     {content.slug !== "paimos" && (
       <>
-        <div data-section-pattern="family-flow"><FamilyBand highlight={content.slug} locale={locale} /></div>
+        <FamilyBand highlight={content.slug} locale={locale} />
         <p class="page-shell"><StatusChip status={contract.status} locale={locale} /> {contract.standalone[locale]} {contract.statusNote[locale]}</p>
       </>
     )}

@@ -23,10 +23,7 @@ const pages = [
 for (const page of pages) {
   const html = await readFile(page.path, "utf8");
   const patterns = [...html.matchAll(/data-section-pattern="([^"]+)"/g)].map((match) => match[1]);
-  // INSPR-544: the shared family band is a quiet strip, not a content block, so
-  // it needs no presentation pattern unless it declares one.
-  const sectionCount = (html.match(/<section(?:\s[^>]*)?>/g) ?? [])
-    .filter((tag) => /data-section-pattern=/.test(tag) || !/\bfamily-band\b/.test(tag)).length;
+  const sectionCount = (html.match(/<section(?:\s|>)/g) ?? []).length;
   const counts = new Map();
   for (const pattern of patterns) counts.set(pattern, (counts.get(pattern) ?? 0) + 1);
 

@@ -27,7 +27,7 @@ const doctrine = products[flow.underneath.product];
 const region = locale === "de" ? "Der INSPR-Ablauf" : "The INSPR flow";
 ---
 
-<section class="family-band page-shell" aria-label={region}>
+<section class="family-band page-shell" aria-label={region} data-section-pattern="family-band">
   <ol class="family-band__flow">
     {flow.steps.map((step) => (
       <li class:list={["family-band__step", { "is-current": step.key === current }]} aria-current={step.key === current ? "step" : undefined}>

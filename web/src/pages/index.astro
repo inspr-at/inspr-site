@@ -325,7 +325,8 @@ const principles = [
       data-section-pattern="editorial-hero"
     >
       <div class="umbrella-hero__copy">
-        <p class="eyebrow">{locale === "de" ? productTaxonomyDe.inspr : productTaxonomy.inspr}</p>
+        {/* INSPR-543: the brand line stays; deploy.sh probes it, including after a rollback. */}
+        <p class="eyebrow">{copy("Inspiration is the only limit.", "Inspiration ist die einzige Grenze.")}</p>
         <h1 id="hero-title">{message.hero[locale]}</h1>
         <p class="umbrella-hero__lead">{message.sub[locale]}</p>
         <div class="button-row">

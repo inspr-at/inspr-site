@@ -36,9 +36,10 @@ const countMatches = (text, pattern) => (text.match(pattern) ?? []).length;
 
 test("each product host serves a German edition through the shared page components", async () => {
   for (const { slug, exportName } of products) {
-    // INSPR-492: the retired Paimos ProductPage lives at /paimos-legacy.
-    const routeDir = slug === "paimos" ? "paimos-legacy" : slug;
-    const route = await source(`pages/${routeDir}/de/index.astro`);
+    // INSPR-544: the German AEON page is asserted in paimos-aeon-static.test.mjs;
+    // the retired Paimos ProductPage route is gone.
+    if (slug === "paimos") continue;
+    const route = await source(`pages/${slug}/de/index.astro`);
     assert.match(
       route,
       /import ProductPage from "\.\.\/\.\.\/\.\.\/components\/ProductPage\.astro";/,
@@ -51,9 +52,7 @@ test("each product host serves a German edition through the shared page componen
     );
     assert.match(
       route,
-      slug === "paimos"
-        ? new RegExp(`<ProductPage content=\\{${exportName}\\} locale="de" mount=\\{\\{ english: siteUrls\\.paimosLegacy, german: siteUrls\\.paimosLegacyGerman \\}\\} \\/>`)
-        : new RegExp(`<ProductPage content=\\{${exportName}\\} locale="de" \\/>`),
+      new RegExp(`<ProductPage content=\\{${exportName}\\} locale="de" \\/>`),
       `${slug} German route must render ProductPage in German`,
     );
   }

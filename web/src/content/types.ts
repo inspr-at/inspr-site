@@ -325,8 +325,11 @@ export type AeonContent = {
       eyebrow: string;
       title: string;
       steps: Array<{ label: string; command?: string }>;
-      harnessesLabel: string;
-      harnesses: string[];
+    };
+    /** INSPR-544: which harnesses start under Paimos, grouped by how far each has shipped. */
+    harnessMatrix: {
+      label: string;
+      rows: Array<{ status: Status; harnesses: string[]; note: string }>;
     };
     proof: AeonProof[];
   };
@@ -365,39 +368,15 @@ export type AeonContent = {
     screenAlt: string;
     proof: AeonProof[];
   };
-  delivery: {
+  /** INSPR-544: the engine's six jobs, each with how far it has shipped. */
+  engine: {
     eyebrow: string;
     title: string;
     lead: string;
     depths: Depths;
-    /**
-     * The eight journey stages in order. Names stay English in every locale.
-     * `scope` is the approval scope of the person-approved gate at that
-     * stage; `decides` names who moves the journey on; `action` is the
-     * computed next action the journey reports there; `note` carries a
-     * profile or skip rule.
-     */
-    stages: Array<{
-      name: string;
-      gate?: boolean;
-      scope?: string;
-      summary: string;
-      decides: string;
-      action?: string;
-      note?: string;
-    }>;
-    gateLabel: string;
-    ui: {
-      stageOf: string;
-      decides: string;
-      gate: string;
-      noGate: string;
-      nextAction: string;
-      /** The walk control (WCAG 2.2.2): pressed while paused. */
-      pause: string;
-      resume: string;
-    };
-    proof: AeonProof[];
+    jobs: Array<{ label: string; status: Status; note: string }>;
+    /** The retired flow and the planned Flow 2; the status belongs to Flow 2. */
+    flowNote: { text: string; status: Status };
   };
   architecture: {
     eyebrow: string;
@@ -422,14 +401,8 @@ export type AeonContent = {
     eyebrow: string;
     title: string;
     lead: string;
-    releases: Array<{
-      label: string;
-      status: "coming" | "planned";
-      statusLabel: string;
-      when: string;
-      /** Filed AEON tickets; the roadmap feed (AEON-457) will supply these later. */
-      items: Array<{ title: string; body: string }>;
-    }>;
+    /** The shared build order (family.ts): a status per step, never a date. */
+    order: Array<{ label: string; status: Status; note?: string }>;
     goodToKnow: { title: string; items: string[] };
   };
   openSource: { eyebrow: string; title: string; body: string; links: LinkItem[] };

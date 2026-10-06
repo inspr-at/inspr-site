@@ -8,10 +8,6 @@ export const siteUrls = {
   overview: "https://www.inspr.at/overview/",
   overviewGerman: "https://www.inspr.at/de/ueberblick/",
   paimos: "https://paimos.inspr.at",
-  // INSPR-492: the retired Paimos product page, kept below the www host and
-  // out of search indexes (noindex, not in productLinks or a sitemap).
-  paimosLegacy: "https://www.inspr.at/paimos-legacy/",
-  paimosLegacyGerman: "https://www.inspr.at/paimos-legacy/de/",
   pharos: "https://pharos.inspr.at",
   janus: "https://janus.inspr.at",
   aithema: "https://aithema.inspr.at",

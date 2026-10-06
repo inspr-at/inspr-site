@@ -1,15 +1,27 @@
 import { siteUrls } from "./urls";
+import { buildOrder, engineJobs } from "./family";
 import type { AeonContent } from "./types";
 
-// INSPR-492: PAIMOS AEON release 14.1 "Hinged Hangar" (stable 113, tag
-// v260930115354.0.0, merge ea5328e7). Every claim comes from the AEON lead's release brief and
-// is checked against the source at that tag; proof paths resolve against
-// `sourceTreeUrl`. Releases 15 to 17 appear only as coming work, from filed
-// AEON tickets. Left out
-// on purpose: the business module, MCP issue and knowledge tools (early),
-// embedding-ranked search and voice. Screens come from aeon.barta.cm.
+// INSPR-544: PAIMOS AEON as the one released product on this page. Every claim
+// comes from the AEON lead's release brief and is checked against the source at
+// the release tag; proof paths resolve against `sourceTreeUrl`. Planned work
+// appears only through the shared build order, with a status and no date. Left
+// out on purpose: the business module, MCP issue and knowledge tools (early),
+// embedding-ranked search and voice. Screens come from an internal instance and
+// keep their capture date, not a host or a version.
 const repositoryUrl = "https://github.com/inspr-at/paimos";
-const tag = "v260930115354.0.0";
+
+// INSPR-529: the one place that names the presented release. A new release is
+// one edit here; every label, link and proof path below follows it.
+export const paimosRelease = {
+  number: "123",
+  codename: "Coral Cargo",
+  tag: "v261005070923.0.0",
+  publishedAt: "2026-10-05",
+  publishedLabel: { en: "5 October 2026", de: "5. Oktober 2026" },
+};
+
+const tag = paimosRelease.tag;
 const blob = (path: string) => `${repositoryUrl}/blob/${tag}/${path}`;
 
 export const paimosAeonContent = {
@@ -20,38 +32,38 @@ export const paimosAeonContent = {
   sourceTreeUrl: `${repositoryUrl}/tree/${tag}`,
   release: {
     name: "AEON",
-    codename: "Hinged Hangar",
-    label: "Release 14.1",
+    codename: paimosRelease.codename,
+    label: `Release ${paimosRelease.number}`,
     version: tag,
-    publishedAt: "2026-09-30T12:51:40Z",
-    publishedLabel: "30 September 2026",
+    publishedAt: paimosRelease.publishedAt,
+    publishedLabel: paimosRelease.publishedLabel.en,
     url: `${repositoryUrl}/releases/tag/${tag}`,
   },
   seo: {
     title: "PAIMOS AEON · Your agents, your machines, your rules",
     description:
-      "The agents-first work platform where people stay in charge: run Claude, Codex, Cursor, Grok and pi on your own machines, see every session in one control room, and leave every gated decision to a person.",
+      "The agents-first work platform where people stay in charge: start Claude Code, Codex, Cursor and pi on your own machines, see every session in one control room, and leave every gated decision to a person.",
   },
   nav: [
     { label: "Screens", href: "#screens" },
     { label: "Control room", href: "#control-room" },
     { label: "Authority", href: "#authority" },
     { label: "Rules", href: "#rules" },
+    { label: "Engine", href: "#engine" },
     { label: "Architecture", href: "#architecture" },
     { label: "What is coming", href: "#next" },
   ],
   serviceIntro: "Augmentoring deploys, integrates and operates PAIMOS AEON for teams.",
   hero: {
-    eyebrow: "PAIMOS 7",
+    eyebrow: "Part of INSPR",
     titleLead: "Your agents. Your machines.",
     titleAccent: "Your rules.",
     lead:
-      "AEON runs Claude, Codex, Cursor, Grok and pi on your own computers, shows every session in one control room, and leaves every gated decision to a person.",
+      "AEON starts Claude Code, Codex, Cursor and pi on your own computers, shows every session in one control room, and leaves every gated decision to a person.",
     depths: {
       simple:
         "AEON lets your team and its AI helpers work on the same projects. The helpers run on your computers, you see what each one does, and people approve the important steps.",
-      technical:
-        "Release 14.1 (v260930115354.0.0): one Go binary with an embedded Vue app, Postgres 18 under FORCE row-level security, an append-only event log per tenant, one OpenAPI 3.1 contract, and aeon-agentd driving five harness adapters on paired machines.",
+      technical: `Release ${paimosRelease.number} (${tag}): one Go binary with an embedded Vue app, Postgres 18 under FORCE row-level security, an append-only event log per tenant, one OpenAPI 3.1 contract, and aeon-agentd starting Claude Code, Codex, Cursor and pi on paired machines.`,
     },
     primaryLabel: "See it running",
     primaryHref: "#screens",
@@ -61,7 +73,7 @@ export const paimosAeonContent = {
       { kind: "run", label: "Live session", detail: "Model, effort and progress in view" },
       { kind: "event", label: "approval.proposed", detail: "Appended to the event log" },
       { kind: "run", label: "Message read", detail: "Sent, delivered, read" },
-      { kind: "approval", label: "Build gate", detail: "journey.build waits for a person" },
+      { kind: "approval", label: "Decision Desk", detail: "Open decisions wait for a person" },
       { kind: "event", label: "node.moved", detail: "The work tree updates live" },
       { kind: "run", label: "Next account", detail: "Work moves on when a vendor stops one" },
       { kind: "event", label: "approval.approved", detail: "A person decided" },
@@ -73,25 +85,23 @@ export const paimosAeonContent = {
       "node.moved",
       "approval.proposed",
       "approval.approved",
-      "journey.build_started",
       "node.updated",
-      "journey.release_opened",
       "approval.revoked",
     ],
   },
   figures: [
-    { value: "5", label: "agent harnesses" },
+    { value: "4", label: "harnesses that start under Paimos" },
     { value: "6", label: "rule layers" },
-    { value: "8", label: "journey stages" },
+    { value: "6", label: "engine jobs, two of them live" },
     { value: "1", label: "event log per tenant" },
     { value: "300+", label: "API paths, one OpenAPI 3.1 contract" },
   ],
   theatre: {
-    eyebrow: "Live instance",
+    eyebrow: "Internal instance",
     title: "AEON, built with AEON.",
     lead:
-      "These screens come from aeon.barta.cm, where the INSPR team plans, runs and ships AEON with its own agents.",
-    note: "aeon.barta.cm · captured 30 September 2026",
+      "These screens come from an internal instance, where the INSPR team plans, runs and ships AEON with its own agents.",
+    note: "Internal instance · captured 30 September 2026",
     openLabel: "Open full size",
     screens: [
       {
@@ -127,15 +137,15 @@ export const paimosAeonContent = {
   specs: {
     eyebrow: "Specs",
     title: "What you get.",
-    lead: "Twenty capabilities, available today. Hover or tap a card for the detail.",
-    leadEli10: "The same twenty, in plain words.",
+    lead: "Nineteen released capabilities. Seven of the images are illustrations and say so. Hover or tap a card for the detail.",
+    leadEli10: "The same nineteen, in plain words.",
     items: [
       {
         label: "Agents first",
         icon: "workflow",
         group: "ai",
-        note: "Claude, Codex, Cursor, Grok and pi run as harness sessions in the same projects as people, each under its own key and scopes.",
-        noteEli10: "AI helpers from several makers work in the same projects as your people, and each one wears its own badge.",
+        note: "Claude Code, Codex, Cursor and pi start under Paimos in the same projects as people, each under its own key and scopes. Grok runs tool-free on Apple silicon; Gemini and OpenCode pair only.",
+        noteEli10: "AI helpers from several makers work in the same projects as your people, and each one wears its own badge. A few join with fewer abilities for now.",
       },
       {
         label: "Control room",
@@ -220,13 +230,6 @@ export const paimosAeonContent = {
         group: "work",
         note: "Knowledge entries link with [[slug]] references and open as a graph beside the work.",
         noteEli10: "Project know-how is written once, linked together and shown as a map.",
-      },
-      {
-        label: "Journeys and gates",
-        icon: "waypoints",
-        group: "work",
-        note: "Eight derived stages from Inspire to Live, with person-approved gates and named deploy targets.",
-        noteEli10: "Each project moves through clear steps, and a person signs off before anything goes live.",
       },
       {
         label: "Clear usage",
@@ -332,12 +335,12 @@ export const paimosAeonContent = {
         icon: "sliders-horizontal",
         title: "Steer, interrupt, stop",
         body: "Redirect a managed session while it runs, or stop it cleanly.",
-        caveat: "Qualified for Claude on macOS",
+        caveat: "Steering: Claude on macOS. Cursor: interrupt only",
       },
       {
         icon: "hard-drive",
         title: "Your machines, your accounts",
-        body: "Claude, Codex, Cursor, Grok and pi run on computers you pair, signed in to your own subscriptions.",
+        body: "Claude Code, Codex, Cursor and pi start on computers you pair, signed in to your own subscriptions.",
       },
     ],
     screenAlt:
@@ -350,8 +353,26 @@ export const paimosAeonContent = {
         { label: "Pair from your working folder.", command: "aeon-agentd pair" },
         { label: "Enter the 9-digit code in the browser and approve." },
       ],
-      harnessesLabel: "Harnesses",
-      harnesses: ["Claude", "Codex", "Cursor", "Grok", "pi"],
+    },
+    harnessMatrix: {
+      label: "Harnesses",
+      rows: [
+        {
+          status: "live",
+          harnesses: ["Claude Code", "Codex", "Cursor", "pi"],
+          note: "Start under Paimos on macOS and Linux. Supported; live acceptance is still open.",
+        },
+        {
+          status: "partly",
+          harnesses: ["Grok"],
+          note: "Runs tool-free on Apple silicon: a single-turn conversation for verification and review, not a general builder.",
+        },
+        {
+          status: "planned",
+          harnesses: ["Gemini", "OpenCode"],
+          note: "Pairing only for now. Starting them is planned.",
+        },
+      ],
     },
     proof: [
       { label: "Agents workspace", path: "web/src/views/AgentsView.vue" },
@@ -448,96 +469,24 @@ export const paimosAeonContent = {
       { label: "README: Agent rules", path: "README.md" },
     ],
   },
-  delivery: {
-    eyebrow: "Delivery",
-    title: "Eight stages from idea to live.",
+  // INSPR-544: the retired Journey gives way to the engine, told from the
+  // shared engine jobs. Flow 2 is planned and carries no date.
+  engine: {
+    eyebrow: "The engine",
+    title: "The engine that runs the work.",
     lead:
-      "Every project follows one journey. The stage is derived from recorded decisions, and a person approves each gate.",
+      "Six jobs run the work around the tickets. Two are live, four are partly live: each one says how far it has shipped.",
     depths: {
       simple:
-        "A project moves through eight steps. At each gate a person says yes before it moves on, and nothing else can move it.",
+        "The engine is the part of AEON that keeps agents and people in step. Some of its jobs already work; others are still being built.",
       technical:
-        "The stage is a projection derived from the accepted brief, the human Shape decision, the agreed requirements revision, the current release state and live gate approvals. A heartbeat, a timer or a stage string from a client never moves the rail.",
+        "Live today: the admission dial with per-harness limits, model preferences by type of work with review order and review gates, the Decision Desk with a durable inbox, and events with worker attribution, outcomes and session, token and cost reporting.",
     },
-    stages: [
-      {
-        name: "Inspire",
-        summary: "Intake begins. A brief is drafted with citations to its sources, and accepting it is a person-only step. The accepted brief is the first fact the stage derivation reads.",
-        decides: "A person accepts the brief.",
-        action: "confirm_brief",
-      },
-      {
-        name: "Shape",
-        gate: true,
-        scope: "journey.shape",
-        summary: "The Shape decision is a human gate: go, reduce scope, park or drop. A parked or dropped project keeps the Shape stage and can be reopened.",
-        decides: "A person decides the shape.",
-        action: "decide",
-        note: "The personal profile skips Shape after a brief is confirmed.",
-      },
-      {
-        name: "Requirements",
-        gate: true,
-        scope: "revision-bound requirements scope",
-        summary: "Functional requirements are requirement nodes. Agreement creates one epic per requirement and can generate tickets from accepted suggestions. A manual ticket that changes agreed scope stays marked until requirements are agreed again.",
-        decides: "A person agrees the requirements revision.",
-        action: "approve_requirements",
-      },
-      {
-        name: "Plan",
-        summary: "A release is opened and the plan stores the ordered ticket set. Tickets can also stay in the project backlog without being in a release.",
-        decides: "Derived from the release. No gate.",
-        action: "start_build",
-      },
-      {
-        name: "Build",
-        gate: true,
-        scope: "journey.build",
-        summary: "Build start needs an approved gate. While the build runs, a passive wait is the only action. Once the release's tickets are finished it can become a candidate, and candidate review is a person gate of its own.",
-        decides: "A person approves the build start and the candidate.",
-        action: "approve_candidate",
-        note: "Enterprise adds a separate reviewer for the candidate, a different person from the builder and the author.",
-      },
-      {
-        name: "Deploy",
-        gate: true,
-        scope: "journey.deploy",
-        summary: "Pharos owns Deploy. It checks the reviewed artifact identity, current backup and readiness, and consumes one launch admission before a host changes. The approval names its target, and a gate can be renewed.",
-        decides: "A person approves the deployment.",
-        action: "approve_deploy",
-      },
-      {
-        name: "Access",
-        gate: true,
-        scope: "journey.access",
-        summary: "Janus owns Access. Apply follows a successful deployment and consumes a person-approved bounded permit, then reports only whether access is authorized and credentials are ready.",
-        decides: "A person approves the permit.",
-        action: "approve_permit",
-        note: "Access is skipped only when the release has no explicit access change.",
-      },
-      {
-        name: "Live",
-        summary: "The release is live with a public release history. When the next release starts, Live becomes the prior release state while Plan is current, and history is preserved.",
-        decides: "Derived from the release. No gate.",
-        action: "plan_next_release",
-      },
-    ],
-    gateLabel: "Person-approved gate",
-    ui: {
-      stageOf: "Stage {n} of {total}",
-      decides: "Who decides",
-      gate: "Gate",
-      noGate: "No gate",
-      nextAction: "Next action",
-      pause: "Pause",
-      resume: "Resume",
+    jobs: engineJobs.map((job) => ({ label: job.label.en, status: job.status, note: job.note.en })),
+    flowNote: {
+      text: "The earlier flow is retired. The next one, Flow 2, is planned.",
+      status: "planned",
     },
-    proof: [
-      { label: "Planning hierarchy", path: "docs/PLANNING_HIERARCHY.md" },
-      { label: "Journey", path: "internal/journey" },
-      { label: "Release history", path: "internal/releasehistory" },
-      { label: "Release verification", path: "scripts/verify-release.mjs" },
-    ],
   },
   architecture: {
     eyebrow: "Architecture",
@@ -547,7 +496,7 @@ export const paimosAeonContent = {
       simple:
         "Under the hood, AEON is deliberately simple: one program, one database, and a record of everything that happened.",
       technical:
-        "A single Go binary embeds the Vue app and serves the OpenAPI 3.1 contract. Postgres 18 with pgvector holds every row under FORCE row-level security, an append-only event table drives history and server-sent live updates, and aeon-agentd speaks one daemon protocol to five harness adapters.",
+        "A single Go binary embeds the Vue app and serves the OpenAPI 3.1 contract. Postgres 18 with pgvector holds every row under FORCE row-level security, an append-only event table drives history and server-sent live updates, and aeon-agentd speaks one daemon protocol to the harness adapters.",
     },
     diagram: {
       clientsLabel: "People and tools",
@@ -558,7 +507,7 @@ export const paimosAeonContent = {
       database: ["Postgres 18", "FORCE row-level security", "Append-only event log"],
       daemonLabel: "Your machines",
       daemon: "aeon-agentd",
-      harnesses: ["Claude", "Codex", "Cursor", "Grok", "pi"],
+      harnesses: ["Claude Code", "Codex", "Cursor", "pi", "Grok (tool-free)"],
       live: "Live updates",
     },
     notes: [
@@ -586,52 +535,20 @@ export const paimosAeonContent = {
   },
   horizon: {
     eyebrow: "What is coming",
-    title: "Shipped today. Your agents get smarter next.",
-    lead: "Release 14.1 went live on 30 September. What follows can still change before it lands.",
-    releases: [
-      {
-        label: "Release 15",
-        status: "coming",
-        statusLabel: "Next",
-        when: "In progress",
-        items: [
-          { title: "Always an ETA", body: "Every ticket and every running agent shows an estimate and a live ETA, reported by the agents themselves." },
-          { title: "Doctrine inbox", body: "When an agent finds a better rule, it proposes it: you see a dot, review the diff and promote it to git in one click." },
-          { title: "Your brand in the header", body: "Your organisation's logo and short name in AEON's header." },
-          { title: "Larger rule files", body: "Agent rule files up to 500 KB, with best-practice tips." },
-        ],
-      },
-      {
-        label: "Release 16",
-        status: "planned",
-        statusLabel: "Planned",
-        when: "",
-        items: [
-          { title: "Cross-model review", body: "Every change an agent makes is reviewed by a different AI family before it can merge; the verdict shows on the ticket." },
-          { title: "Autopilot lanes", body: "AEON picks, sizes and dispatches the next ticket to the best available agent within your budget, and stops where a person must decide." },
-          { title: "More harnesses", body: "Gemini CLI and OpenCode, including open models, join Claude, Codex, Cursor, Grok and pi." },
-          { title: "Talk to any running session", body: "Send a message into an attached Claude or Codex session straight from AEON." },
-          { title: "Speed tiers per agent", body: "Default, Fast and, where vendors offer it, Ultra." },
-        ],
-      },
-      {
-        label: "Release 17",
-        status: "planned",
-        statusLabel: "Planned",
-        when: "",
-        items: [
-          { title: "Talk to AEON", body: "Voice: dictate tickets, steer agents and hear what needs you." },
-          { title: "Morning briefing", body: "What your agents shipped overnight, what needs you and what it cost, every line linked to its source." },
-          { title: "Approve on the go", body: "Push notifications and Face ID approvals from your phone." },
-          { title: "Always-on agents", body: "Work continues in a secure cloud lane while your laptop sleeps, within your budget and rules." },
-        ],
-      },
-    ],
+    title: "In the order we build it.",
+    lead: "Each step says how far it has shipped. None carries a date, and nothing planned is live.",
+    order: buildOrder.map((step) => ({
+      label: step.label.en,
+      status: step.status,
+      note: step.statusNote?.en,
+    })),
     goodToKnow: {
       title: "Good to know",
       items: [
-        "Steering and session settings are qualified for Claude on macOS.",
-        "Attaching a running session is in early access and, since release 14.1, works from any macOS terminal.",
+        "These harnesses are supported, and live acceptance is still open.",
+        "Steering and session settings are qualified for Claude on macOS; Cursor supports interrupt only.",
+        "Claude is the only harness with qualified tool-free verification; Codex and Cursor connect without an automatic verification run.",
+        "Attaching a running session is in early access, from macOS terminals.",
         "Issues, knowledge and search run through the CLI and HTTP API; the MCP server is in early access.",
         "Rule edits as pull requests are available once an operator enables them.",
         "People sign in through your OIDC identity provider.",
@@ -641,11 +558,10 @@ export const paimosAeonContent = {
   openSource: {
     eyebrow: "Open source",
     title: "Open source, AGPL-3.0.",
-    body:
-      "Inspect, self-host, fork and modify AEON under AGPL-3.0-only. Every source link on this page points at the release 14.1 tag.",
+    body: `Inspect, self-host, fork and modify AEON under AGPL-3.0-only. Every source link on this page points at the release ${paimosRelease.number} tag.`,
     links: [
       { label: "GitHub repository", href: repositoryUrl, external: true },
-      { label: "Release 14.1 on GitHub", href: `${repositoryUrl}/releases/tag/${tag}`, external: true },
+      { label: `Release ${paimosRelease.number} on GitHub`, href: `${repositoryUrl}/releases/tag/${tag}`, external: true },
       { label: "Project license (AGPL-3.0-only)", href: blob("LICENSE"), external: true },
       { label: "Security policy", href: blob("SECURITY.md"), external: true },
       { label: "Agent integration", href: blob("docs/AGENT_INTEGRATION.md"), external: true },
@@ -655,7 +571,7 @@ export const paimosAeonContent = {
     {
       question: "Which agents can we use?",
       answer:
-        "Claude, Codex, Cursor, Grok and pi, including OpenRouter models through pi. They run through aeon-agentd on computers you pair, with your own subscriptions.",
+        "Claude Code, Codex, Cursor and pi start under Paimos on macOS and Linux, including OpenRouter models through pi. Grok runs tool-free on Apple silicon. Gemini and OpenCode pair only; starting them is planned. They run through aeon-agentd on computers you pair, with your own subscriptions.",
     },
     {
       question: "Where does our data live?",

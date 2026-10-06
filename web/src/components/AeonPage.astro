@@ -1,12 +1,13 @@
 ---
 /**
- * INSPR-492: the PAIMOS AEON release page at www.inspr.at/paimos-aeon.
+ * INSPR-492: the PAIMOS AEON page at paimos.inspr.at (also served at
+ * www.inspr.at/paimos/).
  *
  * An iteration on the product-page system rather than a new one: the shared
  * header, hero loop, specs grid, source receipt and footer stay; the rest is
- * AEON's own story, told around the gold era arc from its mark. The page is
- * mounted below the www host, so every locale path and the brand link are
- * scoped to /paimos-aeon/ instead of a product host root.
+ * AEON's own story, told around the gold era arc from its mark. The same files
+ * serve both hosts, so every locale path and the brand link are relative.
+ * INSPR-544: the retired Journey gave way to the engine and the build order.
  */
 import { Image, getImage } from "astro:assets";
 import MicrositeLayout from "../layouts/MicrositeLayout.astro";
@@ -19,9 +20,10 @@ import SpecsGrid, { type LensImage } from "./SpecsGrid.astro";
 import HeroLoop from "./HeroLoop.astro";
 import ProvenanceReceipt from "./ProvenanceReceipt.astro";
 import AeonAuthority from "./AeonAuthority.astro";
-import AeonJourney from "./AeonJourney.astro";
 import AeonRulesPan from "./AeonRulesPan.astro";
 import AeonReleasePlaque from "./AeonReleasePlaque.astro";
+import FamilyBand from "./FamilyBand.astro";
+import StatusChip from "./StatusChip.astro";
 import type { AeonContent, AeonProof } from "../content/types";
 import { siteUrls } from "../content/urls";
 import captureManifest from "../assets/products/paimos-aeon/capture-manifest.json";
@@ -64,7 +66,7 @@ const labels = locale === "de"
       specsFlipAll: "Alle umdrehen",
       specsUnflipAll: "Alle zurückdrehen",
       specsShuffle: "Eckdaten-Raster mischen",
-      lensLive: "Live-Bildschirm, aeon.barta.cm",
+      lensLive: "Live-Bildschirm, interne Instanz",
       lensIllustration: "Illustration",
       lensWeb: "Öffentliches Repository, github.com",
       lensClose: "Schließen",
@@ -72,8 +74,8 @@ const labels = locale === "de"
       lensNext: "Nächste Fähigkeit",
       lensDialog: "Fähigkeit im Detail",
       stepsAria: "Vom Schlüssel zur Freigabe",
-      tabsAria: "Bildschirme der Live-Instanz",
-      stagesAria: "Die acht Stufen einer Journey",
+      tabsAria: "Bildschirme der internen Instanz",
+      frame: "Paimos",
       layersAria: "Die sechs Regel-Ebenen",
       stopsAria: "Zu einem Teil der Regelansicht springen",
       tourPause: "Tour pausieren",
@@ -86,7 +88,8 @@ const labels = locale === "de"
       exitFull: "Vollbild beenden",
       layerLocked: "Gesperrte Untergrenze",
       diagramAria: "Architektur von PAIMOS AEON",
-      horizonAria: "Release-Zeitleiste",
+      horizonAria: "Reihenfolge des Aufbaus",
+      enginesAria: "Die sechs Aufgaben der Engine",
       faqEyebrow: "Praktische Fragen",
       faqTitle: "Kurz gefragt.",
       ribbonAria: "Beispielhafte Ereignisse im Ereignisprotokoll",
@@ -105,7 +108,7 @@ const labels = locale === "de"
       specsFlipAll: "Flip all",
       specsUnflipAll: "Unflip all",
       specsShuffle: "Shuffle the specs grid",
-      lensLive: "Live screen, aeon.barta.cm",
+      lensLive: "Live screen, internal instance",
       lensIllustration: "Illustration",
       lensWeb: "Public repository, github.com",
       lensClose: "Close",
@@ -113,8 +116,8 @@ const labels = locale === "de"
       lensNext: "Next capability",
       lensDialog: "Capability in detail",
       stepsAria: "From key to grant",
-      tabsAria: "Screens from the live instance",
-      stagesAria: "The eight stages of a journey",
+      tabsAria: "Screens from the internal instance",
+      frame: "Paimos",
       layersAria: "The six rule layers",
       stopsAria: "Jump to a part of the rules view",
       tourPause: "Pause tour",
@@ -127,7 +130,8 @@ const labels = locale === "de"
       exitFull: "Exit full screen",
       layerLocked: "Locked floor",
       diagramAria: "PAIMOS AEON architecture",
-      horizonAria: "Release timeline",
+      horizonAria: "Build order",
+      enginesAria: "The engine's six jobs",
       faqEyebrow: "Practical questions",
       faqTitle: "In short.",
       ribbonAria: "Illustrative events in the event log",
@@ -165,16 +169,20 @@ const controlFull = await lightbox(sessionsDark);
 
 // The capability lens: one image per capability, keyed by the NN prefix of
 // src/assets/products/paimos-aeon/specs/NN-slug.{jpg,png,webp} in content
-// order (01 to 20). Each image's kind (live screen, generated scene or public
+// order. Each image's kind (live screen, generated scene or public
 // web page) comes from the capture manifest, the same record the capture gate
 // verifies, so the caption's source line cannot drift from provenance.
+// INSPR-544: capture 14 shows the retired Journey. It stays in the manifest but
+// no capability uses it, so it is left out of the bundle and the keys skip it.
+const retiredLensKeys = new Set(["14"]);
 const lensFiles = import.meta.glob<ImageMetadata>(
-  "../assets/products/paimos-aeon/specs/*.{png,jpg,jpeg,webp}",
+  ["../assets/products/paimos-aeon/specs/*.{png,jpg,jpeg,webp}", "!../assets/products/paimos-aeon/specs/14-*"],
   { eager: true, import: "default" },
 );
+const lensKeys = Array.from({ length: 20 }, (_, i) => String(i + 1).padStart(2, "0")).filter((key) => !retiredLensKeys.has(key));
 const lensKinds: Record<string, LensImage["kind"]> = { live: "live", generated: "art", "public-web": "web" };
 const lensImages: LensImage[] = content.specs.items.map((item, i) => {
-  const key = String(i + 1).padStart(2, "0");
+  const key = lensKeys[i];
   const hit = Object.entries(lensFiles).find(([path]) => path.includes(`/specs/${key}-`));
   if (!hit) throw new Error(`INSPR-492: missing lens image ${key} for "${item.label}" in src/assets/products/paimos-aeon/specs/`);
   const name = hit[0].slice(hit[0].indexOf("paimos-aeon/") + "paimos-aeon/".length);
@@ -316,6 +324,8 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       </div>
     </section>
 
+    <FamilyBand locale={locale} highlight="paimos" />
+
     <!-- Figures. -->
     <section class="aeon-figures page-shell" aria-label={labels.figuresAria} data-section-pattern="figure-ledger">
       <ol class="aeon-figures__list">
@@ -328,7 +338,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       </ol>
     </section>
 
-    <!-- Screens from the live instance, with a lightbox gallery. -->
+    <!-- Screens from the internal instance, with a lightbox gallery. -->
     <section class="section aeon-theatre" id="screens" aria-labelledby="screens-title" data-section-pattern="screen-theatre" data-theatre>
       <div class="page-shell">
         <header class="aeon-theatre__head">
@@ -392,7 +402,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
                 data-pswp-height={screen.full.height}
                 data-caption={`${screen.title} · ${captionTail}`}
               >
-                <span class="aeon-window__bar" aria-hidden="true"><i></i><i></i><i></i><span>aeon.barta.cm</span></span>
+                <span class="aeon-window__bar" aria-hidden="true"><i></i><i></i><i></i><span>{labels.frame}</span></span>
                 <Image
                   src={screen.image}
                   alt={screen.alt}
@@ -493,9 +503,20 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
           <div class="aeon-pairing__copy">
             <p class="eyebrow">{content.controlRoom.pairing.eyebrow}</p>
             <h3>{content.controlRoom.pairing.title}</h3>
-            <ul class="aeon-harnesses" aria-label={content.controlRoom.pairing.harnessesLabel}>
-              {content.controlRoom.pairing.harnesses.map((harness) => <li>{harness}</li>)}
-            </ul>
+            <div class="aeon-matrix">
+              <p class="aeon-matrix__label">{content.controlRoom.harnessMatrix.label}</p>
+              <ul class="aeon-matrix__rows">
+                {content.controlRoom.harnessMatrix.rows.map((row) => (
+                  <li>
+                    <StatusChip status={row.status} locale={locale} />
+                    <ul class="aeon-harnesses">
+                      {row.harnesses.map((harness) => <li>{harness}</li>)}
+                    </ul>
+                    <p class="aeon-matrix__note">{row.note}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
           <ol class="aeon-terminal">
             {content.controlRoom.pairing.steps.map((step, index) => (
@@ -573,7 +594,38 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       </div>
     </section>
 
-    <AeonJourney content={content.delivery} proofs={content.delivery.proof.map((proof) => ({ label: proof.label, href: proofHref(proof) }))} labels={{ proof: labels.proof, stages: labels.stagesAria }} />
+    <!-- The engine: its six jobs, each with how far it has shipped. -->
+    <section class="section aeon-engine" id="engine" aria-labelledby="engine-title" data-section-pattern="engine-jobs">
+      <div class="page-shell">
+        <header class="aeon-split-head">
+          <div>
+            <p class="eyebrow">{content.engine.eyebrow}</p>
+            <h2 id="engine-title">{content.engine.title}</h2>
+          </div>
+          <p class="section-lead">
+            <DetailLevels
+              simple={content.engine.depths.simple ?? content.engine.lead}
+              standard={content.engine.lead}
+              technical={content.engine.depths.technical ?? content.engine.lead}
+            />
+          </p>
+        </header>
+        <ol class="aeon-ledger" aria-label={labels.enginesAria}>
+          {content.engine.jobs.map((job, index) => (
+            <li data-reveal>
+              <span class="aeon-ledger__index" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+              <h3>{job.label}</h3>
+              <StatusChip status={job.status} locale={locale} />
+              <p>{job.note}</p>
+            </li>
+          ))}
+        </ol>
+        <p class="aeon-engine__flow">
+          {content.engine.flowNote.text}
+          <StatusChip status={content.engine.flowNote.status} locale={locale} />
+        </p>
+      </div>
+    </section>
 
     <!-- Architecture: the blueprint. -->
     <section class="section section--ink aeon-blueprint" id="architecture" aria-labelledby="architecture-title" data-section-pattern="blueprint">
@@ -635,7 +687,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
     </section>
 
     <!-- What is coming. -->
-    <section class="section aeon-horizon" id="next" aria-labelledby="horizon-title" data-section-pattern="release-horizon">
+    <section class="section aeon-horizon" id="next" aria-labelledby="horizon-title" data-section-pattern="build-order">
       <div class="page-shell">
         <header class="aeon-split-head">
           <div>
@@ -644,18 +696,13 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
           </div>
           <p class="section-lead">{content.horizon.lead}</p>
         </header>
-        <ol class="aeon-horizon__list" aria-label={labels.horizonAria}>
-          {content.horizon.releases.map((release) => (
-            <li class:list={["aeon-horizon__release", `aeon-horizon__release--${release.status}`]} data-reveal>
-              <span class="aeon-horizon__node" aria-hidden="true"></span>
-              <p class="aeon-horizon__meta">
-                <span class:list={["aeon-badge", `aeon-badge--${release.status}`]}>{release.statusLabel}</span>
-                <span>{release.when}</span>
-              </p>
-              <h3>
-                {release.label}
-              </h3>
-              <ul>{release.items.map((item) => <li><strong>{item.title}</strong> {item.body}</li>)}</ul>
+        <ol class="aeon-ledger" aria-label={labels.horizonAria}>
+          {content.horizon.order.map((step, index) => (
+            <li data-reveal>
+              <span class="aeon-ledger__index" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+              <h3>{step.label}</h3>
+              <StatusChip status={step.status} locale={locale} />
+              {step.note && <p>{step.note}</p>}
             </li>
           ))}
         </ol>

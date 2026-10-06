@@ -55,9 +55,9 @@ switch and browser-language detection only before an explicit choice.
 `/eli10/` remains only as a redirect to the neutral Overview name.
 `/paimos/` (and `/paimos/de/`) is the PAIMOS AEON page (INSPR-492). The same
 files serve `paimos.inspr.at` (canonical) and `www.inspr.at/paimos/`, so its
-locale and home links are relative. The retired Paimos page lives at
-`www.inspr.at/paimos-legacy/` (noindex, unlisted), and the former preview URL
-`/paimos-aeon/` redirects to `/paimos/`. Captures and their provenance live in
+locale and home links are relative. The former preview URL `/paimos-aeon/`
+redirects to `/paimos/`; the retired classic Paimos page at `/paimos-legacy/`
+is gone (INSPR-531). Captures and their provenance live in
 `web/src/assets/products/paimos-aeon/`. Caddy
 selects the right directory by hostname. Hashed Astro assets
 live in an append-only shared pool so cached HTML remains valid across atomic

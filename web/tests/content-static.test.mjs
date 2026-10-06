@@ -67,10 +67,14 @@ test("each product route renders its canonical content through ProductPage", asy
   const urls = await source("content/urls.ts");
 
   for (const { slug, exportName, canonical } of products) {
-    // INSPR-492: /paimos is the AEON page; the retired ProductPage for Paimos
-    // lives at /paimos-legacy with a www mount (asserted below).
-    const routeDir = slug === "paimos" ? "paimos-legacy" : slug;
-    const route = await source(`pages/${routeDir}/index.astro`);
+    assert.ok(
+      urls.includes(`${slug}: "${canonical}"`),
+      `${slug} canonical URL must remain centralized in content/urls.ts`,
+    );
+    // INSPR-544: /paimos is the AEON page (paimos-aeon-static.test.mjs); the
+    // retired ProductPage route for Paimos is gone.
+    if (slug === "paimos") continue;
+    const route = await source(`pages/${slug}/index.astro`);
 
     assert.match(
       route,
@@ -84,14 +88,8 @@ test("each product route renders its canonical content through ProductPage", asy
     );
     assert.match(
       route,
-      slug === "paimos"
-        ? new RegExp(`<ProductPage content=\\{${exportName}\\} mount=\\{\\{ english: siteUrls\\.paimosLegacy, german: siteUrls\\.paimosLegacyGerman \\}\\} \\/>`)
-        : new RegExp(`<ProductPage content=\\{${exportName}\\} \\/>`),
+      new RegExp(`<ProductPage content=\\{${exportName}\\} \\/>`),
       `${slug} must pass its content to ProductPage`,
-    );
-    assert.ok(
-      urls.includes(`${slug}: "${canonical}"`),
-      `${slug} canonical URL must remain centralized in content/urls.ts`,
     );
   }
 });

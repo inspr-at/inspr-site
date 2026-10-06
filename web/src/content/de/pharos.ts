@@ -261,7 +261,7 @@ export const pharosContentDe = {
       eyebrow: "ONBOARDING",
       title: "Jeder Host beginnt mit Preflight.",
       lead:
-        "Die Bereitstellung erfolgt betreut, ein Server nach dem anderen. Der Einrichtungsassistent hält jeweils eine Entscheidung im Blick, sichert Zwischenstände und wartet auf erste Host-Nachweise, bevor das Onboarding als abgeschlossen gilt.",
+        "Die Provisionierung erfolgt betreut, ein Server nach dem anderen. Der Einrichtungsassistent hält jeweils eine Entscheidung im Blick, sichert Zwischenstände und wartet auf erste Host-Nachweise, bevor das Onboarding als abgeschlossen gilt.",
       items: [
         {
           title: "Bestehende Linux-Server",
@@ -421,7 +421,7 @@ export const pharosContentDe = {
         name: "Temporäre CI- und Labor-VMs",
         status: statusLabels.planned.de,
         description:
-          "Temporäre virtuelle Maschinen für CI und Laborarbeit sind geplant; die heutige Bereitstellung erfolgt betreut, ein Server nach dem anderen.",
+          "Temporäre virtuelle Maschinen für CI und Laborarbeit sind geplant; die heutige Provisionierung erfolgt betreut, ein Server nach dem anderen.",
       },
       {
         name: "NixOS und deklarative Konfiguration",

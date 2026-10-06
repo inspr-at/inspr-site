@@ -89,12 +89,12 @@ export const products: Record<ProductKey, FamilyProduct> = {
     role: t("Fleet and deploy", "Flotte und Bereitstellung"),
     oneLiner: t(
       "Fleet truth, backup evidence, guarded deploys, provisioning.",
-      "Flottenzustand, Backup-Nachweise, abgesicherte Deployments, Bereitstellung.",
+      "Flottenzustand, Backup-Nachweise, abgesicherte Deployments, Provisionierung.",
     ),
     status: "live",
     statusNote: t(
       "Provisioning attended, one server at a time",
-      "Bereitstellung betreut, ein Server nach dem anderen",
+      "Provisionierung betreut, ein Server nach dem anderen",
     ),
   },
   janus: {
@@ -188,7 +188,7 @@ export const flow: {
       status: "partly",
       statusNote: t(
         "Review gates live; Claude Code, Codex, Cursor and pi start under Paimos, Grok runs tool-free; Gemini and OpenCode pairing only. Cross-family review as a configurable policy: planned",
-        "Freigabe-Prüfungen live; Claude Code, Codex, Cursor und pi starten unter Paimos, Grok läuft ohne Werkzeuge; Gemini und OpenCode nur gekoppelt. Modellübergreifende Prüfung als konfigurierbare Richtlinie: geplant",
+        "Review-Gates live; Claude Code, Codex, Cursor und pi starten unter Paimos, Grok läuft ohne Werkzeuge; Gemini und OpenCode: nur Kopplung, Start geplant. Modellübergreifende Prüfung als konfigurierbare Richtlinie: geplant",
       ),
     },
     productStep("deploy", t("Deploy", "Bereitstellung"), "pharos"),
@@ -287,7 +287,7 @@ export const buildOrder: Array<{
     status: "partly",
     statusNote: t(
       "Admission dial, review gates, Decision Desk, audit. Per-slice state and merge through Paimos: planned",
-      "Zulassungsregler, Freigabe-Prüfungen, Decision Desk, Prüfprotokoll. Zustand je Arbeitsabschnitt und Merge über Paimos: geplant",
+      "Zulassungsregler, Review-Gates, Decision Desk, Prüfprotokoll. Zustand je Arbeitsabschnitt und Merge über Paimos: geplant",
     ),
   },
   {
@@ -348,7 +348,7 @@ export const engineJobs: Array<{
     status: "partly",
     note: t(
       "Model preferences by type of work, review order and review gates are live; cross-family review as a configurable tenant or project policy is planned.",
-      "Modellpräferenzen je Art der Arbeit, Prüfreihenfolge und Freigabe-Prüfungen sind live; modellübergreifende Prüfung als konfigurierbare Richtlinie je Mandant oder Projekt ist geplant.",
+      "Modellpräferenzen je Art der Arbeit, Prüfreihenfolge und Review-Gates sind live; modellübergreifende Prüfung als konfigurierbare Richtlinie je Mandant oder Projekt ist geplant.",
     ),
   },
   {
@@ -356,8 +356,8 @@ export const engineJobs: Array<{
     label: t("Effects only through Paimos", "Wirkungen nur über Paimos"),
     status: "partly",
     note: t(
-      "Paimos has its own GitHub App, which posts the cross-family review status; pull requests and merges through Paimos are planned.",
-      "Paimos hat eine eigene GitHub-App, die den Status der modellübergreifenden Prüfung meldet; Pull Requests und Merges über Paimos sind geplant.",
+      "Paimos ships its own GitHub App that can post the cross-family review status; pull requests and merges through Paimos are planned.",
+      "Paimos bringt eine eigene GitHub-App mit, die den Status der modellübergreifenden Prüfung setzen kann; Pull Requests und Merges über Paimos sind geplant.",
     ),
   },
   {

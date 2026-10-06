@@ -34,7 +34,7 @@ export const paimosContent = {
       artefact: "Work tree, knowledge, work orders and run records, per tenant and permission-aware.",
       interfaces: "UI, CLI, HTTP API",
       maturity: "Paimos 7 · AEON, released, AGPL-3.0-only",
-      command: 'paimos issue create -p PROJ --title "Write release notes"',
+      command: 'aeon issue create -p PROJ --title "Write release notes"',
     },
     eyebrow: "Paimos 7 · AEON",
     title: "One shared project picture.",
@@ -546,7 +546,7 @@ export const paimosContent = {
         {
           title: "Stable names for agents",
           body:
-            "Agents read an entry by its kind and slug, for example paimos knowledge get runbook deploy-checklist --project KEY, so the same reference works from every harness and from the CLI.",
+            "Agents read an entry by its kind and slug, for example aeon knowledge get runbook deploy-checklist --project KEY, so the same reference works from every harness and from the CLI.",
           meta: "One reference, every harness",
           reference: {
             label: "Agent integration",

@@ -99,7 +99,7 @@ test("product technical drawers share typed, public datasheets and localized han
       const [handoffIn, handoffOut] = slug === "paimos" ? paimosHandoff[locale] : [handoffs[locale][index], handoffs[locale][index + 1]];
       assert.ok(handoff.includes(`in: "${handoffIn}"`));
       assert.ok(handoff.includes(`out: "${handoffOut}"`));
-      if (slug === "paimos") assert.ok(sheet.includes('command: \'paimos issue create -p PROJ --title "Write release notes"\''));
+      if (slug === "paimos") assert.ok(sheet.includes('command: \'aeon issue create -p PROJ --title "Write release notes"\''));
       else assert.doesNotMatch(sheet, /command:/);
       assert.doesNotMatch(sheet + handoff, /\b(hsb|csb|mbp)\d/i, `${slug} ${locale}: no host names`);
       assert.doesNotMatch(sheet + handoff, /barta\.cm|netcup|hetzner|storage box/i, `${slug} ${locale}: no internal domains or providers`);

@@ -30,7 +30,7 @@ test("INSPR-545 Pharos keeps attended provisioning live and dates neither planne
   assert.match(en, /version: "260925163010\.0\.0"/);
   assert.match(de, /import \{ pharosBlob, pharosRelease \} from "\.\.\/pharos"/);
   assert.match(en, /Provisioning is attended, one server at a time\./);
-  assert.match(de, /Die Bereitstellung erfolgt betreut, ein Server nach dem anderen\./);
+  assert.match(de, /Die Provisionierung erfolgt betreut, ein Server nach dem anderen\./);
   for (const [locale, content] of [["en", en], ["de", de]]) {
     const planned = [...content.matchAll(/\{\s*name: "([^"]+)",\s*status: statusLabels\.planned\.(?:en|de),\s*description:\s*"([^"]+)"/g)];
     assert.equal(planned.length, 2, `${locale}: Paimos tool and temporary VM paths are planned`);

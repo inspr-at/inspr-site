@@ -34,7 +34,7 @@ export const paimosContentDe = {
       artefact: "Arbeitsbaum, Wissen, Arbeitsaufträge und Laufaufzeichnungen, je Mandant und berechtigungsbewusst.",
       interfaces: "UI, CLI, HTTP-API",
       maturity: "Paimos 7 · AEON, veröffentlicht, AGPL-3.0-only",
-      command: 'paimos issue create -p PROJ --title "Write release notes"',
+      command: 'aeon issue create -p PROJ --title "Write release notes"',
     },
     eyebrow: "Paimos 7 · AEON",
     title: "Ein gemeinsames Projektbild.",
@@ -70,7 +70,7 @@ export const paimosContentDe = {
         label: "Agenten zuerst",
         icon: "workflow",
         group: "ai",
-        note: "Claude Code, Codex, Cursor und pi starten unter Paimos (macOS und Linux), jede Sitzung mit eigenem Schlüssel und eigenen Scopes; Grok läuft ohne Werkzeuge auf Apple Silicon; Gemini und OpenCode sind nur gekoppelt, der Start ist geplant.",
+        note: "Claude Code, Codex, Cursor und pi starten unter Paimos (macOS und Linux), jede Sitzung mit eigenem Schlüssel und eigenen Scopes; Grok läuft ohne Werkzeuge auf Apple Silicon; Gemini und OpenCode: nur Kopplung, Start geplant.",
         noteEli10:
           "KI-Helfer mehrerer Hersteller können in denselben Projekten arbeiten wie die Menschen in Ihrem Team. Jeder hat ein eigenes Kennzeichen, sodass Sie immer wissen, wer was getan hat. Manche Helfer lassen sich vorerst nur koppeln.",
       },
@@ -546,7 +546,7 @@ export const paimosContentDe = {
         {
           title: "Stabile Namen für Agenten",
           body:
-            "Agenten lesen einen Eintrag über seine Art und seinen Slug, zum Beispiel paimos knowledge get runbook deploy-checklist --project KEY, sodass derselbe Verweis aus jedem Harness und aus der CLI funktioniert.",
+            "Agenten lesen einen Eintrag über seine Art und seinen Slug, zum Beispiel aeon knowledge get runbook deploy-checklist --project KEY, sodass derselbe Verweis aus jedem Harness und aus der CLI funktioniert.",
           meta: "Ein Verweis, jedes Harness",
           reference: {
             label: "Agenten-Integration",
@@ -586,7 +586,7 @@ export const paimosContentDe = {
           title: "Agenten-Harnesses",
           icon: "workflow",
           body:
-            "Claude Code, Codex, Cursor und pi starten unter Paimos (macOS und Linux) und erscheinen während der Arbeit im Arbeitsbereich für Agenten: woran sie arbeiten, in welchem Tempo sie vorankommen und was sie von Ihnen brauchen. Grok läuft ohne Werkzeuge auf Apple Silicon; Gemini und OpenCode sind nur gekoppelt, der Start ist geplant.",
+            "Claude Code, Codex, Cursor und pi starten unter Paimos (macOS und Linux) und erscheinen während der Arbeit im Arbeitsbereich für Agenten: woran sie arbeiten, in welchem Tempo sie vorankommen und was sie von Ihnen brauchen. Grok läuft ohne Werkzeuge auf Apple Silicon; Gemini und OpenCode: nur Kopplung, Start geplant.",
           meta: "Unterstützt, nicht im großen Maßstab erprobt",
         },
         {
@@ -781,7 +781,7 @@ export const paimosContentDe = {
         name: "Claude Code, Codex, Cursor und pi",
         status: "Agenten-Harnesses",
         description:
-          "Lokale Agentensitzungen starten unter Paimos, registrieren sich bei einem Projekt, beanspruchen Läufe, fragen Berechtigungen an und melden inhaltsfreie Telemetrie. Grok läuft ohne Werkzeuge; Gemini und OpenCode sind nur gekoppelt.",
+          "Lokale Agentensitzungen starten unter Paimos, registrieren sich bei einem Projekt, beanspruchen Läufe, fragen Berechtigungen an und melden inhaltsfreie Telemetrie. Grok läuft ohne Werkzeuge; Gemini und OpenCode: nur Kopplung, Start geplant.",
       },
       {
         name: "aeon-agentd",

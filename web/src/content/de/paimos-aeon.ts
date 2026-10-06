@@ -133,7 +133,7 @@ export const paimosAeonContentDe = {
         label: "Agenten zuerst",
         icon: "workflow",
         group: "ai",
-        note: "Claude Code, Codex, Cursor und pi starten unter Paimos in denselben Projekten wie Personen, jeder mit eigenem Schlüssel und eigenen Scopes. Grok läuft ohne Werkzeuge auf Apple Silicon; Gemini und OpenCode werden nur gekoppelt.",
+        note: "Claude Code, Codex, Cursor und pi starten unter Paimos in denselben Projekten wie Personen, jeder mit eigenem Schlüssel und eigenen Scopes. Grok läuft ohne Werkzeuge auf Apple Silicon; Gemini und OpenCode: nur Kopplung, Start geplant.",
         noteEli10: "KI-Helfer mehrerer Hersteller arbeiten in denselben Projekten wie Ihre Leute, und jeder trägt sein eigenes Kennzeichen. Einige kommen vorerst mit weniger Fähigkeiten dazu.",
       },
       {
@@ -467,7 +467,7 @@ export const paimosAeonContentDe = {
       simple:
         "Die Engine ist der Teil von AEON, der Agenten und Menschen im Takt hält. Einige ihrer Aufgaben funktionieren schon, andere sind noch im Aufbau.",
       technical:
-        "Heute live: der Zulassungsregler mit Grenzen je Harness, Modellpräferenzen je Art der Arbeit mit Prüfreihenfolge und Freigabe-Prüfungen, der Decision Desk mit dauerhaftem Posteingang sowie Ereignisse mit Zuordnung der Arbeit zu den ausführenden Agenten, Ergebnissen und Berichten zu Sitzungen, Token und Kosten.",
+        "Heute live: der Zulassungsregler mit Grenzen je Harness, Modellpräferenzen je Art der Arbeit mit Prüfreihenfolge und Review-Gates, der Decision Desk mit dauerhaftem Posteingang sowie Ereignisse mit Zuordnung der Arbeit zu den ausführenden Agenten, Ergebnissen und Berichten zu Sitzungen, Token und Kosten.",
     },
     jobs: engineJobs.map((job) => ({ label: job.label.de, status: job.status, note: job.note.de })),
     flowNote: {
@@ -558,7 +558,7 @@ export const paimosAeonContentDe = {
     {
       question: "Welche Agenten können wir nutzen?",
       answer:
-        "Claude Code, Codex, Cursor und pi starten unter Paimos auf macOS und Linux, einschließlich OpenRouter-Modellen über pi. Grok läuft ohne Werkzeuge auf Apple Silicon. Gemini und OpenCode werden nur gekoppelt; ihr Start ist geplant. Sie laufen über aeon-agentd auf Rechnern, die Sie koppeln, mit Ihren eigenen Abos.",
+        "Claude Code, Codex, Cursor und pi starten unter Paimos auf macOS und Linux, einschließlich OpenRouter-Modellen über pi. Grok läuft ohne Werkzeuge auf Apple Silicon. Gemini und OpenCode: nur Kopplung, Start geplant. Sie laufen über aeon-agentd auf Rechnern, die Sie koppeln, mit Ihren eigenen Abos.",
     },
     {
       question: "Wo liegen unsere Daten?",

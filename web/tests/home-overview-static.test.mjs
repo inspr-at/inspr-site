@@ -49,7 +49,7 @@ test("Paimos content marks intake and handoffs planned and drops the retired Jou
   assert.match(en, /Grok runs tool-free on Apple silicon; Gemini and OpenCode pair only/);
   const de = await source("content/de/paimos.ts");
   assert.match(de, /Claude Code, Codex, Cursor und pi starten unter Paimos \(macOS und Linux\)/);
-  assert.match(de, /Gemini und OpenCode sind nur gekoppelt/);
+  assert.match(de, /Gemini und OpenCode: nur Kopplung, Start geplant/);
 });
 
 test("the home and the overview read the shared message, flow, statuses and one-liners", async () => {

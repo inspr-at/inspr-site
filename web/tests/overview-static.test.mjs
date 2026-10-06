@@ -292,7 +292,7 @@ test("Overview Details slider is wordless and its technical depth is a datasheet
   assert.match(page, /<p class="overview-kicker" data-index="01">/);
   assert.match(page, /<OverviewStack locale=\{locale\} \/>\s*<section class="overview-next/);
   assert.doesNotMatch(page, /OverviewDetails|overview-meta/);
-  assert.match(page, /command: 'paimos issue create -p PROJ --title "Write release notes"'/);
+  assert.match(page, /command: 'aeon issue create -p PROJ --title "Write release notes"'/);
   assert.match(stack, /class="overview-stack page-shell overview-drawer overview-drawer--section" id="stack"[\s\S]*?data-drawer/);
   assert.deepEqual([...stack.matchAll(/id: "(l\d)", number: "L\d"/g)].map((match) => match[1]), ["l7", "l6", "l5", "l4", "l3", "l2", "l1"]);
   assert.match(stack, /role="table"[\s\S]*?role="columnheader"[\s\S]*?id=\{layer\.id\} data-stack-layer=\{layer\.id\}/);

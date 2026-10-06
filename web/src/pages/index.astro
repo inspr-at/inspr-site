@@ -178,12 +178,16 @@ const products = [
 ];
 
 // INSPR-540: each card names the release the site presents, from the same
-// constants the product pages use. Doctrine carries none.
+// constants the product pages use. Doctrine carries none. The card is one
+// link, so calendar versions stay on the product pages, where the shared
+// renderer shows them with reveal and copy; the card shows the release date.
+const releaseDate = (iso: string) =>
+  locale === "de" ? `Release vom ${iso.split("-").reverse().join(".")}` : `Release of ${iso}`;
 const productReleases = {
-  aithema: `Release ${aithemaReleaseVersion}`,
+  aithema: copy(`Requirements core ${aithemaReleaseVersion}`, `Anforderungskern ${aithemaReleaseVersion}`),
   paimos: `Release ${paimosRelease.number} · ${paimosRelease.codename}`,
-  pharos: `Release ${pharosRelease.version}`,
-  janus: `Release ${janusRelease.version}`,
+  pharos: releaseDate(pharosRelease.date),
+  janus: releaseDate(janusRelease.date),
 };
 
 const doctrine = familyProducts.doctrine;

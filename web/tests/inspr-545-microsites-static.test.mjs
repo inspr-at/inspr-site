@@ -21,8 +21,11 @@ test("INSPR-545 microsites use the family one-liners and highlighted flow near t
     assert.ok(band > page.indexOf('id="hero-title"'));
     assert.ok(band < page.indexOf('class="proof-console'));
     assert.match(page, /<FamilyBand highlight=\{content\.slug\} locale=\{locale\} \/>|<FamilyBand highlight="aithema" locale=\{locale\} \/>/);
-    assert.match(page, /<StatusChip status=\{contract\.status\} locale=\{locale\} \/> \{contract\.standalone\[locale\]\} \{contract\.statusNote\[locale\]\}/);
   }
+  // The band carries the contract: the standalone fact without a chip, the
+  // Planned chip only on the connection that is being built.
+  const band = await source("components/FamilyBand.astro");
+  assert.match(band, /\{contract\.standalone\[locale\]\}\s*<StatusChip status=\{contract\.status\} locale=\{locale\} \/>\s*\{contract\.statusNote\[locale\]\}/);
 });
 
 test("INSPR-545 Pharos keeps attended provisioning live and dates neither planned integration", async () => {
@@ -83,8 +86,8 @@ test("INSPR-545 German rails, workflow alt text and Janus source label are trans
   const [, janus] = await editions("janus");
   assert.match(page, /gate: "Freigabe"/);
   assert.match(page, /Ein Instrument zur Flottensteuerung/);
-  assert.match(page, /Eine Anfrage mit Secret-Nutzung/);
-  assert.match(rail, /counter: "Nachweis", of: "von"/);
+  assert.match(page, /Eine Anfrage mit Geheimnisnutzung/);
+  assert.match(rail, /counter: "Signal", of: "von"/);
   assert.doesNotMatch(rail, /\sSignal \{String/);
   assert.doesNotMatch(janus, /Envelope|OPEN SOURCE/);
   assert.match(janus, /eyebrow: "QUELLOFFEN"/);

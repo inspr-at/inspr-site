@@ -16,7 +16,7 @@ import { releaseMetadata } from "../../release-metadata.mjs";
 import CalendarVersion from "./CalendarVersion.astro";
 import FamilyBand from "./FamilyBand.astro";
 import StatusChip from "./StatusChip.astro";
-import { contract, products } from "../content/family";
+import { products } from "../content/family";
 import { aithemaHandover, aithemaReleaseVersion } from "../content/aithema";
 
 import aithemaHero from "../assets/products/aithema/hero.png";
@@ -329,7 +329,6 @@ const deployedAtLabel = releaseMetadata.deployedAt
     </section>
 
     <FamilyBand highlight="aithema" locale={locale} />
-    <p class="page-shell"><StatusChip status={contract.status} locale={locale} /> {contract.standalone[locale]} {contract.statusNote[locale]}</p>
 
     <section
       class="proof-console page-shell" data-depth-min="standard"

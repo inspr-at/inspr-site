@@ -35,7 +35,7 @@ test("the five product question words are pinned in English and German", () => {
   assert.equal(family.products.doctrine.name.en, "Doctrine");
   assert.equal(family.products.doctrine.name.de, "Doktrin");
   assert.equal(family.productRole("paimos"), "What · Plan and engine");
-  assert.equal(family.productRole("janus", "de"), "Wer · Zugriff auf Secrets");
+  assert.equal(family.productRole("janus", "de"), "Wer · Zugriff auf Geheimnisse");
 });
 
 test("every product has a one-liner in both languages", () => {

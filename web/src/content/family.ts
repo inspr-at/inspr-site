@@ -101,10 +101,10 @@ export const products: Record<ProductKey, FamilyProduct> = {
     key: "janus",
     name: t("Janus", "Janus"),
     verb: t("Who", "Wer"),
-    role: t("Access to secrets", "Zugriff auf Secrets"),
+    role: t("Access to secrets", "Zugriff auf Geheimnisse"),
     oneLiner: t(
       "A bounded permit to use a secret; the value never appears. Roles, delegation, value-free audit.",
-      "Eine begrenzte Freigabe für ein Secret; der Wert erscheint nie. Rollen, Delegation, Audit ohne Werte.",
+      "Eine begrenzte Freigabe für ein Geheimnis; der Wert erscheint nie. Rollen, Delegation, Audit ohne Werte.",
     ),
     status: "live",
     statusNote: t(

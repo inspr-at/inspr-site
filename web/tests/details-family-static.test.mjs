@@ -168,7 +168,7 @@ test("the umbrella start page carries the Details slider, depth leads and techni
     assert.ok(umbrella.includes(phrase), `missing umbrella depth copy: ${phrase}`);
   }
   for (const slug of products) {
-    assert.ok(umbrella.includes(`import { ${slug}Content } from "../content/${slug}";`));
+    assert.match(umbrella, new RegExp(`import \\{ ${slug}Content(?:, \\w+)? \\} from "\\.\\./content/${slug}";`));
     assert.ok(umbrella.includes(`import { ${slug}ContentDe } from "../content/de/${slug}";`));
     assert.ok(umbrella.includes(`${slug}: (locale === "de" ? ${slug}ContentDe : ${slug}Content).hero.sheet`));
     assert.match(umbrella, new RegExp(`name: "${slug[0].toUpperCase() + slug.slice(1)}",\\s*sheet: sheets\\.${slug},`));

@@ -62,10 +62,10 @@ const layers = [
     evidence: copy("OpenTofu state and the plan before every apply", "Zustandsdatei von OpenTofu und der Plan vor jeder Anwendung"),
   },
   {
-    id: "l4", number: "L4", name: "Secrets",
-    what: copy("Encrypted at rest and unlocked only by the one host that owns the key. A password vault is the human master copy. Janus issues bounded permits to use a secret, with roles, delegation and a value-free audit, so the value never appears in a prompt or a log.", "Verschlüsselt gespeichert und nur von dem Host entschlüsselt, dem der Schlüssel gehört. Ein Passwort-Tresor ist die Stammkopie für Menschen. Janus stellt begrenzte Freigaben für die Nutzung eines Secrets aus, mit Rollen, Delegation und einem Audit ohne Werte; der Wert erscheint nie in einem Prompt oder Log."),
+    id: "l4", number: "L4", name: copy("Secrets", "Geheimnisse"),
+    what: copy("Encrypted at rest and unlocked only by the one host that owns the key. A password vault is the human master copy. Janus issues bounded permits to use a secret, with roles, delegation and a value-free audit, so the value never appears in a prompt or a log.", "Verschlüsselt gespeichert und nur von dem Host entschlüsselt, dem der Schlüssel gehört. Ein Passwort-Tresor ist die Stammkopie für Menschen. Janus stellt begrenzte Freigaben für die Nutzung eines Geheimnisses aus, mit Rollen, Delegation und einem Audit ohne Werte; der Wert erscheint nie in einem Prompt oder Log."),
     tools: ["agenix", copy("password vault", "Passwort-Tresor"), copy("Janus permits", "Janus-Freigaben")],
-    declared: copy("encrypted secret declarations in git; each host unlocks only its own", "verschlüsselte Secret-Deklarationen in Git; jeder Host entschlüsselt nur seine eigenen"),
+    declared: copy("encrypted secret declarations in git; each host unlocks only its own", "verschlüsselte Geheimnis-Deklarationen in Git; jeder Host entschlüsselt nur seine eigenen"),
     verified: copy("negative-path tests in Janus; value-free audit of every permit", "Negativpfad-Tests in Janus; Audit jeder Freigabe ohne Werte"),
     evidence: copy("audit records without values", "Audit-Einträge ohne Werte"),
   },

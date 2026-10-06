@@ -13,7 +13,7 @@ interface Props {
 
 const { id, items, label, signalLabel, tone = "paper", locale = "en" } = Astro.props;
 const labels = locale === "de"
-  ? { evidence: "Betriebssignal", counter: "Nachweis", of: "von" }
+  ? { evidence: "Betriebssignal", counter: "Signal", of: "von" }
   : { evidence: "Operational signal", counter: "Signal", of: "/" };
 const fallbackIcons = [
   "circle-dot",

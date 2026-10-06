@@ -406,7 +406,7 @@ export const janusContentDe = {
         name: "Paimos-Werkzeugvertrag",
         status: statusLabels.planned.de,
         description:
-          "Paimos soll begrenzte Secret-Nutzung über den gemeinsamen Vertrag anfragen. Janus läuft heute eigenständig.",
+          "Paimos soll die begrenzte Nutzung von Geheimnissen über den gemeinsamen Vertrag anfragen. Janus läuft heute eigenständig.",
       },
       {
         name: "age",

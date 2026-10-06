@@ -17,7 +17,7 @@ import SpecsGrid from "./SpecsGrid.astro";
 import HeroLoop from "./HeroLoop.astro";
 import FamilyBand from "./FamilyBand.astro";
 import StatusChip from "./StatusChip.astro";
-import { contract, products } from "../content/family";
+import { products, statusLabels } from "../content/family";
 import type { ProductContent } from "../content/types";
 import { siteUrls } from "../content/urls";
 
@@ -63,6 +63,9 @@ const mount = Astro.props.mount;
 const englishUrl = mount?.english ?? siteUrls[content.slug];
 const germanUrl = mount?.german ?? `${englishUrl}/de/`;
 const pathOf = (url: string) => new URL(url).pathname;
+// Planned rows use the shared chip so they never read like a shipped status.
+const isPlannedLabel = (status: string) =>
+  status === statusLabels.planned.en || status === statusLabels.planned.de;
 
 // UI chrome that does not belong to the content model. Section anchors stay
 // identical across locales so the language switch preserves deep links.
@@ -173,7 +176,7 @@ const assets = {
     workflow: janusWorkflow,
     workflowAlt:
       locale === "de"
-        ? "Eine Anfrage mit Secret-Nutzung durchquert eine transparente Richtliniengrenze, während der Secret-Wert versiegelt bleibt."
+        ? "Eine Anfrage mit Geheimnisnutzung durchquert eine transparente Richtliniengrenze, während der Geheimniswert versiegelt bleibt."
         : "A secret-backed request crossing a transparent policy boundary while the secret value remains sealed.",
   },
 }[content.slug];
@@ -315,7 +318,6 @@ const featurePresentations: Record<string, FeaturePresentation> = {
     {content.slug !== "paimos" && (
       <>
         <FamilyBand highlight={content.slug} locale={locale} />
-        <p class="page-shell"><StatusChip status={contract.status} locale={locale} /> {contract.standalone[locale]} {contract.statusNote[locale]}</p>
       </>
     )}
 
@@ -589,7 +591,11 @@ const featurePresentations: Record<string, FeaturePresentation> = {
             {content.integrations.items.map((item) => (
               <tr data-integration-row={item.status}>
                 <th scope="row">{item.name}</th>
-                <td><span class="status-label">{item.status}</span></td>
+                <td>
+                  {isPlannedLabel(item.status)
+                    ? <StatusChip status="planned" locale={locale} />
+                    : <span class="status-label">{item.status}</span>}
+                </td>
                 <td>{item.description}</td>
               </tr>
             ))}

@@ -318,7 +318,7 @@ export const paimosAeonContentDe = {
       {
         icon: "radio-tower",
         title: "Nachrichten mit Empfangsbestätigung",
-        body: "Gesendet, Zugestellt, Gelesen. Die Zustellung ist garantiert, und Posteingangs-Hooks bringen Nachrichten in die Sitzung.",
+        body: "Gesendet, Zugestellt, Gelesen. Bei Sitzungen mit Posteingang wird die Zustellung verfolgt, und Posteingangs-Hooks bringen Nachrichten in die Sitzung. Cursor-Sitzungen haben keinen Posteingang und nehmen nur Unterbrechungen an.",
       },
       {
         icon: "sliders-horizontal",
@@ -434,7 +434,7 @@ export const paimosAeonContentDe = {
       simple:
         "Hausregeln für KI-Helfer werden einmal für das Unternehmen geschrieben und für jedes Projekt, jede Person und jede Aufgabe verfeinert. Die wichtigen bleiben fest verankert.",
       technical:
-        "internal/rules führt sechs Ebenen zu unveränderlichen, versionierten Veröffentlichungen mit gesperrten Untergrenzen und Byte-Budgets je Ebene zusammen. Die Doktrin aus Git wird bei einem festgelegten Commit gelesen; aeon rules compare und aeon doctor melden Abweichungen gegenüber dem zusammengeführten Regelsatz.",
+        "Die Regel-Engine führt sechs Ebenen zu unveränderlichen, versionierten Veröffentlichungen mit gesperrten Untergrenzen und Byte-Budgets je Ebene zusammen. Die Doktrin aus Git wird bei einem festgelegten Commit gelesen; aeon rules compare und aeon doctor melden Abweichungen gegenüber dem zusammengeführten Regelsatz.",
     },
     stops: [
       { label: "Unternehmen", at: 0.045 },
@@ -501,22 +501,22 @@ export const paimosAeonContentDe = {
       {
         title: "Ein Ereignisprotokoll, vollständig erhalten",
         body: "Ein Trigger lässt das Ereignisprotokoll nur wachsen; Historie und Live-Aktualisierungen lesen beide daraus.",
-        proof: { label: "0101_relations_events.sql", path: "internal/db/migrations/0101_relations_events.sql" },
+        proof: { label: "Schema des Ereignisprotokolls", path: "internal/db/migrations/0101_relations_events.sql" },
       },
       {
         title: "Mandantentrennung in der Datenbank",
         body: "Sicherheit auf Zeilenebene im FORCE-Modus hält die Mandanten in jeder Tabelle auseinander, unterhalb der Anwendung.",
-        proof: { label: "0003_principals.sql", path: "internal/db/migrations/0003_principals.sql" },
+        proof: { label: "Schema der Mandantentrennung", path: "internal/db/migrations/0003_principals.sql" },
       },
       {
         title: "Schlüssel als Obergrenze",
         body: "Eine Freigabe kann die Scopes eines Schlüssels verfeinern und bleibt innerhalb davon.",
-        proof: { label: "approvals/doc.go", path: "internal/approvals/doc.go" },
+        proof: { label: "Hinweise zum Freigabe-Paket", path: "internal/approvals/doc.go" },
       },
       {
         title: "Vertrag zuerst",
         body: "Eine Datei nach OpenAPI 3.1 beschreibt 300+ Pfade; der Server bettet die Web-Anwendung ein, die er ausliefert.",
-        proof: { label: "api/openapi.yaml", path: "api/openapi.yaml" },
+        proof: { label: "OpenAPI-Vertrag", path: "api/openapi.yaml" },
       },
     ],
   },

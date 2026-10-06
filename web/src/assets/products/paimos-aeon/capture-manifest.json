@@ -2,7 +2,7 @@
   "ticket": "INSPR-492",
   "tag": "v260930115354.0.0",
   "commit": "ea5328e7b9af8e6087c6ccc2b765e6c11c5d7e01",
-  "source": "https://aeon.barta.cm",
+  "source": "internal INSPR instance",
   "sourceVersionCheck": "GET /api/version returned 260930094206.0.0 (release 14) for captures before 12:24 UTC and 260930115354.0.0 (release 14.1) after",
   "syntheticData": false,
   "decision": "Operator decision 2026-09-30 (INSPR-492): capture the live INSPR instance instead of a local demo; public INSPR/AEON projects only.",
@@ -12,33 +12,33 @@
     "height": 1000,
     "deviceScaleFactor": 2
   },
-  "redaction": "Live frames exclude the accounts card; account e-mail text is blurred in the DOM before every shot as a safety net. Usage is filtered to the Aeon project. Generated illustrations contain no text.",
+  "redaction": "Live frames exclude the accounts card; account e-mail text is blurred in the DOM before every shot as a safety net. Usage is filtered to the Aeon project. Generated illustrations contain no text. INSPR-544: machine names, personal names and the instance address are blanked in the published pixels; the digests below are of the redacted files.",
   "files": [
     {
       "name": "sessions-dark.png",
       "kind": "live",
-      "source": "https://aeon.barta.cm",
+      "source": "internal INSPR instance",
       "route": "/agents",
       "version": "260930094206.0.0",
       "crop": "section.sessions",
       "theme": "dark",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "0b39f83181132a1c4506ec74416277c2f64109efd69313f32fe685ee33ec3442"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails; after capture, machine names, personal names and the instance address were blanked in the pixels (INSPR-544: OCR scan plus visual check)",
+      "sha256": "7b0fb1bebdade89602f6a1f81c57d4b7be8fa19c8dc14173b9b7d433e8f1f3e8"
     },
     {
       "name": "tickets.png",
       "kind": "live",
-      "source": "https://aeon.barta.cm",
+      "source": "internal INSPR instance",
       "route": "/p/AEON/tickets?group=epic&sort=-progress,priority&cols=status,priority,assignee,estimate,progress,eta,updated",
       "version": "260930094206.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "41131a96e864f57a8d751032131d2896fe0a32d4a032d69a7a0bb35d9e8dfb71"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails; after capture, machine names, personal names and the instance address were blanked in the pixels (INSPR-544: OCR scan plus visual check)",
+      "sha256": "78099bef505edca5867ef82dfca034a68af21d5562fc4e9285f0d659663c3b7f"
     },
     {
       "name": "graph.png",
       "kind": "live",
-      "source": "https://aeon.barta.cm",
+      "source": "internal INSPR instance",
       "route": "/p/AEON/tickets?view=graph",
       "version": "260930094206.0.0",
       "theme": "light",
@@ -48,7 +48,7 @@
     {
       "name": "knowledge.png",
       "kind": "live",
-      "source": "https://aeon.barta.cm",
+      "source": "internal INSPR instance",
       "route": "/p/AEON/knowledge?view=graph",
       "version": "260930094206.0.0",
       "state": "graph maximized",
@@ -59,7 +59,7 @@
     {
       "name": "usage.png",
       "kind": "live",
-      "source": "https://aeon.barta.cm",
+      "source": "internal INSPR instance",
       "route": "/agents/usage",
       "version": "260930094206.0.0",
       "state": "7 days, project Aeon",
@@ -71,7 +71,7 @@
     {
       "name": "rules.png",
       "kind": "live",
-      "source": "https://aeon.barta.cm",
+      "source": "internal INSPR instance",
       "route": "/settings/agent-rules",
       "version": "260930115354.0.0",
       "state": "public kernel sets, AEON what-Aeon-is and style, and the AGENTS-KERNEL and AGENTS-AGENT-DEV doctrine files expanded; private operator sets and AEON how-you-work stay collapsed",
@@ -83,55 +83,55 @@
     {
       "name": "specs/01-agents-first.jpg",
       "kind": "live",
-      "source": "https://aeon.barta.cm",
+      "source": "internal INSPR instance",
       "route": "/agents",
       "version": "260930094206.0.0",
       "state": "sessions section",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "f12531efe8f9fb574ba03eef5b8820d995b4b71d97999778bb022f87fd20fd66"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails; after capture, machine names, personal names and the instance address were blanked in the pixels (INSPR-544: OCR scan plus visual check)",
+      "sha256": "ea60b7ea1869dae2f3efabdd4daa9a8301e965d5da0e51e16699742764a11743"
     },
     {
       "name": "specs/02-control-room.jpg",
       "kind": "live",
-      "source": "https://aeon.barta.cm",
+      "source": "internal INSPR instance",
       "route": "/agents",
       "version": "260930094206.0.0",
       "state": "sessions section",
       "theme": "dark",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "68a2e962232b42b00e41c14861556d347548e63cbd1b9e3fd881a88209f76612"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails; after capture, machine names, personal names and the instance address were blanked in the pixels (INSPR-544: OCR scan plus visual check)",
+      "sha256": "c9f16e9028d5abfb91812dd2bd4084cc28a373fb22e5c5a4d99d2b17a339eaaf"
     },
     {
       "name": "specs/03-your-machines.jpg",
       "kind": "live",
-      "source": "https://aeon.barta.cm",
+      "source": "internal INSPR instance",
       "route": "/agents/register-agent",
       "version": "260930094206.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "7a5612b2fa2cac480494499f1def494310155a9997acb19a64fcc6d858a1f488"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails; after capture, machine names, personal names and the instance address were blanked in the pixels (INSPR-544: OCR scan plus visual check)",
+      "sha256": "5113e851bb40ecdb80fd2b7f5e8ce12cf77f2bcf1005cbd94572054d3dc7a342"
     },
     {
       "name": "specs/04-scoped-keys.jpg",
       "kind": "live",
-      "source": "https://aeon.barta.cm",
+      "source": "internal INSPR instance",
       "route": "/settings/access/agents",
       "version": "260930094206.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "bd8a659b178f87e62106e1b3d43e29d9409a7d3136fee435385af991a7ebcad6"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails; after capture, machine names, personal names and the instance address were blanked in the pixels (INSPR-544: OCR scan plus visual check)",
+      "sha256": "1f469f2f4a190574d0ae5cdd1db1348961cd93451b89b3f6a3ee4466b9e138e0"
     },
     {
       "name": "specs/05-person-approvals.jpg",
       "kind": "live",
-      "source": "https://aeon.barta.cm",
+      "source": "internal INSPR instance",
       "route": "/agents",
       "version": "260930094206.0.0",
       "state": "decided approvals expanded",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "bfef5dba93d9a8e656e10c228ea7fe0b278f996e0aabea5e148a64ab5cf4bb92"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails; after capture, machine names, personal names and the instance address were blanked in the pixels (INSPR-544: OCR scan plus visual check)",
+      "sha256": "183e3ae1c36e3db800ed5bd806af1a1704845288734e255c8a21adc1edfb9f7e"
     },
     {
       "name": "specs/06-capacity-routing.jpg",
@@ -144,7 +144,7 @@
     {
       "name": "specs/07-governed-rules.jpg",
       "kind": "live",
-      "source": "https://aeon.barta.cm",
+      "source": "internal INSPR instance",
       "route": "/settings/agent-rules",
       "version": "260930094206.0.0",
       "theme": "light",
@@ -154,7 +154,7 @@
     {
       "name": "specs/08-git-backed-doctrine.jpg",
       "kind": "live",
-      "source": "https://aeon.barta.cm",
+      "source": "internal INSPR instance",
       "route": "/settings/agent-rules",
       "version": "260930094206.0.0",
       "state": "doctrine section",
@@ -181,13 +181,13 @@
     {
       "name": "specs/11-one-work-tree.jpg",
       "kind": "live",
-      "source": "https://aeon.barta.cm",
+      "source": "internal INSPR instance",
       "route": "/p/AEON/tickets?view=outline",
       "version": "260930094206.0.0",
       "state": "outline expanded",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "9569a1b70f06222f4187a6e17d88344948ff14d082e401be2e12f668cee111a0"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails; after capture, machine names, personal names and the instance address were blanked in the pixels (INSPR-544: OCR scan plus visual check)",
+      "sha256": "13f8272bcae8db0ebc77b38ed97f1e48a4e6d87ecc84d97e91399891ffb3947d"
     },
     {
       "name": "specs/12-work-orders.jpg",
@@ -200,7 +200,7 @@
     {
       "name": "specs/13-knowledge-graph.jpg",
       "kind": "live",
-      "source": "https://aeon.barta.cm",
+      "source": "internal INSPR instance",
       "route": "/p/AEON/knowledge?view=graph",
       "version": "260930094206.0.0",
       "state": "graph maximized",
@@ -211,7 +211,7 @@
     {
       "name": "specs/14-journeys-and-gates.jpg",
       "kind": "live",
-      "source": "https://aeon.barta.cm",
+      "source": "internal INSPR instance",
       "route": "/p/AEON/journey",
       "version": "260930094206.0.0",
       "theme": "light",
@@ -221,7 +221,7 @@
     {
       "name": "specs/15-clear-usage.jpg",
       "kind": "live",
-      "source": "https://aeon.barta.cm",
+      "source": "internal INSPR instance",
       "route": "/agents/usage",
       "version": "260930094206.0.0",
       "state": "7 days, project Aeon",
@@ -232,12 +232,12 @@
     {
       "name": "specs/16-live-updates.jpg",
       "kind": "live",
-      "source": "https://aeon.barta.cm",
+      "source": "internal INSPR instance",
       "route": "/p/AEON/tickets?group=epic&sort=-progress,priority&cols=status,priority,assignee,estimate,progress,eta,updated",
       "version": "260930094206.0.0",
       "theme": "light",
-      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails",
-      "sha256": "e61f269d9e7b001e174a5ddc5e7a4dd1af2ad11d0eebb7f1029edc2e1ab9dad7"
+      "redaction": "e-mail text blurred in the DOM before capture; frame chosen to exclude account e-mails; after capture, machine names, personal names and the instance address were blanked in the pixels (INSPR-544: OCR scan plus visual check)",
+      "sha256": "d01cc72a71f5724da4394960d7f04111e640efd8d5f37ddf2a118bcdad290d5b"
     },
     {
       "name": "specs/17-contract-first.jpg",
@@ -260,7 +260,8 @@
       "kind": "public-web",
       "source": "https://github.com/inspr-at/paimos",
       "note": "public repository page, anonymous browser, no session",
-      "sha256": "f77eaa0892f868ff5ce766d2ac9b6292a981768250698b93f562d81339068a90"
+      "sha256": "36087410b854030b7fe6e2fac4af5c19b96f792877a468f300411bb9009b2f19",
+      "redaction": "after capture, machine names, personal names and the instance address were blanked in the pixels (INSPR-544: OCR scan plus visual check)"
     },
     {
       "name": "specs/20-made-in-austria.jpg",

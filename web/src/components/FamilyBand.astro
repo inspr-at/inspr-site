@@ -44,8 +44,9 @@ const region = locale === "de" ? "Der INSPR-Ablauf" : "The INSPR flow";
   <p class="family-band__contract">
     <span class="family-band__verb">{contract.label[locale]}</span>
     {contract.line[locale]}
-    <StatusChip status={contract.status} locale={locale} />
     {contract.standalone[locale]}
+    <StatusChip status={contract.status} locale={locale} />
+    {contract.statusNote[locale]}
   </p>
 </section>
 

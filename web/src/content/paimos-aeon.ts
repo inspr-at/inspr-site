@@ -329,7 +329,7 @@ export const paimosAeonContent = {
       {
         icon: "radio-tower",
         title: "Messages with receipts",
-        body: "Sent, Delivered, Read. Delivery is guaranteed, and inbox hooks carry messages into the session.",
+        body: "Sent, Delivered, Read. For sessions with an inbox, delivery is tracked and inbox hooks carry messages into the session. Cursor sessions have no inbox and take interrupts only.",
       },
       {
         icon: "sliders-horizontal",
@@ -445,7 +445,7 @@ export const paimosAeonContent = {
       simple:
         "House rules for AI helpers are written once for the company and refined for each project, person and task. The important ones stay locked in place.",
       technical:
-        "internal/rules merges six layers into immutable, versioned publications with locked floors and per-layer byte budgets. Git-backed doctrine is read at a pinned commit; aeon rules compare and aeon doctor report drift against the merged set.",
+        "The rules engine merges six layers into immutable, versioned publications with locked floors and per-layer byte budgets. Git-backed doctrine is read at a pinned commit; aeon rules compare and aeon doctor report drift against the merged set.",
     },
     stops: [
       { label: "Company", at: 0.045 },
@@ -514,22 +514,22 @@ export const paimosAeonContent = {
       {
         title: "One log, kept whole",
         body: "A trigger lets the event log only grow; history and live updates both read from it.",
-        proof: { label: "0101_relations_events.sql", path: "internal/db/migrations/0101_relations_events.sql" },
+        proof: { label: "Event log schema", path: "internal/db/migrations/0101_relations_events.sql" },
       },
       {
         title: "Tenancy in the database",
         body: "FORCE row-level security on every table keeps tenants apart below the application.",
-        proof: { label: "0003_principals.sql", path: "internal/db/migrations/0003_principals.sql" },
+        proof: { label: "Tenancy schema", path: "internal/db/migrations/0003_principals.sql" },
       },
       {
         title: "Keys as ceilings",
         body: "An approval can refine a key's scopes and stays within them.",
-        proof: { label: "approvals/doc.go", path: "internal/approvals/doc.go" },
+        proof: { label: "Approvals package notes", path: "internal/approvals/doc.go" },
       },
       {
         title: "Contract first",
         body: "One OpenAPI 3.1 file describes 300+ paths; the server embeds the web app it serves.",
-        proof: { label: "api/openapi.yaml", path: "api/openapi.yaml" },
+        proof: { label: "OpenAPI contract", path: "api/openapi.yaml" },
       },
     ],
   },

@@ -122,7 +122,7 @@ test("every capture is recorded with its release, source and redaction policy", 
   const manifest = JSON.parse(await source("assets/products/paimos-aeon/capture-manifest.json"));
   assert.equal(manifest.tag, "v260930115354.0.0");
   assert.match(manifest.commit, /^[0-9a-f]{40}$/);
-  assert.equal(manifest.source, "https://aeon.barta.cm");
+  assert.equal(manifest.source, "internal INSPR instance");
   assert.match(manifest.sourceVersionCheck, /260930115354\.0\.0/);
   assert.equal(typeof manifest.syntheticData, "boolean");
   assert.match(manifest.redaction, /e-mail/);
@@ -145,4 +145,34 @@ test("the capture gate covers every published AEON image with a digest", async (
   for (const file of manifest.files) assert.match(file.sha256, /^[0-9a-f]{64}$/, `${file.name} digest`);
   const pkg = JSON.parse(await webFile("package.json"));
   assert.match(pkg.scripts["captures:check"], /check-aeon-captures\.mjs/, "the build runs the AEON capture gate");
+});
+
+// Repository paths belong in hyperlink destinations only, never in visible
+// copy or link labels.
+const visiblePath = /\b(?:internal|cmd|api)\/[a-z]/;
+
+test("the Paimos content shows no repository paths outside link destinations", async () => {
+  for (const file of ["content/paimos-aeon.ts", "content/de/paimos-aeon.ts"]) {
+    const visible = (await source(file))
+      .split("\n")
+      .map((line) => line.replace(/\bpath:\s*"[^"]*"/g, 'path: ""').replace(/\bhref:.*$/, "href: _"))
+      .join("\n");
+    assert.doesNotMatch(visible, visiblePath, `${file} leaks a repository path into visible text`);
+  }
+});
+
+test("the built Paimos pages render no repository path as visible text", async (t) => {
+  for (const page of ["dist/paimos/index.html", "dist/paimos/de/index.html"]) {
+    let html;
+    try {
+      html = await webFile(page);
+    } catch {
+      t.diagnostic(`${page} is not built; the content check above still covers the source`);
+      continue;
+    }
+    const text = html
+      .replace(/<(script|style)\b[\s\S]*?<\/\1>/g, " ")
+      .replace(/<[^>]+>/g, " ");
+    assert.doesNotMatch(text, visiblePath, `${page} shows a repository path`);
+  }
 });

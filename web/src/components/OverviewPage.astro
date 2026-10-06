@@ -137,11 +137,11 @@ const promises = [
     body: copy("Your data remains yours, throughout.", "Ihre Daten bleiben durchgehend Ihre Daten."),
     technical: copy(
       "Data stays in your instances; secret values never appear in transcripts or logs.",
-      "Daten bleiben in Ihren Instanzen; Secret-Werte erscheinen nie in Transkripten oder Logs.",
+      "Daten bleiben in Ihren Instanzen; Geheimniswerte erscheinen nie in Transkripten oder Logs.",
     ),
     mechanism: copy(
       "Self-hosted instances behind your own sign-in. Secrets are encrypted at rest and handed out as references and bounded permits, so a value cannot end up in a prompt or a log.",
-      "Selbst betriebene Instanzen hinter Ihrer eigenen Anmeldung. Secrets liegen verschlüsselt und werden als Referenzen und begrenzte Freigaben herausgegeben; ein Wert kann so nicht in einem Prompt oder Log landen.",
+      "Selbst betriebene Instanzen hinter Ihrer eigenen Anmeldung. Geheimnisse liegen verschlüsselt und werden als Referenzen und begrenzte Freigaben herausgegeben; ein Wert kann so nicht in einem Prompt oder Log landen.",
     ),
   },
   {
@@ -239,15 +239,15 @@ const steps = [
     simple: copy("It hands out access only when allowed, and takes it back.", "Es vergibt Zugriff nur, wenn erlaubt, und nimmt ihn wieder zurück."),
     technical: copy(
       "Bounded secret permits with roles, delegation and value-free audit; rotation without exposure.",
-      "Begrenzte Secret-Freigaben mit Rollen, Delegation und Audit ohne Werte; Rotation ohne Offenlegung.",
+      "Begrenzte Freigaben für Geheimnisse mit Rollen, Delegation und Audit ohne Werte; Rotation ohne Offenlegung.",
     ),
     sheet: {
       repo: "github.com/inspr-at/janus",
-      runtime: copy("Rust engine with an encrypted store; a separate Go envelope for human oversight", "Rust-Engine mit verschlüsseltem Speicher; ein separater Go-Envelope für die menschliche Aufsicht"),
+      runtime: copy("Rust engine with an encrypted store; a separate Go envelope for human oversight", "Rust-Engine mit verschlüsseltem Speicher; eine separate Go-Hülle für die menschliche Aufsicht"),
       gate: copy("which reference, which requester, which sink: three decisions checked on their own; the value is materialised only inside the reviewed execution path", "welche Referenz, welcher Anfragende, welches Ziel: drei getrennt geprüfte Entscheidungen; der Wert wird nur im geprüften Ausführungspfad materialisiert"),
       artefact: copy("a bounded permit and a value-free audit record", "eine begrenzte Freigabe und ein Audit-Eintrag ohne Werte"),
-      interfaces: copy("engine API, envelope UI", "Engine-API, Envelope-UI"),
-      maturity: copy("engine released, envelope live, AGPL-3.0-only; broker for agent identities planned", "Engine veröffentlicht, Envelope live, AGPL-3.0-only; Broker für Agenten-Identitäten geplant"),
+      interfaces: copy("engine API, envelope UI", "Engine-API, Hüllen-UI"),
+      maturity: copy("engine released, envelope live, AGPL-3.0-only; broker for agent identities planned", "Engine veröffentlicht, Hülle live, AGPL-3.0-only; Broker für Agenten-Identitäten geplant"),
     },
   },
 ];

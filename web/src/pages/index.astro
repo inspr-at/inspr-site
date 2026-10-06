@@ -10,13 +10,14 @@ import StatusChip from "../components/StatusChip.astro";
 import SituationPacket from "../components/SituationPacket.astro";
 import PrincipleFieldNotes from "../components/PrincipleFieldNotes.astro";
 import HeroLoop from "../components/HeroLoop.astro";
-import { aithemaContent } from "../content/aithema";
+import { aithemaContent, aithemaReleaseVersion } from "../content/aithema";
 import { aithemaContentDe } from "../content/de/aithema";
 import { paimosContent } from "../content/paimos";
 import { paimosContentDe } from "../content/de/paimos";
-import { pharosContent } from "../content/pharos";
+import { paimosRelease } from "../content/paimos-aeon";
+import { pharosContent, pharosRelease } from "../content/pharos";
 import { pharosContentDe } from "../content/de/pharos";
-import { janusContent } from "../content/janus";
+import { janusContent, janusRelease } from "../content/janus";
 import { janusContentDe } from "../content/de/janus";
 import type { ProductSheet } from "../content/types";
 import {
@@ -155,7 +156,7 @@ const products = [
     key: "janus" as const,
     name: "Janus",
     sheet: sheets.janus,
-    simple: copy("Allow a specific use of a secret without showing the secret itself.", "Erlauben Sie eine bestimmte Nutzung eines Secrets, ohne das Secret selbst zu zeigen."),
+    simple: copy("Allow a specific use of a secret without showing the secret itself.", "Erlauben Sie eine bestimmte Nutzung eines Geheimnisses, ohne das Geheimnis selbst zu zeigen."),
     label: productRole("janus", locale),
     href: siteUrls.janus,
     logo: janusLogo,
@@ -175,6 +176,15 @@ const products = [
     ),
   },
 ];
+
+// INSPR-540: each card names the release the site presents, from the same
+// constants the product pages use. Doctrine carries none.
+const productReleases = {
+  aithema: `Release ${aithemaReleaseVersion}`,
+  paimos: `Release ${paimosRelease.number} · ${paimosRelease.codename}`,
+  pharos: `Release ${pharosRelease.version}`,
+  janus: `Release ${janusRelease.version}`,
+};
 
 const doctrine = familyProducts.doctrine;
 const doctrineBody = copy(
@@ -241,7 +251,7 @@ const principles = [
     title: copy("Approval is a visible act", "Freigabe ist eine sichtbare Handlung"),
     body: copy(
       "Requirements are approved in Aithema, review gates run in Paimos, production deploys are confirmed in Pharos and secret permits are issued in Janus.",
-      "Anforderungen werden in Aithema freigegeben, Review-Gates laufen in Paimos, Produktionsbereitstellungen werden in Pharos bestätigt und Freigaben für Secrets werden in Janus erteilt.",
+      "Anforderungen werden in Aithema freigegeben, Review-Gates laufen in Paimos, Produktionsbereitstellungen werden in Pharos bestätigt und Freigaben für Geheimnisse werden in Janus erteilt.",
     ),
     avoids: copy(
       "Quiet escalation and accidental production authority.",
@@ -460,6 +470,7 @@ const principles = [
                   </div>
                   <p class="product-story__status">
                     <StatusChip status={familyProducts[product.key].status} locale={locale} />
+                    <span class="product-story__release">{productReleases[product.key]}</span>
                     <span class="product-story__licence">AGPL-3.0-only</span>
                     {familyProducts[product.key].statusNote && (
                       <span>{familyProducts[product.key].statusNote?.[locale]}</span>
@@ -1207,6 +1218,12 @@ const principles = [
     color: var(--text-soft, #526269);
     font-size: 0.85rem;
     line-height: 1.45;
+  }
+
+  .product-story__release {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
   }
 
   .product-story__licence {

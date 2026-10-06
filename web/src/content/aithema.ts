@@ -1,5 +1,12 @@
+import { products } from "./family";
 import { productTaxonomy, siteUrls } from "./urls";
 import type { PreviewProductContent } from "./types";
+
+export const aithemaReleaseVersion = "0.10.1";
+export const aithemaHandover = {
+  en: "Handover of approved requirements to Paimos is planned.",
+  de: "Die Übergabe freigegebener Anforderungen an Paimos ist geplant.",
+};
 
 export const aithemaContent = {
   slug: "aithema",
@@ -11,8 +18,7 @@ export const aithemaContent = {
   licenseUrl: "https://github.com/inspr-at/aithema/blob/main/LICENSE",
   seo: {
     title: "Aithema | Requirements you approve before work begins",
-    description:
-      "Aithema turns conversation and files into reviewable requirements. You correct the result and choose whether work should continue.",
+    description: products.aithema.oneLiner.en,
   },
   hero: {
     sheet: {
@@ -29,7 +35,7 @@ export const aithemaContent = {
       simple:
         "Talk, type or drop in files. Aithema turns that into a clear list of what you need, then waits for you to read it and say Continue.",
       technical:
-        "Speech, text and files become a structured, reviewable requirement set. Aithema organises the input; the review and the explicit Continue stay with you, so nothing downstream starts on an unapproved draft.",
+        "Speech, text and files become a structured, reviewable requirement set. Aithema organizes the input; the review and the explicit Continue stay with you, so nothing downstream starts on an unapproved draft.",
     },
     lead:
       "Speak, type or share files. Aithema helps turn that input into clear requirements, then waits for you to review them and choose Continue.",
@@ -94,7 +100,7 @@ export const aithemaContent = {
       simple:
         "Aithema does the sorting and tidying. You make the decision.",
       technical:
-        "Aithema carries the consolidation and structuring effort while the approval decision remains a human action with a reviewable artefact behind it.",
+        "Aithema carries the consolidation and structuring effort while the approval decision remains a human action with a reviewable artifact behind it.",
     },
     lead:
       "Aithema handles the effort of organizing input while keeping the decision with you.",
@@ -259,7 +265,7 @@ export const aithemaContent = {
     {
       question: "Who owns Aithema?",
       answer:
-        "Aithema is a product by Markus Barta. Augmentoring provides the hosted workspace by invitation and professional services that use it.",
+        "Aithema is part of INSPR, open source under AGPL-3.0-only. Augmentoring provides the hosted workspace by invitation and professional services that use it.",
     },
   ],
   finalCta: {

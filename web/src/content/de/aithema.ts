@@ -1,3 +1,4 @@
+import { products } from "../family";
 import { siteUrls } from "../urls";
 import type { PreviewProductContent } from "../types";
 
@@ -14,8 +15,7 @@ export const aithemaContentDe = {
   licenseUrl: "https://github.com/inspr-at/aithema/blob/main/LICENSE",
   seo: {
     title: "Aithema | Anforderungen, die Sie vor Arbeitsbeginn freigeben",
-    description:
-      "Aithema macht aus Gesprächen und Dateien prüfbare Anforderungen. Sie korrigieren das Ergebnis und entscheiden, ob die Arbeit weitergeht.",
+    description: products.aithema.oneLiner.de,
   },
   hero: {
     sheet: {
@@ -73,7 +73,7 @@ export const aithemaContentDe = {
       {
         title: "Dateien tragen verstreuten Kontext",
         body:
-          "Beispiele, Vorgaben und frühere Entscheidungen zählen, aber sie kommen selten als ein brauchbares Anforderungspaket an.",
+          "Beispiele, Vorgaben und frühere Entscheidungen zählen, aber sie kommen selten als ein brauchbarer Anforderungssatz an.",
         meta: "Die Belege zusammenführen",
         icon: "library",
       },
@@ -120,7 +120,7 @@ export const aithemaContentDe = {
         body:
           "Aithema ordnet den Input zu Anforderungen, die sich lesen, besprechen und ändern lassen.",
         icon: "list-tree",
-        signal: "Ein konkretes Anforderungspaket steht zur Prüfung bereit.",
+        signal: "Ein konkreter Anforderungssatz steht zur Prüfung bereit.",
       },
       {
         number: "03",
@@ -179,7 +179,7 @@ export const aithemaContentDe = {
       eyebrow: "Menschliche Kontrolle",
       title: "Die wichtige Entscheidung bleibt sichtbar.",
       lead:
-        "Das nützliche Ergebnis ist nicht Text, der fertig aussieht. Es ist ein Anforderungspaket, das Sie verstehen und bewusst verwenden.",
+        "Das nützliche Ergebnis ist nicht Text, der fertig aussieht. Es ist ein Anforderungssatz, den Sie verstehen und bewusst verwenden.",
       items: [
         {
           title: "Das Ergebnis prüfen",
@@ -262,7 +262,7 @@ export const aithemaContentDe = {
     {
       question: "Wem gehört Aithema?",
       answer:
-        "Aithema ist ein Produkt von Markus Barta. Augmentoring stellt den gehosteten Arbeitsbereich auf Einladung bereit und bietet professionelle Services, die ihn nutzen.",
+        "Aithema ist Teil von INSPR, quelloffen unter AGPL-3.0-only. Augmentoring stellt den gehosteten Arbeitsbereich auf Einladung bereit und bietet professionelle Services, die ihn nutzen.",
     },
   ],
   finalCta: {

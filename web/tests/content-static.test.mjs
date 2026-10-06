@@ -1261,9 +1261,8 @@ test("Janus release line and ZITADEL status are consistent across site and page 
   assert.match(umbrella, /Janus as broker for agent identities\./);
   assert.match(umbrella, /Janus als Broker für Agenten-Identitäten\./);
   assert.doesNotMatch(umbrella, /separation of duties|Funktionstrennung/, "the umbrella makes no separation-of-duties claim the Janus sources contradict");
-  assert.match(en, /runtime surfaces stay in the legacy posture until the all-surface cutover is released/);
-  assert.match(de, /Laufzeitoberflächen bleiben bis zum Release des Gesamt-Cutovers in der Legacy-Posture/);
-  assert.match(en, /status: "Live in oversight plane"/);
+  assert.doesNotMatch(en + de, /implements durable separation of duties|setzt dauerhafte Funktionstrennung/);
+  assert.match(en, /status: `\$\{statusLabels\.live\.en\} for human OIDC oversight`/);
   assert.match(en, /maps nine roles from ZITADEL project roles/);
   assert.doesNotMatch(en, /four roles|admin, auditor, operator and viewer/);
   assert.doesNotMatch(de, /vier Rollen|Admin, Auditor, Operator und Viewer/);

@@ -111,7 +111,7 @@ test("product technical drawers share typed, public datasheets and localized han
     for (const field of fields) assert.ok(page.includes(`<dt>{sheetLabels.${field}}</dt><dd>{content.hero.sheet.${field}}</dd>`));
     assert.match(page, /content\.hero\.sheet\.command &&/);
     assert.match(page, /<WorkflowExplorer[\s\S]*?handoff=\{content\.model\.handoff\}/);
-    for (const label of ["Repo", "Laufzeit", "Gate", "Artefakt", "Schnittstellen", "Reife"]) {
+    for (const label of ["Repo", "Laufzeit", "Freigabe", "Artefakt", "Schnittstellen", "Reife"]) {
       assert.ok(page.includes(`"${label}"`));
     }
   }

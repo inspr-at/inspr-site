@@ -13,8 +13,8 @@ interface Props {
 
 const { id, items, label, signalLabel, tone = "paper", locale = "en" } = Astro.props;
 const labels = locale === "de"
-  ? { evidence: "Betriebssignal" }
-  : { evidence: "Operational signal" };
+  ? { evidence: "Betriebssignal", counter: "Nachweis", of: "von" }
+  : { evidence: "Operational signal", counter: "Signal", of: "/" };
 const fallbackIcons = [
   "circle-dot",
   "waypoints",
@@ -111,7 +111,7 @@ const fallbackIcons = [
                   {signalLabel}
                 </p>
                 <p class="inspectable-rail__readout-index">
-                  Signal {String(index + 1).padStart(2, "0")} / {String(items.length).padStart(2, "0")}
+                  {labels.counter} {String(index + 1).padStart(2, "0")} {labels.of} {String(items.length).padStart(2, "0")}
                 </p>
                 <h3>{item.title}</h3>
                 <p>{item.body}</p>

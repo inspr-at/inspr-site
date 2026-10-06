@@ -1,3 +1,4 @@
+import { products, statusLabels } from "./family";
 import { productTaxonomy, siteUrls } from "./urls";
 import type { ProductContent } from "./types";
 
@@ -25,14 +26,13 @@ export const pharosContent = {
   },
   seo: {
     title: "Pharos - Clear fleet operations for servers and backups",
-    description:
-      "Pharos is a self-hosted fleet operations control plane for server liveness, configuration drift, backup evidence and guarded maintenance workflows.",
+    description: products.pharos.oneLiner.en,
   },
   hero: {
     sheet: {
       repo: "github.com/inspr-at/pharos",
       runtime: "Rust server plus an outbound host beacon; no inbound port on the host.",
-      gate: "Backup evidence, build result, authorisation and an explicit confirmation are recorded before the host may apply anything.",
+      gate: "Backup evidence, build result, authorization and an explicit confirmation are recorded before the host may apply anything.",
       artefact: "Host reports, backup and restore evidence, the review record.",
       interfaces: "UI, beacon, OIDC",
       maturity: "early release, AGPL-3.0-only",
@@ -135,7 +135,7 @@ export const pharosContent = {
         title: "Compare",
         visual: { x: 29, y: 66 },
         body:
-          "Pharos keeps runtime observations separate from nixcfg declarations and operator requests. You can tell what is running now, what has been declared and what is still waiting to be applied.",
+          "Pharos keeps runtime observations separate from declared infrastructure configuration and operator requests. You can tell what is running now, what has been declared and what is still waiting to be applied.",
         icon: "git-compare-arrows",
         signal: "Observed and declared remain separate.",
         reference: {
@@ -215,12 +215,12 @@ export const pharosContent = {
       eyebrow: "CONFIGURATION AND DRIFT",
       title: "See drift early.",
       lead:
-        "For NixOS hosts, Pharos reports how old the active flake lock is, how far the host is behind nixcfg and whether a newer kernel is already staged. Non-Nix hosts still participate in liveness, backup, location and service reporting through the portable beacon.",
+        "For NixOS hosts, Pharos reports how old the active flake lock is, how far the host is behind the declared configuration and whether a newer kernel is already staged. Non-Nix hosts still participate in liveness, backup, location and service reporting through the portable beacon.",
       items: [
         {
           title: "Nix freshness in plain language",
           body:
-            "Operators see a concise answer such as flake.lock age and commits behind nixcfg instead of having to reconstruct drift from a checkout and deployment history.",
+            "Operators see a concise answer such as lockfile age and commits behind the declared configuration instead of having to reconstruct drift from a checkout and deployment history.",
           icon: "git-compare-arrows",
         },
         {
@@ -267,7 +267,7 @@ export const pharosContent = {
       eyebrow: "ONBOARDING",
       title: "Every host starts with preflight.",
       lead:
-        "The setup assistant keeps one decision in view at a time, records safe progress and waits for first-host evidence before treating onboarding as complete.",
+        "Provisioning is attended, one server at a time. The setup assistant keeps one decision in view, records safe progress and waits for first-host evidence before treating onboarding as complete.",
       items: [
         {
           title: "Existing Linux servers",
@@ -344,7 +344,7 @@ export const pharosContent = {
       {
         title: "NixOS-heavy infrastructure",
         body:
-          "Connect declared nixcfg state with the system that is actually running, without letting a dashboard silently become the source of truth.",
+          "Connect declared infrastructure state with the system that is actually running, without letting a dashboard silently become the source of truth.",
       },
     ],
   },
@@ -355,7 +355,7 @@ export const pharosContent = {
       "Pharos is a Rust workspace with shared contracts between server and beacon, preventing their report schema from drifting independently.",
     paragraphs: [
       "The control plane uses axum, server-rendered HTML and a small vanilla JavaScript layer over stable JSON APIs. A host beacon reports through an outbound connection, while the browser reads the reconciled fleet model and creates review records for the fixed actions Pharos understands.",
-      "nixcfg supplies declared host and service intent. Janus owns machine credentials and secure provider handoffs. ZITADEL supplies human identity, while Pharos retains the final per-host authorization decision.",
+      "Versioned configuration supplies declared host and service intent. Janus owns machine credentials and secure provider handoffs. ZITADEL supplies human identity, while Pharos retains the final per-host authorization decision.",
       "State is persisted as JSON today. That keeps deployment compact and the backup boundary explicit. SQLite remains a demand-driven future option rather than an architectural promise.",
     ],
     flow: [
@@ -418,7 +418,19 @@ export const pharosContent = {
       "Pharos uses maturity labels so a planned connector never looks like a production-ready path.",
     items: [
       {
-        name: "NixOS and nixcfg",
+        name: "Paimos tool contract",
+        status: statusLabels.planned.en,
+        description:
+          "Paimos will request fleet and deployment work through the shared contract. Pharos runs independently today.",
+      },
+      {
+        name: "Ephemeral CI and lab VMs",
+        status: statusLabels.planned.en,
+        description:
+          "Temporary virtual machines for CI and lab work are planned; today's provisioning is attended, one server at a time.",
+      },
+      {
+        name: "NixOS and declarative configuration",
         status: "Native",
         description:
           "Declared state, freshness, kernel posture, host preferences and guarded lifecycle workflows.",

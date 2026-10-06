@@ -1,3 +1,4 @@
+import { products, statusLabels } from "../family";
 import { siteUrls } from "../urls";
 import type { ProductContent } from "../types";
 import { janusRelease } from "../janus";
@@ -22,17 +23,16 @@ export const janusContentDe = {
   },
   seo: {
     title: "Janus | Governance für Geheimnisse: KI-Agenten, Dienste und Menschen | INSPR",
-    description:
-      "Mit Janus fordern KI-Agenten geheimnisgestützte Arbeit über opake Referenzen, richtliniengebundene Freigaben und geprüfte Ausführungspfade an, ohne dass Zugangsdaten das Modell erreichen.",
+    description: products.janus.oneLiner.de,
   },
   hero: {
     sheet: {
       repo: "github.com/inspr-at/janus",
-      runtime: "Rust-Engine mit verschlüsseltem Speicher; ein separater Go-Envelope für die menschliche Aufsicht.",
+      runtime: "Rust-Engine mit verschlüsseltem Speicher; eine separate Go-Hülle für die menschliche Aufsicht.",
       gate: "Welche Referenz, welcher Anfragende, welches Ziel: drei getrennt geprüfte Entscheidungen; der Wert wird nur im geprüften Ausführungspfad materialisiert.",
       artefact: "Eine begrenzte Freigabe und ein wertfreier Audit-Eintrag.",
-      interfaces: "Engine-API, Envelope-UI",
-      maturity: "Engine veröffentlicht, Envelope live, frühes Produkt",
+      interfaces: "Engine-API, Hüllen-UI",
+      maturity: "Engine veröffentlicht, Hülle live, frühes Produkt",
     },
     eyebrow: "GOVERNANCE FÜR GEHEIMNISSE IN MENSCH- UND AGENTENSYSTEMEN",
     title: "Geheimnisse nutzen. Werte verbergen.",
@@ -383,7 +383,7 @@ export const janusContentDe = {
         body:
           "Engine- und Hüllen-Images sind schlüssellos signiert, von SPDX-SBOMs begleitet und mit Build-Provenienz-Attestierungen veröffentlicht. Die Release-CI testet genau den veröffentlichten Engine-Digest.",
         reference: {
-          label: "Das Release-Assurance-Gate prüfen",
+          label: "Die Release-Assurance-Freigabe prüfen",
           href: `${repositoryUrl}/blob/main/scripts/assure-engine-release.sh`,
           external: true,
         },
@@ -396,6 +396,18 @@ export const janusContentDe = {
     lead:
       "Manifest, Referenzen, Richtlinie, Freigaben und Nachweise bleiben stabil, während Verwahrung und Konsumenten je Deployment variieren können. Status-Labels trennen umgesetzte Pfade von Roadmap-Absicht.",
     items: [
+      {
+        name: "Broker für Agenten- und Bot-Identitäten",
+        status: statusLabels.planned.de,
+        description:
+          "Janus ist als Broker für Agenten- und Bot-Identitäten geplant. Der OIDC-Anbieter bleibt der Identitätsanbieter für Menschen.",
+      },
+      {
+        name: "Paimos-Werkzeugvertrag",
+        status: statusLabels.planned.de,
+        description:
+          "Paimos soll begrenzte Secret-Nutzung über den gemeinsamen Vertrag anfragen. Janus läuft heute eigenständig.",
+      },
       {
         name: "age",
         status: "Veröffentlicht",
@@ -418,13 +430,13 @@ export const janusContentDe = {
         name: "Nix und NixOS",
         status: "Veröffentlicht",
         description:
-          "Der öffentliche Flake paketiert janusd und janus-warden. Signierte Multi-Architektur-Container-Images erscheinen über dasselbe Assurance-Gate.",
+          "Der öffentliche Flake paketiert janusd und janus-warden. Signierte Multi-Architektur-Container-Images erscheinen über dieselbe Assurance-Freigabe.",
       },
       {
         name: "ZITADEL OIDC",
-        status: "Live in der Aufsichtsebene",
+        status: `${statusLabels.live.de} für menschliche OIDC-Aufsicht`,
         description:
-          "Die produktive Go-Hülle meldet Menschen über ZITADEL OIDC mit Nonce und PKCE an. Eine gültige Identität erhält keinen Janus-Zugriff, bis ein geprüfter Subject- oder Rollen-Claim zur Richtlinie passt. Die breitere Automatisierung eingeladener Nutzer wird noch gehärtet.",
+          "Die produktive Go-Hülle meldet Menschen über ZITADEL OIDC mit Nonce und PKCE an. Eine gültige Identität erhält keinen Janus-Zugriff, bis ein geprüfter Subject- oder Rollen-Claim zur Richtlinie passt. ZITADEL bleibt der Identitätsanbieter für Menschen. Janus als Broker für Agenten- und Bot-Identitäten ist geplant.",
       },
       {
         name: "Pharos",
@@ -434,13 +446,13 @@ export const janusContentDe = {
       },
       {
         name: "OpenBao und zentrale Verwahrung",
-        status: "Geplant",
+        status: statusLabels.planned.de,
         description:
           "Zentrale Leases, dynamische Geheimnisse und hardwaregestützte Verwahrung gehören hinter die Janus-Broker-Grenze, aber eine allgemeine OpenBao-Integration ist nicht ausgeliefert.",
       },
       {
         name: "GitHub-App-Workflow-Dispatch",
-        status: "Geplant",
+        status: statusLabels.planned.de,
         description:
           "Ein zweckgebundener Konnektor soll kurzlebigen Installationszugriff ausstellen und einen geprüften Workflow auslösen, ohne ein wiederverwendbares PAT in den Workload zu legen.",
       },
@@ -456,14 +468,14 @@ export const janusContentDe = {
       "Die aktuelle Weboberfläche kann keine Geheimnisse offenlegen. Menschliches Reveal bleibt aufgeschoben, weil der Web-Container bewusst keine Entschlüsselungsidentität besitzt.",
       "Der veröffentlichte Warden nutzt lokales MCP-stdio. HTTP-Transport und mandantenfähiger Fernbetrieb sind nicht ausgeliefert.",
       "Native age-Speicherung und der secretspec-Adapter sind umgesetzt. Allgemeine Integrationen für OpenBao, OS-Schlüsselbund, Pass, KMS und HSM bleiben geplant oder deploymentspezifisch.",
-      "Die produktive Hülle bildet neun Rollen aus ZITADEL-Projektrollen ab. Die Rust-Engine setzt dauerhafte Funktionstrennung hinter expliziten Accountability-Postures um; die Laufzeitoberflächen bleiben bis zum Release des Gesamt-Cutovers in der Legacy-Posture.",
+      "Die produktive Hülle bildet neun Rollen aus ZITADEL-Projektrollen ab.",
       "Die Engine liefert lokale wertfreie Audit-Verträge und dauerhafte lokale Register, aber entferntes Nur-Anfügen-Audit und SIEM-Export sind nicht ausgeliefert.",
       "Janus ist kein Passwortmanager für Menschen und bietet weder Browser-Autofill noch Mobil-Clients oder Passwort-Synchronisation.",
       "Eine Produktionsübernahme sollte mit expliziten Abläufen, einem geprüften Bedrohungsmodell, Wiederherstellungsnachweisen und benannter Betriebsverantwortung beginnen.",
     ],
   },
   openSource: {
-    eyebrow: "OPEN SOURCE",
+    eyebrow: "QUELLOFFEN",
     title: "Jede Schicht prüfen.",
     body:
       `Janus ist öffentlich unter AGPL-3.0-only. Quellcode, Tests, Release-Workflows, Image-Signaturen, SPDX-SBOMs und Build-Provenienz-Attestierungen stehen für die aktuellen Releases der Rust-Engine und der Go-Aufsichtshülle bereit, beide ${janusRelease.version} (${janusRelease.date}). Das Projekt ist vor 1.0: Schnittstellen und Deployment-Verträge können sich noch ändern.`,

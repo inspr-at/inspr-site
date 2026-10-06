@@ -51,9 +51,11 @@ test("depth typography avoids mid-word prose breaks and leaves footers outside t
 
 test("umbrella folds supporting sections and compacts all four linked products in both languages", async () => {
   const page = await source("pages/index.astro");
-  for (const marker of ['id="idea"', 'id="principles"', 'id="source"', 'data-section-pattern="faq-accordion"']) boundary(page, marker);
+  for (const marker of ['id="connect"', 'id="actors"', 'id="principles"', 'id="source"', 'data-section-pattern="faq-accordion"']) boundary(page, marker);
   boundary(page, 'data-section-pattern="identity-bridge"', true);
-  boundary(page, 'id="flow"', false, "WorkflowExplorer");
+  // INSPR-543: the flow and the live-or-planned list stay visible at every depth.
+  assert.doesNotMatch(tags(page, "HomeFlow").join(""), /data-depth/);
+  assert.doesNotMatch(tags(page).find((tag) => tag.includes('id="building"')) ?? "", /data-depth/);
   const heroStart = page.indexOf('class="umbrella-hero page-shell"');
   const hero = page.slice(heroStart, page.indexOf("</section>", heroStart));
   assert.doesNotMatch(hero, /data-depth-(?:min|max|layout)/);
@@ -70,7 +72,7 @@ test("umbrella folds supporting sections and compacts all four linked products i
 test("all six page families keep their essence and preserve technical evidence", async () => {
   const overview = await source("components/OverviewPage.astro");
   assert.match(overview, /class="overview-hero page-shell" data-depth-layout/);
-  for (const cls of ["overview-promises", "overview-step__preview", "overview-step__approval", "overview-step__connector", "overview-control", "overview-next page-shell"]) {
+  for (const cls of ["overview-promises", "overview-step__preview", "overview-step__approval", "overview-control", "overview-engine page-shell", "overview-rules page-shell", "overview-next page-shell"]) {
     assert.ok(overview.includes(`class="${cls}" data-depth-min="standard"`), cls);
   }
   assert.doesNotMatch(overview, /data-depth-max="standard"/);

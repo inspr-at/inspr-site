@@ -336,7 +336,7 @@ test("all four microsites render claim visuals and accessible workflow controls"
   assert.match(workflow, /aria-selected/);
   assert.match(workflow, /prefers-reduced-motion: reduce/);
   assert.match(workflow, /IntersectionObserver/);
-  assert.match(umbrella, /The work moves\. You decide when\./);
+  assert.match(umbrella, /<HomeFlow locale=\{locale\} doctrineHref=\{modulesUrl\} \/>/);
 
   const assets = [
     "assets/products/inspr/continuity.png",
@@ -693,24 +693,29 @@ test("the July 18 editorial product showcase remains accessible", async () => {
   assert.match(showcase, /index % 2 === 0/);
 });
 
-test("the INSPR product flow stays ordered, human-approved and ownership-led", async () => {
-  const umbrella = await source("pages/index.astro");
-  const flowStart = umbrella.indexOf("const productFlowSteps = [");
-  const flowEnd = umbrella.indexOf("];", flowStart);
-  const flow = umbrella.slice(flowStart, flowEnd);
+test("the INSPR home flow is built from the shared steps and claims no integrated pipeline (INSPR-543)", async () => {
+  const [umbrella, flowComponent] = await Promise.all([
+    source("pages/index.astro"),
+    source("components/HomeFlow.astro"),
+  ]);
 
-  assert.ok(flowStart >= 0 && flowEnd > flowStart);
-  const orderedSteps = [...flow.matchAll(/title: copy\("(Aithema|Paimos|Pharos|Janus) ·/g)]
-    .map((match) => match[1]);
-  assert.deepEqual(orderedSteps, ["Aithema", "Paimos", "Pharos", "Janus"]);
-  assert.match(flow, /The requirements wait for your Continue\./);
-  assert.match(flow, /Staging waits for your review\./);
-  assert.match(flow, /Production waits for your approval\./);
-  assert.match(flow, /Access changes wait for your approval\./);
-  assert.match(flow, /Sign-in runs through ZITADEL with role-based access in the oversight plane; broader permissions and invited-user automation are planned for later\./);
-  assert.doesNotMatch(flow, /title: "(?:Intent|Context|Bounded action|Evidence)"/);
-  assert.match(umbrella, /Inspiration is the only limit\./);
-  assert.match(umbrella, /At the end, everything is yours: the requirements, the source, the infrastructure, the permissions and the evidence behind every decision\./);
+  // The old four stage cards and their approval signals are gone.
+  assert.doesNotMatch(umbrella, /productFlowSteps|WorkflowExplorer|insprContinuity/);
+  assert.match(flowComponent, /flow\.steps\.map\(\(step, index\) =>/);
+  assert.match(flowComponent, /<StatusChip status=\{step\.status\} locale=\{locale\} \/>/);
+  assert.match(flowComponent, /step\.line\[locale\]/);
+  assert.match(flowComponent, /products\[step\.product\]\.verb\[locale\]/);
+  // The hero is the shared message; the removed pipeline claims stay removed.
+  assert.match(umbrella, /<h1 id="hero-title">\{message\.hero\[locale\]\}<\/h1>/);
+  assert.match(umbrella, /message\.houseRule\[locale\]/);
+  for (const text of [umbrella, flowComponent]) {
+    assert.doesNotMatch(text, /Four tools, one path|Every handoff waits for you|blocks on an explicit approval|follow the whole path|You approve each step|Jede Übergabe wartet auf Sie/);
+    assert.doesNotMatch(text, /wait for your (?:Continue|review|approval)|Staging waits/);
+  }
+  // Contract, actors and build order read the shared copy; bots stay planned.
+  for (const marker of ["contract.line[locale]", "contract.statusNote[locale]", "actors.map((actor, index)", "buildOrder.map((item, index)"]) {
+    assert.ok(umbrella.includes(marker), marker);
+  }
 });
 
 test("Aithema joins the product family at its public visitor home", async () => {
@@ -751,13 +756,12 @@ test("the self-hosting answer presents all four products as open source", async 
 test("Aithema metadata names requirements alongside the three established domains", async () => {
   const umbrella = await source("pages/index.astro");
 
+  // INSPR-543: the description is the shared sub-line, not a pipeline claim.
+  assert.match(umbrella, /description=\{message\.sub\[locale\]\}/);
+  assert.doesNotMatch(umbrella, /A person approves every handoff|Jede Übergabe wird von einem Menschen freigegeben/);
   assert.match(
     umbrella,
-    /Aithema shapes requirements, Paimos gives agents a project, Pharos deploys with a verified backup, Janus governs access\. A person approves every handoff\./,
-  );
-  assert.match(
-    umbrella,
-    /"The four INSPR products connected from requirements to governed operation"/,
+    /"Four open INSPR products and a doctrine on one flow from idea to running software"/,
   );
 });
 
@@ -768,11 +772,11 @@ test("the local v2 route remains a compatibility alias for the chosen Fable copy
   assert.match(v2, /import Home from "\.\.\/index\.astro"/);
   assert.match(v2, /<Home locale="en" \/>/);
   assert.doesNotMatch(umbrella, /Astro\.props\.edition/);
-  assert.match(umbrella, /Give agents a project, not a prompt\./);
-  assert.match(umbrella, /Pick the server\. Prove the backup\. Then deploy\./);
-  assert.match(umbrella, /The work moves\. You decide when\./);
+  // INSPR-543: each product card headline is its shared one-liner.
+  assert.match(umbrella, /familyProducts\[product\.key\]\.oneLiner\[locale\]/);
   assert.match(umbrella, /Built so you can say no\./);
-  assert.match(umbrella, /Sign-in runs through ZITADEL with role-based access in the oversight plane; broader permissions and invited-user automation are planned for later\./);
+  assert.match(umbrella, /ZITADEL is the OIDC identity provider for people across INSPR\./);
+  assert.doesNotMatch(umbrella, /planned for later/);
   assert.match(umbrella, /All four products remain open source\./);
   assert.doesNotMatch(umbrella, /Janus enforces which people/);
 });
@@ -840,9 +844,7 @@ test("interactive explorers use one five-second, pause-only lifecycle", async ()
 });
 
 test("workflow stages map their explanation back onto each image", async () => {
-  const umbrella = await source("pages/index.astro");
   const janus = await source("content/janus.ts");
-  assert.match(umbrella, /visual: \{ x: 18, y: 61 \}/);
   assert.match(janus, /visual: \{ x: 15, y: 50 \}/);
   assert.match(janus, /visual: \{ x: 55, y: 50 \}/);
   assert.match(janus, /visual: \{ x: 80, y: 47 \}/);
@@ -1206,9 +1208,10 @@ test("English pages link English business and legal pages; German pages stay Ger
   assert.match(header, /locale === "de" \? `\$\{siteUrls\[active\]\}\/de\/` : siteUrls\[active\]/);
   assert.match(umbrella, /const productHref = \(href: string\) =>\s*locale === "de" \? `\$\{href\}\/de\/\?lang=de` : href;/);
   assert.match(umbrella, /href=\{productHref\(product\.href\)\}/);
-  for (const slug of ["aithema", "paimos", "pharos", "janus"]) {
-    assert.match(umbrella, new RegExp(`href: productHref\\(siteUrls\\.${slug}\\),\\s*external: true`), `${slug} flow reference keeps the language`);
-  }
+  // INSPR-543: the home flow links each product step through the same language-keeping helper.
+  const homeFlow = await source("components/HomeFlow.astro");
+  assert.match(homeFlow, /const productHref = \(href: string\) => \(locale === "de" \? `\$\{href\}\/de\/\?lang=de` : href\);/);
+  assert.match(homeFlow, /href=\{productHref\(siteUrls\[step\.product\]\)\}/);
   assert.match(overview, /href=\{productHref\(step\.href\)\}/);
 });
 
@@ -1253,9 +1256,12 @@ test("Janus release line and ZITADEL status are consistent across site and page 
     assert.match(content, /\$\{janusRelease\.version\}/, `${name} release statements derive from the pin`);
     assert.match(content, /ZITADEL OIDC/, `${name} keeps the ZITADEL row`);
   }
-  // The umbrella must not call ZITADEL sign-in "planned" while the Janus page lists it live.
-  assert.doesNotMatch(umbrella, /ZITADEL integration are planned/);
-  assert.equal((umbrella.match(/Sign-in runs through ZITADEL with role-based access in the oversight plane/g) ?? []).length, 2);
+  // The umbrella must not call ZITADEL sign-in "planned" while the Janus page lists it live;
+  // only the broker for agent identities is planned (INSPR-543).
+  assert.doesNotMatch(umbrella, /ZITADEL integration are planned|planned for later|für später geplant/);
+  assert.equal((umbrella.match(/neun Rollen|nine roles/g) ?? []).length, 4);
+  assert.match(umbrella, /Janus as broker for agent identities\./);
+  assert.match(umbrella, /Janus als Broker für Agenten-Identitäten\./);
   assert.doesNotMatch(umbrella, /separation of duties|Funktionstrennung/, "the umbrella makes no separation-of-duties claim the Janus sources contradict");
   assert.match(en, /runtime surfaces stay in the legacy posture until the all-surface cutover is released/);
   assert.match(de, /Laufzeitoberflächen bleiben bis zum Release des Gesamt-Cutovers in der Legacy-Posture/);

@@ -34,7 +34,7 @@ export const paimosContent = {
       artefact: "Work tree, knowledge, work orders and run records, per tenant and permission-aware.",
       interfaces: "UI, CLI, HTTP API",
       maturity: "Paimos 7 · AEON, released, AGPL-3.0-only",
-      command: 'paimos issue create -p PROJ --title "…"',
+      command: 'paimos issue create -p PROJ --title "Write release notes"',
     },
     eyebrow: "Paimos 7 · AEON",
     title: "One shared project picture.",
@@ -70,9 +70,9 @@ export const paimosContent = {
         label: "Agents first",
         icon: "workflow",
         group: "ai",
-        note: "Codex, Claude, Pi, Cursor and Grok sessions work in the same project model as people, each with its own key and scopes.",
+        note: "Claude Code, Codex, Cursor and pi start under Paimos on macOS and Linux, each with its own key and scopes; Grok runs tool-free on Apple silicon; Gemini and OpenCode pair only, dispatch is planned.",
         noteEli10:
-          "AI helpers from several makers can work in the same projects as your people. Each one has its own badge, so you always know who did what.",
+          "AI helpers from several makers can work in the same projects as your people. Each one has its own badge, so you always know who did what. Some helpers can only pair for now.",
       },
       {
         label: "Scoped permissions",
@@ -179,12 +179,12 @@ export const paimosContent = {
           "Other software can talk to it automatically. Your IT team can wire it into the tools you already pay for, instead of retyping things.",
       },
       {
-        label: "INSPR handoffs",
+        label: "INSPR tools",
         icon: "route",
         group: "ai",
-        note: "Takes cited requirements intake from Aithema and records stage handoffs to Pharos for deployment and Janus for access.",
+        note: "Requirements intake from Aithema and Pharos and Janus as Paimos tools are planned. Each product runs on its own today.",
         noteEli10:
-          "It works hand in hand with its sister products: requirements come in from Aithema, and finished work is handed on to Pharos and Janus with a record.",
+          "Working hand in hand with its sister products is planned: requirements from Aithema, deploys and access through Pharos and Janus. Each one works on its own today.",
       },
       {
         label: "Checksummed releases",
@@ -272,7 +272,7 @@ export const paimosContent = {
         id: "scope",
         term: "Scope",
         matches: ["scope", "scopes"],
-        body: "One precisely named right, such as reading runs or writing intake. An agent key holds a fixed set of scopes.",
+        body: "One precisely named right, such as reading runs or writing issues. An agent key holds a fixed set of scopes.",
       },
       {
         id: "slug",
@@ -383,8 +383,8 @@ export const paimosContent = {
   },
   model: {
     handoff: {
-      in: "approved requirement set",
-      out: "staged build + evidence",
+      in: "tickets and knowledge",
+      out: "run records + evidence",
     },
     eyebrow: "How it works",
     title: "The project is the control plane.",
@@ -404,8 +404,8 @@ export const paimosContent = {
         visual: { x: 24, y: 18 },
         icon: "folder-kanban",
         body:
-          "Shape the work in one dynamic tree: epics, tickets and tasks, with kinds and labels your workspace configures. Typed relations, releases and saved views keep a large project legible. Requirements from Aithema arrive as cited drafts that a person accepts.",
-        meta: "From accepted requirements to a planned tree",
+          "Shape the work in one dynamic tree: epics, tickets and tasks, with kinds and labels your workspace configures. Typed relations, releases and saved views keep a large project legible. Cited requirements from Aithema are planned.",
+        meta: "From requirements to a planned tree",
         signal: "Work tree, relations and releases",
         reference: {
           label: "Planning hierarchy",
@@ -458,14 +458,14 @@ export const paimosContent = {
       },
       {
         number: "05",
-        simple: "Hand the result on, with a person's approval at each step.",
+        simple: "Hand the result on, and let customers accept quotes.",
         title: "Hand off",
         visual: { x: 50, y: 78 },
         icon: "badge-check",
         body:
-          "A release moves through its journey from Build to Deploy and Access. Stage handoffs to Pharos and Janus are recorded with their results, and quotes can be accepted by customers through a public link.",
-        meta: "Internal truth and the next stage stay connected",
-        signal: "Recorded stage handoffs and acceptance",
+          "Customers can accept quotes through a public link. Handing releases on to Pharos and Janus through the shared tool contract is planned; both run on their own today.",
+        meta: "Quotes are live; Pharos and Janus handoffs are planned",
+        signal: "Quote acceptance",
         reference: {
           label: "Release verification",
           href: docsUrl("RELEASE.md"),
@@ -516,10 +516,10 @@ export const paimosContent = {
           meta: "Transactional bulk operations and explicit skips",
         },
         {
-          title: "Releases and journeys",
+          title: "Releases",
           body:
-            "Releases are part of the tree. A project's journey view shows its stage from Inspire to Live and exactly one next action, derived from recorded decisions rather than guessed.",
-          meta: "Eight stages, one next action",
+            "Releases are part of the tree, so the work that ships in a release stays attached to it.",
+          meta: "Releases inside the work tree",
         },
         {
           title: "Hours and business context",
@@ -568,10 +568,10 @@ export const paimosContent = {
           meta: "Full-text search always stays available",
         },
         {
-          title: "Cited intake",
+          title: "Cited intake (planned)",
           body:
-            "Aithema intake arrives as sources, transcript turns and drafts with citations. A proposal never changes the project on its own; a person accepts one draft.",
-          meta: "Requirements with their sources attached",
+            "Planned: Aithema intake arrives as sources, transcript turns and drafts with citations, and a proposal never changes the project on its own.",
+          meta: "Planned, not live yet",
         },
       ],
     },
@@ -583,17 +583,17 @@ export const paimosContent = {
         "An agent with a token is not an agent with permission. Paimos keeps keys, scopes, approvals, budgets and runs explicit instead of collapsing them into one ambiguous action.",
       items: [
         {
-          title: "Five agent harnesses",
+          title: "Agent harnesses",
           icon: "workflow",
           body:
-            "Codex, Claude, Pi, Cursor and Grok sessions register with the project and show up in the Agents workspace while they work: what they are on, how they pace and what they need from you.",
-          meta: "One workspace for every harness",
+            "Claude Code, Codex, Cursor and pi start under Paimos on macOS and Linux and show up in the Agents workspace while they work: what they are on, how they pace and what they need from you. Grok runs tool-free on Apple silicon; Gemini and OpenCode pair only, dispatch is planned.",
+          meta: "Supported, not proven at scale",
         },
         {
           title: "Scoped keys and approvals",
           icon: "sliders-horizontal",
           body:
-            "An agent key holds a fixed set of scopes, checked together with the permissions of its role on every call. Gated steps, such as claiming another agent's run, proposing requirements or passing a journey gate, also need a grant: the agent asks within its key, a person approves before the request expires, and revoking closes the grant.",
+            "An agent key holds a fixed set of scopes, checked together with the permissions of its role on every call. Gated steps, such as claiming another agent's run, also need a grant: the agent asks within its key, a person approves before the request expires, and revoking closes the grant.",
           meta: "The key is the ceiling; a person gates the sensitive steps",
         },
         {
@@ -656,12 +656,12 @@ export const paimosContent = {
         title: "Engineering teams",
         body:
           "Give people and agents the same work tree, knowledge and run history. Reduce context reconstruction without turning agent access into an invisible side channel.",
-        meta: "Plan, delegate, review and hand off in one project model",
+        meta: "Plan, delegate and review in one project model",
       },
       {
         title: "Delivery and project leads",
         body:
-          "Track relations, releases, hours and work-order budgets while agents work, and see the one next action on every project's journey.",
+          "Track relations, releases, hours and work-order budgets while agents work.",
         meta: "Operational delivery without a second reporting truth",
       },
       {
@@ -778,10 +778,10 @@ export const paimosContent = {
           "Authorization code with PKCE and a verified ID token. INSPR runs it against ZITADEL.",
       },
       {
-        name: "Codex, Claude, Pi, Cursor and Grok",
+        name: "Claude Code, Codex, Cursor and pi",
         status: "Agent harnesses",
         description:
-          "Local agent sessions register with a project, claim runs, ask for permissions and report content-free telemetry.",
+          "Local agent sessions start under Paimos, register with a project, claim runs, ask for permissions and report content-free telemetry. Grok runs tool-free; Gemini and OpenCode pair only.",
       },
       {
         name: "aeon-agentd",
@@ -803,15 +803,15 @@ export const paimosContent = {
       },
       {
         name: "Aithema",
-        status: "Family",
+        status: "Planned",
         description:
-          "Stores cited requirements intake: sources, transcript turns and drafts that a person accepts.",
+          "Cited requirements intake from Aithema is planned. Aithema runs on its own today.",
       },
       {
         name: "Pharos and Janus",
-        status: "Family",
+        status: "Planned",
         description:
-          "Stage handoffs record deployment through Pharos and access through Janus, with their results on the release journey.",
+          "Pharos and Janus as Paimos tools, through one request, policy, approval, execution and receipt contract, are planned. Both run on their own today.",
       },
       {
         name: "Embeddings endpoint",
@@ -837,7 +837,7 @@ export const paimosContent = {
       "There are no retention windows and no per-person export or erase endpoints yet.",
       "The MCP server is early and answers only whoami today. Use the CLI or HTTP API for issues, knowledge and search.",
       "Customers can read, accept and download the quotes addressed to them, through a public link or signed in as the recipient. There is no general customer portal in this release.",
-      "Aithema intake is an API. There is no voice or microphone interface in the app.",
+      "Aithema intake is planned and not live yet. There is no voice or microphone interface in the app.",
       "Releases carry SHA256SUMS and build provenance, not cosign signatures or an SBOM.",
       "Paimos has not yet completed an independent third-party security review.",
       "There is no published scale benchmark. Production adoption should validate representative projects, users, agents and attachment volume.",

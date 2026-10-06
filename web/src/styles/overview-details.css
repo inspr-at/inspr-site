@@ -317,6 +317,14 @@ html[data-details-level="technical"] .overview-stack .overview-drawer__inner {
   line-height: 1.3;
 }
 
+.overview-stack__planned {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  margin-top: 0.5rem;
+}
+
 .overview-stack__live {
   display: grid;
   gap: 0.2rem;

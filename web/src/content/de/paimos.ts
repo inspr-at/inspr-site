@@ -34,7 +34,7 @@ export const paimosContentDe = {
       artefact: "Arbeitsbaum, Wissen, Arbeitsaufträge und Laufaufzeichnungen, je Mandant und berechtigungsbewusst.",
       interfaces: "UI, CLI, HTTP-API",
       maturity: "Paimos 7 · AEON, veröffentlicht, AGPL-3.0-only",
-      command: 'paimos issue create -p PROJ --title "…"',
+      command: 'paimos issue create -p PROJ --title "Write release notes"',
     },
     eyebrow: "Paimos 7 · AEON",
     title: "Ein gemeinsames Projektbild.",
@@ -70,9 +70,9 @@ export const paimosContentDe = {
         label: "Agenten zuerst",
         icon: "workflow",
         group: "ai",
-        note: "Sitzungen von Codex, Claude, Pi, Cursor und Grok arbeiten im selben Projektmodell wie Personen, jede mit eigenem Schlüssel und eigenen Scopes.",
+        note: "Claude Code, Codex, Cursor und pi starten unter Paimos (macOS und Linux), jede Sitzung mit eigenem Schlüssel und eigenen Scopes; Grok läuft ohne Werkzeuge auf Apple Silicon; Gemini und OpenCode sind nur gekoppelt, der Start ist geplant.",
         noteEli10:
-          "KI-Helfer mehrerer Hersteller können in denselben Projekten arbeiten wie die Menschen in Ihrem Team. Jeder hat ein eigenes Kennzeichen, sodass Sie immer wissen, wer was getan hat.",
+          "KI-Helfer mehrerer Hersteller können in denselben Projekten arbeiten wie die Menschen in Ihrem Team. Jeder hat ein eigenes Kennzeichen, sodass Sie immer wissen, wer was getan hat. Manche Helfer lassen sich vorerst nur koppeln.",
       },
       {
         label: "Abgegrenzte Berechtigungen",
@@ -179,12 +179,12 @@ export const paimosContentDe = {
           "Andere Software kann automatisch mit Paimos sprechen. Ihre IT kann es mit den Werkzeugen verdrahten, die Sie schon bezahlen, statt Dinge abzutippen.",
       },
       {
-        label: "INSPR-Übergaben",
+        label: "INSPR-Werkzeuge",
         icon: "route",
         group: "ai",
-        note: "Nimmt belegte Anforderungseingänge aus Aithema entgegen und hält Stufenübergaben an Pharos für die Bereitstellung und an Janus für den Zugang fest.",
+        note: "Der Anforderungseingang aus Aithema sowie Pharos und Janus als Paimos-Werkzeuge sind geplant. Jedes Produkt läuft heute für sich.",
         noteEli10:
-          "Es arbeitet mit den Schwesterprodukten zusammen: Anforderungen kommen aus Aithema, und erledigte Arbeit geht mit einer Aufzeichnung an Pharos und Janus weiter.",
+          "Das Zusammenspiel mit den Schwesterprodukten ist geplant: Anforderungen aus Aithema, Bereitstellung und Zugriff über Pharos und Janus. Jedes läuft heute für sich.",
       },
       {
         label: "Releases mit Prüfsummen",
@@ -272,7 +272,7 @@ export const paimosContentDe = {
         id: "scope",
         term: "Scope",
         matches: ["Scope", "Scopes"],
-        body: "Ein genau benanntes Recht, etwa Läufe lesen oder Eingang schreiben. Ein Agentenschlüssel hält eine feste Menge von Scopes.",
+        body: "Ein genau benanntes Recht, etwa Läufe lesen oder Tickets schreiben. Ein Agentenschlüssel hält eine feste Menge von Scopes.",
       },
       {
         id: "slug",
@@ -383,8 +383,8 @@ export const paimosContentDe = {
   },
   model: {
     handoff: {
-      in: "freigegebener Anforderungssatz",
-      out: "Staging-Build + Nachweise",
+      in: "Tickets und Wissen",
+      out: "Laufprotokolle + Nachweise",
     },
     eyebrow: "So funktioniert es",
     title: "Das Projekt ist die Steuerungsebene.",
@@ -404,7 +404,7 @@ export const paimosContentDe = {
         visual: { x: 24, y: 18 },
         icon: "folder-kanban",
         body:
-          "Formen Sie die Arbeit in einem dynamischen Baum: Epics, Tickets und Aufgaben, mit Arten und Bezeichnungen, die Ihr Arbeitsbereich festlegt. Typisierte Beziehungen, Releases und gespeicherte Ansichten halten ein großes Projekt lesbar. Anforderungen aus Aithema treffen als Entwürfe mit Belegen ein, die eine Person annimmt.",
+          "Formen Sie die Arbeit in einem dynamischen Baum: Epics, Tickets und Aufgaben, mit Arten und Bezeichnungen, die Ihr Arbeitsbereich festlegt. Typisierte Beziehungen, Releases und gespeicherte Ansichten halten ein großes Projekt lesbar. Belegte Anforderungen aus Aithema sind geplant.",
         meta: "Von angenommenen Anforderungen zu einem geplanten Baum",
         signal: "Arbeitsbaum, Beziehungen und Releases",
         reference: {
@@ -458,14 +458,14 @@ export const paimosContentDe = {
       },
       {
         number: "05",
-        simple: "Geben Sie das Ergebnis weiter, mit der Freigabe einer Person bei jedem Schritt.",
+        simple: "Geben Sie das Ergebnis weiter, und lassen Sie Kunden Angebote annehmen.",
         title: "Übergabe",
         visual: { x: 50, y: 78 },
         icon: "badge-check",
         body:
-          "Ein Release bewegt sich auf seinem Weg von Build über Deploy bis Access. Stufenübergaben an Pharos und Janus werden mit ihren Ergebnissen festgehalten, und Kunden können Angebote über einen öffentlichen Link annehmen.",
-        meta: "Interne Wahrheit und die nächste Stufe bleiben verbunden",
-        signal: "Festgehaltene Stufenübergaben und Annahme",
+          "Kunden können Angebote über einen öffentlichen Link annehmen. Die Weitergabe von Releases an Pharos und Janus über den gemeinsamen Werkzeugvertrag ist geplant; beide laufen heute für sich.",
+        meta: "Angebote sind live; Übergaben an Pharos und Janus sind geplant",
+        signal: "Annahme von Angeboten",
         reference: {
           label: "Release-Verifikation",
           href: docsUrl("RELEASE.md"),
@@ -516,10 +516,10 @@ export const paimosContentDe = {
           meta: "Transaktionale Massenoperationen und explizite Überspringungen",
         },
         {
-          title: "Releases und Wege",
+          title: "Releases",
           body:
-            "Releases sind Teil des Baums. Die Wegansicht eines Projekts zeigt seine Stufe von Inspire bis Live und genau eine nächste Aktion, abgeleitet aus festgehaltenen Entscheidungen und nicht geraten.",
-          meta: "Acht Stufen, eine nächste Aktion",
+            "Releases sind Teil des Baums, sodass die Arbeit, die in einem Release erscheint, an ihm hängt.",
+          meta: "Releases im Arbeitsbaum",
         },
         {
           title: "Stunden und kaufmännischer Kontext",
@@ -568,10 +568,10 @@ export const paimosContentDe = {
           meta: "Volltextsuche bleibt immer verfügbar",
         },
         {
-          title: "Belegter Eingang",
+          title: "Belegter Eingang (geplant)",
           body:
-            "Der Eingang aus Aithema trifft als Quellen, Transkriptabschnitte und Entwürfe mit Belegen ein. Ein Vorschlag ändert das Projekt nie von allein. Eine Person nimmt einen Entwurf an.",
-          meta: "Anforderungen mit ihren Quellen",
+            "Geplant: Der Eingang aus Aithema trifft als Quellen, Transkriptabschnitte und Entwürfe mit Belegen ein, und ein Vorschlag ändert das Projekt nie von allein.",
+          meta: "Geplant, noch nicht live",
         },
       ],
     },
@@ -583,17 +583,17 @@ export const paimosContentDe = {
         "Ein Agent mit einem Token ist kein Agent mit einer Berechtigung. Paimos hält Schlüssel, Scopes, Freigaben, Budgets und Läufe explizit, statt sie zu einer mehrdeutigen Aktion zu verschmelzen.",
       items: [
         {
-          title: "Fünf Agenten-Harnesses",
+          title: "Agenten-Harnesses",
           icon: "workflow",
           body:
-            "Sitzungen von Codex, Claude, Pi, Cursor und Grok registrieren sich beim Projekt und erscheinen während der Arbeit im Arbeitsbereich für Agenten: woran sie arbeiten, in welchem Tempo sie vorankommen und was sie von Ihnen brauchen.",
-          meta: "Ein Arbeitsbereich für jeden Harness",
+            "Claude Code, Codex, Cursor und pi starten unter Paimos (macOS und Linux) und erscheinen während der Arbeit im Arbeitsbereich für Agenten: woran sie arbeiten, in welchem Tempo sie vorankommen und was sie von Ihnen brauchen. Grok läuft ohne Werkzeuge auf Apple Silicon; Gemini und OpenCode sind nur gekoppelt, der Start ist geplant.",
+          meta: "Unterstützt, nicht im großen Maßstab erprobt",
         },
         {
           title: "Abgegrenzte Schlüssel und Freigaben",
           icon: "sliders-horizontal",
           body:
-            "Ein Agentenschlüssel hält eine feste Menge von Scopes, die bei jedem Aufruf zusammen mit den Berechtigungen seiner Rolle geprüft werden. Geschützte Schritte, etwa den Lauf eines anderen Agenten zu beanspruchen, Anforderungen vorzuschlagen oder ein Tor im Ablauf zu passieren, brauchen zusätzlich eine Freigabe: Der Agent fragt innerhalb seines Schlüssels an, eine Person genehmigt vor dem Ablauf der Anfrage, und der Widerruf schließt die Freigabe.",
+            "Ein Agentenschlüssel hält eine feste Menge von Scopes, die bei jedem Aufruf zusammen mit den Berechtigungen seiner Rolle geprüft werden. Geschützte Schritte, etwa den Lauf eines anderen Agenten zu beanspruchen, brauchen zusätzlich eine Freigabe: Der Agent fragt innerhalb seines Schlüssels an, eine Person genehmigt vor dem Ablauf der Anfrage, und der Widerruf schließt die Freigabe.",
           meta: "Der Schlüssel ist die Obergrenze; eine Person gibt die heiklen Schritte frei",
         },
         {
@@ -661,7 +661,7 @@ export const paimosContentDe = {
       {
         title: "Delivery- und Projektleitung",
         body:
-          "Verfolgen Sie Beziehungen, Releases, Stunden und die Budgets der Arbeitsaufträge, während Agenten arbeiten, und sehen Sie auf dem Weg jedes Projekts die eine nächste Aktion.",
+          "Verfolgen Sie Beziehungen, Releases, Stunden und die Budgets der Arbeitsaufträge, während Agenten arbeiten.",
         meta: "Operative Lieferung ohne zweite Berichtswahrheit",
       },
       {
@@ -778,10 +778,10 @@ export const paimosContentDe = {
           "Authorization Code mit PKCE und einem geprüften ID-Token. INSPR betreibt es mit ZITADEL.",
       },
       {
-        name: "Codex, Claude, Pi, Cursor und Grok",
+        name: "Claude Code, Codex, Cursor und pi",
         status: "Agenten-Harnesses",
         description:
-          "Lokale Agentensitzungen registrieren sich bei einem Projekt, beanspruchen Läufe, fragen Berechtigungen an und melden inhaltsfreie Telemetrie.",
+          "Lokale Agentensitzungen starten unter Paimos, registrieren sich bei einem Projekt, beanspruchen Läufe, fragen Berechtigungen an und melden inhaltsfreie Telemetrie. Grok läuft ohne Werkzeuge; Gemini und OpenCode sind nur gekoppelt.",
       },
       {
         name: "aeon-agentd",
@@ -803,15 +803,15 @@ export const paimosContentDe = {
       },
       {
         name: "Aithema",
-        status: "Familie",
+        status: "Geplant",
         description:
-          "Speichert belegte Anforderungseingänge: Quellen, Transkriptabschnitte und Entwürfe, die eine Person annimmt.",
+          "Der belegte Anforderungseingang aus Aithema ist geplant. Aithema läuft heute für sich.",
       },
       {
         name: "Pharos und Janus",
-        status: "Familie",
+        status: "Geplant",
         description:
-          "Stufenübergaben zeichnen die Bereitstellung über Pharos und den Zugang über Janus auf, mit den Ergebnissen auf dem Weg des Releases.",
+          "Pharos und Janus als Paimos-Werkzeuge, über einen gemeinsamen Vertrag aus Anfrage, Richtlinie, Freigabe, Ausführung und Beleg, sind geplant. Beide laufen heute für sich.",
       },
       {
         name: "Embeddings-Endpunkt",
@@ -837,7 +837,7 @@ export const paimosContentDe = {
       "Aufbewahrungsfristen und Endpunkte für Export oder Löschung pro Person gibt es noch nicht.",
       "Der MCP-Server ist früh und antwortet heute nur mit whoami. Für Tickets, Wissen und Suche nutzen Sie die CLI oder die HTTP-API.",
       "Kunden können die an sie gerichteten Angebote lesen, annehmen und herunterladen, über einen öffentlichen Link oder angemeldet als Empfänger. Ein allgemeines Kundenportal gibt es in diesem Release nicht.",
-      "Der Eingang aus Aithema ist eine API. Eine Oberfläche für Sprache oder Mikrofon gibt es in der Anwendung nicht.",
+      "Der Eingang aus Aithema ist geplant und noch nicht live. Eine Oberfläche für Sprache oder Mikrofon gibt es in der Anwendung nicht.",
       "Releases tragen SHA256SUMS und eine Build-Provenienz, keine cosign-Signaturen und keine SBOM.",
       "Paimos hat noch keine unabhängige Sicherheitsprüfung durch Dritte abgeschlossen.",
       "Es gibt keinen veröffentlichten Skalierungs-Benchmark. Eine Produktionsübernahme sollte repräsentative Projekte, Nutzerzahlen, Agenten und das Anhangsvolumen prüfen.",

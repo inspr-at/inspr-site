@@ -81,6 +81,10 @@ test("product technical drawers share typed, public datasheets and localized han
     en: ["conversation + files", "approved requirement set", "staged build + evidence", "release on a declared host", "bounded permit"],
     de: ["Gespräch + Dateien", "freigegebener Anforderungssatz", "Staging-Build + Nachweise", "Release auf deklariertem Host", "begrenzte Freigabe"],
   };
+  const paimosHandoff = {
+    en: ["tickets and knowledge", "run records + evidence"],
+    de: ["Tickets und Wissen", "Laufprotokolle + Nachweise"],
+  };
   for (const [index, slug] of products.entries()) {
     for (const locale of ["en", "de"]) {
       const text = await source(`content/${locale === "de" ? "de/" : ""}${slug}.ts`);
@@ -91,9 +95,11 @@ test("product technical drawers share typed, public datasheets and localized han
       const handoff = model.match(/^    handoff: \{\n([\s\S]*?)^    \},/m)?.[1];
       assert.ok(sheet && handoff, `${slug} ${locale}: sheet belongs to hero, handoff to model`);
       for (const field of fields) assert.match(sheet, new RegExp(`^      ${field}: "[^"\\n]+",$`, "m"));
-      assert.ok(handoff.includes(`in: "${handoffs[locale][index]}"`));
-      assert.ok(handoff.includes(`out: "${handoffs[locale][index + 1]}"`));
-      if (slug === "paimos") assert.ok(sheet.includes('command: \'paimos issue create -p PROJ --title "…"\''));
+      // INSPR-543: Paimos claims neither Aithema intake nor a staged build (planned, retired).
+      const [handoffIn, handoffOut] = slug === "paimos" ? paimosHandoff[locale] : [handoffs[locale][index], handoffs[locale][index + 1]];
+      assert.ok(handoff.includes(`in: "${handoffIn}"`));
+      assert.ok(handoff.includes(`out: "${handoffOut}"`));
+      if (slug === "paimos") assert.ok(sheet.includes('command: \'paimos issue create -p PROJ --title "Write release notes"\''));
       else assert.doesNotMatch(sheet, /command:/);
       assert.doesNotMatch(sheet + handoff, /\b(hsb|csb|mbp)\d/i, `${slug} ${locale}: no host names`);
       assert.doesNotMatch(sheet + handoff, /barta\.cm|netcup|hetzner|storage box/i, `${slug} ${locale}: no internal domains or providers`);
@@ -151,12 +157,11 @@ test("the umbrella start page carries the Details slider, depth leads and techni
   assert.match(umbrella, /import DetailLevels from "\.\.\/components\/DetailLevels\.astro"/);
   assert.match(umbrella, /languageLinks=\{\{ en: "\/", de: "\/de\/" \}\}\s*detailsSlider=\{\{[\s\S]*?label: "Details",[\s\S]*?\{ id: "technical", label: copy\("Technical", "Technisch"\) \},/);
   assert.equal((umbrella.match(/<DetailLevels/g) || []).length, 5);
-  assert.match(umbrella, /leadDepths=\{\{\s*simple: copy\(/);
   for (const phrase of [
-    "Say what you want to build. Four tools take it from there, one step at a time, and each step waits for your yes.",
-    "Sagen Sie, was Sie bauen wollen. Vier Werkzeuge übernehmen es von da an, Schritt für Schritt, und jeder Schritt wartet auf Ihr Ja.",
-    "Every handoff is an explicit human approval gate.",
-    "Jede Übergabe ist ein explizites menschliches Freigabe-Gate.",
+    "Each product runs on its own today; connecting them is being built.",
+    "Jedes Produkt läuft heute für sich; ihre Verbindung ist im Aufbau.",
+    "Planned items carry no dates.",
+    "Geplante Punkte haben keine Termine.",
     "All four tools are open for anyone to read and run.",
     "Alle vier Werkzeuge sind offen, jeder kann sie lesen und betreiben.",
   ]) {
@@ -170,9 +175,12 @@ test("the umbrella start page carries the Details slider, depth leads and techni
   }
   const spec = umbrella.match(/<dl class="umbrella-spec details-drawer" data-drawer[\s\S]*?<\/dl>/)?.[0];
   assert.ok(spec, "the umbrella has a technical hero spec strip");
-  for (const field of ["release", "source", "deployed", "csp", "hsts"]) {
-    assert.ok(spec.includes(`data-live="${field}"`));
+  // INSPR-543: no `…` placeholders; the build facts render at build time and the
+  // header-only CSP and HSTS values are not listed.
+  for (const field of ["release", "source", "deployed"]) {
+    assert.ok(spec.includes(`{buildFacts.${field}}`));
   }
+  assert.doesNotMatch(spec, /data-live|…/);
   assert.match(spec, /AGPL-3\.0-only/);
   assert.match(spec, /copy\("1 build · 5 hostnames · 2 languages", "1 Build · 5 Hostnamen · 2 Sprachen"\)/);
   assert.match(umbrella, /\.umbrella-spec \{\s*margin: 0;\s*padding: 0;\s*border: 0;/);

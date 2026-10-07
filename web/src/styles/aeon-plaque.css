@@ -289,7 +289,11 @@
     font-weight: 700;
   }
 
+  /* INSPR-540: releases go by their codename; the calendar version shows on
+     hover or keyboard focus only (it stays in the plaque's aria-label). */
   .aeon-plaque__meta code {
+    opacity: 0;
+    transition: opacity 180ms ease;
     padding: 0.05rem 0.45rem;
     color: var(--ink);
     background: rgb(255 255 255 / 0.62);
@@ -298,6 +302,11 @@
     font-family: var(--font-mono);
     font-size: 0.72rem;
     overflow-wrap: anywhere;
+  }
+
+  .aeon-plaque:hover .aeon-plaque__meta code,
+  .aeon-plaque:focus-visible .aeon-plaque__meta code {
+    opacity: 1;
   }
 
   .aeon-plaque__go {

@@ -14,11 +14,11 @@ const repositoryUrl = "https://github.com/inspr-at/paimos";
 // INSPR-529: the one place that names the presented release. A new release is
 // one edit here; every label, link and proof path below follows it.
 export const paimosRelease = {
-  number: "123",
-  codename: "Coral Cargo",
-  tag: "v261005070923.0.0",
-  publishedAt: "2026-10-05",
-  publishedLabel: { en: "5 October 2026", de: "5. Oktober 2026" },
+  number: "125",
+  codename: "Exotic Ejecta",
+  tag: "v261007063042.0.0",
+  publishedAt: "2026-10-07",
+  publishedLabel: { en: "7 October 2026", de: "7. Oktober 2026" },
 };
 
 const tag = paimosRelease.tag;
@@ -63,7 +63,7 @@ export const paimosAeonContent = {
     depths: {
       simple:
         "AEON lets your team and its AI helpers work on the same projects. The helpers run on your computers, you see what each one does, and people approve the important steps.",
-      technical: `Release ${paimosRelease.number} (${tag}): one Go binary with an embedded Vue app, Postgres 18 under FORCE row-level security, an append-only event log per tenant, one OpenAPI 3.1 contract, and aeon-agentd starting Claude Code, Codex, Cursor and pi on paired machines.`,
+      technical: `Release ${paimosRelease.number} “${paimosRelease.codename}”: one Go binary with an embedded Vue app, Postgres 18 under FORCE row-level security, an append-only event log per tenant, one OpenAPI 3.1 contract, and aeon-agentd starting Claude Code, Codex, Cursor and pi on paired machines.`,
     },
     primaryLabel: "See it running",
     primaryHref: "#screens",

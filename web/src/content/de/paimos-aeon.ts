@@ -52,7 +52,7 @@ export const paimosAeonContentDe = {
     depths: {
       simple:
         "Mit AEON arbeiten Ihr Team und seine KI-Helfer an denselben Projekten. Die Helfer laufen auf Ihren Computern, Sie sehen, was jeder tut, und Menschen geben die wichtigen Schritte frei.",
-      technical: `Release ${paimosRelease.number} (${tag}): eine Go-Binärdatei mit eingebetteter Vue-Anwendung, Postgres 18 unter Sicherheit auf Zeilenebene im FORCE-Modus, ein Append-only-Ereignisprotokoll je Mandant, ein Vertrag nach OpenAPI 3.1 und aeon-agentd, das Claude Code, Codex, Cursor und pi auf gekoppelten Rechnern startet.`,
+      technical: `Release ${paimosRelease.number} „${paimosRelease.codename}“: eine Go-Binärdatei mit eingebetteter Vue-Anwendung, Postgres 18 unter Sicherheit auf Zeilenebene im FORCE-Modus, ein Append-only-Ereignisprotokoll je Mandant, ein Vertrag nach OpenAPI 3.1 und aeon-agentd, das Claude Code, Codex, Cursor und pi auf gekoppelten Rechnern startet.`,
     },
     primaryLabel: "Im Einsatz ansehen",
     primaryHref: "#screens",

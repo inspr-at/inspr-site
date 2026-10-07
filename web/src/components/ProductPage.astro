@@ -15,6 +15,9 @@ import ConstraintRegister from "./ConstraintRegister.astro";
 import ProvenanceReceipt from "./ProvenanceReceipt.astro";
 import SpecsGrid from "./SpecsGrid.astro";
 import HeroLoop from "./HeroLoop.astro";
+import FamilyBand from "./FamilyBand.astro";
+import StatusChip from "./StatusChip.astro";
+import { products, statusLabels } from "../content/family";
 import type { ProductContent } from "../content/types";
 import { siteUrls } from "../content/urls";
 
@@ -49,8 +52,9 @@ interface Props {
 const { content } = Astro.props;
 const locale: "en" | "de" = Astro.props.locale === "de" ? "de" : "en";
 const sheetLabels = locale === "de"
-  ? { repo: "Repo", runtime: "Laufzeit", gate: "Gate", artefact: "Artefakt", interfaces: "Schnittstellen", maturity: "Reife", command: "Befehl" }
-  : { repo: "repo", runtime: "runtime", gate: "gate", artefact: "artefact", interfaces: "interfaces", maturity: "maturity", command: "command" };
+  ? { repo: "Repo", runtime: "Laufzeit", gate: "Freigabe", artefact: "Artefakt", interfaces: "Schnittstellen", maturity: "Reife", command: "Befehl" }
+  : { repo: "repo", runtime: "runtime", gate: "gate", artefact: "artifact", interfaces: "interfaces", maturity: "maturity", command: "command" };
+const product = products[content.slug];
 
 // The shared DE/EN locale contract: English lives at the product-host root,
 // German at /de/. Both alternates derive from the canonical host so hreflang
@@ -59,6 +63,9 @@ const mount = Astro.props.mount;
 const englishUrl = mount?.english ?? siteUrls[content.slug];
 const germanUrl = mount?.german ?? `${englishUrl}/de/`;
 const pathOf = (url: string) => new URL(url).pathname;
+// Planned rows use the shared chip so they never read like a shipped status.
+const isPlannedLabel = (status: string) =>
+  status === statusLabels.planned.en || status === statusLabels.planned.de;
 
 // UI chrome that does not belong to the content model. Section anchors stay
 // identical across locales so the language switch preserves deep links.
@@ -157,7 +164,9 @@ const assets = {
     problem: pharosProblem,
     workflow: pharosWorkflow,
     workflowAlt:
-      "A fleet control instrument comparing observed state with declared state through a guarded change gate.",
+      locale === "de"
+        ? "Ein Instrument zur Flottensteuerung vergleicht beobachteten und deklarierten Zustand vor einer abgesicherten Freigabe."
+        : "A fleet control instrument comparing observed state with declared state through a guarded change gate.",
   },
   janus: {
     hero: janusHero,
@@ -166,7 +175,9 @@ const assets = {
     problem: janusProblem,
     workflow: janusWorkflow,
     workflowAlt:
-      "A secret-backed request crossing a transparent policy boundary while the secret value remains sealed.",
+      locale === "de"
+        ? "Eine Anfrage mit Geheimnisnutzung durchquert eine transparente Richtliniengrenze, während der Geheimniswert versiegelt bleibt."
+        : "A secret-backed request crossing a transparent policy boundary while the secret value remains sealed.",
   },
 }[content.slug];
 
@@ -263,7 +274,9 @@ const featurePresentations: Record<string, FeaturePresentation> = {
       <div class="product-hero__copy">
         <p class="eyebrow">{content.hero.eyebrow}</p>
         <h1 id="hero-title">{content.hero.title}</h1>
+        {content.slug !== "paimos" && <p>{product.oneLiner[locale]}</p>}
         <p class="hero-lead"><DetailLevels simple={content.hero.depths?.simple ?? content.hero.lead} standard={content.hero.lead} technical={content.hero.depths?.technical ?? content.hero.lead} /></p>
+        {content.slug !== "paimos" && <p><StatusChip status={product.status} locale={locale} /> {product.statusNote?.[locale]}</p>}
         <div class="button-row">
           <a class="button" href={content.hero.primaryHref}>
             {content.hero.primaryLabel} <span aria-hidden="true">↓</span>
@@ -301,6 +314,12 @@ const featurePresentations: Record<string, FeaturePresentation> = {
         />
       </figure>
     </section>
+
+    {content.slug !== "paimos" && (
+      <>
+        <FamilyBand highlight={content.slug} locale={locale} />
+      </>
+    )}
 
     <div
       data-depth-min="standard" class="proof-console page-shell"
@@ -572,7 +591,11 @@ const featurePresentations: Record<string, FeaturePresentation> = {
             {content.integrations.items.map((item) => (
               <tr data-integration-row={item.status}>
                 <th scope="row">{item.name}</th>
-                <td><span class="status-label">{item.status}</span></td>
+                <td>
+                  {isPlannedLabel(item.status)
+                    ? <StatusChip status="planned" locale={locale} />
+                    : <span class="status-label">{item.status}</span>}
+                </td>
                 <td>{item.description}</td>
               </tr>
             ))}

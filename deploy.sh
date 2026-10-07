@@ -18,8 +18,8 @@
 # The current Astro build contains the umbrella page plus /aithema, /paimos,
 # /pharos and /janus. Caddy maps each product hostname to its folder and serves
 # content-addressed /_astro files from the append-only shared asset pool.
-# /paimos is the AEON page (INSPR-492); the retired Paimos page lives at
-# www.inspr.at/paimos-legacy and /paimos-aeon only redirects to /paimos/.
+# /paimos is the AEON page (INSPR-492); /paimos-aeon only redirects to /paimos/
+# and the retired /paimos-legacy page is gone (INSPR-531).
 #
 # Env vars:
 #   INSPR_AT_HOST       SSH alias or host (default: csb1)
@@ -1050,8 +1050,6 @@ required_documents=(
   "de/ueberblick/index.html"
   "paimos/index.html"
   "paimos/de/index.html"
-  "paimos-legacy/index.html"
-  "paimos-legacy/de/index.html"
   "paimos-aeon/index.html"
   "paimos-aeon/de/index.html"
   "pharos/index.html"
@@ -1224,8 +1222,6 @@ remote_ssh "set -eu
   test -f '$REMOTE_INCOMING/index.html'
   test -f '$REMOTE_INCOMING/paimos/index.html'
   test -f '$REMOTE_INCOMING/paimos/de/index.html'
-  test -f '$REMOTE_INCOMING/paimos-legacy/index.html'
-  test -f '$REMOTE_INCOMING/paimos-legacy/de/index.html'
   test -f '$REMOTE_INCOMING/paimos-aeon/index.html'
   test -f '$REMOTE_INCOMING/pharos/index.html'
   test -f '$REMOTE_INCOMING/pharos/de/index.html'
@@ -1316,9 +1312,6 @@ else
   probe_page "Paimos German microsite" "https://paimos.inspr.at/de/" "Ihre Agenten. Ihre Rechner." "text/html" "$RELEASE_ID"
   probe_page "Paimos on the www host" "https://www.inspr.at/paimos/" "Your agents. Your machines." "text/html" "$RELEASE_ID"
   probe_page "Paimos German on the www host" "https://www.inspr.at/paimos/de/" "Ihre Agenten. Ihre Rechner." "text/html" "$RELEASE_ID"
-  probe_page "Paimos legacy page" "https://www.inspr.at/paimos-legacy/" "One shared project picture." "text/html" "$RELEASE_ID"
-  probe_page "Paimos legacy German page" "https://www.inspr.at/paimos-legacy/de/" "Ein gemeinsames Projektbild." "text/html" "$RELEASE_ID"
-  probe_page "Paimos legacy stays unindexed" "https://www.inspr.at/paimos-legacy/" 'name="robots" content="noindex, follow"' "text/html"
   probe_page "old AEON preview URL redirects" "https://www.inspr.at/paimos-aeon/" "/paimos/" "text/html"
   probe_page "Pharos microsite" "https://pharos.inspr.at/" "Fleet truth before action." "text/html" "$RELEASE_ID"
   probe_page "Pharos German microsite" "https://pharos.inspr.at/de/" "Flottenwahrheit vor Aktion." "text/html" "$RELEASE_ID"

@@ -6,17 +6,16 @@ const pages = [
   // and architecture rails wait for published evidence from that core. The
   // explicit zero-rail contract keeps every visible section under this audit.
   { name: "aithema", path: new URL("../dist/aithema/index.html", import.meta.url), minimum: 11, expectedRails: 0 },
-  { name: "paimos-legacy", path: new URL("../dist/paimos-legacy/index.html", import.meta.url), minimum: 15, expectedRails: 2 },
   { name: "pharos", path: new URL("../dist/pharos/index.html", import.meta.url), minimum: 15, expectedRails: 2 },
   { name: "janus", path: new URL("../dist/janus/index.html", import.meta.url), minimum: 13, expectedRails: 2 },
   // The German product editions render through the same components, so they
   // must satisfy exactly the structural budget of their English originals.
   { name: "aithema-de", path: new URL("../dist/aithema/de/index.html", import.meta.url), minimum: 11, expectedRails: 0 },
-  { name: "paimos-legacy-de", path: new URL("../dist/paimos-legacy/de/index.html", import.meta.url), minimum: 15, expectedRails: 2 },
   { name: "pharos-de", path: new URL("../dist/pharos/de/index.html", import.meta.url), minimum: 15, expectedRails: 2 },
   { name: "janus-de", path: new URL("../dist/janus/de/index.html", import.meta.url), minimum: 13, expectedRails: 2 },
   // INSPR-492: the AEON page at /paimos tells its own story without the shared
   // inspectable rails; both editions carry the same thirteen visible blocks.
+  // INSPR-544: the engine section took the place of the retired Journey.
   { name: "paimos", path: new URL("../dist/paimos/index.html", import.meta.url), minimum: 13, expectedRails: 0 },
   { name: "paimos-de", path: new URL("../dist/paimos/de/index.html", import.meta.url), minimum: 13, expectedRails: 0 },
 ];

@@ -183,23 +183,29 @@ test("German homepage copy is complete across editorial and interactive surfaces
   const footer = await source("components/MicrositeFooter.astro");
 
   for (const phrase of [
-    "Inspiration ist die einzige Grenze.",
-    "Am Anfang steht ein Gespräch. Am Ende stehen klare Anforderungen.",
-    "Geben Sie Agenten ein Projekt, nicht nur einen Prompt.",
-    "Server wählen. Backup prüfen. Dann bereitstellen.",
-    "Bestimmen Sie, was handeln darf. Geheimnisse bleiben verborgen.",
-    "Die Arbeit kommt voran. Sie bestimmen, wann.",
+    "Vier Werkzeuge mit je einer klaren Aufgabe.",
+    "Wie die Produkte zusammenhängen.",
+    "Builder, Bots und Menschen.",
+    "Was live ist und was als Nächstes kommt.",
     "Quellcode, Daten, Server und Nachweise bleiben bei Ihnen.",
     "Der wiederverwendbare Kern ist Open Source; der gehostete Arbeitsbereich ist auf Einladung offen.",
-    "Die Anmeldung läuft über ZITADEL mit rollenbasiertem Zugriff in der Aufsichtsebene; umfassendere Berechtigungen und automatisierte Einladungen sind für später geplant",
+    "ZITADEL ist der OIDC-Identitätsanbieter für Menschen in ganz INSPR.",
+    "INSPR-Module",
   ]) {
     assert.ok(homepage.includes(phrase), `missing German homepage copy: ${phrase}`);
   }
+  // INSPR-543: the flow comes from family.ts in both languages; the home page does not
+  // restate the stage names or the product question words.
+  const flowComponent = await source("components/HomeFlow.astro");
+  assert.match(flowComponent, /step\.label\[locale\]/);
+  assert.match(flowComponent, /Sieben Schritte von der Idee bis zum Lernen/);
+  assert.match(flowComponent, /\$\{name\} ansehen/);
+  assert.doesNotMatch(homepage, /Wofür/);
 
   assert.match(homepage, /<SituationPacket locale=\{locale\} \/>/);
   assert.match(homepage, /<PrincipleFieldNotes principles=\{principles\} locale=\{locale\} \/>/);
   assert.match(homepage, /<HeroLoop[\s\S]*?locale=\{locale\}/);
-  assert.match(homepage, /<WorkflowExplorer[\s\S]*?locale=\{locale\}/);
+  assert.match(homepage, /<HomeFlow locale=\{locale\}/);
   assert.match(homepage, /<MicrositeFooter[\s\S]*?locale=\{locale\}/);
   assert.match(situation, /Vier Fragen verhindern vermeidbares Rätselraten\./);
   assert.match(workflow, /Automatischen Ablauf pausieren/);

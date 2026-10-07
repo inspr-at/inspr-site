@@ -1,3 +1,4 @@
+import { products, statusLabels } from "./family";
 import { productTaxonomy, siteUrls } from "./urls";
 import type { ProductContent } from "./types";
 
@@ -28,14 +29,13 @@ export const janusContent = {
   },
   seo: {
     title: "Janus - Secret governance for AI agents, services and people | INSPR",
-    description:
-      "Janus lets AI agents request secret-backed work through opaque references, policy-bound permits and reviewed execution paths without exposing credentials to the model.",
+    description: products.janus.oneLiner.en,
   },
   hero: {
     sheet: {
       repo: "github.com/inspr-at/janus",
       runtime: "Rust engine with an encrypted store; a separate Go envelope for human oversight.",
-      gate: "Which reference, which requester, which sink: three decisions checked on their own; the value is materialised only inside the reviewed execution path.",
+      gate: "Which reference, which requester, which sink: three decisions checked on their own; the value is materialized only inside the reviewed execution path.",
       artefact: "A bounded permit and a value-free audit record.",
       interfaces: "engine API, envelope UI",
       maturity: "engine released, envelope live, early product",
@@ -46,7 +46,7 @@ export const janusContent = {
       simple:
         "Janus lets people and AI helpers use a password or key without ever seeing it. Each use is a narrow, approved permit, and the secret itself stays locked away.",
       technical:
-        "Janus separates what may be used, who may request it and where it may flow. Callers hold opaque references and narrow, policy-bound permits; secret values are materialised only inside reviewed execution paths, never in prompts, browsers or logs.",
+        "Janus separates what may be used, who may request it and where it may flow. Callers hold opaque references and narrow, policy-bound permits; secret values are materialized only inside reviewed execution paths, never in prompts, browsers or logs.",
     },
     lead:
       "Janus separates what may be used, who may request it and where it may go. Humans and AI work with opaque references and narrow, policy-bound permits. Secret values stay inside reviewed execution paths.",
@@ -403,6 +403,18 @@ export const janusContent = {
       "The manifest, references, policy, permits and evidence stay stable while custody and consumers can vary by deployment. Status labels distinguish implemented paths from roadmap intent.",
     items: [
       {
+        name: "Agent and bot identity broker",
+        status: statusLabels.planned.en,
+        description:
+          "Janus is planned as the broker for agent and bot identities. The OIDC provider remains the identity provider for people.",
+      },
+      {
+        name: "Paimos tool contract",
+        status: statusLabels.planned.en,
+        description:
+          "Paimos will request bounded secret use through the shared contract. Janus runs independently today.",
+      },
+      {
         name: "age",
         status: "Released",
         description:
@@ -428,9 +440,9 @@ export const janusContent = {
       },
       {
         name: "ZITADEL OIDC",
-        status: "Live in oversight plane",
+        status: `${statusLabels.live.en} for human OIDC oversight`,
         description:
-          "The deployed Go envelope signs people in through ZITADEL OIDC with nonce and PKCE. A valid identity gets no Janus access until a reviewed subject or role claim matches policy. Broader invited-user automation is still being hardened.",
+          "The deployed Go envelope signs people in through ZITADEL OIDC with nonce and PKCE. A valid identity gets no Janus access until a reviewed subject or role claim matches policy. ZITADEL remains the identity provider for people. Janus as a broker for agent and bot identities is planned.",
       },
       {
         name: "Pharos",
@@ -440,13 +452,13 @@ export const janusContent = {
       },
       {
         name: "OpenBao and centralized custody",
-        status: "Planned",
+        status: statusLabels.planned.en,
         description:
           "Centralized leases, dynamic secrets and hardware-backed custody belong behind the Janus broker boundary, but a general OpenBao integration is not shipped.",
       },
       {
         name: "GitHub App workflow dispatch",
-        status: "Planned",
+        status: statusLabels.planned.en,
         description:
           "A purpose-built connector is designed to mint short-lived installation access and dispatch one reviewed workflow without placing a reusable PAT in the workload.",
       },
@@ -462,7 +474,7 @@ export const janusContent = {
       "The current web interface cannot reveal secrets. Human reveal remains deferred because the web container intentionally has no decryption identity.",
       "The released Warden uses local MCP stdio. HTTP transport and multi-tenant remote operation are not shipped.",
       "Native age storage and the secretspec adapter are implemented. General OpenBao, OS keyring, Pass, KMS and HSM integrations remain planned or deployment-specific.",
-      "The live envelope maps nine roles from ZITADEL project roles. The Rust engine implements durable separation of duties behind explicit accountability postures; runtime surfaces stay in the legacy posture until the all-surface cutover is released.",
+      "The live envelope maps nine roles from ZITADEL project roles.",
       "The engine provides local value-free audit contracts and durable local registries, but remote append-only audit and SIEM export are not shipped.",
       "Janus is not a human password manager and does not provide browser autofill, mobile clients or password synchronization.",
       "Production adoption should start with explicit workflows, a reviewed threat model, recovery evidence and named operational ownership.",

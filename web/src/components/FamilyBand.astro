@@ -1,0 +1,125 @@
+---
+import StatusChip from "./StatusChip.astro";
+import {
+  contract,
+  flow,
+  products,
+  type FlowKey,
+  type ProductKey,
+} from "../content/family";
+
+// INSPR-542: the shared GUI-22 band, a quiet strip under a hero. It shows the
+// seven flow steps with the reader's product marked, Doctrine underneath and
+// the one-contract line. Static HTML and CSS only; no script.
+interface Props {
+  locale?: "en" | "de";
+  /** A product (Doctrine marks the row underneath) or a flow step. */
+  highlight?: ProductKey | FlowKey;
+}
+
+const { locale = "en", highlight } = Astro.props;
+
+const current = highlight
+  ? flow.steps.find((step) => step.key === highlight || step.product === highlight)?.key
+  : undefined;
+const doctrineCurrent = highlight === "doctrine";
+const doctrine = products[flow.underneath.product];
+const region = locale === "de" ? "Der INSPR-Ablauf" : "The INSPR flow";
+---
+
+<section class="family-band page-shell" aria-label={region} data-section-pattern="family-band">
+  <ol class="family-band__flow">
+    {flow.steps.map((step) => (
+      <li class:list={["family-band__step", { "is-current": step.key === current }]} aria-current={step.key === current ? "step" : undefined}>
+        <span class="family-band__verb">{step.label[locale]}</span>
+        <strong>{step.who[locale]}</strong>
+      </li>
+    ))}
+  </ol>
+  <p class:list={["family-band__under", { "is-current": doctrineCurrent }]} aria-current={doctrineCurrent ? "true" : undefined}>
+    <span class="family-band__verb">{flow.underneath.label[locale]}</span>
+    <strong>{doctrine.name[locale]}</strong>
+    <span>{doctrine.verb[locale]}</span>
+  </p>
+  <p class="family-band__contract">
+    <span class="family-band__verb">{contract.label[locale]}</span>
+    {contract.line[locale]}
+    {contract.standalone[locale]}
+    <StatusChip status={contract.status} locale={locale} />
+    {contract.statusNote[locale]}
+  </p>
+</section>
+
+<style>
+  .family-band {
+    display: grid;
+    gap: 0.6rem;
+    margin-block: 1.25rem;
+    padding-block: 0.9rem;
+    border-block: 1px solid var(--line);
+  }
+
+  .family-band__flow {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .family-band__step,
+  .family-band__under {
+    display: grid;
+    gap: 0.15rem;
+    min-width: 0;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    font-size: 0.82rem;
+    line-height: 1.25;
+  }
+
+  .family-band__under {
+    grid-auto-flow: column;
+    justify-content: start;
+    align-items: baseline;
+    gap: 0.6rem;
+    border-style: dashed;
+  }
+
+  .family-band__verb {
+    color: var(--accent-strong);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 620;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* The current step reads without colour: heavier top rule and bold text. */
+  .family-band__step.is-current,
+  .family-band__under.is-current {
+    border-color: var(--accent-strong);
+    border-top-width: 3px;
+    background: var(--accent-soft);
+  }
+
+  .family-band__step.is-current strong,
+  .family-band__under.is-current strong {
+    font-weight: 800;
+  }
+
+  .family-band__contract {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.82rem;
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+
+  .family-band__contract > :global(.status-chip) {
+    margin-inline: 0.2rem;
+    vertical-align: 0.05em;
+  }
+</style>

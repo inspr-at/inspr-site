@@ -4,8 +4,8 @@ import test from "node:test";
 
 // INSPR-492: /paimos is the PAIMOS AEON page. The same files serve
 // paimos.inspr.at/ (canonical) and www.inspr.at/paimos/, so its locale and
-// home links are relative. The retired ProductPage lives at /paimos-legacy,
-// out of search indexes, and the old /paimos-aeon preview URL redirects.
+// home links are relative. The retired ProductPage at /paimos-legacy is gone
+// (INSPR-531), and the old /paimos-aeon preview URL redirects.
 const webUrl = new URL("../", import.meta.url);
 const webFile = (path) => readFile(new URL(path, webUrl), "utf8");
 const source = (path) => webFile(`src/${path}`);
@@ -49,19 +49,16 @@ test("locale, hreflang and the brand link work under both hosts", async () => {
   assert.match(header, /href=\{homeHref \?\? \(locale === "de" \? `\$\{siteUrls\[active\]\}\/de\/` : siteUrls\[active\]\)\}/);
 });
 
-test("the retired Paimos page lives at /paimos-legacy, noindex and unlisted", async () => {
+test("the retired Paimos page at /paimos-legacy is gone (INSPR-531)", async () => {
   const urls = await source("content/urls.ts");
-  assert.match(urls, /paimosLegacy: "https:\/\/www\.inspr\.at\/paimos-legacy\/"/);
-  assert.match(urls, /paimosLegacyGerman: "https:\/\/www\.inspr\.at\/paimos-legacy\/de\/"/);
-  const productLinks = urls.slice(urls.indexOf("export const productLinks"));
-  assert.doesNotMatch(productLinks, /paimosLegacy/, "the legacy page is not in the product navigation");
-  for (const file of ["public/sitemap.xml", "public/robots.txt", "public/paimos/sitemap.xml"]) {
-    assert.doesNotMatch(await webFile(file), /paimos-legacy/, `${file} must not list the legacy page`);
+  assert.doesNotMatch(urls, /paimosLegacy/, "the legacy URLs are removed");
+  for (const route of ["pages/paimos-legacy/index.astro", "pages/paimos-legacy/de/index.astro"]) {
+    await assert.rejects(source(route), { code: "ENOENT" }, `${route} is deleted`);
   }
-  const productPage = await source("components/ProductPage.astro");
-  assert.match(productPage, /robots=\{mount \? "noindex, follow" : undefined\}/);
-  const layout = await source("layouts/MicrositeLayout.astro");
-  assert.match(layout, /\{robots && <meta name="robots" content=\{robots\} \/>\}/);
+  for (const file of ["public/sitemap.xml", "public/robots.txt", "public/paimos/sitemap.xml", "scripts/audit-section-patterns.mjs", "scripts/audit-hero-loops.mjs"]) {
+    assert.doesNotMatch(await webFile(file), /paimos-legacy/, `${file} must not name the legacy page`);
+  }
+  assert.doesNotMatch(await webFile("../deploy.sh"), /paimos-legacy\/(de\/)?index\.html|paimos-legacy\/"/, "deploy.sh neither requires nor probes the legacy page");
 });
 
 test("the old /paimos-aeon preview URL redirects to /paimos/", async () => {
@@ -85,7 +82,8 @@ test("both editions declare their canonical, the release tag and no stray claims
     const text = await source(content);
     assert.match(text, new RegExp(`export const ${exportName} = \\{`));
     assert.match(text, canonical, `${locale} canonical`);
-    assert.match(text, /const tag = "v260930115354\.0\.0";/, `${locale} presents release 14.1`);
+    // INSPR-544: the release comes from the one paimosRelease constant.
+    assert.match(text, /const tag = paimosRelease\.tag;/, `${locale} reads the release tag from paimosRelease`);
     assert.match(text, /\} satisfies AeonContent;/);
     for (const [pattern, reason] of forbidden) {
       assert.doesNotMatch(text, pattern, `${locale} content must not contain ${reason}`);
@@ -105,7 +103,7 @@ test("every AEON icon and group resolves in ContextIcon and the specs union", as
   for (const { locale, content } of editions) {
     const text = await source(content);
     const icons = [...text.matchAll(/^\s*icon:\s*"([^"]*)"/gm)].map((match) => match[1]);
-    assert.ok(icons.length >= 20, `${locale} declares its icons`);
+    assert.ok(icons.length >= 19, `${locale} declares its icons`);
     for (const icon of icons) assert.ok(iconNames.has(icon), `${locale}: icon "${icon}" is not registered`);
     for (const [, group] of text.matchAll(/^\s*group:\s*"([^"]*)"/gm)) {
       assert.ok(groups.has(group), `${locale}: group "${group}" is not in the specs union`);
@@ -124,7 +122,7 @@ test("every capture is recorded with its release, source and redaction policy", 
   const manifest = JSON.parse(await source("assets/products/paimos-aeon/capture-manifest.json"));
   assert.equal(manifest.tag, "v260930115354.0.0");
   assert.match(manifest.commit, /^[0-9a-f]{40}$/);
-  assert.equal(manifest.source, "https://aeon.barta.cm");
+  assert.equal(manifest.source, "internal INSPR instance");
   assert.match(manifest.sourceVersionCheck, /260930115354\.0\.0/);
   assert.equal(typeof manifest.syntheticData, "boolean");
   assert.match(manifest.redaction, /e-mail/);
@@ -141,8 +139,40 @@ test("the capture gate covers every published AEON image with a digest", async (
   assert.equal(result.status, 0, result.stderr);
   const manifest = JSON.parse(await source("assets/products/paimos-aeon/capture-manifest.json"));
   const specs = manifest.files.filter((file) => file.name.startsWith("specs/"));
-  assert.equal(specs.length, 20, "one lens image per capability");
+  // INSPR-544: capture 14 shows the retired Journey; it stays recorded but the
+  // page leaves it out, so 19 capabilities use 19 of the 20 recorded images.
+  assert.equal(specs.length, 20, "the manifest keeps every recorded lens image");
   for (const file of manifest.files) assert.match(file.sha256, /^[0-9a-f]{64}$/, `${file.name} digest`);
   const pkg = JSON.parse(await webFile("package.json"));
   assert.match(pkg.scripts["captures:check"], /check-aeon-captures\.mjs/, "the build runs the AEON capture gate");
+});
+
+// Repository paths belong in hyperlink destinations only, never in visible
+// copy or link labels.
+const visiblePath = /\b(?:internal|cmd|api)\/[a-z]/;
+
+test("the Paimos content shows no repository paths outside link destinations", async () => {
+  for (const file of ["content/paimos-aeon.ts", "content/de/paimos-aeon.ts"]) {
+    const visible = (await source(file))
+      .split("\n")
+      .map((line) => line.replace(/\bpath:\s*"[^"]*"/g, 'path: ""').replace(/\bhref:.*$/, "href: _"))
+      .join("\n");
+    assert.doesNotMatch(visible, visiblePath, `${file} leaks a repository path into visible text`);
+  }
+});
+
+test("the built Paimos pages render no repository path as visible text", async (t) => {
+  for (const page of ["dist/paimos/index.html", "dist/paimos/de/index.html"]) {
+    let html;
+    try {
+      html = await webFile(page);
+    } catch {
+      t.diagnostic(`${page} is not built; the content check above still covers the source`);
+      continue;
+    }
+    const text = html
+      .replace(/<(script|style)\b[\s\S]*?<\/\1>/g, " ")
+      .replace(/<[^>]+>/g, " ");
+    assert.doesNotMatch(text, visiblePath, `${page} shows a repository path`);
+  }
 });

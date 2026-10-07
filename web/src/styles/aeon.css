@@ -1777,171 +1777,112 @@
     text-decoration: underline;
   }
 
-  /* ── Horizon ──────────────────────────────────────────────────────── */
-  /* A rail above the cards, never through them: nodes sit on the rail with
-     clear air to their card. The rail runs node to node, solid up to the
-     live release and dotted into what comes next. */
-  .aeon-horizon__list {
-    position: relative;
+  /* ── Ledger ───────────────────────────────────────────────────────── */
+  /* INSPR-544: the engine's jobs and the build order. One card per entry:
+     its index, title, status chip and note. No dates, no rail. */
+  .aeon-ledger {
     display: grid;
     gap: 1.2rem;
     list-style: none;
   }
 
-  .aeon-horizon__node {
-    display: none;
+  @media (min-width: 48rem) {
+    .aeon-ledger {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 
-  @media (min-width: 64rem) {
-    .aeon-horizon__list {
+  @media (min-width: 72rem) {
+    .aeon-ledger {
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      padding-top: 3.4rem;
-    }
-
-    .aeon-horizon__list::before,
-    .aeon-horizon__list::after {
-      position: absolute;
-      top: 1.05rem;
-      height: 2px;
-      content: "";
-      border-radius: 2px;
-    }
-
-    /* From the release in progress to the planned ones: a dotted path ahead. */
-    .aeon-horizon__list::before {
-      left: 2.2rem;
-      width: calc(2 * ((100% - 2.4rem) / 3 + 1.2rem));
-      background: repeating-linear-gradient(90deg, rgb(214 155 49 / 0.6) 0 6px, transparent 6px 12px);
-    }
-
-    .aeon-horizon__list::after {
-      content: none;
-    }
-
-    .aeon-horizon__node {
-      position: absolute;
-      top: -2.9rem;
-      left: 1.6rem;
-      z-index: 1;
-      display: block;
-      width: 1.2rem;
-      height: 1.2rem;
-      background: var(--aeon-teal);
-      border: 3px solid var(--paper);
-      border-radius: 50%;
-      box-shadow: 0 0 0 1px var(--aeon-teal);
-    }
-
-    .aeon-horizon__release--coming .aeon-horizon__node {
-      background: var(--aeon-gold);
-      box-shadow: 0 0 0 1px var(--aeon-gold), 0 0 0 6px rgb(214 155 49 / 0.18);
-      animation: aeon-live 2.8s ease-out infinite;
-    }
-
-    .aeon-horizon__release--planned .aeon-horizon__node {
-      background: var(--paper);
-      box-shadow: 0 0 0 1.5px rgb(214 155 49 / 0.7);
     }
   }
 
-  .aeon-horizon__release {
-    position: relative;
+  .aeon-ledger > li {
     display: grid;
     align-content: start;
-    gap: 0.9rem;
-    padding: 1.7rem 1.6rem 1.6rem;
+    justify-items: start;
+    gap: 0.7rem;
+    min-width: 0;
+    padding: 1.4rem 1.5rem 1.5rem;
     background: var(--surface-solid);
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
   }
 
-  .aeon-horizon__release--coming {
-    background: linear-gradient(180deg, #fffdf8, #fbf3e2);
-    border-color: rgb(214 155 49 / 0.55);
-    box-shadow: 0 18px 44px rgb(154 106 18 / 0.14), 0 0 0 4px rgb(214 155 49 / 0.08);
-  }
-
-  .aeon-horizon__release--planned {
-    background: rgb(255 255 255 / 0.5);
-    border-color: var(--line);
-    box-shadow: none;
-  }
-
-  .aeon-badge--live {
-    color: white;
-    background: var(--aeon-gold-deep);
-    border: 1px solid var(--aeon-gold-deep);
-  }
-
-  @keyframes aeon-live {
-    0% { box-shadow: 0 0 0 1px var(--aeon-gold), 0 0 0 0 rgb(214 155 49 / 0.45); }
-    70% { box-shadow: 0 0 0 1px var(--aeon-gold), 0 0 0 12px rgb(214 155 49 / 0); }
-    100% { box-shadow: 0 0 0 1px var(--aeon-gold), 0 0 0 0 rgb(214 155 49 / 0); }
-  }
-
-  .aeon-horizon__meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.6rem;
-    color: var(--ink-faint);
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-  }
-
-  .aeon-horizon__release h3 {
-    display: grid;
-    gap: 0.15rem;
-    font-size: 1.6rem;
-  }
-
-  .aeon-horizon__codename {
+  .aeon-ledger__index {
     color: var(--aeon-gold-deep);
     font-family: var(--aeon-serif);
-    font-size: 1.2rem;
-    font-weight: 400;
-    letter-spacing: -0.01em;
+    font-size: 1.6rem;
+    line-height: 1;
   }
 
-  .aeon-horizon__release ul {
+  .aeon-ledger h3 {
+    font-size: 1.2rem;
+  }
+
+  .aeon-ledger p {
+    color: var(--ink-soft);
+    font-size: 0.96rem;
+    line-height: 1.55;
+    text-wrap: pretty;
+  }
+
+  .aeon-engine__flow {
+    margin-top: clamp(1.6rem, 3vw, 2.2rem);
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+
+  .aeon-engine__flow .status-chip {
+    margin-inline-start: 0.4rem;
+    vertical-align: 0.05em;
+  }
+
+  /* The status chips set their own colours for a light page; on the night
+     control room the planned chip needs a light outline. */
+  .aeon-matrix {
     display: grid;
-    gap: 0.5rem;
+    gap: 0.8rem;
+    margin-top: 1.4rem;
+  }
+
+  .aeon-matrix__label {
+    color: var(--aeon-gold-bright);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .aeon-matrix__rows {
+    display: grid;
+    gap: 0.9rem;
     list-style: none;
   }
 
-  .aeon-horizon__release li {
-    position: relative;
-    padding-left: 1.2rem;
-    color: var(--ink-soft);
+  .aeon-matrix__rows > li {
+    display: grid;
+    justify-items: start;
+    gap: 0.4rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--aeon-line-night);
+  }
+
+  .aeon-matrix .aeon-harnesses {
+    margin-top: 0;
+  }
+
+  .aeon-matrix__note {
+    color: var(--night-soft);
+    font-size: 0.9rem;
     line-height: 1.5;
   }
 
-  .aeon-horizon__release li strong {
-    display: block;
-    color: var(--ink);
-    font-weight: 700;
-  }
-
-  .aeon-horizon__release li::before {
-    position: absolute;
-    left: 0;
-    top: 0.6em;
-    width: 0.45rem;
-    height: 0.45rem;
-    content: "";
-    background: var(--aeon-teal);
-    border-radius: 50%;
-  }
-
-  .aeon-horizon__release--coming li::before {
-    background: transparent;
-    border: 1.5px solid var(--aeon-gold);
-  }
-
-  .aeon-horizon__release--planned li::before {
-    background: transparent;
-    border: 1.5px dashed var(--ink-faint);
+  .aeon-control .status-chip.status-chip--planned {
+    color: var(--night-text);
+    border-color: rgb(255 255 255 / 0.45);
   }
 
   .aeon-good {

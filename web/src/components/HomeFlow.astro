@@ -1,0 +1,207 @@
+---
+import DetailLevels from "./DetailLevels.astro";
+import StatusChip from "./StatusChip.astro";
+import { flow, products } from "../content/family";
+import { siteUrls } from "../content/urls";
+
+// INSPR-543: the home flow, built from the shared GUI-22 steps in family.ts.
+// Each step shows its line and how far it has shipped (StatusChip); nothing
+// here claims a live pipeline between the products. Static HTML and CSS only.
+interface Props {
+  locale?: "en" | "de";
+  /** Where the Doctrine row links. */
+  doctrineHref: string;
+}
+
+const { locale = "en", doctrineHref } = Astro.props;
+const copy = (english: string, german: string) => (locale === "de" ? german : english);
+const productHref = (href: string) => (locale === "de" ? `${href}/de/?lang=de` : href);
+const explore = (name: string) => (locale === "de" ? `${name} ansehen` : `Explore ${name}`);
+const newTab = copy("opens in a new tab", "öffnet in einem neuen Tab");
+const doctrine = products[flow.underneath.product];
+---
+
+<section
+  class="home-flow page-shell"
+  id="flow"
+  aria-labelledby="flow-title"
+  data-section-pattern="guided-workflow"
+>
+  <header class="section-intro section-intro--wide">
+    <p class="eyebrow">{copy("The flow", "Der Ablauf")}</p>
+    <h2 id="flow-title">
+      {copy(
+        "One flow. Every step shows how far it has shipped.",
+        "Ein Ablauf. Jeder Schritt zeigt, wie weit er ist.",
+      )}
+    </h2>
+    <p class="section-lead">
+      <DetailLevels
+        simple={copy(
+          "Seven steps from idea to learning, each with its status.",
+          "Sieben Schritte von der Idee bis zum Lernen, jeder mit seinem Status.",
+        )}
+        standard={copy(
+          "Each product owns a step. A status says what is live, partly live or planned.",
+          "Jedes Produkt verantwortet einen Schritt. Ein Status zeigt, was live, teilweise live oder geplant ist.",
+        )}
+        technical={copy(
+          "Each product owns a step and runs standalone. Connecting the steps through one contract is being built.",
+          "Jedes Produkt verantwortet einen Schritt und läuft für sich. Die Verbindung der Schritte über einen Vertrag ist im Aufbau.",
+        )}
+      />
+    </p>
+  </header>
+
+  <ol class="home-flow__steps">
+    {flow.steps.map((step, index) => (
+      <li class="home-flow__step">
+        <span class="home-flow__number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+        <div class="home-flow__who">
+          <h3>{step.label[locale]}</h3>
+          <p>
+            {step.who[locale]}
+            {step.product && <span> · {products[step.product].verb[locale]}</span>}
+          </p>
+        </div>
+        <div class="home-flow__body">
+          <p>{step.line[locale]}</p>
+          {step.status && (
+            <p class="home-flow__status">
+              <StatusChip status={step.status} locale={locale} />
+              {step.statusNote && <span>{step.statusNote[locale]}</span>}
+            </p>
+          )}
+          {step.product && (
+            <a
+              class="home-flow__link"
+              href={productHref(siteUrls[step.product])}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {explore(products[step.product].name[locale])} <span aria-hidden="true">↗</span>
+              <span class="visually-hidden"> ({newTab})</span>
+            </a>
+          )}
+        </div>
+      </li>
+    ))}
+  </ol>
+
+  <div class="home-flow__under">
+    <div class="home-flow__who">
+      <h3>{flow.underneath.label[locale]}</h3>
+      <p>{doctrine.name[locale]} · {doctrine.verb[locale]}</p>
+    </div>
+    <div class="home-flow__body">
+      <p>{doctrine.oneLiner[locale]}</p>
+      <p class="home-flow__status"><StatusChip status={doctrine.status} locale={locale} /></p>
+      <a class="home-flow__link" href={doctrineHref} target="_blank" rel="noopener noreferrer">
+        {explore(doctrine.name[locale])} <span aria-hidden="true">↗</span>
+        <span class="visually-hidden"> ({newTab})</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .home-flow {
+    padding-block: clamp(3rem, 7vw, 6rem);
+  }
+
+  .home-flow__steps {
+    margin: clamp(1.75rem, 4vw, 3rem) 0 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+    list-style: none;
+  }
+
+  .home-flow__step,
+  .home-flow__under {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(9rem, 13rem) minmax(0, 1fr);
+    gap: 0.4rem 1.25rem;
+    padding-block: 1.1rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .home-flow__under {
+    border-bottom-style: dashed;
+    grid-template-columns: minmax(9rem, 13rem) minmax(0, 1fr);
+    padding-inline-start: 3.75rem;
+  }
+
+  .home-flow__number {
+    padding-top: 0.45rem;
+    color: var(--accent-strong);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+  }
+
+  .home-flow__who {
+    min-width: 0;
+  }
+
+  .home-flow__who h3 {
+    margin: 0;
+    font-size: clamp(1.25rem, 2vw, 1.6rem);
+    overflow-wrap: break-word;
+    hyphens: manual;
+  }
+
+  .home-flow__who p {
+    margin: 0.15rem 0 0;
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+  }
+
+  .home-flow__body {
+    display: grid;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .home-flow__body p {
+    margin: 0;
+    line-height: 1.55;
+    text-wrap: pretty;
+  }
+
+  .home-flow__status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.7rem;
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+  }
+
+  .home-flow__link {
+    justify-self: start;
+    color: var(--ink);
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .home-flow__link:hover,
+  .home-flow__link:focus-visible {
+    color: var(--accent-strong);
+  }
+
+  @media (max-width: 48rem) {
+    .home-flow__step {
+      grid-template-columns: 2rem minmax(0, 1fr);
+    }
+
+    .home-flow__step .home-flow__body {
+      grid-column: 2;
+    }
+
+    .home-flow__under {
+      grid-template-columns: minmax(0, 1fr);
+      padding-inline-start: 0;
+    }
+  }
+</style>

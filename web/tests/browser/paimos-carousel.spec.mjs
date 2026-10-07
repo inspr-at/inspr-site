@@ -145,7 +145,11 @@ for (const { path, lang } of pages) {
     });
     const button = page.locator("#specs .specs__tile .specs__open").nth(index);
     await button.scrollIntoViewIfNeeded();
-    await button.click();
+    // INSPR-540: open by keyboard. This test is about the caption, and Linux
+    // WebKit reports the first tile as never "stable" for a pointer click at
+    // 320x256 (INSPR-538); the click path has its own reopen test above.
+    await button.focus();
+    await page.keyboard.press("Enter");
     await expect(page.locator("[data-specs-carousel]")).toHaveAttribute("role", "dialog");
     const slide = page.locator("[data-specs-carousel] .specs__slide.is-current");
     const metrics = await slide.evaluate((el) => {

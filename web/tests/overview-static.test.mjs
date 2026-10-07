@@ -37,28 +37,36 @@ test("Overview replaces the public ELI10 framing with bilingual canonical routes
   assert.match(deploy, /probe_redirect "legacy ELI10 redirect"/);
 });
 
-test("Overview presents the human-approved product path truthfully in both languages", async () => {
+test("Overview presents the four products on one flow with their shipped status, in both languages (INSPR-543)", async () => {
   const component = await source("components/OverviewPage.astro");
 
   for (const phrase of [
     "From an idea to something that ",
     "Von einer Idee zu etwas, das ",
-    "One path. Four tools. You approve.",
-    "Ein Weg. Vier Werkzeuge. Sie geben frei.",
-    "Conversation and files become clear requirements.",
-    "Projekt und Spezifikationen steuern die Umsetzung mit Agenten.",
-    "Choose a server, verify its backup and deploy to production.",
-    "Freigaben werden durchgesetzt und Zugriffe sicher rotiert.",
-    "Nothing moves forward without you.",
-    "Ohne Sie geht nichts weiter.",
+    "Four products, one flow.",
+    "Vier Produkte, ein Ablauf.",
+    "The engine's six jobs.",
+    "Die sechs Aufgaben der Engine.",
+    "One house rule, separate tenants.",
+    "Eine Hausregel, getrennte Mandanten.",
+    "Each product does one job; a status shows how far it has shipped.",
+    "Jedes Produkt erledigt eine Aufgabe; ein Status zeigt, wie weit es ist.",
   ]) {
     assert.ok(component.includes(phrase), `missing overview copy: ${phrase}`);
   }
 
+  // The stage names and the product one-liners come from family.ts, not from this page.
+  assert.match(component, /label: flow\.steps\.find\(\(step\) => step\.key === node\.key\)!\.label\[locale\]/);
+  assert.match(component, /familyProducts\[step\.id\]\.oneLiner\[locale\]/);
+  assert.match(component, /engineJobs\.map\(\(job, index\)/);
+  assert.match(component, /trustContexts\[locale\]/);
+  assert.match(component, /message\.houseRule\[locale\]/);
+  assert.doesNotMatch(component, /You approve|Sie geben frei|Nothing moves forward without you|Ohne Sie geht nichts weiter|every handoff|jede Übergabe/i);
+  assert.doesNotMatch(component, /approval: copy\(|early product|frühes Produkt|Self-hosted by Design/);
+
   const names = [...component.matchAll(/name: "(Aithema|Paimos|Pharos|Janus)"/g)]
     .map((match) => match[1]);
   assert.deepEqual(names, ["Aithema", "Paimos", "Pharos", "Janus"]);
-  assert.equal((component.match(/approval: copy\(/g) || []).length, 4);
   assert.doesNotMatch(component, /manage users|user management|role management|ZITADEL integration/i);
   assert.match(component, /Aithema, Paimos, Pharos and Janus are AGPL-3\.0-only on GitHub\./);
   assert.match(component, /Aithema, Paimos, Pharos und Janus sind AGPL-3\.0-only auf GitHub\./);
@@ -117,7 +125,7 @@ test("Overview path cards preview the matching approved loops on deliberate inte
   assert.match(styles, /\.overview-step\[data-hero-loop-active\] \.overview-step__top img \{[\s\S]*?filter: brightness\(0\) invert\(1\);[\s\S]*?opacity: 0\.5;/);
   assert.match(component, /class="overview-control__step" data-control-step=\{step\.id\} aria-hidden="true"/);
   assert.match(component, /class="overview-control__number">\{step\.number\}/);
-  assert.match(component, /class="overview-control__approval">[\s\S]*?user-round-check[\s\S]*?\{step\.approval\}/);
+  assert.match(component, /class="overview-control__approval">[\s\S]*?<StatusChip status=\{familyProducts\[step\.id\]\.status\} locale=\{locale\} \/>[\s\S]*?statusNote\?\.\[locale\]/);
   assert.match(styles, /\.overview-path:has\(\.overview-step\[data-hero-loop-active\]\) \.overview-control__default/);
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.overview-step__preview,[\s\S]*?transition: none;/);
   assert.match(
@@ -271,18 +279,20 @@ test("Overview Details slider is wordless and its technical depth is a datasheet
   // beneath the hero, the four path cards and the four promises, handoff
   // labels on the flow, a mono index on the kickers, and the stack section.
   // No cover flow, no page pushed aside, no scroll hijack.
-  assert.match(page, /class="overview-spec overview-drawer" data-drawer[\s\S]*?data-live="release"[\s\S]*?data-live="csp"[\s\S]*?AGPL-3\.0-only/);
+  // INSPR-543: build facts render at build time; no `…` placeholder, no header-only values.
+  assert.match(page, /class="overview-spec overview-drawer" data-drawer[\s\S]*?\{buildFacts\.release\}[\s\S]*?\{buildFacts\.deployed\}[\s\S]*?AGPL-3\.0-only/);
+  assert.doesNotMatch(page + stack, /data-live=|reading…|wird gelesen/);
   assert.match(page, /class="overview-sheet overview-drawer" data-drawer[\s\S]*?\{sheetLabels\.repo\}[\s\S]*?\{sheetLabels\.gate\}[\s\S]*?\{sheetLabels\.maturity\}/);
   assert.equal((page.match(/    sheet: \{/g) || []).length, 4);
   assert.equal((page.match(/    mechanism: copy\(/g) || []).length, 4);
-  assert.equal((page.match(/handoff: copy\(/g) || []).length, 5);
+  assert.equal((page.match(/handoff: copy\(/g) || []).length, 7);
   assert.match(page, /class="overview-flow__handoff" aria-hidden="true">\{node\.handoff\}/);
   assert.match(page, /class="overview-drawer overview-promise__mechanism" data-drawer/);
   assert.match(page, /<p class="overview-kicker" data-index="00">/);
   assert.match(page, /<p class="overview-kicker" data-index="01">/);
   assert.match(page, /<OverviewStack locale=\{locale\} \/>\s*<section class="overview-next/);
   assert.doesNotMatch(page, /OverviewDetails|overview-meta/);
-  assert.match(page, /command: 'paimos issue create -p PROJ --title "…"'/);
+  assert.match(page, /command: 'aeon issue create -p PROJ --title "Write release notes"'/);
   assert.match(stack, /class="overview-stack page-shell overview-drawer overview-drawer--section" id="stack"[\s\S]*?data-drawer/);
   assert.deepEqual([...stack.matchAll(/id: "(l\d)", number: "L\d"/g)].map((match) => match[1]), ["l7", "l6", "l5", "l4", "l3", "l2", "l1"]);
   assert.match(stack, /role="table"[\s\S]*?role="columnheader"[\s\S]*?id=\{layer\.id\} data-stack-layer=\{layer\.id\}/);

@@ -60,7 +60,7 @@ test("Aithema states its preview maturity without invented source claims", async
   const styles = await webFile("src/styles/microsites.css");
   assert.match(overview, /github\.com\/inspr-at\/aithema; hosted workspace by invitation/);
   assert.doesNotMatch(overview, /module is planned|still being built/);
-  assert.match(overview, /maturity: copy\("by invitation", "auf Einladung"\)/);
+  assert.match(overview, /maturity: copy\("core released, AGPL-3\.0-only; hosted workspace by invitation", "Kern veröffentlicht, AGPL-3\.0-only; gehosteter Arbeitsbereich auf Einladung"\)/);
   assert.doesNotMatch(overview, /web preview|Web-Vorschau|hosted preview|gehostete Vorschau/);
   assert.match(styles, /\.site-footer nav a,\s*\.site-footer nav \.footer-text,\s*\.site-footer__group \.footer-text \{[^}]*color: var\(--night-soft\);/);
   assert.match(styles, /\.site-footer nav \.footer-text/);

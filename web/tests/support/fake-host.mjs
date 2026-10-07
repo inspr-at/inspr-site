@@ -43,7 +43,7 @@ export const coreutilsProblem = (() => {
 
 export const DOCUMENTS = Object.freeze([
   "index.html", "overview/index.html", "de/ueberblick/index.html",
-  "paimos/index.html", "paimos/de/index.html", "paimos-legacy/index.html", "paimos-legacy/de/index.html",
+  "paimos/index.html", "paimos/de/index.html",
   "paimos-aeon/index.html", "paimos-aeon/de/index.html", "pharos/index.html", "pharos/de/index.html",
   "janus/index.html", "janus/de/index.html",
 ]);

@@ -1,3 +1,4 @@
+import { products, statusLabels } from "../family";
 import { siteUrls } from "../urls";
 import type { ProductContent } from "../types";
 import { pharosBlob, pharosRelease } from "../pharos";
@@ -19,8 +20,7 @@ export const pharosContentDe = {
   },
   seo: {
     title: "Pharos | Klarer Flottenbetrieb für Server und Backups",
-    description:
-      "Pharos ist eine selbst gehostete Steuerungsebene für Flottenbetrieb: Server-Erreichbarkeit, Konfigurationsdrift, Backup-Nachweise und abgesicherte Wartungsabläufe.",
+    description: products.pharos.oneLiner.de,
   },
   hero: {
     sheet: {
@@ -98,7 +98,7 @@ export const pharosContentDe = {
       out: "Release auf deklariertem Host",
     },
     eyebrow: "BETRIEBSMODELL",
-    title: "Beobachten. Vergleichen. Absichern. Verifizieren.",
+    title: "Beobachten. Vergleichen. Freigabe. Verifizieren.",
     depths: {
       simple:
         "Eine einfache Regel: Was wahr ist, was wir wollen und was wir tun, bleibt getrennt. So ist die Flotte leichter zu verstehen und schwerer versehentlich kaputtzumachen.",
@@ -129,7 +129,7 @@ export const pharosContentDe = {
         title: "Vergleichen",
         visual: { x: 29, y: 66 },
         body:
-          "Pharos hält Laufzeitbeobachtungen getrennt von nixcfg-Deklarationen und Betreiberanfragen. Sie erkennen, was gerade läuft, was deklariert ist und was noch auf die Anwendung wartet.",
+          "Pharos hält Laufzeitbeobachtungen getrennt von deklarierter Infrastrukturkonfiguration und Betreiberanfragen. Sie erkennen, was gerade läuft, was deklariert ist und was noch auf die Anwendung wartet.",
         icon: "git-compare-arrows",
         signal: "Beobachtet und deklariert bleiben getrennt.",
         reference: {
@@ -141,7 +141,7 @@ export const pharosContentDe = {
       {
         number: "03",
         simple: "Prüfen und beurteilen Sie eine Änderung, bevor sie ausgeführt werden kann.",
-        title: "Absichern",
+        title: "Freigabe",
         visual: { x: 63, y: 50 },
         body:
           "Feste Wartungsabläufe verlangen die relevanten Prüfungen vor der Ausführung. Der Browser erzeugt einen Prüfvorgang; er sendet nie beliebige Befehle an einen Host.",
@@ -209,12 +209,12 @@ export const pharosContentDe = {
       eyebrow: "KONFIGURATION UND DRIFT",
       title: "Drift früh erkennen.",
       lead:
-        "Für NixOS-Hosts meldet Pharos, wie alt der aktive Flake-Lock ist, wie weit der Host hinter nixcfg liegt und ob ein neuerer Kernel bereits vorbereitet ist. Andere Hosts nehmen über den portablen Beacon weiter an Erreichbarkeits-, Backup-, Standort- und Dienstmeldungen teil.",
+        "Für NixOS-Hosts meldet Pharos, wie alt der aktive Flake-Lock ist, wie weit der Host hinter der deklarierten Konfiguration liegt und ob ein neuerer Kernel bereits vorbereitet ist. Andere Hosts nehmen über den portablen Beacon weiter an Erreichbarkeits-, Backup-, Standort- und Dienstmeldungen teil.",
       items: [
         {
           title: "Nix-Aktualität in klarer Sprache",
           body:
-            "Betreiber sehen eine knappe Antwort wie das Alter der flake.lock und die Commits hinter nixcfg, statt Drift aus einem Checkout und der Deployment-Historie rekonstruieren zu müssen.",
+            "Betreiber sehen eine knappe Antwort wie das Alter der Lockdatei und die Commits hinter der deklarierten Konfiguration, statt Drift aus einem Checkout und der Deployment-Historie rekonstruieren zu müssen.",
           icon: "git-compare-arrows",
         },
         {
@@ -261,7 +261,7 @@ export const pharosContentDe = {
       eyebrow: "ONBOARDING",
       title: "Jeder Host beginnt mit Preflight.",
       lead:
-        "Der Einrichtungsassistent hält jeweils eine Entscheidung im Blick, sichert Zwischenstände und wartet auf erste Host-Nachweise, bevor das Onboarding als abgeschlossen gilt.",
+        "Die Provisionierung erfolgt betreut, ein Server nach dem anderen. Der Einrichtungsassistent hält jeweils eine Entscheidung im Blick, sichert Zwischenstände und wartet auf erste Host-Nachweise, bevor das Onboarding als abgeschlossen gilt.",
       items: [
         {
           title: "Bestehende Linux-Server",
@@ -285,7 +285,7 @@ export const pharosContentDe = {
     {
       id: "guarded-actions",
       eyebrow: "ABGESICHERTE AKTIONEN",
-      title: "Änderung durch ein Tor.",
+      title: "Änderung durch eine Freigabe.",
       lead:
         "Pharos unterstützt bewusst wenige Betriebsaktionen: Einstellungsänderungen, einen gemeinsamen System-Update-Vorschlag, Update und Neustart pro Host, Wiederherstellung und Host-Stilllegung. Jede beginnt mit einer Prüfung und zeigt einen klaren nächsten Schritt.",
       items: [
@@ -338,7 +338,7 @@ export const pharosContentDe = {
       {
         title: "NixOS-lastige Infrastruktur",
         body:
-          "Verbinden Sie den deklarierten nixcfg-Zustand mit dem tatsächlich laufenden System, ohne dass ein Dashboard still zur maßgeblichen Quelle wird.",
+          "Verbinden Sie den deklarierten Infrastrukturzustand mit dem tatsächlich laufenden System, ohne dass ein Dashboard still zur maßgeblichen Quelle wird.",
       },
     ],
   },
@@ -349,7 +349,7 @@ export const pharosContentDe = {
       "Pharos ist ein Rust-Workspace mit gemeinsamen Verträgen zwischen Server und Beacon. So kann ihr Meldeschema nicht unabhängig auseinanderdriften.",
     paragraphs: [
       "Die Steuerungsebene nutzt axum, servergerendertes HTML und eine kleine Vanilla-JavaScript-Schicht über stabilen JSON-APIs. Ein Host-Beacon meldet über eine ausgehende Verbindung, während der Browser das abgeglichene Flottenmodell liest und Prüfvorgänge für die festen Aktionen anlegt, die Pharos kennt.",
-      "nixcfg liefert die deklarierte Host- und Dienstabsicht. Janus verantwortet Maschinen-Zugangsdaten und sichere Anbieter-Übergaben. ZITADEL liefert menschliche Identität, während die endgültige Autorisierung pro Host bei Pharos bleibt.",
+      "Versionierte Konfiguration liefert die deklarierte Host- und Dienstabsicht. Janus verantwortet Maschinen-Zugangsdaten und sichere Anbieter-Übergaben. ZITADEL liefert menschliche Identität, während die endgültige Autorisierung pro Host bei Pharos bleibt.",
       "Der Zustand wird heute als JSON persistiert. Das hält das Deployment kompakt und die Backup-Grenze explizit. SQLite bleibt eine bedarfsgetriebene Zukunftsoption, kein Architekturversprechen.",
     ],
     flow: [
@@ -412,7 +412,19 @@ export const pharosContentDe = {
       "Pharos verwendet Reifegrad-Labels, damit ein geplanter Konnektor nie wie ein produktionsreifer Pfad aussieht.",
     items: [
       {
-        name: "NixOS und nixcfg",
+        name: "Paimos-Werkzeugvertrag",
+        status: statusLabels.planned.de,
+        description:
+          "Paimos soll Flotten- und Bereitstellungsarbeit über den gemeinsamen Vertrag anfragen. Pharos läuft heute eigenständig.",
+      },
+      {
+        name: "Temporäre CI- und Labor-VMs",
+        status: statusLabels.planned.de,
+        description:
+          "Temporäre virtuelle Maschinen für CI und Laborarbeit sind geplant; die heutige Provisionierung erfolgt betreut, ein Server nach dem anderen.",
+      },
+      {
+        name: "NixOS und deklarative Konfiguration",
         status: "Nativ",
         description:
           "Deklarierter Zustand, Aktualität, Kernel-Stand, Host-Präferenzen und abgesicherte Lebenszyklus-Abläufe.",

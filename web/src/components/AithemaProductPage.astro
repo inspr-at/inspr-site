@@ -14,6 +14,10 @@ import type { PreviewProductContent } from "../content/types";
 import { productLinks, siteUrls, localeUrls } from "../content/urls";
 import { releaseMetadata } from "../../release-metadata.mjs";
 import CalendarVersion from "./CalendarVersion.astro";
+import FamilyBand from "./FamilyBand.astro";
+import StatusChip from "./StatusChip.astro";
+import { products } from "../content/family";
+import { aithemaHandover, aithemaReleaseVersion } from "../content/aithema";
 
 import aithemaHero from "../assets/products/aithema/hero.png";
 import aithemaHeroLoop from "../assets/products/aithema/hero-loop.mp4";
@@ -27,8 +31,8 @@ interface Props {
 const { content } = Astro.props;
 const locale: "en" | "de" = Astro.props.locale === "de" ? "de" : "en";
 const sheetLabels = locale === "de"
-  ? { repo: "Repo", runtime: "Laufzeit", gate: "Gate", artefact: "Artefakt", interfaces: "Schnittstellen", maturity: "Reife", command: "Befehl" }
-  : { repo: "repo", runtime: "runtime", gate: "gate", artefact: "artefact", interfaces: "interfaces", maturity: "maturity", command: "command" };
+  ? { repo: "Repo", runtime: "Laufzeit", gate: "Freigabe", artefact: "Artefakt", interfaces: "Schnittstellen", maturity: "Reife", command: "Befehl" }
+  : { repo: "repo", runtime: "runtime", gate: "gate", artefact: "artifact", interfaces: "interfaces", maturity: "maturity", command: "command" };
 
 // Shared product-host locale contract: English at the root, German at /de/.
 const englishUrl = siteUrls.aithema;
@@ -53,6 +57,7 @@ const labels = locale === "de"
       english: "Englisch",
       proofAria: "Produktmerkmale",
       proofLabel: "Aktueller Stand",
+      coreRelease: "Anforderungskern",
       workflowAlt: "Das Aithema-Anforderungsprisma markiert den Weg vom Input zur geprüften Entscheidung",
       requestAccess: "Zugang anfragen",
       faqEyebrow: "Praktische Fragen",
@@ -102,6 +107,7 @@ const labels = locale === "de"
       english: "English",
       proofAria: "Product characteristics",
       proofLabel: "Current posture",
+      coreRelease: "Requirements core",
       workflowAlt: "The Aithema Requirement Prism marking the path from input to a reviewed decision",
       requestAccess: "Request access",
       faqEyebrow: "Practical questions",
@@ -186,7 +192,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
         <img src={aithemaLogo.src} alt="" width="48" height="48" />
         <span>
           <strong>{content.name}</strong>
-          <small>{content.category}</small>
+          <small>{products.aithema.name[locale]} · {products.aithema.verb[locale]}</small>
         </span>
       </a>
 
@@ -278,7 +284,10 @@ const deployedAtLabel = releaseMetadata.deployedAt
       <div class="product-hero__copy">
         <p class="eyebrow">{content.hero.eyebrow}</p>
         <h1 id="hero-title">{content.hero.title}</h1>
+        <p>{products.aithema.oneLiner[locale]}</p>
         <p class="hero-lead"><DetailLevels simple={content.hero.depths?.simple ?? content.hero.lead} standard={content.hero.lead} technical={content.hero.depths?.technical ?? content.hero.lead} /></p>
+        <p><StatusChip status={products.aithema.status} locale={locale} /> {labels.coreRelease} {aithemaReleaseVersion}; {products.aithema.statusNote?.[locale]}</p>
+        <p><StatusChip status="planned" locale={locale} /> {aithemaHandover[locale]}</p>
         <div class="button-row">
           <a
             class="button"
@@ -318,6 +327,8 @@ const deployedAtLabel = releaseMetadata.deployedAt
         />
       </figure>
     </section>
+
+    <FamilyBand highlight="aithema" locale={locale} />
 
     <section
       class="proof-console page-shell" data-depth-min="standard"

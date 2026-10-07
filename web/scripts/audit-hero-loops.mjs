@@ -28,15 +28,6 @@ const pages = [
     requiresFastStart: true,
   },
   {
-    slug: "paimos-legacy",
-    // The retired page keeps the Paimos loop (INSPR-492).
-    video: "paimos",
-    html: "paimos-legacy/index.html",
-    expectedDuration: 15.042,
-    expectedProfile: "Main",
-    requiresFastStart: true,
-  },
-  {
     slug: "pharos",
     html: "pharos/index.html",
     expectedDuration: 15.042,

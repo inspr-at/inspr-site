@@ -2312,21 +2312,23 @@
   }
 
   /* ── Reveal ───────────────────────────────────────────────────────── */
+  /* Arming hides instantly; only the reveal animates (INSPR-551). With the
+     transition on the hidden state, every off-screen item faded out at load. */
   .aeon-reveal-ready .aeon [data-reveal] {
     opacity: 0;
     transform: translateY(18px);
-    transition: opacity 800ms var(--ease), transform 800ms var(--ease);
   }
 
   .aeon-reveal-ready .aeon [data-reveal].is-in {
     opacity: 1;
     transform: none;
+    transition: opacity 800ms var(--ease), transform 800ms var(--ease);
   }
 
-  .aeon-reveal-ready .aeon .aeon-figures__list li:nth-child(2) { transition-delay: 70ms; }
-  .aeon-reveal-ready .aeon .aeon-figures__list li:nth-child(3) { transition-delay: 140ms; }
-  .aeon-reveal-ready .aeon .aeon-figures__list li:nth-child(4) { transition-delay: 210ms; }
-  .aeon-reveal-ready .aeon .aeon-figures__list li:nth-child(5) { transition-delay: 280ms; }
+  .aeon-reveal-ready .aeon .aeon-figures__list li.is-in:nth-child(2) { transition-delay: 70ms; }
+  .aeon-reveal-ready .aeon .aeon-figures__list li.is-in:nth-child(3) { transition-delay: 140ms; }
+  .aeon-reveal-ready .aeon .aeon-figures__list li.is-in:nth-child(4) { transition-delay: 210ms; }
+  .aeon-reveal-ready .aeon .aeon-figures__list li.is-in:nth-child(5) { transition-delay: 280ms; }
   .aeon-reveal-ready .aeon .aeon-gate__step:nth-child(2) { transition-delay: 110ms; }
   .aeon-reveal-ready .aeon .aeon-gate__step:nth-child(3) { transition-delay: 220ms; }
   .aeon-reveal-ready .aeon .aeon-gate__step:nth-child(4) { transition-delay: 330ms; }

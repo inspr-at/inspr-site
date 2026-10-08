@@ -86,3 +86,26 @@ test("no text on the AEON page renders in italic", async ({ page }) => {
   );
   expect(italic).toEqual([]);
 });
+
+// INSPR-551: arming the scroll reveal must not animate off-screen items at
+// load; an item that scrolls into view still fades in.
+test.describe("scroll reveal", () => {
+  test.use({ reducedMotion: "no-preference" });
+
+  test("arms without animating off-screen items and still reveals on scroll", async ({ page }) => {
+    await page.goto("/paimos/?lang=en", { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => document.documentElement.classList.contains("aeon-reveal-ready"));
+    const offscreenTransitions = await page.evaluate(() => document.getAnimations()
+      .filter((animation) => animation.constructor.name === "CSSTransition")
+      .map((animation) => animation.effect?.target)
+      .filter((target) => target instanceof Element && target.matches("[data-reveal]"))
+      .filter((target) => target.getBoundingClientRect().top >= window.innerHeight).length);
+    expect(offscreenTransitions).toBe(0);
+
+    const item = page.locator(".aeon [data-reveal]").last();
+    await expect(item).not.toHaveClass(/is-in/);
+    await item.evaluate((element) => element.scrollIntoView({ block: "center", inline: "nearest" }));
+    await expect(item).toHaveClass(/is-in/);
+    await expect.poll(() => item.evaluate((element) => Number(getComputedStyle(element).opacity))).toBe(1);
+  });
+});

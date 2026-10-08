@@ -158,10 +158,14 @@ export const legalContent: Record<"legal" | "privacy", Record<"en" | "de", Legal
         {
           heading: "Connection data",
           paragraphs: [
-            "To deliver a page, your browser sends your IP address, the time, the requested address and technical details such as the browser type. The websites are delivered through Cloudflare, which processes this data to deliver the pages quickly and to protect them from abuse (Art. 6(1)(f) GDPR, legitimate interest in reliable and secure operation). Providing this data is technically necessary to open the pages; without it they cannot be delivered. Cloudflare may process data outside the EU. I do not set or control Cloudflare's retention periods; Cloudflare's privacy policy is the authoritative source for the safeguards that apply to such transfers and for how long it keeps data.",
+            "To deliver a page, your browser sends your IP address, the time, the requested address and technical details such as the browser type. The websites are delivered through Cloudflare, which processes this data to deliver the pages quickly and to protect them from abuse (Art. 6(1)(f) GDPR, legitimate interest in reliable and secure operation). Providing this data is technically necessary to open the pages; without it they cannot be delivered. Cloudflare may process data outside the EU. Cloudflare acts as my processor under its standard data processing addendum. When data is transferred to the United States, Cloudflare relies on its certification under the EU-U.S. Data Privacy Framework and, should that lapse, on the EU Standard Contractual Clauses. Cloudflare publishes no fixed retention period for visitor connection data; it keeps the data only as long as needed for the purposes of the service, as its privacy policy and data processing addendum describe. I do not set or control these periods. For its own security purposes Cloudflare may act as a separate controller; its privacy policy describes this.",
             "The web servers behind Cloudflare are configured without access logs.",
           ],
-          links: [{ label: "Cloudflare privacy policy", href: "https://www.cloudflare.com/privacypolicy/" }],
+          links: [
+            { label: "Cloudflare privacy policy", href: "https://www.cloudflare.com/privacypolicy/" },
+            { label: "Cloudflare GDPR information", href: "https://www.cloudflare.com/trust-hub/gdpr/" },
+            { label: "Cloudflare data processing addendum", href: "https://www.cloudflare.com/cloudflare-customer-dpa/" },
+          ],
         },
         {
           heading: "Email",
@@ -214,10 +218,14 @@ export const legalContent: Record<"legal" | "privacy", Record<"en" | "de", Legal
         {
           heading: "Verbindungsdaten",
           paragraphs: [
-            "Zur Auslieferung einer Seite sendet Ihr Browser Ihre IP-Adresse, die Uhrzeit, die angeforderte Adresse und technische Angaben wie den Browsertyp. Die Websites werden über Cloudflare ausgeliefert. Cloudflare verarbeitet diese Daten, um die Seiten schnell auszuliefern und vor Missbrauch zu schützen (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse an zuverlässigem und sicherem Betrieb). Die Bereitstellung dieser Daten ist technisch nötig, um die Seiten zu öffnen; ohne sie können die Seiten nicht ausgeliefert werden. Cloudflare kann Daten auch außerhalb der EU verarbeiten. Ich lege die Speicherfristen von Cloudflare weder fest noch steuere ich sie; maßgeblich für die Schutzmaßnahmen bei solchen Übermittlungen und für die Dauer der Speicherung ist die Datenschutzerklärung von Cloudflare.",
+            "Zur Auslieferung einer Seite sendet Ihr Browser Ihre IP-Adresse, die Uhrzeit, die angeforderte Adresse und technische Angaben wie den Browsertyp. Die Websites werden über Cloudflare ausgeliefert. Cloudflare verarbeitet diese Daten, um die Seiten schnell auszuliefern und vor Missbrauch zu schützen (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse an zuverlässigem und sicherem Betrieb). Die Bereitstellung dieser Daten ist technisch nötig, um die Seiten zu öffnen; ohne sie können die Seiten nicht ausgeliefert werden. Cloudflare kann Daten auch außerhalb der EU verarbeiten. Cloudflare handelt als mein Auftragsverarbeiter auf Grundlage seines standardmäßigen Auftragsverarbeitungsvertrags (Data Processing Addendum). Bei Übermittlungen in die Vereinigten Staaten stützt sich Cloudflare auf seine Zertifizierung unter dem EU-US-Datenschutzrahmen (EU-U.S. Data Privacy Framework) und, sollte diese wegfallen, auf die EU-Standardvertragsklauseln. Cloudflare veröffentlicht keine feste Speicherfrist für Verbindungsdaten von Besuchern; die Daten werden nur so lange gespeichert, wie es für die Zwecke des Dienstes nötig ist, wie in seiner Datenschutzerklärung und seinem Auftragsverarbeitungsvertrag beschrieben. Ich lege diese Fristen weder fest noch steuere ich sie. Für eigene Sicherheitszwecke kann Cloudflare als eigenständiger Verantwortlicher handeln; seine Datenschutzerklärung beschreibt dies.",
             "Die Webserver hinter Cloudflare sind ohne Zugriffsprotokolle konfiguriert.",
           ],
-          links: [{ label: "Datenschutzerklärung von Cloudflare", href: "https://www.cloudflare.com/privacypolicy/" }],
+          links: [
+            { label: "Datenschutzerklärung von Cloudflare", href: "https://www.cloudflare.com/privacypolicy/" },
+            { label: "DSGVO-Informationen von Cloudflare", href: "https://www.cloudflare.com/trust-hub/gdpr/" },
+            { label: "Auftragsverarbeitungsvertrag von Cloudflare", href: "https://www.cloudflare.com/cloudflare-customer-dpa/" },
+          ],
         },
         {
           heading: "E-Mail",

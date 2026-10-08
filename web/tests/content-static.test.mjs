@@ -1320,8 +1320,31 @@ test("INSPR publishes its own operator and privacy notices, named for Markus Bar
   assert.doesNotMatch(legal, /never sent to the server|nie an den Server gesendet/);
   assert.match(legal, /short parameters \(for example \?lang=de\)/);
   assert.match(legal, /kurze Parameter an den Link angehängt \(zum Beispiel \?lang=de\)/);
-  assert.match(legal, /I do not set or control Cloudflare's retention periods/);
-  assert.match(legal, /Ich lege die Speicherfristen von Cloudflare weder fest noch steuere ich sie/);
+  for (const claim of [
+    "Cloudflare acts as my processor under its standard data processing addendum.",
+    "When data is transferred to the United States, Cloudflare relies on its certification under the EU-U.S. Data Privacy Framework and, should that lapse, on the EU Standard Contractual Clauses.",
+    "Cloudflare publishes no fixed retention period for visitor connection data; it keeps the data only as long as needed for the purposes of the service, as its privacy policy and data processing addendum describe.",
+    "I do not set or control these periods.",
+    "For its own security purposes Cloudflare may act as a separate controller; its privacy policy describes this.",
+    "Cloudflare handelt als mein Auftragsverarbeiter auf Grundlage seines standardmäßigen Auftragsverarbeitungsvertrags (Data Processing Addendum).",
+    "Bei Übermittlungen in die Vereinigten Staaten stützt sich Cloudflare auf seine Zertifizierung unter dem EU-US-Datenschutzrahmen (EU-U.S. Data Privacy Framework) und, sollte diese wegfallen, auf die EU-Standardvertragsklauseln.",
+    "Cloudflare veröffentlicht keine feste Speicherfrist für Verbindungsdaten von Besuchern; die Daten werden nur so lange gespeichert, wie es für die Zwecke des Dienstes nötig ist, wie in seiner Datenschutzerklärung und seinem Auftragsverarbeitungsvertrag beschrieben.",
+    "Ich lege diese Fristen weder fest noch steuere ich sie.",
+    "Für eigene Sicherheitszwecke kann Cloudflare als eigenständiger Verantwortlicher handeln; seine Datenschutzerklärung beschreibt dies.",
+  ]) assert.ok(legal.includes(claim), claim);
+  assert.doesNotMatch(legal, /authoritative source|maßgeblich für die Schutzmaßnahmen/);
+  for (const [privacyLabel, gdprLabel, dpaLabel] of [
+    ["Cloudflare privacy policy", "Cloudflare GDPR information", "Cloudflare data processing addendum"],
+    ["Datenschutzerklärung von Cloudflare", "DSGVO-Informationen von Cloudflare", "Auftragsverarbeitungsvertrag von Cloudflare"],
+  ]) {
+    assert.ok(legal.includes(`links: [
+            { label: "${privacyLabel}", href: "https://www.cloudflare.com/privacypolicy/" },
+            { label: "${gdprLabel}", href: "https://www.cloudflare.com/trust-hub/gdpr/" },
+            { label: "${dpaLabel}", href: "https://www.cloudflare.com/cloudflare-customer-dpa/" },
+          ]`));
+  }
+  assert.match(page, /block\.links\.map\(\(link\) =>/);
+  assert.match(page, /<a href=\{link\.href\} target="_blank" rel="noopener noreferrer">/);
   // Only storage the built pages really use may be named: language and detail level, not a colour theme.
   assert.doesNotMatch(legal, /colour theme|Farbschema/);
   assert.match(legal, /your language and level of detail in your browser's local storage/);

@@ -170,7 +170,11 @@ export const legalContent: Record<"legal" | "privacy", Record<"en" | "de", Legal
         {
           heading: "Email",
           paragraphs: [
-            "Writing to me is voluntary. If you write to the address above, I process your address and message to answer you (Art. 6(1)(f) GDPR). Email is handled by my email hosting provider. I keep the correspondence only as long as it is needed to answer and follow up, unless a legal duty requires me to keep it.",
+            "Writing to me is voluntary. If you write to the address above or to hello@inspr.at, I process your address and message to answer you (Art. 6(1)(f) GDPR). Email is handled by my email hosting provider. Email to hello@inspr.at is received by Cloudflare Email Routing as my processor and forwarded to a mailbox I use; Cloudflare processes the message only to deliver it and does not store its content, but it keeps delivery records (time, sender, recipient, subject and delivery status). The Cloudflare details above apply. I keep the correspondence only as long as it is needed to answer and follow up, unless a legal duty requires me to keep it.",
+          ],
+          links: [
+            { label: "Cloudflare Email Routing", href: "https://www.cloudflare.com/developer-platform/products/email-routing/" },
+            { label: "Cloudflare Email Routing delivery records", href: "https://developers.cloudflare.com/email-routing/get-started/email-routing-analytics/" },
           ],
         },
         {
@@ -230,7 +234,11 @@ export const legalContent: Record<"legal" | "privacy", Record<"en" | "de", Legal
         {
           heading: "E-Mail",
           paragraphs: [
-            "Das Schreiben an mich ist freiwillig. Wenn Sie an die oben genannte Adresse schreiben, verarbeite ich Ihre Adresse und Nachricht, um Ihnen zu antworten (Art. 6 Abs. 1 lit. f DSGVO). E-Mails werden von meinem E-Mail-Hosting-Anbieter verarbeitet. Ich speichere die Korrespondenz nur so lange, wie sie für Antwort und Rückfragen nötig ist, sofern keine gesetzliche Aufbewahrungspflicht besteht.",
+            "Das Schreiben an mich ist freiwillig. Wenn Sie an die oben genannte Adresse oder an hello@inspr.at schreiben, verarbeite ich Ihre Adresse und Nachricht, um Ihnen zu antworten (Art. 6 Abs. 1 lit. f DSGVO). E-Mails werden von meinem E-Mail-Hosting-Anbieter verarbeitet. E-Mails an hello@inspr.at nimmt Cloudflare Email Routing als mein Auftragsverarbeiter entgegen und leitet sie an ein von mir genutztes Postfach weiter; Cloudflare verarbeitet die Nachricht nur zur Zustellung und speichert ihren Inhalt nicht, führt aber Zustellprotokolle (Zeitpunkt, Absender, Empfänger, Betreff und Zustellstatus). Die Angaben zu Cloudflare oben gelten entsprechend. Ich speichere die Korrespondenz nur so lange, wie sie für Antwort und Rückfragen nötig ist, sofern keine gesetzliche Aufbewahrungspflicht besteht.",
+          ],
+          links: [
+            { label: "Cloudflare Email Routing", href: "https://www.cloudflare.com/developer-platform/products/email-routing/" },
+            { label: "Zustellprotokolle von Cloudflare Email Routing", href: "https://developers.cloudflare.com/email-routing/get-started/email-routing-analytics/" },
           ],
         },
         {

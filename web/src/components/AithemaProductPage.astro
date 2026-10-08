@@ -22,6 +22,7 @@ import { aithemaHandover, aithemaReleaseVersion } from "../content/aithema";
 import aithemaHero from "../assets/products/aithema/hero.png";
 import aithemaHeroLoop from "../assets/products/aithema/hero-loop.mp4";
 import aithemaLogo from "../assets/products/aithema/logo.svg";
+import ShieldedMailto from "./ShieldedMailto.astro";
 
 interface Props {
   content: PreviewProductContent;
@@ -550,7 +551,7 @@ const deployedAtLabel = releaseMetadata.deployedAt
         <a href={siteUrls.identity} target="_blank" rel="noopener noreferrer">
           {labels.identity} <span aria-hidden="true">↗</span>
         </a>
-        <a href="mailto:hello@inspr.at">hello@inspr.at</a>
+        <ShieldedMailto address="hello@inspr.at" />
         <a href={links.imprint}>{labels.legal}</a>
         <a href={links.privacy}>{labels.privacy}</a>
       </nav>

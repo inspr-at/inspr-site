@@ -2,6 +2,7 @@
 import { localeUrls, productLinks, siteUrls } from "../content/urls";
 import { releaseMetadata } from "../../release-metadata.mjs";
 import CalendarVersion from "./CalendarVersion.astro";
+import ShieldedMailto from "./ShieldedMailto.astro";
 
 interface Props {
   name: string;
@@ -132,7 +133,7 @@ const labels = locale === "de"
       <p class="footer-label">{labels.operate}</p>
       <a href={links.business} target="_blank" rel="noopener noreferrer">{labels.services} <span aria-hidden="true">↗</span></a>
       <a href={siteUrls.identity} target="_blank" rel="noopener noreferrer">{labels.identity} <span aria-hidden="true">↗</span></a>
-      <a href="mailto:hello@inspr.at">hello@inspr.at</a>
+      <ShieldedMailto address="hello@inspr.at" />
       <a href={links.imprint}>{labels.legal}</a>
       <a href={links.privacy}>{labels.privacy}</a>
     </nav>

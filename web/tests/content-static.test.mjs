@@ -100,8 +100,11 @@ test("business and legal links point at the live Augmentoring site", async () =>
   // INSPR-481: amt.inspr.at was the Augmentoring preview host and has no DNS.
   assert.doesNotMatch(urls, /amt\.inspr\.at/);
   assert.match(urls, /"https:\/\/augmentoring\.com",/);
-  assert.match(urls, /imprint: "https:\/\/augmentoring\.com\/impressum\/",/);
-  assert.match(urls, /privacy: "https:\/\/augmentoring\.com\/datenschutz\/",/);
+  assert.match(urls, /legal: "https:\/\/www\.inspr\.at\/legal\/",/);
+  assert.match(urls, /legalGerman: "https:\/\/www\.inspr\.at\/de\/impressum\/",/);
+  assert.match(urls, /privacy: "https:\/\/www\.inspr\.at\/privacy\/",/);
+  assert.match(urls, /privacyGerman: "https:\/\/www\.inspr\.at\/de\/datenschutz\/",/);
+  assert.doesNotMatch(urls, /augmentoring\.com\/(?:impressum|datenschutz)/);
 });
 
 test("microsites keep an accessible mobile section menu", async () => {
@@ -1188,10 +1191,7 @@ test("English pages link English business and legal pages; German pages stay Ger
   const overview = await source("components/OverviewPage.astro");
 
   assert.match(urls, /export const localeUrls = \(locale: "en" \| "de"\) =>/);
-  assert.match(urls, /business: `\$\{siteUrls\.business\}\/en\/`,/);
-  assert.match(urls, /imprint: `\$\{siteUrls\.business\}\/en\/imprint\/`,/);
-  assert.match(urls, /privacy: `\$\{siteUrls\.business\}\/en\/privacy\/`,/);
-  assert.match(urls, /locale === "de"\s*\? \{ business: siteUrls\.business, imprint: siteUrls\.imprint, privacy: siteUrls\.privacy \}\s*: \{\s*business: `\$\{siteUrls\.business\}\/en\/`/);
+  assert.match(urls, /locale === "de"\s*\? \{ business: siteUrls\.business, imprint: `\$\{siteUrls\.legalGerman\}\?lang=de`, privacy: `\$\{siteUrls\.privacyGerman\}\?lang=de` \}\s*: \{ business: `\$\{siteUrls\.business\}\/en\/`, imprint: `\$\{siteUrls\.legal\}\?lang=en`, privacy: `\$\{siteUrls\.privacy\}\?lang=en` \}/);
   assert.doesNotMatch(urls, /locale === "en"\s*\?/);
 
   for (const [name, component] of [["footer", footer], ["aithema", aithema]]) {
@@ -1268,4 +1268,89 @@ test("Janus release line and ZITADEL status are consistent across site and page 
   assert.doesNotMatch(de, /vier Rollen|Admin, Auditor, Operator und Viewer/);
   assert.doesNotMatch(umbrella, /four roles|vier Rollen/);
   assert.doesNotMatch(en + de, /until one reviewed|genau ein geprüfter/);
+});
+
+test("INSPR publishes its own operator and privacy notices, named for Markus Barta (INSPR-539)", async () => {
+  const legal = await source("content/legal.ts");
+  const page = await source("components/LegalPage.astro");
+  const footer = await source("components/MicrositeFooter.astro");
+  const aithema = await source("components/AithemaProductPage.astro");
+  const sitemap = await readFile(new URL("../public/sitemap.xml", import.meta.url), "utf8");
+
+  assert.match(legal, /name: "Markus Barta"/);
+  assert.match(legal, /email: "markus@barta\.com"/);
+  assert.match(legal, /place: \{ en: "Graz, Austria", de: "Graz, Österreich" \}/);
+  assert.ok(!legal.includes("\u2014"), "legal copy contains an em dash");
+  assert.match(page, /<!--email_off--><a href="mailto:\$\{operator\.email\}">/, "the operator address is shielded from email rewriting");
+
+  const routes = {
+    "pages/legal/index.astro": ["legal", "en"],
+    "pages/privacy/index.astro": ["privacy", "en"],
+    "pages/de/impressum/index.astro": ["legal", "de"],
+    "pages/de/datenschutz/index.astro": ["privacy", "de"],
+  };
+  for (const [route, [kind, locale]] of Object.entries(routes)) {
+    const routeSource = await source(route);
+    assert.ok(routeSource.includes(`<LegalPage kind="${kind}" locale="${locale}" />`), `${route} renders ${kind} in ${locale}`);
+  }
+  for (const loc of ["legal/", "de/impressum/", "privacy/", "de/datenschutz/"]) {
+    assert.match(sitemap, new RegExp(`<loc>https://www\\.inspr\\.at/${loc.replace("/", "\\/")}</loc>`), `${loc} is in the www sitemap`);
+  }
+
+  const overviewPage = await source("components/OverviewPage.astro");
+  assert.match(overviewPage, /const legalLinks = localeUrls\(locale\);/);
+  assert.match(overviewPage, /<a href=\{legalLinks\.imprint\}>\{copy\("Legal notice", "Impressum"\)\}<\/a>/);
+  assert.match(overviewPage, /<a href=\{legalLinks\.privacy\}>\{copy\("Privacy", "Datenschutz"\)\}<\/a>/);
+
+  // Footers link INSPR's own notices as plain links and no longer the Augmentoring ones.
+  for (const [name, component] of [["footer", footer], ["aithema", aithema]]) {
+    assert.match(component, /<a href=\{links\.imprint\}>\{labels\.legal\}<\/a>/, `${name} legal link`);
+    assert.match(component, /<a href=\{links\.privacy\}>\{labels\.privacy\}<\/a>/, `${name} privacy link`);
+  }
+
+  // The notices state only what the sites verifiably do.
+  for (const claim of [/no cookies set by these pages/, /no analytics or tracking tools/, /local storage/, /Cloudflare/, /configured without access logs/]) {
+    assert.match(legal, claim);
+  }
+  for (const claim of [/keine von diesen Seiten gesetzten Cookies/, /keine Analyse- oder Tracking-Werkzeuge/, /lokalen Speicher/, /Cloudflare/, /ohne Zugriffsprotokolle konfiguriert/]) {
+    assert.match(legal, claim);
+  }
+  assert.doesNotMatch(legal, /Augmentoring GmbH (?:operates|betreibt)/);
+  // Local-storage wording must not claim the choice never reaches the server: ?lang= and ?details= travel in links.
+  assert.doesNotMatch(legal, /never sent to the server|nie an den Server gesendet/);
+  assert.match(legal, /short parameters \(for example \?lang=de\)/);
+  assert.match(legal, /kurze Parameter an den Link angehängt \(zum Beispiel \?lang=de\)/);
+  for (const claim of [
+    "Cloudflare acts as my processor under its standard data processing addendum.",
+    "When data is transferred to the United States, Cloudflare relies on its certification under the EU-U.S. Data Privacy Framework and, should that lapse, on the EU Standard Contractual Clauses.",
+    "Cloudflare publishes no fixed retention period for visitor connection data; it keeps the data only as long as needed for the purposes of the service, as its privacy policy and data processing addendum describe.",
+    "I do not set or control these periods.",
+    "For its own security purposes Cloudflare may act as a separate controller; its privacy policy describes this.",
+    "Cloudflare handelt als mein Auftragsverarbeiter auf Grundlage seines standardmäßigen Auftragsverarbeitungsvertrags (Data Processing Addendum).",
+    "Bei Übermittlungen in die Vereinigten Staaten stützt sich Cloudflare auf seine Zertifizierung unter dem EU-US-Datenschutzrahmen (EU-U.S. Data Privacy Framework) und, sollte diese wegfallen, auf die EU-Standardvertragsklauseln.",
+    "Cloudflare veröffentlicht keine feste Speicherfrist für Verbindungsdaten von Besuchern; die Daten werden nur so lange gespeichert, wie es für die Zwecke des Dienstes nötig ist, wie in seiner Datenschutzerklärung und seinem Auftragsverarbeitungsvertrag beschrieben.",
+    "Ich lege diese Fristen weder fest noch steuere ich sie.",
+    "Für eigene Sicherheitszwecke kann Cloudflare als eigenständiger Verantwortlicher handeln; seine Datenschutzerklärung beschreibt dies.",
+  ]) assert.ok(legal.includes(claim), claim);
+  assert.doesNotMatch(legal, /authoritative source|maßgeblich für die Schutzmaßnahmen/);
+  for (const [privacyLabel, gdprLabel, dpaLabel] of [
+    ["Cloudflare privacy policy", "Cloudflare GDPR information", "Cloudflare data processing addendum"],
+    ["Datenschutzerklärung von Cloudflare", "DSGVO-Informationen von Cloudflare", "Auftragsverarbeitungsvertrag von Cloudflare"],
+  ]) {
+    assert.ok(legal.includes(`links: [
+            { label: "${privacyLabel}", href: "https://www.cloudflare.com/privacypolicy/" },
+            { label: "${gdprLabel}", href: "https://www.cloudflare.com/trust-hub/gdpr/" },
+            { label: "${dpaLabel}", href: "https://www.cloudflare.com/cloudflare-customer-dpa/" },
+          ]`));
+  }
+  assert.match(page, /block\.links\.map\(\(link\) =>/);
+  assert.match(page, /<a href=\{link\.href\} target="_blank" rel="noopener noreferrer">/);
+  // Only storage the built pages really use may be named: language and detail level, not a colour theme.
+  assert.doesNotMatch(legal, /colour theme|Farbschema/);
+  assert.match(legal, /your language and level of detail in your browser's local storage/);
+  assert.match(legal, /Sprache und Detailstufe im lokalen Speicher/);
+  assert.match(legal, /Providing this data is technically necessary/);
+  assert.match(legal, /Writing to me is voluntary/);
+  const css = await source("styles/legal.css");
+  assert.match(css, /\.legal-updated \{[^}]*color: var\(--ink-soft\);/, "the updated date meets text contrast");
 });

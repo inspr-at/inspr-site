@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures.mjs";
 
 const routes = [
   { path: "/pharos/", selector: "#feature-backups .feature-experience--evidence-stack" },

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures.mjs";
 
 // INSPR-492: no drawn graphic may be cut off by its own SVG viewBox. Every
 // visible shape, including half its stroke, must fit inside the viewBox; we

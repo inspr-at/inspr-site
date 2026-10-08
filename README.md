@@ -138,7 +138,13 @@ npm audit --audit-level=high
 the hero-loop audit, `scripts/verify-csp.py` and the section-pattern audit.
 `npm run test:browser` starts the built site and runs responsive geometry
 regressions in Chromium, Firefox and WebKit; install those engines once with
-`npx playwright install chromium firefox webkit`. The same five checks run in
+`npx playwright install chromium firefox webkit`. On Linux, WebKit loads pages
+without their `<video>` elements (`tests/browser/fixtures.mjs`, INSPR-538):
+the hero video crashes headless Linux WebKit at random, so those runs skip
+native video rendering. Chromium and Firefox keep the video, and a test that
+needs it opts back in with `test.use({ keepVideo: true })` and the `@video`
+tag, as the hero Pause test does; CI runs `@video` tests in their own WebKit
+step. The same five checks run in
 GitHub Actions (`.github/workflows/ci.yml`) on every pull request and on
 `main`; a red `ci` check means the change is not deployable.
 

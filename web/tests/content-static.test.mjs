@@ -144,8 +144,15 @@ test("the three-engine browser gate stays within the constrained CI runner", asy
   for (const shard of [1, 2, 3, 4]) {
     assert.match(
       workflow,
-      new RegExp(`npm run test:browser -- --project=webkit --shard=${shard}/4`),
+      new RegExp(`npm run test:browser -- --project=webkit --grep-invert @video --shard=${shard}/4`),
     );
+  }
+  // INSPR-538: Linux WebKit loads pages without <video>; @video tests keep it
+  // and run in their own WebKit step.
+  assert.match(workflow, /npm run test:browser -- --project=webkit --grep @video\n/);
+  for (const spec of ["calendar-version", "feature-experience", "graphics-clipping", "integration-table", "paimos-aeon", "paimos-carousel"]) {
+    const source = await readFile(new URL(`browser/${spec}.spec.mjs`, import.meta.url), "utf8");
+    assert.match(source, /from "\.\/fixtures\.mjs";/, spec);
   }
   for (const geometryTest of [featureGeometry, tableGeometry]) {
     assert.doesNotMatch(geometryTest, /scrollIntoViewIfNeeded/);

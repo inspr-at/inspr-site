@@ -1359,3 +1359,27 @@ test("operator email keeps a space after its label (INSPR-539)", async () => {
   const page = await readFile(new URL("../src/components/LegalPage.astro", import.meta.url), "utf8");
   assert.match(page, /\{doc\.emailLabel\}:\{" "\}\s*<Fragment set:html=/);
 });
+
+test("footer contact hello@inspr.at is a real, shielded mailto (INSPR-525)", async () => {
+  const shield = await readFile(new URL("../src/components/ShieldedMailto.astro", import.meta.url), "utf8");
+  assert.match(shield, /<!--email_off--><a href="mailto:\$\{address\}">\$\{address\}<\/a><!--\/email_off-->/);
+  for (const file of ["MicrositeFooter.astro", "AithemaProductPage.astro"]) {
+    const source = await readFile(new URL(`../src/components/${file}`, import.meta.url), "utf8");
+    assert.match(source, /<ShieldedMailto address="hello@inspr\.at" \/>/, file);
+    assert.doesNotMatch(source, /href="mailto:hello@inspr\.at"/, `${file} renders an unshielded mailto`);
+  }
+});
+
+test("privacy notice discloses Cloudflare Email Routing for hello@inspr.at (INSPR-525)", async () => {
+  const legal = await readFile(new URL("../src/content/legal.ts", import.meta.url), "utf8");
+  for (const phrase of [
+    "If you write to the address above or to hello@inspr.at",
+    "Email to hello@inspr.at is received by Cloudflare Email Routing as my processor and forwarded to a mailbox I use",
+    "does not store its content, but it keeps delivery records (time, sender, recipient, subject and delivery status)",
+    "Wenn Sie an die oben genannte Adresse oder an hello@inspr.at schreiben",
+    "E-Mails an hello@inspr.at nimmt Cloudflare Email Routing als mein Auftragsverarbeiter entgegen",
+    "speichert ihren Inhalt nicht, führt aber Zustellprotokolle (Zeitpunkt, Absender, Empfänger, Betreff und Zustellstatus)",
+    "https://www.cloudflare.com/developer-platform/products/email-routing/",
+    "https://developers.cloudflare.com/email-routing/get-started/email-routing-analytics/",
+  ]) assert.ok(legal.includes(phrase), phrase);
+});

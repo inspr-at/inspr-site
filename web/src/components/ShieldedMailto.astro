@@ -1,0 +1,12 @@
+---
+// INSPR-525: Cloudflare's email address obfuscation rewrites a plain mailto link
+// into "[email protected]" plus a decoder script, so the address is invisible
+// without JavaScript. The email_off comments exempt this link; set:html keeps
+// the comments through Astro's HTML compression. `address` is a constant from
+// the calling template, never user input.
+interface Props {
+  address: string;
+}
+const { address } = Astro.props;
+---
+<Fragment set:html={`<!--email_off--><a href="mailto:${address}">${address}</a><!--/email_off-->`} />

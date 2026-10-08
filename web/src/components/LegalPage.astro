@@ -79,7 +79,7 @@ const nav = [
               <li><strong>{operator.name}</strong></li>
               <li>{operator.place[locale]}</li>
               <li>
-                {doc.emailLabel}:
+                {doc.emailLabel}:{" "}
                 <Fragment set:html={`<!--email_off--><a href="mailto:${operator.email}">${operator.email}</a><!--/email_off-->`} />
               </li>
             </ul>

@@ -1354,3 +1354,8 @@ test("INSPR publishes its own operator and privacy notices, named for Markus Bar
   const css = await source("styles/legal.css");
   assert.match(css, /\.legal-updated \{[^}]*color: var\(--ink-soft\);/, "the updated date meets text contrast");
 });
+
+test("operator email keeps a space after its label (INSPR-539)", async () => {
+  const page = await readFile(new URL("../src/components/LegalPage.astro", import.meta.url), "utf8");
+  assert.match(page, /\{doc\.emailLabel\}:\{" "\}\s*<Fragment set:html=/);
+});

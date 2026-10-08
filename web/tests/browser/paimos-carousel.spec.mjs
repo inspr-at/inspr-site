@@ -2,7 +2,7 @@
 // state across a rapid close and reopen, and every caption stays reachable
 // on a short viewport because the active slide scrolls on its own, by
 // pointer and by keyboard.
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures.mjs";
 
 const pages = [
   { path: "/paimos/", lang: "en" },

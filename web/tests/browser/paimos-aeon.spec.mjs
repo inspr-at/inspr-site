@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures.mjs";
 
 // INSPR-492: the AEON page at /paimos must fit every width, keep its locale
 // links under /paimos/ and drive its screen theatre from the keyboard.
@@ -46,7 +46,8 @@ for (const path of routes) {
 // WCAG 2.2.2: the hero's Pause control must stop every looping animation in
 // the hero, including the release plaque's light (review gate, INSPR-492).
 test.describe("hero pause", () => {
-  test.use({ reducedMotion: "no-preference" });
+  // keepVideo: the hero's paused state follows the real video (INSPR-538).
+  test.use({ reducedMotion: "no-preference", keepVideo: true });
 
   test("the visible hero Pause control halts every looping hero animation", async ({ page }) => {
     await page.goto("/paimos/?lang=en", { waitUntil: "domcontentloaded" });

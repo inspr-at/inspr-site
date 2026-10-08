@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures.mjs";
 
 // INSPR-493: every release footer shows the reserved calendar version through
 // the shared renderer. A direct local build has no version and says so; a

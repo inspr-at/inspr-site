@@ -142,8 +142,9 @@ regressions in Chromium, Firefox and WebKit; install those engines once with
 without their `<video>` elements (`tests/browser/fixtures.mjs`, INSPR-538):
 the hero video crashes headless Linux WebKit at random, so those runs skip
 native video rendering. Chromium and Firefox keep the video, and a test that
-needs it opts back in with `test.use({ keepVideo: true })`, as the hero Pause
-test does. The same five checks run in
+needs it opts back in with `test.use({ keepVideo: true })` and the `@video`
+tag, as the hero Pause test does; CI runs `@video` tests in their own WebKit
+step. The same five checks run in
 GitHub Actions (`.github/workflows/ci.yml`) on every pull request and on
 `main`; a red `ci` check means the change is not deployable.
 

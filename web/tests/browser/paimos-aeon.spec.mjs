@@ -45,7 +45,7 @@ for (const path of routes) {
 
 // WCAG 2.2.2: the hero's Pause control must stop every looping animation in
 // the hero, including the release plaque's light (review gate, INSPR-492).
-test.describe("hero pause", () => {
+test.describe("hero pause", { tag: "@video" }, () => {
   // keepVideo: the hero's paused state follows the real video (INSPR-538).
   test.use({ reducedMotion: "no-preference", keepVideo: true });
 

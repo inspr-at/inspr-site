@@ -17,7 +17,8 @@ import { expect, test as base } from "@playwright/test";
 // Chromium and Firefox keep loading and playing the video. A test that needs
 // the real video, such as the hero Pause test (the AEON hero's paused state
 // follows the video's play/pause events), opts out with
-// test.use({ keepVideo: true }). macOS WebKit runs are unchanged.
+// test.use({ keepVideo: true }) and carries the @video tag, which CI runs in
+// its own WebKit step. macOS WebKit runs are unchanged.
 const stripVideo = process.platform === "linux";
 
 export const test = base.extend({

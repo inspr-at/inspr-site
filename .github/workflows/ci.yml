@@ -70,17 +70,24 @@ jobs:
       # WebKit on the constrained Linux runner becomes unstable after several
       # long microsite documents in one process. Four shards preserve every
       # assertion while giving each small batch a fresh browser process.
+      # Linux WebKit also loads pages without <video> (INSPR-538,
+      # tests/browser/fixtures.mjs); tests tagged @video keep the video and run
+      # in their own browser process, so its media stack cannot take down the
+      # pages of other tests.
       - name: browser geometry regressions - WebKit 1 of 4
-        run: npm run test:browser -- --project=webkit --shard=1/4
+        run: npm run test:browser -- --project=webkit --grep-invert @video --shard=1/4
 
       - name: browser geometry regressions - WebKit 2 of 4
-        run: npm run test:browser -- --project=webkit --shard=2/4
+        run: npm run test:browser -- --project=webkit --grep-invert @video --shard=2/4
 
       - name: browser geometry regressions - WebKit 3 of 4
-        run: npm run test:browser -- --project=webkit --shard=3/4
+        run: npm run test:browser -- --project=webkit --grep-invert @video --shard=3/4
 
       - name: browser geometry regressions - WebKit 4 of 4
-        run: npm run test:browser -- --project=webkit --shard=4/4
+        run: npm run test:browser -- --project=webkit --grep-invert @video --shard=4/4
+
+      - name: browser geometry regressions - WebKit with video
+        run: npm run test:browser -- --project=webkit --grep @video
 
       - name: dependency audit
         run: npm audit --audit-level=high

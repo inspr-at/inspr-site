@@ -26,7 +26,7 @@ test("INSPR-545 microsites use the family one-liners and highlighted flow near t
   // "Planned" only on the connection that is being built. INSPR-554: the status
   // is a plain word in the sentence, not a chip.
   const band = await source("components/FamilyBand.astro");
-  assert.match(band, /\{contract\.standalone\[locale\]\} \{contract\.standaloneToday\[locale\]\} <em>\{statusLabels\[contract\.status\]\[locale\]\}:<\/em> \{contract\.planned\[locale\]\}/);
+  assert.match(band, /\{contract\.standalone\[locale\]\}\s+\{contract\.standaloneToday\[locale\]\}\s+<em>\{statusLabels\[contract\.status\]\[locale\]\}:<\/em>\s+\{contract\.planned\[locale\]\}/);
   assert.doesNotMatch(band, /<StatusChip/);
 });
 

@@ -125,4 +125,11 @@ test("the band stays a quiet rail: no boxes, no pills, no layout shift on the cu
     assert.ok(family.flow.underneath.gloss[locale].trim(), `underneath gloss (${locale})`);
   }
   assert.equal(family.flow.underneath.label.en, "Underneath");
+  // "Planned:" goes in front of the planned part only; the standalone fact is not planned.
+  assert.equal(family.contract.standaloneToday.en, "Pharos and Janus run standalone today.");
+  assert.equal(family.contract.standaloneToday.de, "Pharos und Janus laufen heute eigenständig.");
+  assert.ok(family.contract.statusNote.en.startsWith(family.contract.standaloneToday.en));
+  assert.ok(family.contract.statusNote.de.startsWith(family.contract.standaloneToday.de));
+  for (const locale of ["en", "de"]) assert.ok(family.contract.planned[locale].includes("Paimos"));
+  assert.match(band, /<ol class="family-band__flow" role="list">/);
 });

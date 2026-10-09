@@ -32,7 +32,8 @@ const region = locale === "de" ? "Der INSPR-Ablauf" : "The INSPR flow";
 ---
 
 <section class="family-band page-shell" aria-label={region} data-section-pattern="family-band">
-  <ol class="family-band__flow">
+  <!-- role="list": Safari drops list semantics when list-style is none. -->
+  <ol class="family-band__flow" role="list">
     {flow.steps.map((step) => (
       <li class="family-band__step" aria-current={step.key === current ? "step" : undefined}>
         <span class="family-band__stage">{step.label[locale]}</span>

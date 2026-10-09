@@ -2,8 +2,10 @@ import { products, statusLabels } from "./family";
 import { productTaxonomy, siteUrls } from "./urls";
 import type { ProductContent } from "./types";
 
-const repositoryUrl = "https://github.com/inspr-at/janus";
-const releaseUrl = "https://github.com/inspr-at/janus/releases";
+// JANUS-490: the repository is private while Janus is rewritten; links that
+// pointed into it go to this product page for now.
+const repositoryUrl = "https://janus.inspr.at/";
+const releaseUrl = repositoryUrl;
 
 // INSPR-534: the release statement on the Janus page names one verified release.
 // Both layers were tagged together (rust-engine-v... and go-envelope-v...).
@@ -24,7 +26,7 @@ export const janusContent = {
   releaseUrl,
   license: {
     name: "AGPL-3.0-only",
-    url: `${repositoryUrl}/blob/main/LICENSE`,
+    url: "https://www.gnu.org/licenses/agpl-3.0.html",
     note: "The Janus repository declares SPDX license AGPL-3.0-only.",
   },
   seo: {
@@ -132,7 +134,7 @@ export const janusContent = {
         signal: "Opaque identity without value or authority",
         reference: {
           label: "Inspect the SecretRef type",
-          href: `${repositoryUrl}/blob/main/crates/janus-core/src/refs.rs`,
+          href: repositoryUrl,
           external: true,
         },
       },
@@ -148,7 +150,7 @@ export const janusContent = {
         signal: "One principal, purpose, destination and lifetime",
         reference: {
           label: "Inspect permit policy",
-          href: `${repositoryUrl}/blob/main/crates/janus-core/src/policy.rs`,
+          href: repositoryUrl,
           external: true,
         },
       },
@@ -164,7 +166,7 @@ export const janusContent = {
         signal: "The value crosses only inside the reviewed executor",
         reference: {
           label: "Inspect the executor boundary",
-          href: `${repositoryUrl}/blob/main/crates/janus-executor/src/lib.rs`,
+          href: repositoryUrl,
           external: true,
         },
       },
@@ -188,7 +190,7 @@ export const janusContent = {
           meta: "list_secrets · describe_secret · request_use · health",
           reference: {
             label: "Inspect the Warden tool boundary",
-            href: `${repositoryUrl}/blob/main/crates/janus-warden/src/lib.rs`,
+            href: repositoryUrl,
             external: true,
           },
         },
@@ -241,7 +243,7 @@ export const janusContent = {
           meta: "Plan · prepare · validate · reload · commit",
           reference: {
             label: "Inspect the rotation contract",
-            href: `${repositoryUrl}/blob/main/crates/janus-core/src/rotation.rs`,
+            href: repositoryUrl,
             external: true,
           },
         },
@@ -281,7 +283,7 @@ export const janusContent = {
           meta: "Evidence, not raw debug output",
           reference: {
             label: "Inspect audit chain integrity",
-            href: `${repositoryUrl}/blob/main/go-envelope/audit.go`,
+            href: repositoryUrl,
             external: true,
           },
         },
@@ -390,7 +392,7 @@ export const janusContent = {
           "Engine and envelope images are keyless-signed, accompanied by SPDX SBOMs and published with build-provenance attestations. Release CI smokes the exact published engine digest.",
         reference: {
           label: "Inspect the release assurance gate",
-          href: `${repositoryUrl}/blob/main/scripts/assure-engine-release.sh`,
+          href: repositoryUrl,
           external: true,
         },
       },
@@ -498,7 +500,7 @@ export const janusContent = {
       },
       {
         label: "Project license (AGPL-3.0-only)",
-        href: `${repositoryUrl}/blob/main/LICENSE`,
+        href: "https://www.gnu.org/licenses/agpl-3.0.html",
         external: true,
       },
       {

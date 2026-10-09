@@ -22,10 +22,12 @@ test("INSPR-545 microsites use the family one-liners and highlighted flow near t
     assert.ok(band < page.indexOf('class="proof-console'));
     assert.match(page, /<FamilyBand highlight=\{content\.slug\} locale=\{locale\} \/>|<FamilyBand highlight="aithema" locale=\{locale\} \/>/);
   }
-  // The band carries the contract: the standalone fact without a chip, the
-  // Planned chip only on the connection that is being built.
+  // The band carries the contract: the standalone fact without a status word,
+  // "Planned" only on the connection that is being built. INSPR-554: the status
+  // is a plain word in the sentence, not a chip.
   const band = await source("components/FamilyBand.astro");
-  assert.match(band, /\{contract\.standalone\[locale\]\}\s*<StatusChip status=\{contract\.status\} locale=\{locale\} \/>\s*\{contract\.statusNote\[locale\]\}/);
+  assert.match(band, /\{contract\.standalone\[locale\]\} \{contract\.standaloneToday\[locale\]\} <em>\{statusLabels\[contract\.status\]\[locale\]\}:<\/em> \{contract\.planned\[locale\]\}/);
+  assert.doesNotMatch(band, /<StatusChip/);
 });
 
 test("INSPR-545 Pharos keeps attended provisioning live and dates neither planned integration", async () => {

@@ -109,3 +109,20 @@ test("the band and chip are static: no script, no external resources", async () 
   assert.match(band, /locale\?: "en" \| "de"/);
   assert.match(header, /products\[active\]\.name\[locale\]\} · \$\{products\[active\]\.verb\[locale\]\}/);
 });
+
+// INSPR-554: the band is a hairline rail, not a row of boxes. Every stop keeps
+// the same dot, so marking the reader's product moves nothing; Doctrine and the
+// contract are sentences, and "Planned" is a word, not a chip.
+test("the band stays a quiet rail: no boxes, no pills, no layout shift on the current step", async () => {
+  const band = await source("components/FamilyBand.astro");
+  const style = band.slice(band.indexOf("<style>"));
+  assert.match(band, /<span class="family-band__dot" aria-hidden="true"><\/span>/);
+  assert.match(band, /aria-current=\{step\.key === current \? "step" : undefined\}/);
+  assert.doesNotMatch(style, /border-radius:\s*var\(--radius|dashed|border-top-width|box-shadow|background:\s*var\(--accent-soft\)/);
+  assert.doesNotMatch(style, /\[aria-current\][^{]*\{[^}]*(?:font-weight|border-width|padding|margin|transform)/);
+  for (const locale of ["en", "de"]) {
+    assert.ok(family.flow.underneath.lead[locale].trim(), `underneath lead (${locale})`);
+    assert.ok(family.flow.underneath.gloss[locale].trim(), `underneath gloss (${locale})`);
+  }
+  assert.equal(family.flow.underneath.label.en, "Underneath");
+});

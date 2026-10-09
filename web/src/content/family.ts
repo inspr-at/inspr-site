@@ -163,8 +163,9 @@ const productStep = (
 
 export const flow: {
   steps: FlowStep[];
-  /** The Doctrine row that runs underneath every step. */
-  underneath: { label: Bilingual; product: "doctrine" };
+  /** The Doctrine row that runs underneath every step. The band writes it as
+   * one sentence: "‹lead›: ‹Doctrine›, ‹gloss›." (INSPR-554). */
+  underneath: { label: Bilingual; product: "doctrine"; lead: Bilingual; gloss: Bilingual };
 } = {
   steps: [
     {
@@ -205,8 +206,20 @@ export const flow: {
       statusNote: t("Scheduler live; Routines planned", "Scheduler live; Routinen geplant"),
     },
   ],
-  underneath: { label: t("Underneath", "Darunter"), product: "doctrine" },
+  underneath: {
+    label: t("Underneath", "Darunter"),
+    product: "doctrine",
+    lead: t("Underneath every step", "Unter jedem Schritt"),
+    gloss: t("how agents work", "wie Agenten arbeiten"),
+  },
 };
+
+// What runs standalone today, separate from what is planned, so the band can
+// put "Planned:" in front of the planned part only (INSPR-554).
+const standaloneToday = t(
+  "Pharos and Janus run standalone today.",
+  "Pharos und Janus laufen heute eigenständig.",
+);
 
 export const contract: {
   label: Bilingual;
@@ -215,6 +228,9 @@ export const contract: {
   standalone: Bilingual;
   status: Status;
   statusNote: Bilingual;
+  /** statusNote split in two: the fact today, and the planned part after "Planned:". */
+  standaloneToday: Bilingual;
+  planned: Bilingual;
 } = {
   label: t("One contract", "Ein Vertrag"),
   steps: [
@@ -231,8 +247,13 @@ export const contract: {
   standalone: t("Every product also runs on its own.", "Jedes Produkt läuft auch für sich."),
   status: "planned",
   statusNote: t(
-    "Pharos and Janus run standalone today. Connecting them to Paimos through this contract is being built.",
-    "Pharos und Janus laufen heute eigenständig. Ihre Anbindung an Paimos über diesen Vertrag ist im Aufbau.",
+    `${standaloneToday.en} Connecting them to Paimos through this contract is being built.`,
+    `${standaloneToday.de} Ihre Anbindung an Paimos über diesen Vertrag ist im Aufbau.`,
+  ),
+  standaloneToday,
+  planned: t(
+    "connecting them to Paimos through this contract.",
+    "ihre Anbindung an Paimos über diesen Vertrag.",
   ),
 };
 

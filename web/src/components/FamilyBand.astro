@@ -1,9 +1,9 @@
 ---
-import StatusChip from "./StatusChip.astro";
 import {
   contract,
   flow,
   products,
+  statusLabels,
   type FlowKey,
   type ProductKey,
 } from "../content/family";
@@ -11,6 +11,10 @@ import {
 // INSPR-542: the shared GUI-22 band, a quiet strip under a hero. It shows the
 // seven flow steps with the reader's product marked, Doctrine underneath and
 // the one-contract line. Static HTML and CSS only; no script.
+// INSPR-554: one hairline rail instead of boxed tiles. Every stop reserves the
+// same dot; the reader's product only fills it and takes the accent, so
+// nothing moves. Doctrine and the contract are plain sentences; "Planned" is
+// a word, not a chip.
 interface Props {
   locale?: "en" | "de";
   /** A product (Doctrine marks the row underneath) or a flow step. */
@@ -30,96 +34,157 @@ const region = locale === "de" ? "Der INSPR-Ablauf" : "The INSPR flow";
 <section class="family-band page-shell" aria-label={region} data-section-pattern="family-band">
   <ol class="family-band__flow">
     {flow.steps.map((step) => (
-      <li class:list={["family-band__step", { "is-current": step.key === current }]} aria-current={step.key === current ? "step" : undefined}>
-        <span class="family-band__verb">{step.label[locale]}</span>
-        <strong>{step.who[locale]}</strong>
+      <li class="family-band__step" aria-current={step.key === current ? "step" : undefined}>
+        <span class="family-band__stage">{step.label[locale]}</span>
+        <span class="family-band__dot" aria-hidden="true"></span>
+        <span class="family-band__who">{step.who[locale]}</span>
       </li>
     ))}
   </ol>
-  <p class:list={["family-band__under", { "is-current": doctrineCurrent }]} aria-current={doctrineCurrent ? "true" : undefined}>
-    <span class="family-band__verb">{flow.underneath.label[locale]}</span>
-    <strong>{doctrine.name[locale]}</strong>
-    <span>{doctrine.verb[locale]}</span>
-  </p>
-  <p class="family-band__contract">
-    <span class="family-band__verb">{contract.label[locale]}</span>
-    {contract.line[locale]}
-    {contract.standalone[locale]}
-    <StatusChip status={contract.status} locale={locale} />
-    {contract.statusNote[locale]}
-  </p>
+  <div class="family-band__notes">
+    <p class="family-band__under" aria-current={doctrineCurrent ? "true" : undefined}>
+      {flow.underneath.lead[locale]}: <strong>{doctrine.name[locale]}</strong>, {flow.underneath.gloss[locale]}.
+    </p>
+    <p class="family-band__contract">
+      <strong>{contract.label[locale]}:</strong> {contract.line[locale]} {contract.standalone[locale]} {contract.standaloneToday[locale]} <em>{statusLabels[contract.status][locale]}:</em> {contract.planned[locale]}
+    </p>
+  </div>
 </section>
 
 <style>
   .family-band {
-    display: grid;
-    gap: 0.6rem;
-    margin-block: 1.25rem;
-    padding-block: 0.9rem;
-    border-block: 1px solid var(--line);
+    --dot: 0.6rem;
+    --stage-row: 1.35rem;
+    --rail-gap: 0.55rem;
+    container-type: inline-size;
+    margin-block: clamp(2rem, 4vw, 3rem);
   }
 
   .family-band__flow {
+    position: relative;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
-    gap: 0.4rem;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  .family-band__step,
-  .family-band__under {
+  /* The rail: one neutral hairline from the first stop to the last. */
+  .family-band__flow::before {
+    position: absolute;
+    top: calc(var(--stage-row) + var(--rail-gap) + var(--dot) / 2 - 0.5px);
+    right: calc(100% / 7 - var(--dot) / 2);
+    left: calc(var(--dot) / 2);
+    border-top: 1px solid var(--line-strong);
+    content: "";
+  }
+
+  .family-band__step {
+    position: relative;
     display: grid;
-    gap: 0.15rem;
+    grid-template-rows: var(--stage-row) var(--dot) auto;
+    row-gap: var(--rail-gap);
     min-width: 0;
-    padding: 0.5rem 0.7rem;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-sm);
-    font-size: 0.82rem;
+    padding-right: 0.75rem;
+  }
+
+  .family-band__stage {
+    align-self: end;
+    overflow: hidden;
+    color: var(--ink-soft);
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
+  .family-band__who {
+    color: var(--ink);
+    font-size: 1.1rem;
     line-height: 1.25;
   }
 
-  .family-band__under {
-    grid-auto-flow: column;
-    justify-content: start;
-    align-items: baseline;
-    gap: 0.6rem;
-    border-style: dashed;
+  /* Every stop has the same dot; the current one is filled (shape, not only colour). */
+  .family-band__dot {
+    width: var(--dot);
+    height: var(--dot);
+    border: 1.5px solid var(--ink-faint);
+    border-radius: 50%;
+    background: var(--paper);
   }
 
-  .family-band__verb {
-    color: var(--accent-strong);
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    font-weight: 620;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  /* The current step reads without colour: heavier top rule and bold text. */
-  .family-band__step.is-current,
-  .family-band__under.is-current {
+  .family-band__step[aria-current] .family-band__dot {
     border-color: var(--accent-strong);
-    border-top-width: 3px;
-    background: var(--accent-soft);
+    background: var(--accent-strong);
   }
 
-  .family-band__step.is-current strong,
-  .family-band__under.is-current strong {
-    font-weight: 800;
+  .family-band__step[aria-current] .family-band__who,
+  .family-band__under[aria-current] strong {
+    color: var(--accent-strong);
   }
 
-  .family-band__contract {
-    margin: 0;
+  .family-band__notes {
+    display: grid;
+    gap: 0.35rem;
+    max-width: 78ch;
+    margin-top: 1.6rem;
     color: var(--ink-soft);
-    font-size: 0.82rem;
-    line-height: 1.5;
+    font-size: 0.9rem;
+    line-height: 1.55;
     text-wrap: pretty;
   }
 
-  .family-band__contract > :global(.status-chip) {
-    margin-inline: 0.2rem;
-    vertical-align: 0.05em;
+  .family-band__notes p {
+    margin: 0;
+  }
+
+  .family-band__notes strong {
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .family-band__notes em {
+    color: var(--ink);
+    font-style: italic;
+  }
+
+  /* Narrow: the rail turns vertical, one stop per row. */
+  @container (max-width: 44rem) {
+    .family-band__flow {
+      grid-template-columns: minmax(0, 1fr);
+      padding-left: 0.3rem;
+    }
+
+    .family-band__flow::before {
+      top: 0.8rem;
+      right: auto;
+      bottom: 0.8rem;
+      left: calc(0.3rem + var(--dot) / 2 - 0.5px);
+      border-top: 0;
+      border-left: 1px solid var(--line-strong);
+    }
+
+    .family-band__step {
+      grid-template-rows: none;
+      grid-template-columns: var(--dot) minmax(6.5rem, 8rem) minmax(0, 1fr);
+      column-gap: 0.9rem;
+      align-items: center;
+      padding-block: 0.38rem;
+      padding-right: 0;
+    }
+
+    .family-band__dot {
+      grid-row: 1;
+      grid-column: 1;
+    }
+
+    .family-band__stage {
+      grid-row: 1;
+      grid-column: 2;
+      align-self: center;
+    }
+
+    .family-band__who {
+      grid-row: 1;
+      grid-column: 3;
+    }
   }
 </style>

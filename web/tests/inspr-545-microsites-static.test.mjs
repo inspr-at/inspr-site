@@ -116,8 +116,8 @@ test("INSPR-555 product pages drop the ticker, the number row and the numbered p
     assert.doesNotMatch(content, /ribbon/);
     const figures = content.slice(content.indexOf("  figures: ["), content.indexOf("  theatre: {"));
     // Comment lines may sit between the fields (the OpenAPI link carries one).
-    const claims = [...figures.matchAll(/claim: "([^"]+)",\s*linkLabel: "([^"]+)",\s*(?:\/\/[^\n]*\n\s*)*href: ([^\n]+),/g)];
-    assert.equal(claims.length, (figures.match(/\bclaim: /g) ?? []).length, `${slug}: every claim has a label and a link`);
+    const claims = [...figures.matchAll(/claim:\s*"([^"]+)",\s*linkLabel:\s*"([^"]+)",\s*(?:\/\/[^\n]*\n\s*)*href:\s*([^\n]+),/g)];
+    assert.equal(claims.length, (figures.match(/\bclaim:/g) ?? []).length, `${slug}: every claim has a label and a link`);
     assert.ok(claims.length >= 2 && claims.length <= 3, `${slug}: two or three linked claims`);
     claimCounts.push(claims.length);
     for (const [, claim, , href] of claims) {

@@ -34,10 +34,12 @@ import aeonMark from "../assets/products/paimos/logo.svg";
 import heroPoster from "../assets/products/paimos/hero.png";
 import heroLoop from "../assets/products/paimos/hero-loop.mp4";
 import sessionsDark from "../assets/products/paimos-aeon/sessions-dark.png";
-import ticketsShot from "../assets/products/paimos-aeon/tickets.png";
-import graphShot from "../assets/products/paimos-aeon/graph.png";
-import knowledgeShot from "../assets/products/paimos-aeon/knowledge.png";
-import usageShot from "../assets/products/paimos-aeon/usage.png";
+import deliveryShot from "../assets/products/paimos-aeon/delivery.png";
+import reviewShot from "../assets/products/paimos-aeon/ticket-delivery-review.png";
+import chatShot from "../assets/products/paimos-aeon/chat.png";
+import attentionShot from "../assets/products/paimos-aeon/attention.png";
+import modelsShot from "../assets/products/paimos-aeon/models.png";
+import usageShot from "../assets/products/paimos-aeon/accounts-usage.png";
 import rulesShot from "../assets/products/paimos-aeon/rules.png";
 
 interface Props {
@@ -67,6 +69,7 @@ const labels = locale === "de"
       specsUnflipAll: "Alle zurückdrehen",
       specsShuffle: "Eckdaten-Raster mischen",
       lensLive: "Live-Bildschirm, interne Instanz",
+      lensDemo: "Echter Bildschirm, Beispieldaten",
       lensIllustration: "Illustration",
       lensWeb: "Öffentliches Repository, github.com",
       lensClose: "Schließen",
@@ -74,7 +77,7 @@ const labels = locale === "de"
       lensNext: "Nächste Fähigkeit",
       lensDialog: "Fähigkeit im Detail",
       stepsAria: "Vom Schlüssel zur Freigabe",
-      tabsAria: "Bildschirme der internen Instanz",
+      tabsAria: "Bildschirme mit Beispieldaten",
       frame: "Paimos",
       layersAria: "Die sechs Regel-Ebenen",
       stopsAria: "Zu einem Teil der Regelansicht springen",
@@ -108,6 +111,7 @@ const labels = locale === "de"
       specsUnflipAll: "Unflip all",
       specsShuffle: "Shuffle the specs grid",
       lensLive: "Live screen, internal instance",
+      lensDemo: "Real screen, demo data",
       lensIllustration: "Illustration",
       lensWeb: "Public repository, github.com",
       lensClose: "Close",
@@ -115,7 +119,7 @@ const labels = locale === "de"
       lensNext: "Next capability",
       lensDialog: "Capability in detail",
       stepsAria: "From key to grant",
-      tabsAria: "Screens from the internal instance",
+      tabsAria: "Real screens with demo data",
       frame: "Paimos",
       layersAria: "The six rule layers",
       stopsAria: "Jump to a part of the rules view",
@@ -151,9 +155,11 @@ const lightbox = async (image: ImageMetadata) => {
   return { src: full.src, width: image.width, height: image.height };
 };
 const shotImages: Record<string, ImageMetadata> = {
-  tickets: ticketsShot,
-  graph: graphShot,
-  knowledge: knowledgeShot,
+  delivery: deliveryShot,
+  review: reviewShot,
+  chat: chatShot,
+  attention: attentionShot,
+  models: modelsShot,
   usage: usageShot,
 };
 const screens = await Promise.all(
@@ -174,13 +180,30 @@ const controlFull = await lightbox(sessionsDark);
 // no capability uses it, so it is left out of the bundle and the keys skip it.
 const retiredLensKeys = new Set(["14"]);
 const lensFiles = import.meta.glob<ImageMetadata>(
-  ["../assets/products/paimos-aeon/specs/*.{png,jpg,jpeg,webp}", "!../assets/products/paimos-aeon/specs/14-*"],
+  ["../assets/products/paimos-aeon/specs/*.{png,jpg,jpeg,webp}", "!../assets/products/paimos-aeon/specs/14-*", "!../assets/products/paimos-aeon/specs/02-*", "!../assets/products/paimos-aeon/specs/06-*", "!../assets/products/paimos-aeon/specs/08-*", "!../assets/products/paimos-aeon/specs/15-*", "!../assets/products/paimos-aeon/specs/16-*"],
   { eager: true, import: "default" },
 );
 const lensKeys = Array.from({ length: 20 }, (_, i) => String(i + 1).padStart(2, "0")).filter((key) => !retiredLensKeys.has(key));
-const lensKinds: Record<string, LensImage["kind"]> = { live: "live", generated: "art", "public-web": "web" };
+// INSPR-556: changed capabilities use release-128 demo frames. Older lens
+// files remain recorded until INSPR-LEAD removes the listed unused assets.
+const demoLens: Record<string, { image: ImageMetadata; name: string; screen: string }> = {
+  "02": { image: chatShot, name: "chat.png", screen: "chat" },
+  "06": { image: modelsShot, name: "models.png", screen: "models" },
+  "08": { image: reviewShot, name: "ticket-delivery-review.png", screen: "review" },
+  "15": { image: usageShot, name: "accounts-usage.png", screen: "usage" },
+  "16": { image: deliveryShot, name: "delivery.png", screen: "delivery" },
+};
+const lensKinds: Record<string, LensImage["kind"]> = { live: "live", demo: "demo", generated: "art", "public-web": "web" };
 const lensImages: LensImage[] = content.specs.items.map((item, i) => {
   const key = lensKeys[i];
+  const demo = demoLens[key];
+  if (demo) {
+    const recorded = captureManifest.files.find((file) => file.name === demo.name);
+    if (recorded?.kind !== "demo") throw new Error(`INSPR-556: ${demo.name} needs demo provenance`);
+    const screen = content.theatre.screens.find((screen) => screen.id === demo.screen);
+    if (!screen) throw new Error(`INSPR-556: ${demo.name} needs a theatre description`);
+    return { image: demo.image, kind: "demo", body: screen.body };
+  }
   const hit = Object.entries(lensFiles).find(([path]) => path.includes(`/specs/${key}-`));
   if (!hit) throw new Error(`INSPR-492: missing lens image ${key} for "${item.label}" in src/assets/products/paimos-aeon/specs/`);
   const name = hit[0].slice(hit[0].indexOf("paimos-aeon/") + "paimos-aeon/".length);
@@ -329,7 +352,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       </ul>
     </section>
 
-    <!-- Screens from the internal instance, with a lightbox gallery. -->
+    <!-- INSPR-556: release-128 demo screens, with a lightbox gallery. -->
     <section class="section aeon-theatre" id="screens" aria-labelledby="screens-title" data-section-pattern="screen-theatre" data-theatre>
       <div class="page-shell">
         <header class="aeon-theatre__head">
@@ -373,7 +396,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
         </button>
         </div>
 
-        <div class="aeon-theatre__stage" data-aeon-gallery>
+        <div class="aeon-theatre__stage" data-aeon-gallery style={`--aeon-theatre-ratio: ${screens[0].image.width} / ${screens[0].image.height}`}>
           {screens.map((screen, index) => (
             <div
               class="aeon-theatre__panel"
@@ -382,9 +405,11 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
               aria-labelledby={`aeon-tab-${screen.id}`}
               data-theatre-panel
               hidden={index !== 0}
+              inert={index !== 0}
+              aria-hidden={index !== 0 ? "true" : "false"}
             >
               <a
-                class="aeon-window aeon-shot"
+                class="aeon-theatre__image aeon-shot"
                 href={screen.full.src}
                 target="_blank"
                 rel="noopener"
@@ -393,7 +418,6 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
                 data-pswp-height={screen.full.height}
                 data-caption={`${screen.title} · ${captionTail}`}
               >
-                <span class="aeon-window__bar" aria-hidden="true"><i></i><i></i><i></i><span>{labels.frame}</span></span>
                 <Image
                   src={screen.image}
                   alt={screen.alt}
@@ -402,7 +426,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
                   format="webp"
                   quality={84}
                 />
-                <span class="aeon-shot__zoom" aria-hidden="true">{content.theatre.openLabel} ⤢</span>
+                <span class="aeon-theatre__open" aria-hidden="true">{content.theatre.openLabel} ⤢</span>
               </a>
               <p class="aeon-theatre__caption"><strong>{screen.title}</strong> {screen.body}</p>
             </div>
@@ -420,6 +444,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
         images: lensImages,
         labels: {
           live: labels.lensLive,
+          demo: labels.lensDemo,
           illustration: labels.lensIllustration,
           web: labels.lensWeb,
           close: labels.lensClose,
@@ -462,7 +487,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
             data-aeon-shot
             data-pswp-width={controlFull.width}
             data-pswp-height={controlFull.height}
-            data-caption={`${content.controlRoom.title} · ${captionTail}`}
+            data-caption={`${content.controlRoom.title} · ${labels.lensLive} · 2026-09-30`}
           >
             <span class="aeon-window__bar" aria-hidden="true"><i></i><i></i><i></i><span>/agents</span></span>
             <Image
@@ -558,6 +583,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
               </div>
             ))}
           </dl>
+          <p class="aeon-rules__learning">{content.rules.learning}</p>
           <p class="aeon-early"><span class="aeon-badge aeon-badge--early">{labels.early}</span>{stripPrefix(content.rules.early)}</p>
           <p class="aeon-proof">
             <span class="aeon-proof__label">{labels.proof}</span>
@@ -601,6 +627,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
             />
           </p>
         </header>
+        <p class="aeon-engine__shadow">{content.engine.shadow}</p>
         <ol class="aeon-ledger" aria-label={labels.enginesAria}>
           {content.engine.jobs.map((job, index) => (
             <li data-reveal>
@@ -1096,6 +1123,8 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       });
       panels.forEach((panel, i) => {
         panel.hidden = i !== current;
+        panel.inert = i !== current;
+        panel.setAttribute("aria-hidden", String(i !== current));
       });
       if (focus) tabs[current].focus();
       if (playing) schedule();

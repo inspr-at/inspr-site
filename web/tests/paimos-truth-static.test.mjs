@@ -16,9 +16,9 @@ const editions = [
 test("one constant names the presented release (INSPR-529)", async () => {
   const english = await source("content/paimos-aeon.ts");
   const release = english.match(/export const paimosRelease = \{([\s\S]*?)\n\};/)?.[1] ?? "";
-  assert.match(release, /number: "125"/);
-  assert.match(release, /codename: "Exotic Ejecta"/);
-  assert.match(release, /tag: "v261007063042\.0\.0"/);
+  assert.match(release, /number: "128"/);
+  assert.match(release, /codename: "Hidden Helium"/);
+  assert.match(release, /tag: "v261009095632\.0\.0"/);
   assert.equal((english.match(/v26\d{10}\.0\.0/g) ?? []).length, 1, "the tag literal appears exactly once");
   const german = await source("content/de/paimos-aeon.ts");
   assert.match(german, /import \{ paimosRelease \} from "\.\.\/paimos-aeon";/);
@@ -60,10 +60,11 @@ test("the engine section is built from the shared engine jobs with status chips"
   const jobs = family.slice(family.indexOf("export const engineJobs"), family.indexOf("export const trustContexts"));
   const live = (jobs.match(/status: "live"/g) ?? []).length;
   const partly = (jobs.match(/status: "partly"/g) ?? []).length;
-  assert.equal(live, 2, "two engine jobs are live");
-  assert.equal(partly, 4, "four engine jobs are partly live");
-  assert.match(await source("content/paimos-aeon.ts"), /Two are live, four are partly live/);
-  assert.match(await source("content/de/paimos-aeon.ts"), /Zwei sind live, vier sind teilweise live/);
+  // INSPR-556: AEON-848/849 and AEON-851 ship state/deadlines and rules settings.
+  assert.equal(live, 4, "four engine jobs are live");
+  assert.equal(partly, 2, "admission and effects are partly live (AEON-887/891 shadow)");
+  assert.match(await source("content/paimos-aeon.ts"), /Four are live, two are partly live/);
+  assert.match(await source("content/de/paimos-aeon.ts"), /Vier sind live, zwei sind teilweise live/);
 });
 
 test("no host name appears on the page, in captions or in content comments", async () => {
@@ -73,11 +74,13 @@ test("no host name appears on the page, in captions or in content comments", asy
   }
   for (const { locale, content } of editions) {
     const text = await source(content);
-    assert.match(text, /note: "(Internal instance|Interne Instanz) · (captured 30 September 2026|aufgenommen am 30\. September 2026)"/, `${locale}: provenance names the capture date only`);
+    // INSPR-556: release-128 fixture screens replace internal theatre captures.
+    assert.match(text, /note: `(Real screen, demo data|Echter Bildschirm, Beispieldaten) · (release|Version) \$\{paimosRelease\.number\}`/, `${locale}: theatre provenance names demo data and release`);
   }
   const page = await source("components/AeonPage.astro");
   assert.match(page, /frame: "Paimos"/);
-  assert.match(page, /<span>\{labels\.frame\}<\/span>/);
+  // INSPR-556 / GUI-27: show the actual crop without decorative browser chrome.
+  assert.match(page, /class="aeon-theatre__image aeon-shot"/);
 });
 
 test("the harness matrix and the capability count tell what is released (INSPR-530)", async () => {
@@ -97,18 +100,21 @@ test("the harness matrix and the capability count tell what is released (INSPR-5
   assert.match(await source("content/paimos-aeon.ts"), /lead: "Nineteen released capabilities\./);
   assert.match(await source("content/de/paimos-aeon.ts"), /lead: "Neunzehn veröffentlichte Fähigkeiten\./);
 
-  // Seven of the retained images are generated illustrations, and the lead says so.
+  // INSPR-556: demo model settings replace the generated capacity scene;
+  // five changed lenses use matching real demo frames, leaving six illustrations.
   const manifest = JSON.parse(await source("assets/products/paimos-aeon/capture-manifest.json"));
-  const retained = manifest.files.filter((file) => file.name.startsWith("specs/") && !file.name.startsWith("specs/14-"));
-  assert.equal(retained.length, 19);
-  assert.equal(retained.filter((file) => file.kind === "generated").length, 7);
-  assert.match(await source("content/paimos-aeon.ts"), /Seven of the images are illustrations/);
-  assert.match(await source("content/de/paimos-aeon.ts"), /Sieben der Bilder sind Illustrationen/);
-
-  // The lens skips the retired Journey capture and keeps it out of the bundle.
+  const changedKeys = ["02", "06", "08", "15", "16"];
+  const retained = manifest.files.filter((file) => file.name.startsWith("specs/") && !["14", ...changedKeys].some((key) => file.name.startsWith(`specs/${key}-`)));
+  assert.equal(retained.length + changedKeys.length, 19);
+  assert.equal(retained.filter((file) => file.kind === "generated").length, 6);
+  assert.match(await source("content/paimos-aeon.ts"), /Six of the images are illustrations/);
+  assert.match(await source("content/de/paimos-aeon.ts"), /Sechs der Bilder sind Illustrationen/);
   const page = await source("components/AeonPage.astro");
   assert.match(page, /retiredLensKeys = new Set\(\["14"\]\)/);
-  assert.match(page, /"!\.\.\/assets\/products\/paimos-aeon\/specs\/14-\*"/);
+  for (const key of ["14", ...changedKeys]) assert.ok(page.includes(`"!../assets/products/paimos-aeon/specs/${key}-*"`), `${key}: unused lens is not bundled`);
+  for (const name of ["chat.png", "models.png", "ticket-delivery-review.png", "accounts-usage.png", "delivery.png"]) {
+    assert.equal(manifest.files.find((file) => file.name === name)?.kind, "demo");
+  }
 });
 
 test("German terms: Freigabe for gate and approval, a translated chip, no English origin label (INSPR-530)", async () => {

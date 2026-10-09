@@ -21,11 +21,14 @@ type SpecsGroup = SpecsContent["items"][number]["group"];
 export interface LensImage {
   image: ImageMetadata;
   /** "live" product screen, "art" generated scene, "web" public web page (caption source line). */
-  kind: "live" | "art" | "web";
+  kind: "live" | "demo" | "art" | "web";
+  /** A scene description shared with the screen theatre, when available. */
+  body?: string;
 }
 
 export interface LensLabels {
   live: string;
+  demo: string;
   illustration: string;
   web: string;
   close: string;
@@ -50,7 +53,7 @@ interface Props {
 const { specs, labels, variant, groupLabels, lens } = Astro.props;
 const catalogue = variant === "aeon" && groupLabels;
 const sourceLabel = (kind?: LensImage["kind"]) =>
-  kind === "art" ? lens?.labels.illustration : kind === "web" ? lens?.labels.web : lens?.labels.live;
+  kind === "art" ? lens?.labels.illustration : kind === "web" ? lens?.labels.web : kind === "demo" ? lens?.labels.demo : lens?.labels.live;
 const field = variant === "aeon";
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -173,8 +176,8 @@ const segmentNote = (text: string): NoteSegment[] => {
               </span>
               <strong class="specs__slide-label" id={`specs-slide-label-${pad(i + 1)}`}>{specs.items[i]?.label}</strong>
               <p class="specs__slide-note" id={`specs-slide-note-${pad(i + 1)}`}>
-                <span class="specs__variant specs__variant--tech">{specs.items[i]?.note}</span>
-                <span class="specs__variant specs__variant--plain">{specs.items[i]?.noteEli10}</span>
+                <span class="specs__variant specs__variant--tech">{lens.images[i]?.body ?? specs.items[i]?.note}</span>
+                <span class="specs__variant specs__variant--plain">{lens.images[i]?.body ?? specs.items[i]?.noteEli10}</span>
               </p>
               <span class="specs__slide-source">{sourceLabel(lens.images[i]?.kind)}</span>
             </figcaption>

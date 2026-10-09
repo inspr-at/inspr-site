@@ -68,7 +68,9 @@ test("the engine's six jobs, the build order and the actors are complete", () =>
     "state", "admission", "rules", "effects", "escalation", "audit",
   ]);
   assert.deepEqual(family.engineJobs.map((job) => job.status), [
-    "partly", "partly", "partly", "partly", "live", "live",
+    // INSPR-556: AEON-848/849 delivery state, AEON-851 review setting live.
+    // AEON-887/891 acting remains shadow; AEON-569 desk cutover is pending.
+    "live", "partly", "live", "partly", "live", "live",
   ]);
   assert.equal(family.buildOrder.length, 5);
   assert.deepEqual(family.actors.map((actor) => actor.key), ["builders", "bots", "people"]);

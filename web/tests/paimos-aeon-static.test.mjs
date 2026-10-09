@@ -74,7 +74,6 @@ test("both editions declare their canonical, the release tag and no stray claims
     [/TALKBOX/i, "an operator session"],
     [/from-classic|classic import/i, "classic Paimos"],
     [/\bquotes?\b|\bAngebot/i, "the business module"],
-    [/pm\.augmentoring|pm\.barta/i, "an internal instance"],
     [/semantic search|semantische Suche/i, "semantic search as live"],
     [/\/blob\/main\//, "a link that is not pinned to the release tag"],
   ];
@@ -120,15 +119,19 @@ test("the German edition mirrors the English proof paths exactly", async () => {
 
 test("every capture is recorded with its release, source and redaction policy", async () => {
   const manifest = JSON.parse(await source("assets/products/paimos-aeon/capture-manifest.json"));
-  assert.equal(manifest.tag, "v260930115354.0.0");
+  // INSPR-556: release-128 demos; legacy per-file records stay unchanged.
+  assert.equal(manifest.tag, "v261009095632.0.0");
   assert.match(manifest.commit, /^[0-9a-f]{40}$/);
-  assert.equal(manifest.source, "internal INSPR instance");
-  assert.match(manifest.sourceVersionCheck, /260930115354\.0\.0/);
+  assert.equal(manifest.source, "release-128 web UI with the repository's fictional test fixtures");
+  assert.match(manifest.sourceVersionCheck, /verified release-128 source commit/);
+  assert.equal(manifest.syntheticData, true);
+  assert.equal(manifest.legacyCapture.tag, "v260930115354.0.0");
   assert.equal(typeof manifest.syntheticData, "boolean");
-  assert.match(manifest.redaction, /e-mail/);
+  assert.match(manifest.redaction, /sanitized before rendering/);
+  assert.match(manifest.legacyCapture.redaction, /e-mail/);
   const page = await source("components/AeonPage.astro");
   const imports = [...page.matchAll(/from "\.\.\/assets\/products\/paimos-aeon\/([\w-]+\.png)";/g)].map((m) => m[1]);
-  assert.ok(imports.length >= 3 && imports.length <= 7, "the page shows a handful of live screens");
+  assert.ok(imports.length === 8, "six demo frames, plus the retained control and rules screens");
   const recorded = new Set(manifest.files.map((file) => file.name));
   for (const name of imports) assert.ok(recorded.has(name), `${name} is missing from the capture manifest`);
 });
@@ -174,5 +177,77 @@ test("the built Paimos pages render no repository path as visible text", async (
       .replace(/<(script|style)\b[\s\S]*?<\/\1>/g, " ")
       .replace(/<[^>]+>/g, " ");
     assert.doesNotMatch(text, visiblePath, `${page} shows a repository path`);
+  }
+});
+
+// INSPR-556: exercise the new safety boundary with altered provenance and
+// geometry, rather than merely pinning the new happy-path copy.
+test("demo captures reject false release, fixture, safety and pixel provenance", async () => {
+  const { demoProblems } = await import("../scripts/check-aeon-captures.mjs");
+  const manifest = JSON.parse(await source("assets/products/paimos-aeon/capture-manifest.json"));
+  const file = manifest.files.find((file) => file.name === "delivery.png");
+  const bytes = await readFile(new URL(`src/assets/products/paimos-aeon/${file.name}`, webUrl));
+  assert.deepEqual(demoProblems(manifest, file, bytes), []);
+  for (const [field, value, reason] of [
+    ["syntheticData", false, /synthetic data/],
+    ["sourceRepository", "unknown/repo", /source repository/],
+    ["releaseKind", "semver", /release kind/],
+    ["tag", "v261009095633.0.0", /tag\/version/],
+    ["commit", "a".repeat(40), /source commit/],
+    ["route", "https://example.com", /relative app route/],
+    ["fixtures", [], /named repository fixtures/],
+    ["fixtures", ["../private.env"], /named repository fixtures/],
+    ["safety", "", /safety record/],
+    ["crop", { x: 1599, y: 0, width: 1528, height: 849 }, /fit the viewport/],
+    ["width", 1, /PNG dimensions/],
+    ["viewport", { width: 1600, height: 1100 }, /frame viewport/],
+    ["viewport", { width: 1600, height: 1000 }, /fit the viewport/],
+    ["deviceScaleFactor", 1, /frame viewport/],
+  ]) {
+    assert.match(demoProblems(manifest, { ...file, [field]: value }, bytes).join("\n"), reason, field);
+  }
+  const impossible = { ...file, tag: "v260230095632.0.0", version: "260230095632.0.0" };
+  assert.match(demoProblems({ ...manifest, tag: impossible.tag }, impossible, bytes).join("\n"), /real calendar instant/);
+  const corrupt = Buffer.from(bytes);
+  corrupt[0] = 0;
+  assert.match(demoProblems(manifest, file, corrupt).join("\n"), /must be a PNG/);
+});
+
+// Derive product origins from the public URL registry; W3C is the SVG namespace.
+test("absolute URLs in AEON content and built pages use public hosts", async (t) => {
+  const urlPattern = /https?:\/\/[^\s"'<>`]+/g;
+  const registry = await source("content/urls.ts");
+  const hosts = new Set(["github.com", "gnu.org", "www.w3.org", ...[...registry.matchAll(urlPattern)].map(([url]) => new URL(url).hostname)]);
+  const publicHost = (host) => hosts.has(host) || host === "inspr.at" || host.endsWith(".inspr.at");
+  for (const suffix of ["cm", "lan", "ng", "net"]) assert.equal(publicHost(`private.${suffix}`), false);
+  for (const file of ["src/content/paimos-aeon.ts", "src/content/de/paimos-aeon.ts", "dist/paimos/index.html", "dist/paimos/de/index.html"]) {
+    let text;
+    try { text = await webFile(file); } catch (error) {
+      if (!file.startsWith("dist/") || error.code !== "ENOENT") throw error;
+      t.diagnostic(`${file} is not built; public-host checks still cover source`);
+      continue;
+    }
+    for (const [url] of text.matchAll(urlPattern)) assert.ok(publicHost(new URL(url).hostname), `${file} contains a non-public URL host`);
+    for (const [host] of text.matchAll(/\b(?:[a-z0-9-]+\.)+(?:cm|lan|ng)\b/gi)) assert.ok(publicHost(host.toLowerCase()), `${file} contains a non-public domain`);
+  }
+});
+
+test("the home-page bot status distinguishes released recurring tickets from planned bots", async () => {
+  const family = await source("content/family.ts");
+  const bots = family.slice(family.indexOf('key: "bots"'), family.indexOf('key: "bots"') + 700);
+  assert.match(bots, /status: "planned"/);
+  assert.match(bots, /Recurring tickets live; bots and Routines planned/);
+  assert.match(bots, /Wiederkehrende Tickets live; Bots und Routinen geplant/);
+  assert.doesNotMatch(bots, /First adapter live|Erster Adapter live/);
+});
+
+test("the 19 capability cards keep distinct review and delivery icons", async () => {
+  for (const file of ["content/paimos-aeon.ts", "content/de/paimos-aeon.ts"]) {
+    const text = await source(file);
+    const cards = text.slice(text.indexOf("items: ["), text.indexOf("glossary: ["));
+    const icons = [...cards.matchAll(/icon: "([^"]+)"/g)].map((match) => match[1]);
+    assert.equal(icons.length, 19);
+    for (const icon of ["git-compare-arrows", "waypoints"]) assert.equal(icons.filter((name) => name === icon).length, 1);
+    assert.match(cards, /label: "(?:Accounts and models|Konten und Modelle)"/);
   }
 });

@@ -1,18 +1,18 @@
 {
-  "ticket": "INSPR-492",
-  "tag": "v260930115354.0.0",
-  "commit": "ea5328e7b9af8e6087c6ccc2b765e6c11c5d7e01",
-  "source": "internal INSPR instance",
-  "sourceVersionCheck": "GET /api/version returned 260930094206.0.0 (release 14) for captures before 12:24 UTC and 260930115354.0.0 (release 14.1) after",
-  "syntheticData": false,
-  "decision": "Operator decision 2026-09-30 (INSPR-492): capture the live INSPR instance instead of a local demo; public INSPR/AEON projects only.",
-  "capturedAt": "2026-09-30",
+  "ticket": "INSPR-556",
+  "tag": "v261009095632.0.0",
+  "commit": "2beba30ed75f68a6880ce0427fdc71c8d881fb76",
+  "source": "release-128 web UI with the repository's fictional test fixtures",
+  "sourceVersionCheck": "Built from the verified release-128 source commit; no live instance was read.",
+  "syntheticData": true,
+  "decision": "INSPR-556: publish real release-128 screens with demo data; older retained captures keep their recorded provenance.",
+  "capturedAt": "2026-10-09",
   "viewport": {
     "width": 1600,
     "height": 1000,
     "deviceScaleFactor": 2
   },
-  "redaction": "Live frames exclude the accounts card; account e-mail text is blurred in the DOM before every shot as a safety net. Usage is filtered to the Aeon project. Generated illustrations contain no text. INSPR-544: machine names, personal names and the instance address are blanked in the published pixels; the digests below are of the redacted files.",
+  "redaction": "Demo fixture display values were sanitized before rendering; body-text assertions reject real personal names, internal domains, internal host names and IPv4 addresses. No live account data or credentials. Older retained files keep their per-file redaction record.",
   "files": [
     {
       "name": "sessions-dark.png",
@@ -270,6 +270,225 @@
       "subject": "an abstract alpine skyline at golden hour with a faint gold arc",
       "text": "none (brief forbids text, logos, metrics)",
       "sha256": "7bddf28ed200270386199b403bd3d028d6e6972167b2a174b245947a11aa6913"
+    },
+    {
+      "name": "delivery.png",
+      "kind": "demo",
+      "source": "release-128 web UI with the repository's fictional test fixtures",
+      "sourceRepository": "inspr-at/paimos",
+      "releaseKind": "inspr-calver-3",
+      "tag": "v261009095632.0.0",
+      "commit": "2beba30ed75f68a6880ce0427fdc71c8d881fb76",
+      "version": "261009095632.0.0",
+      "route": "/p/AEON/delivery?view=flow",
+      "fixtures": [
+        "work-fixtures.ts",
+        "settings-fixtures.ts",
+        "delivery-flow-fixtures.ts",
+        "delivery-numbers-fixtures.ts"
+      ],
+      "syntheticData": true,
+      "safety": "Fixture display values sanitized before rendering; capture body assertions reject real identities, internal hosts/domains and IPv4 addresses. No live instance or credentials.",
+      "theme": "light",
+      "crop": {
+        "x": 14,
+        "y": 135,
+        "width": 1561,
+        "height": 932
+      },
+      "width": 3122,
+      "height": 1864,
+      "sha256": "fbf7e0590433da89b0b911b0adb7f5248a46e771356434a686744b05999c8ac9",
+      "viewport": {
+        "width": 1600,
+        "height": 1200
+      },
+      "deviceScaleFactor": 2
+    },
+    {
+      "name": "ticket-delivery-review.png",
+      "kind": "demo",
+      "source": "release-128 web UI with the repository's fictional test fixtures",
+      "sourceRepository": "inspr-at/paimos",
+      "releaseKind": "inspr-calver-3",
+      "tag": "v261009095632.0.0",
+      "commit": "2beba30ed75f68a6880ce0427fdc71c8d881fb76",
+      "version": "261009095632.0.0",
+      "route": "/settings/policies#cross-family-review",
+      "fixtures": [
+        "work-fixtures.ts",
+        "settings-fixtures.ts",
+        "delivery-ui.spec.ts: setup",
+        "policies-fixtures.ts"
+      ],
+      "syntheticData": true,
+      "safety": "Fixture display values sanitized before rendering; capture body assertions reject real identities, internal hosts/domains and IPv4 addresses. No live instance or credentials.",
+      "theme": "light",
+      "crop": {
+        "x": 362,
+        "y": 164,
+        "width": 993,
+        "height": 772
+      },
+      "width": 1986,
+      "height": 1544,
+      "sha256": "fcc14cccd3737161f141a07b1a8c0c843eb95c24e367fe2310876b9c7ff36874",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "deviceScaleFactor": 2
+    },
+    {
+      "name": "chat.png",
+      "kind": "demo",
+      "source": "release-128 web UI with the repository's fictional test fixtures",
+      "sourceRepository": "inspr-at/paimos",
+      "releaseKind": "inspr-calver-3",
+      "tag": "v261009095632.0.0",
+      "commit": "2beba30ed75f68a6880ce0427fdc71c8d881fb76",
+      "version": "261009095632.0.0",
+      "route": "/agents/5e000000-0000-4000-8000-000000000001?tab=messages",
+      "fixtures": [
+        "work-fixtures.ts",
+        "settings-fixtures.ts",
+        "agents-fixtures.ts",
+        "session-chat.spec.ts: conversation/AEON-976 stop",
+        "delivery-guarantee.spec.ts: receipt shape"
+      ],
+      "syntheticData": true,
+      "safety": "Fixture display values sanitized before rendering; capture body assertions reject real identities, internal hosts/domains and IPv4 addresses. No live instance or credentials.",
+      "theme": "light",
+      "crop": {
+        "x": 776,
+        "y": 302,
+        "width": 800,
+        "height": 858
+      },
+      "width": 1600,
+      "height": 1716,
+      "sha256": "df9f4e34bf967f15f837b352abd5781bf88f842270ff7a53bacfab5d2b7702f4",
+      "viewport": {
+        "width": 1600,
+        "height": 1200
+      },
+      "deviceScaleFactor": 2
+    },
+    {
+      "name": "attention.png",
+      "kind": "demo",
+      "source": "release-128 web UI with the repository's fictional test fixtures",
+      "sourceRepository": "inspr-at/paimos",
+      "releaseKind": "inspr-calver-3",
+      "tag": "v261009095632.0.0",
+      "commit": "2beba30ed75f68a6880ce0427fdc71c8d881fb76",
+      "version": "261009095632.0.0",
+      "route": "/tickets?view=needs-attention",
+      "fixtures": [
+        "work-fixtures.ts",
+        "business-fixtures.ts",
+        "needs-attention.spec.ts: setup/row"
+      ],
+      "syntheticData": true,
+      "safety": "Fixture display values sanitized before rendering; capture body assertions reject real identities, internal hosts/domains and IPv4 addresses. No live instance or credentials.",
+      "theme": "light",
+      "crop": {
+        "x": 0,
+        "y": 56,
+        "width": 1600,
+        "height": 535
+      },
+      "width": 3200,
+      "height": 1070,
+      "sha256": "53d3f87156254fe95fecd815f827ecaacc6b3e659f8fa6db0b212338bea1bc0c",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "deviceScaleFactor": 2
+    },
+    {
+      "name": "models.png",
+      "kind": "demo",
+      "source": "release-128 web UI with the repository's fictional test fixtures",
+      "sourceRepository": "inspr-at/paimos",
+      "releaseKind": "inspr-calver-3",
+      "tag": "v261009095632.0.0",
+      "commit": "2beba30ed75f68a6880ce0427fdc71c8d881fb76",
+      "version": "261009095632.0.0",
+      "route": "/settings/models",
+      "fixtures": [
+        "work-fixtures.ts",
+        "settings-fixtures.ts",
+        "models-simple-fixtures.ts",
+        "models-registry-fixtures.ts"
+      ],
+      "syntheticData": true,
+      "safety": "Fixture display values sanitized before rendering; capture body assertions reject real identities, internal hosts/domains and IPv4 addresses. No live instance or credentials.",
+      "theme": "light",
+      "crop": {
+        "x": 362,
+        "y": 136,
+        "width": 753,
+        "height": 663
+      },
+      "width": 1506,
+      "height": 1326,
+      "sha256": "9a8eca1f81728480349b80c8c84245415017148b0a7935e473cd79ead977b5a2",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "deviceScaleFactor": 2
+    },
+    {
+      "name": "accounts-usage.png",
+      "kind": "demo",
+      "source": "release-128 web UI with the repository's fictional test fixtures",
+      "sourceRepository": "inspr-at/paimos",
+      "releaseKind": "inspr-calver-3",
+      "tag": "v261009095632.0.0",
+      "commit": "2beba30ed75f68a6880ce0427fdc71c8d881fb76",
+      "version": "261009095632.0.0",
+      "route": "/settings/accounts",
+      "fixtures": [
+        "work-fixtures.ts",
+        "settings-fixtures.ts",
+        "agents-fixtures.ts",
+        "capacity-fixtures.ts",
+        "usage-posture.spec.ts: policy state",
+        "settings-accounts.spec.ts: owner login state"
+      ],
+      "syntheticData": true,
+      "safety": "Fixture display values sanitized before rendering; capture body assertions reject real identities, internal hosts/domains and IPv4 addresses. No live instance or credentials.",
+      "theme": "light",
+      "crop": {
+        "x": 938,
+        "y": 56,
+        "width": 401,
+        "height": 793
+      },
+      "width": 802,
+      "height": 1586,
+      "sha256": "51f951279d8d3aaf6d1a2ae0c26aff87f3008d59b01a24092d7d6285de79c42d",
+      "viewport": {
+        "width": 1600,
+        "height": 1200
+      },
+      "deviceScaleFactor": 2
     }
-  ]
+  ],
+  "legacyCapture": {
+    "ticket": "INSPR-492",
+    "tag": "v260930115354.0.0",
+    "commit": "ea5328e7b9af8e6087c6ccc2b765e6c11c5d7e01",
+    "source": "internal INSPR instance",
+    "sourceVersionCheck": "GET /api/version returned 260930094206.0.0 (release 14) for captures before 12:24 UTC and 260930115354.0.0 (release 14.1) after",
+    "syntheticData": false,
+    "decision": "Operator decision 2026-09-30 (INSPR-492): capture the live INSPR instance instead of a local demo; public INSPR/AEON projects only.",
+    "capturedAt": "2026-09-30",
+    "redaction": "Live frames exclude the accounts card; account e-mail text is blurred in the DOM before every shot as a safety net. Usage is filtered to the Aeon project. Generated illustrations contain no text. INSPR-544: machine names, personal names and the instance address are blanked in the published pixels; the digests below are of the redacted files."
+  },
+  "sourceRepository": "inspr-at/paimos",
+  "releaseKind": "inspr-calver-3"
 }

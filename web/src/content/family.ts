@@ -184,12 +184,12 @@ export const flow: {
         "Short-lived coding agents, each in its own worktree; another model family reviews.",
         "Kurzlebige Entwicklungsagenten, jeder in einer eigenen Arbeitskopie des Repositorys; eine andere Modellfamilie prüft.",
       ),
-      // INSPR-542: the proposal reads "Live: review gates ... cross-family
-      // review as a configurable policy: planned"; a mixed claim is "partly".
+      // INSPR-556: AEON-851 ships the setting; AEON-890 previews automated
+      // review rounds. Pairing-only agents keep this step partly live.
       status: "partly",
       statusNote: t(
-        "Review gates live; Claude Code, Codex, Cursor and pi start under Paimos, Grok runs tool-free; Gemini and OpenCode pairing only. Cross-family review as a configurable policy: planned",
-        "Prüfschritte live; Claude Code, Codex, Cursor und pi starten unter Paimos, Grok läuft ohne Werkzeuge; Gemini und OpenCode: nur Kopplung, Start geplant. Prüfung durch eine andere Modellfamilie als konfigurierbare Richtlinie: geplant",
+        "Review gates live; Claude Code, Codex, Cursor and pi start under Paimos, Grok runs tool-free; Gemini and OpenCode pairing only. Cross-family review as a company or project setting: live; automatic review rounds: preview",
+        "Prüfschritte live; Claude Code, Codex, Cursor und pi starten unter Paimos, Grok läuft ohne Werkzeuge; Gemini und OpenCode: nur Kopplung, Start geplant. Prüfung durch eine andere Modellfamilie als Unternehmens- oder Projekteinstellung: live; automatische Prüfrunden: Vorschau",
       ),
     },
     productStep("deploy", t("Deploy", "Bereitstellung"), "pharos"),
@@ -284,7 +284,7 @@ export const actors: Array<{
       "Dauerhafte Bots führen Routinen aus und fragen, bevor sie nach außen handeln.",
     ),
     status: "planned",
-    statusNote: t("First adapter live", "Erster Adapter live"),
+    statusNote: t("Recurring tickets live; bots and Routines planned", "Wiederkehrende Tickets live; Bots und Routinen geplant"),
   },
   {
     key: "people",
@@ -307,17 +307,18 @@ export const buildOrder: Array<{
     label: t("The engine for builders", "Die Arbeitssteuerung für Entwicklungsagenten"),
     status: "partly",
     statusNote: t(
-      "Admission dial, review gates, Decision Desk, audit. Per-slice state and merge through Paimos: planned",
-      "Zulassungsregler, Prüfschritte, Entscheidungsübersicht („Decision Desk“), Prüfprotokoll. Zustand je Arbeitsabschnitt und Zusammenführen über Paimos: geplant",
+      "Delivery status per ticket and stall alerts, admission dial, cross-family review setting, Decision Desk and inbox, audit: live. Starts, queueing, model routing, reviews and shipping: shadow preview. Pull requests and merges through Paimos: planned",
+      "Lieferstatus je Ticket und Fristwarnungen, Zulassungsregler, Prüfung durch andere Modellfamilie, Entscheidungsübersicht („Decision Desk“) und Posteingang, Prüfprotokoll: live. Starts, Warteschlangen, Modellwahl, Prüfungen und Auslieferung: Vorschau im Schattenbetrieb. Pull Requests und Zusammenführungen über Paimos: geplant",
     ),
   },
   {
     key: "bots",
     label: t("Bots and Routines", "Bots und Routinen"),
+    // INSPR-556: AEON-573 live recurring tickets; AEON-680/693 planned routines.
     status: "planned",
     statusNote: t(
-      "Recurring scheduler and first bot adapter live",
-      "Wiederkehrende Zeitplanung und erster Bot-Adapter live",
+      "Recurring tickets on a schedule or on events are live; Routines that run agents on a schedule and learn from earlier runs are planned",
+      "Wiederkehrende Tickets nach Zeitplan oder Ereignissen live; Routinen, die Agenten nach Zeitplan ausführen und aus früheren Läufen lernen, geplant",
     ),
   },
   {
@@ -348,46 +349,51 @@ export const engineJobs: Array<{
   {
     key: "state",
     label: t("State and deadlines", "Zustand und Fristen"),
-    status: "partly",
+    // INSPR-556: AEON-848/849.
+    status: "live",
     note: t(
-      "Per-session state is live; per-slice delivery state is planned.",
-      "Der Zustand je Sitzung ist live; der Lieferzustand je Arbeitsabschnitt ist geplant.",
+      "Per-session state, delivery status per ticket and stall alerts are live, with GitHub connected.",
+      "Sitzungszustand, Lieferstatus je Ticket und Fristwarnungen sind live, mit verbundenem GitHub.",
     ),
   },
   {
     key: "admission",
     label: t("Fair admission", "Faire Zulassung"),
+    // INSPR-556: AEON-864/880/883/886/887.
     status: "partly",
     note: t(
-      "A dial sets how many agents run at once, with per-harness limits; account and host-load throttling is coming.",
-      "Ein Regler legt fest, wie viele Agenten gleichzeitig laufen, mit Grenzen je Agentenprogramm; Drosselung nach Konto und Rechnerlast folgt.",
+      "The admission dial, per-harness limits, account limits, reset times and careful or full use are live; start decisions run in shadow mode (preview). Host-load throttling is planned.",
+      "Zulassungsregler, Grenzen je Agentenprogramm, Kontogrenzen, Rücksetzzeiten und vorsichtige oder volle Nutzung sind live; Startentscheidungen laufen im Schattenbetrieb (Vorschau). Drosselung nach Rechnerlast ist geplant.",
     ),
   },
   {
     key: "rules",
     label: t("Rules as settings", "Regeln als Einstellungen"),
-    status: "partly",
+    // INSPR-556: AEON-851/890/1011.
+    status: "live",
     note: t(
-      "Model preferences by type of work, review order and review gates are live; cross-family review as a configurable tenant or project policy is planned.",
-      "Modellpräferenzen je Art der Arbeit, Prüfreihenfolge und Prüfschritte sind live; Prüfung durch eine andere Modellfamilie als konfigurierbare Richtlinie je Mandant oder Projekt ist geplant.",
+      "One default model and a few exceptions, review gates and cross-family review as a company or project setting are live. Automatic review and fix rounds are preview, in shadow mode.",
+      "Ein Standardmodell und wenige Ausnahmen, Prüfschritte und die Prüfung durch eine andere Modellfamilie als Unternehmens- oder Projekteinstellung sind live. Automatische Prüf- und Korrekturrunden sind eine Vorschau im Schattenbetrieb.",
     ),
   },
   {
     key: "effects",
     label: t("Effects only through Paimos", "Wirkungen nur über Paimos"),
+    // INSPR-556: AEON-852/891.
     status: "partly",
     note: t(
-      "Paimos ships its own GitHub App that can post the cross-family review status; pull requests and merges through Paimos are planned.",
-      "Paimos bringt eine eigene GitHub-App mit, die den Status der Prüfung durch eine andere Modellfamilie setzen kann; Pull Requests und Zusammenführungen über Paimos sind geplant.",
+      "The GitHub App can post the cross-family review status, and the merge audit flags skipped queues or missing verified reviews (live with GitHub connected). Pull requests and merges through Paimos remain planned; shipping runs in shadow mode (preview).",
+      "Die GitHub-App kann den Status der Prüfung durch eine andere Modellfamilie setzen. Die Merge-Prüfung meldet übersprungene Zusammenführungswarteschlangen oder fehlende verifizierte Prüfungen (live mit verbundenem GitHub). Pull Requests und Zusammenführungen über Paimos bleiben geplant; Auslieferung läuft im Schattenbetrieb (Vorschau).",
     ),
   },
   {
     key: "escalation",
     label: t("Escalation", "Eskalation"),
+    // INSPR-556: AEON-569 cutover pending.
     status: "live",
     note: t(
-      "The Decision Desk and a durable inbox are live.",
-      "Die Entscheidungsübersicht („Decision Desk“) und ein dauerhafter Posteingang sind live.",
+      "The Decision Desk and its durable inbox are live. It does not yet replace Needs you on Agents.",
+      "Die Entscheidungsübersicht („Decision Desk“) und ihr dauerhafter Posteingang sind live. Sie ersetzt den Bereich Braucht Sie bei den Agenten noch nicht.",
     ),
   },
   {

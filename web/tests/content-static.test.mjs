@@ -561,8 +561,11 @@ test("Paimos capture publication rejects ambiguous or impossible release identit
     verifyFailure("inspr-calendar-v2", "260926085451.1.2", /not YYMMDDHHMMSS\.0\.0/);
     verifyFailure("inspr-calendar-v2", "260926085451.00.0", /not YYMMDDHHMMSS\.0\.0/);
     verifyFailure("inspr-calendar-v2", "060926085451.0.0", /not YYMMDDHHMMSS\.0\.0/);
-    verifyFailure("calendar", "260926064658.0.0", /release kind must be inspr-calendar-v2/);
-    verifyFailure("semver", "5.17.0", /release kind must be inspr-calendar-v2/);
+    // INSPR-556: AEON-1032 release 128 declares CalVer3; reject bad
+    // coordinates under either identifier and preserve historical CalVer2.
+    verifyFailure("inspr-calver-3", "260230120000.0.0", /not a real date and time/);
+    verifyFailure("calendar", "260926064658.0.0", /release kind must be inspr-calver-3 or historical inspr-calendar-v2/);
+    verifyFailure("semver", "5.17.0", /release kind must be inspr-calver-3 or historical inspr-calendar-v2/);
   } finally {
     await rm(captureDir, { recursive: true, force: true });
   }

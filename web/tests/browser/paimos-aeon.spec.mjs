@@ -18,6 +18,56 @@ for (const path of routes) {
     });
   }
 
+  for (const width of [390, 1440]) {
+    test(`${path} theatre stays still while switching at ${width}px`, async ({ page, browserName }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto(`${path}?lang=${path.includes("/de/") ? "de" : "en"}`, { waitUntil: "domcontentloaded" });
+      await page.locator("#screens").scrollIntoViewIfNeeded();
+      await page.evaluate(() => document.fonts.ready);
+      const tabs = page.locator("[data-theatre-tab]");
+      await tabs.first().focus();
+      await page.keyboard.press("Home");
+      const waitForVisibleImage = () => expect.poll(() =>
+        page.locator("[data-theatre-panel]:not([hidden]) img").evaluate((image) => image.complete && image.naturalWidth > 0),
+        { timeout: 10_000, message: "The visible theatre image must finish loading before measurement" },
+      ).toBe(true);
+      // WebKit may defer lazy images in visibility:hidden panels until selected.
+      if (browserName === "webkit") {
+        await waitForVisibleImage();
+      } else {
+        await expect.poll(() => page.locator(".aeon-theatre img").evaluateAll((images) =>
+          images.length > 0 && images.every((image) => image.complete && image.naturalWidth > 0),
+        ), { timeout: 10_000, message: "The theatre images must finish loading before measurement" }).toBe(true);
+      }
+      const geometry = () => page.evaluate(() => ({
+        stage: document.querySelector(".aeon-theatre__stage").getBoundingClientRect().height,
+        note: document.querySelector(".aeon-theatre__note").getBoundingClientRect().top + window.scrollY,
+        tabs: [...document.querySelectorAll("[data-theatre-tab]")].map((tab) => ({
+          width: tab.getBoundingClientRect().width,
+          weight: getComputedStyle(tab).fontWeight,
+          underline: getComputedStyle(tab).borderBottomWidth,
+        })),
+      }));
+      const before = await geometry();
+      for (let index = 1; index < 6; index++) {
+        await page.keyboard.press("ArrowRight");
+        await expect(tabs.nth(index)).toHaveAttribute("aria-selected", "true");
+        await waitForVisibleImage();
+        expect(await geometry()).toEqual(before);
+      }
+      expect(before.tabs.every((tab) => tab.weight === "500" && tab.underline === "2px")).toBe(true);
+      if (width === 390) {
+        await page.keyboard.press("Home");
+        await waitForVisibleImage();
+        const image = await page.locator("[data-theatre-panel]:not([hidden]) img").evaluate((image) => ({
+          width: image.getBoundingClientRect().width, height: image.getBoundingClientRect().height,
+          ratio: image.naturalWidth / image.naturalHeight,
+        }));
+        expect(Math.abs(image.height - image.width / image.ratio)).toBeLessThan(1);
+      }
+    });
+  }
+
   test(`${path} keeps its language switch below /paimos/`, async ({ page }) => {
     await page.goto(`${path}?lang=${path.includes("/de/") ? "de" : "en"}`, { waitUntil: "domcontentloaded" });
     const hrefs = await page.locator("[data-language-choice]").evaluateAll((links) =>
@@ -31,15 +81,23 @@ for (const path of routes) {
   test(`${path} moves through the screen theatre by keyboard`, async ({ page }) => {
     await page.goto(`${path}?lang=${path.includes("/de/") ? "de" : "en"}`, { waitUntil: "domcontentloaded" });
     const tabs = page.locator("[data-theatre-tab]");
-    await expect(tabs).toHaveCount(4);
+    // INSPR-556: six release-128 demo tabs preserve the keyboard contract.
+    await expect(tabs).toHaveCount(6);
     await tabs.first().focus();
     await page.keyboard.press("ArrowRight");
     await expect(tabs.nth(1)).toHaveAttribute("aria-selected", "true");
     await expect(tabs.nth(1)).toBeFocused();
     const panel = await tabs.nth(1).getAttribute("aria-controls");
     await expect(page.locator(`#${panel}`)).toBeVisible();
+    await expect(page.locator(`#${panel}`)).toHaveAttribute("aria-hidden", "false");
+    await expect(page.locator("[data-theatre-panel][hidden]")).toHaveCount(5);
+    for (const inactive of await page.locator("[data-theatre-panel][hidden]").all()) {
+      await expect(inactive).toHaveAttribute("inert", "");
+      await expect(inactive).toHaveAttribute("aria-hidden", "true");
+      await expect(inactive).not.toBeVisible();
+    }
     await page.keyboard.press("End");
-    await expect(tabs.nth(3)).toHaveAttribute("aria-selected", "true");
+    await expect(tabs.last()).toHaveAttribute("aria-selected", "true");
   });
 }
 

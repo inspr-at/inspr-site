@@ -37,7 +37,7 @@ export const pharosContent = {
       interfaces: "UI, beacon, OIDC",
       maturity: "early release, AGPL-3.0-only",
     },
-    eyebrow: "PHAROS / FLEET OPERATIONS",
+    eyebrow: "Pharos / Fleet operations",
     title: "Fleet truth before action.",
     depths: {
       simple:
@@ -60,7 +60,7 @@ export const pharosContent = {
     "Inspectable fleet evidence",
   ],
   problem: {
-    eyebrow: "THE OPERATING GAP",
+    eyebrow: "The operating gap",
     title: "The gaps are the risk.",
     depths: {
       simple:
@@ -103,7 +103,7 @@ export const pharosContent = {
       in: "staged build + evidence",
       out: "release on a declared host",
     },
-    eyebrow: "OPERATING MODEL",
+    eyebrow: "Operating model",
     title: "Observe. Compare. Gate. Verify.",
     depths: {
       simple:
@@ -181,7 +181,7 @@ export const pharosContent = {
   featureSections: [
     {
       id: "fleet",
-      eyebrow: "FLEET VISIBILITY",
+      eyebrow: "Fleet visibility",
       title: "Quiet when healthy.",
       lead:
         "Fleet cards and compact rows show the same operational truth: host identity, liveness, last report, signal history, drift, backup posture and the reason a host needs attention. Healthy systems stay visually calm. Missing evidence remains visible instead of being converted into a green status.",
@@ -212,7 +212,7 @@ export const pharosContent = {
     },
     {
       id: "drift",
-      eyebrow: "CONFIGURATION AND DRIFT",
+      eyebrow: "Configuration and drift",
       title: "See drift early.",
       lead:
         "For NixOS hosts, Pharos reports how old the active flake lock is, how far the host is behind the declared configuration and whether a newer kernel is already staged. Non-Nix hosts still participate in liveness, backup, location and service reporting through the portable beacon.",
@@ -238,7 +238,7 @@ export const pharosContent = {
     },
     {
       id: "backups",
-      eyebrow: "BACKUP POSTURE",
+      eyebrow: "Backup posture",
       title: "A run is not recovery.",
       lead:
         "Pharos treats backup posture as an operating signal, not a checkbox. It distinguishes healthy, stale, failed, missing and unknown backups, then tracks validation evidence separately from the last successful run.",
@@ -264,7 +264,7 @@ export const pharosContent = {
     },
     {
       id: "onboarding",
-      eyebrow: "ONBOARDING",
+      eyebrow: "Onboarding",
       title: "Every host starts with preflight.",
       lead:
         "Provisioning is attended, one server at a time. The setup assistant keeps one decision in view, records safe progress and waits for first-host evidence before treating onboarding as complete.",
@@ -290,7 +290,7 @@ export const pharosContent = {
     },
     {
       id: "guarded-actions",
-      eyebrow: "GUARDED ACTIONS",
+      eyebrow: "Guarded actions",
       title: "Change through a gate.",
       lead:
         "Pharos supports a deliberately small set of operational actions: settings changes, a shared system-update proposal, per-host update and restart, recovery and host retirement. Each begins with review and exposes one clear next step.",
@@ -326,7 +326,7 @@ export const pharosContent = {
     },
   ],
   audiences: {
-    eyebrow: "WHO IT SERVES",
+    eyebrow: "Who it serves",
     title: "Built for small fleets.",
     lead:
       "Pharos is most useful where a small group owns a mixed fleet and needs clear operating evidence without introducing another unrestricted automation surface.",
@@ -349,7 +349,7 @@ export const pharosContent = {
     ],
   },
   architecture: {
-    eyebrow: "ARCHITECTURE",
+    eyebrow: "Architecture",
     title: "Small core. Hard boundaries.",
     lead:
       "Pharos is a Rust workspace with shared contracts between server and beacon, preventing their report schema from drifting independently.",
@@ -374,7 +374,7 @@ export const pharosContent = {
     ],
   },
   trust: {
-    eyebrow: "TRUST BOUNDARIES",
+    eyebrow: "Trust boundaries",
     title: "Secrets stay behind the surface.",
     lead:
       "Human identity, machine identity, provider credentials and operational evidence have separate paths. Pharos exposes the facts an operator needs without moving secret values into the browser or workflow history.",
@@ -412,7 +412,7 @@ export const pharosContent = {
     ],
   },
   integrations: {
-    eyebrow: "INTEGRATIONS",
+    eyebrow: "Integrations",
     title: "Maturity stays visible.",
     lead:
       "Pharos uses maturity labels so a planned connector never looks like a production-ready path.",
@@ -486,7 +486,7 @@ export const pharosContent = {
     ],
   },
   limits: {
-    eyebrow: "DELIBERATE LIMITS",
+    eyebrow: "Deliberate limits",
     title: "Boundaries by design.",
     lead:
       "A smaller operating surface is easier to reason about. Pharos focuses on fleet posture and guarded change while specialist systems keep their specialist jobs.",
@@ -502,7 +502,7 @@ export const pharosContent = {
     ],
   },
   openSource: {
-    eyebrow: "SOURCE AND SELF-HOSTING",
+    eyebrow: "Source and self-hosting",
     title: "Run it on your terms.",
     body:
       `The current release ${pharosRelease.version} (calendar version, ${pharosRelease.date}) includes the control plane, beacon, Docker Compose template, NixOS module and portable installer. The complete source and release evidence are available in the Pharos repository under AGPL-3.0-only; every source excerpt linked on this page is taken from that release.`,

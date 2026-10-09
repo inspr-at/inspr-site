@@ -185,7 +185,7 @@ test("German homepage copy is complete across editorial and interactive surfaces
   for (const phrase of [
     "Vier Werkzeuge mit je einer klaren Aufgabe.",
     "Wie die Produkte zusammenhängen.",
-    "Builder, Bots und Menschen.",
+    "Entwicklungsagenten, Bots und Menschen.",
     "Was live ist und was als Nächstes kommt.",
     "Quellcode, Daten, Server und Nachweise bleiben bei Ihnen.",
     "Der wiederverwendbare Kern ist Open Source; der gehostete Arbeitsbereich ist auf Einladung offen.",

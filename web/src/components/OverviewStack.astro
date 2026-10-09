@@ -37,10 +37,10 @@ const layers = [
   {
     id: "l7", number: "L7", name: copy("Doctrine", "Doktrin"),
     what: copy("The rulebook every AI agent loads at session start: a tiny always-on kernel for irreversible mistakes, deeper packs on demand.", "Das Regelwerk, das jeder KI-Agent zu Beginn jeder Sitzung lädt: ein winziger, immer aktiver Kern für unumkehrbare Fehler, tiefere Pakete bei Bedarf."),
-    tools: [copy("kernel", "Kernel"), copy("domain packs", "Domain-Packs"), "inspr CLI"],
-    declared: copy("INSPR modules, versioned by calendar and signed; each repository pins the version it follows", "INSPR-Module, nach Kalender versioniert und signiert; jedes Repository pinnt die Version, der es folgt"),
-    verified: copy("inspr check on every machine; inspr heal repairs known drift", "inspr check auf jeder Maschine; inspr heal repariert bekannte Drift"),
-    evidence: copy("signed release tags, pinned revisions", "signierte Release-Tags, gepinnte Revisionen"),
+    tools: [copy("kernel", "Kernregeln"), copy("domain packs", "Regeln für einzelne Fachgebiete"), "inspr CLI"],
+    declared: copy("INSPR modules, versioned by calendar and signed; each repository pins the version it follows", "INSPR-Module, nach Kalender versioniert und signiert; jedes Repository legt die Version fest, der es folgt"),
+    verified: copy("inspr check on every machine; inspr heal repairs known drift", "inspr check auf jeder Maschine; inspr heal repariert bekannte Abweichungen"),
+    evidence: copy("signed release tags, pinned revisions", "signierte Release-Tags, festgelegte Revisionen"),
     command: "inspr check --profile=server",
   },
   {
@@ -74,8 +74,8 @@ const layers = [
     what: copy("Each host is described in text and built from it. The repository is the truth; activation enforces it. Backups run from the same declaration to off-site storage.", "Jeder Host ist in Text beschrieben und wird daraus gebaut. Das Repository ist die Wahrheit; die Aktivierung setzt sie durch. Backups laufen aus derselben Deklaration auf externen Speicher."),
     tools: ["NixOS", "nix-darwin", "Home Manager", "disko", copy("ZFS snapshots", "ZFS-Snapshots"), "restic"],
     declared: copy("one Nix flake for every host, workstation and server", "ein Nix-Flake für jeden Host, Arbeitsplatz wie Server"),
-    verified: copy("activation is the check; Pharos reports drift, lock age and backup posture", "die Aktivierung ist die Prüfung; Pharos meldet Drift, Alter der Versionssperre und Backup-Zustand"),
-    evidence: copy("host reports, restore validation separate from the last run", "Host-Berichte, Restore-Validierung getrennt vom letzten Lauf"),
+    verified: copy("activation is the check; Pharos reports drift, lock age and backup posture", "die Aktivierung ist die Prüfung; Pharos meldet Abweichungen, Alter der Versionssperre und Backup-Zustand"),
+    evidence: copy("host reports, restore validation separate from the last run", "Host-Berichte, Prüfung der Wiederherstellbarkeit getrennt vom letzten Lauf"),
   },
   {
     id: "l2", number: "L2", name: copy("Network", "Netzwerk"),
@@ -92,8 +92,8 @@ const layers = [
     tools: [copy("workstations", "Arbeitsplätze"), copy("home servers", "Heimserver"), copy("cloud VMs", "Cloud-VMs")],
     declared: copy("inventory lives in Pharos, never in a static list; Pharos provisioning is attended, one server at a time", "Inventar lebt in Pharos, nie in einer statischen Liste; die Provisionierung durch Pharos ist betreut, ein Server nach dem anderen"),
     planned: copy("ephemeral CI and lab VMs provisioned through Pharos", "kurzlebige CI- und Labor-VMs, bereitgestellt über Pharos"),
-    verified: copy("liveness from received heartbeats and each host's declared cadence", "Erreichbarkeit aus empfangenen Heartbeats und der deklarierten Taktung jedes Hosts"),
-    evidence: copy("heartbeat history with honest gaps", "Heartbeat-Verlauf mit ehrlichen Lücken"),
+    verified: copy("liveness from received heartbeats and each host's declared cadence", "Erreichbarkeit aus empfangenen Herzschlägen und der deklarierten Taktung jedes Hosts"),
+    evidence: copy("heartbeat history with honest gaps", "Verlauf der Herzschläge mit ehrlichen Lücken"),
   },
 ];
 
@@ -120,7 +120,7 @@ const houseRuleDetail = copy(
   <div class="overview-drawer__inner">
     <header class="overview-stack__header">
       <div>
-        <p class="overview-kicker" data-index="04">{copy("The stack", "Der Stack")}</p>
+        <p class="overview-kicker" data-index="04">{copy("The stack", "Die technischen Grundlagen")}</p>
         <h2 id="stack-title">{copy("What all of this runs on.", "Worauf das alles läuft.")}</h2>
       </div>
       <p>{message.houseRule[locale]} {houseRuleDetail}</p>

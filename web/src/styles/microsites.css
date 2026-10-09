@@ -347,13 +347,13 @@
     max-width: 20rem;
     margin-top: 0.35rem;
     overflow: hidden;
-    color: #5d7180;
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    letter-spacing: normal;
     line-height: 1.2;
     text-overflow: ellipsis;
-    text-transform: uppercase;
+    text-transform: none;
     white-space: nowrap;
   }
 
@@ -599,16 +599,25 @@
     animation: rise-in 760ms var(--ease) both;
   }
 
-  .eyebrow,
+  .eyebrow {
+    color: var(--accent-strong);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 620;
+    letter-spacing: normal;
+    line-height: 1.35;
+    text-transform: none;
+  }
+
   .card-meta,
   .footer-label {
     color: var(--accent-strong);
-    font-family: var(--font-mono);
-    font-size: clamp(0.7rem, 0.3vw + 0.64rem, 0.82rem);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
     font-weight: 620;
-    letter-spacing: 0.11em;
+    letter-spacing: normal;
     line-height: 1.35;
-    text-transform: uppercase;
+    text-transform: none;
   }
 
   .product-hero h1 {
@@ -1524,8 +1533,7 @@
     max-width: 40rem;
   }
 
-  .inspectable-rail__signal,
-  .boundary-lens__kicker {
+  .inspectable-rail__signal {
     display: flex;
     gap: 0.55rem;
     align-items: center;
@@ -2274,7 +2282,15 @@
   }
 
   .boundary-lens__kicker {
+    display: flex;
+    gap: 0.55rem;
+    align-items: center;
     color: var(--accent-strong);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 620;
+    letter-spacing: normal;
+    text-transform: none;
   }
 
   .boundary-lens__count {

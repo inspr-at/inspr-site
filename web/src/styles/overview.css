@@ -14,13 +14,13 @@
 
 .overview-kicker {
   margin: 0;
-  color: var(--overview-teal);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.13em;
+  color: var(--accent-strong);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 620;
+  letter-spacing: normal;
   line-height: 1.35;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .overview-hero {
@@ -431,11 +431,11 @@
 .overview-step__role {
   margin: 1rem 0 0;
   color: var(--step-accent);
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 .overview-step h3 {
@@ -564,10 +564,10 @@
 .overview-control__number,
 .overview-control__copy strong {
   color: var(--overview-teal);
-  font-family: var(--font-mono);
-  font-size: 0.69rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 .overview-control__copy,
@@ -694,10 +694,10 @@
 .overview-rules__grid h3 {
   margin: 0 0 0.5rem;
   color: var(--overview-teal);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 .overview-rules__grid p {
@@ -840,10 +840,10 @@
 }
 
 .overview-footer__release > span:first-child {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 @media (max-width: 80rem) {

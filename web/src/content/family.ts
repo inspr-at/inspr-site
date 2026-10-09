@@ -74,13 +74,13 @@ export const products: Record<ProductKey, FamilyProduct> = {
     key: "paimos",
     name: t("Paimos", "Paimos"),
     verb: t("What", "Was"),
-    role: t("Plan and engine", "Planung und Engine"),
+    role: t("Plan and engine", "Planung und Arbeitssteuerung"),
     oneLiner: t(
       "Projects, tickets and knowledge, plus the engine that runs the work.",
-      "Projekte, Tickets und Wissen, dazu die Engine, die die Arbeit steuert.",
+      "Projekte, Tickets und Wissen sowie die Steuerung der Arbeit.",
     ),
     status: "live",
-    statusNote: t("Engine partly live", "Engine teilweise live"),
+    statusNote: t("Engine partly live", "Arbeitssteuerung teilweise live"),
   },
   pharos: {
     key: "pharos",
@@ -89,7 +89,7 @@ export const products: Record<ProductKey, FamilyProduct> = {
     role: t("Fleet and deploy", "Flotte und Bereitstellung"),
     oneLiner: t(
       "Fleet truth, backup evidence, guarded deploys, provisioning.",
-      "Flottenzustand, Backup-Nachweise, abgesicherte Deployments, Provisionierung.",
+      "Flottenzustand, Backup-Nachweise, abgesicherte Bereitstellungen, Provisionierung.",
     ),
     status: "live",
     statusNote: t(
@@ -119,7 +119,7 @@ export const products: Record<ProductKey, FamilyProduct> = {
     role: t("Agent doctrine", "Agenten-Doktrin"),
     oneLiner: t(
       "Kernel, domain packs, inspr CLI; calendar versions, signed releases.",
-      "Kernel, Domain-Packs, inspr CLI; Kalenderversionen, signierte Releases.",
+      "Kernregeln, Regeln für einzelne Fachgebiete, inspr CLI; Kalenderversionen, signierte Releases.",
     ),
     status: "live",
   },
@@ -179,17 +179,17 @@ export const flow: {
     {
       key: "build",
       label: t("Build", "Entwicklung"),
-      who: t("Builders", "Builder"),
+      who: t("Builders", "Agenten"),
       line: t(
         "Short-lived coding agents, each in its own worktree; another model family reviews.",
-        "Kurzlebige Coding-Agenten, jeder im eigenen Worktree; eine andere Modellfamilie prüft.",
+        "Kurzlebige Entwicklungsagenten, jeder in einer eigenen Arbeitskopie des Repositorys; eine andere Modellfamilie prüft.",
       ),
       // INSPR-542: the proposal reads "Live: review gates ... cross-family
       // review as a configurable policy: planned"; a mixed claim is "partly".
       status: "partly",
       statusNote: t(
         "Review gates live; Claude Code, Codex, Cursor and pi start under Paimos, Grok runs tool-free; Gemini and OpenCode pairing only. Cross-family review as a configurable policy: planned",
-        "Review-Gates live; Claude Code, Codex, Cursor und pi starten unter Paimos, Grok läuft ohne Werkzeuge; Gemini und OpenCode: nur Kopplung, Start geplant. Modellübergreifende Prüfung als konfigurierbare Richtlinie: geplant",
+        "Prüfschritte live; Claude Code, Codex, Cursor und pi starten unter Paimos, Grok läuft ohne Werkzeuge; Gemini und OpenCode: nur Kopplung, Start geplant. Prüfung durch eine andere Modellfamilie als konfigurierbare Richtlinie: geplant",
       ),
     },
     productStep("deploy", t("Deploy", "Bereitstellung"), "pharos"),
@@ -203,7 +203,7 @@ export const flow: {
         "Wiederkehrende Läufe führen Erkenntnisse ins Wissen zurück.",
       ),
       status: "partly",
-      statusNote: t("Scheduler live; Routines planned", "Scheduler live; Routinen geplant"),
+      statusNote: t("Scheduler live; Routines planned", "Zeitplanung live; Routinen geplant"),
     },
   ],
   underneath: {
@@ -268,8 +268,8 @@ export const actors: Array<{
 }> = [
   {
     key: "builders",
-    name: t("Builders", "Builder"),
-    line: t("Builders write code and hand it over.", "Builder schreiben Code und übergeben ihn."),
+    name: t("Builders", "Agenten"),
+    line: t("Builders write code and hand it over.", "Entwicklungsagenten schreiben Code und übergeben ihn."),
     status: "live",
     statusNote: t(
       "Claude Code, Codex, Cursor and pi start under Paimos",
@@ -304,11 +304,11 @@ export const buildOrder: Array<{
 }> = [
   {
     key: "engine",
-    label: t("The engine for builders", "Die Engine für Builder"),
+    label: t("The engine for builders", "Die Arbeitssteuerung für Entwicklungsagenten"),
     status: "partly",
     statusNote: t(
       "Admission dial, review gates, Decision Desk, audit. Per-slice state and merge through Paimos: planned",
-      "Zulassungsregler, Review-Gates, Decision Desk, Prüfprotokoll. Zustand je Arbeitsabschnitt und Merge über Paimos: geplant",
+      "Zulassungsregler, Prüfschritte, Entscheidungsübersicht („Decision Desk“), Prüfprotokoll. Zustand je Arbeitsabschnitt und Zusammenführen über Paimos: geplant",
     ),
   },
   {
@@ -317,7 +317,7 @@ export const buildOrder: Array<{
     status: "planned",
     statusNote: t(
       "Recurring scheduler and first bot adapter live",
-      "Wiederkehrender Scheduler und erster Bot-Adapter live",
+      "Wiederkehrende Zeitplanung und erster Bot-Adapter live",
     ),
   },
   {
@@ -360,7 +360,7 @@ export const engineJobs: Array<{
     status: "partly",
     note: t(
       "A dial sets how many agents run at once, with per-harness limits; account and host-load throttling is coming.",
-      "Ein Regler legt fest, wie viele Agenten gleichzeitig laufen, mit Grenzen je Harness; Drosselung nach Konto und Rechnerlast folgt.",
+      "Ein Regler legt fest, wie viele Agenten gleichzeitig laufen, mit Grenzen je Agentenprogramm; Drosselung nach Konto und Rechnerlast folgt.",
     ),
   },
   {
@@ -369,7 +369,7 @@ export const engineJobs: Array<{
     status: "partly",
     note: t(
       "Model preferences by type of work, review order and review gates are live; cross-family review as a configurable tenant or project policy is planned.",
-      "Modellpräferenzen je Art der Arbeit, Prüfreihenfolge und Review-Gates sind live; modellübergreifende Prüfung als konfigurierbare Richtlinie je Mandant oder Projekt ist geplant.",
+      "Modellpräferenzen je Art der Arbeit, Prüfreihenfolge und Prüfschritte sind live; Prüfung durch eine andere Modellfamilie als konfigurierbare Richtlinie je Mandant oder Projekt ist geplant.",
     ),
   },
   {
@@ -378,7 +378,7 @@ export const engineJobs: Array<{
     status: "partly",
     note: t(
       "Paimos ships its own GitHub App that can post the cross-family review status; pull requests and merges through Paimos are planned.",
-      "Paimos bringt eine eigene GitHub-App mit, die den Status der modellübergreifenden Prüfung setzen kann; Pull Requests und Merges über Paimos sind geplant.",
+      "Paimos bringt eine eigene GitHub-App mit, die den Status der Prüfung durch eine andere Modellfamilie setzen kann; Pull Requests und Zusammenführungen über Paimos sind geplant.",
     ),
   },
   {
@@ -387,7 +387,7 @@ export const engineJobs: Array<{
     status: "live",
     note: t(
       "The Decision Desk and a durable inbox are live.",
-      "Der Decision Desk und ein dauerhafter Posteingang sind live.",
+      "Die Entscheidungsübersicht („Decision Desk“) und ein dauerhafter Posteingang sind live.",
     ),
   },
   {

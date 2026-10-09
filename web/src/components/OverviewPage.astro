@@ -195,7 +195,7 @@ const steps = [
     simple: copy("Your plan, your notes and your agents' work live in one place.", "Ihr Plan, Ihre Notizen und die Arbeit Ihrer Agenten liegen an einem Ort."),
     technical: copy(
       "Tickets and knowledge in one tenant-scoped model; the engine admits, reviews and audits builder runs, with per-slice state and merge through Paimos still planned.",
-      "Tickets und Wissen in einem mandantenfähigen Modell; die Engine lässt Läufe von Buildern zu, prüft und protokolliert sie, Zustand je Arbeitsabschnitt und Merge über Paimos sind noch geplant.",
+      "Tickets und Wissen in einem mandantenfähigen Modell; die Arbeitssteuerung lässt Läufe von Entwicklungsagenten zu, prüft und protokolliert sie, Zustand je Arbeitsabschnitt und Zusammenführen über Paimos sind noch geplant.",
     ),
     sheet: {
       repo: "github.com/inspr-at/paimos",
@@ -203,7 +203,7 @@ const steps = [
       gate: copy("an agent works within its key's scopes; gated steps need a grant a person approves, and the decision is an event in the log", "ein Agent arbeitet im Rahmen der Scopes seines Schlüssels; geschützte Schritte brauchen eine Freigabe durch eine Person, und die Entscheidung ist ein Ereignis im Protokoll"),
       artefact: copy("tickets, knowledge, work orders and run records, permission-aware", "Tickets, Wissen, Arbeitsaufträge und Laufprotokolle, berechtigungsbewusst"),
       interfaces: copy("UI, CLI, HTTP API", "UI, CLI, HTTP-API"),
-      maturity: copy("released, AGPL-3.0-only; engine partly live", "veröffentlicht, AGPL-3.0-only; Engine teilweise live"),
+      maturity: copy("released, AGPL-3.0-only; engine partly live", "veröffentlicht, AGPL-3.0-only; Arbeitssteuerung teilweise live"),
       command: 'aeon issue create -p PROJ --title "Write release notes"',
     },
   },
@@ -218,14 +218,14 @@ const steps = [
     simple: copy("It shows where things run and whether they are backed up.", "Es zeigt, wo etwas läuft und ob es gesichert ist."),
     technical: copy(
       "Fleet truth, backup evidence and a guarded deploy to a declared host; rollback is one symlink away.",
-      "Flottenzustand, Backup-Nachweis und ein abgesichertes Deployment auf einen deklarierten Host; Rollback ist einen Symlink entfernt.",
+      "Flottenzustand, Backup-Nachweis und eine abgesicherte Bereitstellung auf einen deklarierten Host; ein symbolischer Link genügt zum Zurücksetzen.",
     ),
     sheet: {
       repo: "github.com/inspr-at/pharos",
-      runtime: copy("Rust server plus an outbound host beacon; no inbound port on the host", "Rust-Server plus ausgehender Host-Beacon; kein eingehender Port am Host"),
+      runtime: copy("Rust server plus an outbound host beacon; no inbound port on the host", "Rust-Server plus ausgehender Meldedienst auf dem Host; kein eingehender Port am Host"),
       gate: copy("backup evidence, build result, authorisation and an explicit confirmation are recorded before the host may apply anything", "Backup-Nachweis, Build-Ergebnis, Autorisierung und eine ausdrückliche Bestätigung werden festgehalten, bevor der Host etwas anwenden darf"),
-      artefact: copy("host reports, backup and restore evidence, the review record", "Host-Berichte, Backup- und Restore-Nachweise, das Prüfprotokoll"),
-      interfaces: copy("UI, beacon, OIDC", "UI, Beacon, OIDC"),
+      artefact: copy("host reports, backup and restore evidence, the review record", "Host-Berichte, Backup- und Wiederherstellungsnachweise, das Prüfprotokoll"),
+      interfaces: copy("UI, beacon, OIDC", "UI, Meldedienst, OIDC"),
       maturity: copy("released, AGPL-3.0-only; provisioning attended", "veröffentlicht, AGPL-3.0-only; Provisionierung betreut"),
     },
   },
@@ -309,7 +309,7 @@ const steps = [
             standard={message.sub[locale]}
             technical={copy(
               "INSPR is an AGPL-3.0-only product family: four open products and a doctrine, with the whole stack from hardware to doctrine declared in code.",
-              "INSPR ist eine Produktfamilie unter AGPL-3.0-only: vier offene Produkte und eine Doktrin, und der gesamte Stack von der Hardware bis zur Doktrin ist als Code deklariert.",
+              "INSPR ist eine Produktfamilie unter AGPL-3.0-only: vier offene Produkte und eine Doktrin, und der gesamte technische Aufbau von der Hardware bis zur Doktrin ist als Code deklariert.",
             )}
           />
         </p>
@@ -473,13 +473,13 @@ const steps = [
     <section class="overview-engine page-shell" data-depth-min="standard" aria-labelledby="engine-title">
       <header class="overview-engine__header">
         <div>
-          <p class="overview-kicker" data-index="02">{copy("The engine", "Die Engine")}</p>
-          <h2 id="engine-title">{copy("The engine's six jobs.", "Die sechs Aufgaben der Engine.")}</h2>
+          <p class="overview-kicker" data-index="02">{copy("The engine", "Die Arbeitssteuerung")}</p>
+          <h2 id="engine-title">{copy("The engine's six jobs.", "Die sechs Aufgaben der Arbeitssteuerung.")}</h2>
         </div>
         <p>
           {copy(
             "Paimos is growing an engine that runs the work of coding agents: six jobs, each with its own status.",
-            "Paimos baut eine Engine, die die Arbeit von Coding-Agenten steuert: sechs Aufgaben, jede mit eigenem Status.",
+            "Paimos baut eine Arbeitssteuerung, die die Arbeit von Entwicklungsagenten steuert: sechs Aufgaben, jede mit eigenem Status.",
           )}
         </p>
       </header>

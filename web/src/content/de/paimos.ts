@@ -24,7 +24,7 @@ export const paimosContentDe = {
   seo: {
     title: "PAIMOS AEON | Projektkontext für Menschen und KI-Agenten",
     description:
-      "Selbst gehostete, mehrmandantenfähige Projektarbeit für Menschen und KI-Agenten: ein Arbeitsbaum, gemeinsames Projektwissen, abgegrenzte Agentenberechtigungen und eine Append-only-Aufzeichnung dessen, was geschehen ist.",
+      "Selbst gehostete, mehrmandantenfähige Projektarbeit für Menschen und KI-Agenten: ein Arbeitsbaum, gemeinsames Projektwissen, abgegrenzte Agentenberechtigungen und eine Aufzeichnung dessen, was geschehen ist, die nur ergänzt wird.",
   },
   hero: {
     sheet: {
@@ -42,10 +42,10 @@ export const paimosContentDe = {
       simple:
         "Paimos ist Projektarbeit, die Sie selbst betreiben, gebaut für Teams, in denen Menschen und KI-Helfer nebeneinander arbeiten. Plan, Hintergrundwissen und die Aufzeichnung dessen, was geschehen ist, liegen an einem Ort, und eine Person entscheidet, was ein Agent tun darf.",
       technical:
-        "PAIMOS AEON ist selbst gehostete, mehrmandantenfähige Projektarbeit: ein dynamischer Arbeitsbaum, eine gemeinsame Wissensebene, Arbeitsaufträge, Agentenläufe und abgegrenzte Berechtigungen über einem Append-only-Ereignisprotokoll, erreichbar über UI, CLI und HTTP-API.",
+        "PAIMOS AEON ist selbst gehostete, mehrmandantenfähige Projektarbeit: ein dynamischer Arbeitsbaum, eine gemeinsame Wissensebene, Arbeitsaufträge, Agentenläufe und abgegrenzte Berechtigungen über einem Ereignisprotokoll, das nur ergänzt wird, erreichbar über UI, CLI und HTTP-API.",
     },
     lead:
-      "PAIMOS AEON ist die siebte Generation von Paimos: selbst gehostete Projektarbeit für Teams, die mit KI-Agenten arbeiten. Menschen und Agenten teilen einen Arbeitsbaum und einen Bestand an Projektwissen, Agenten arbeiten mit abgegrenzten Schlüsseln und fragen vor geschützten Schritten eine Person, und jede Änderung landet in einem Append-only-Ereignisprotokoll.",
+      "PAIMOS AEON ist die siebte Generation von Paimos: selbst gehostete Projektarbeit für Teams, die mit KI-Agenten arbeiten. Menschen und Agenten teilen einen Arbeitsbaum und einen Bestand an Projektwissen, Agenten arbeiten mit abgegrenzten Schlüsseln und fragen vor geschützten Schritten eine Person, und jede Änderung landet in einem Ereignisprotokoll, das nur ergänzt wird.",
     alt: "Abstrakte Projekt-Agora, in der Menschen und KI-Teilnehmer um eine gemeinsame Betriebsfläche stehen",
     primaryLabel: "So funktioniert es",
     primaryHref: "#model",
@@ -102,7 +102,7 @@ export const paimosContentDe = {
         label: "Ereignisprotokoll mit Rückgängig",
         icon: "rotate-ccw",
         group: "work",
-        note: "Jede Änderung ist ein Append-only-Ereignis. Rückgängig schreibt ein ausgleichendes Ereignis, statt die Historie umzuschreiben.",
+        note: "Jede Änderung wird als neues Ereignis angefügt. Rückgängig schreibt ein ausgleichendes Ereignis, statt die Historie umzuschreiben.",
         noteEli10:
           "Das Werkzeug führt ein Tagebuch, aus dem niemand Seiten herausreißen kann. Etwas zurücknehmen fügt eine neue Zeile an. Die alte Zeile bleibt lesbar.",
       },
@@ -115,7 +115,7 @@ export const paimosContentDe = {
           "Das Werkzeug meldet nichts nach Hause. Niemand, auch die Hersteller nicht, sieht, wie Ihr Team es nutzt. Gegenüber Datenschutzbeauftragten bleibt weniger zu erklären.",
       },
       {
-        label: "Single Sign-on",
+        label: "Einmalanmeldung (SSO)",
         icon: "key-round",
         group: "security",
         note: "OIDC mit PKCE und einem geprüften ID-Token. Ihr Identitätsanbieter bleibt die maßgebliche Quelle für Personen.",
@@ -134,7 +134,7 @@ export const paimosContentDe = {
         label: "Wissensebene",
         icon: "library",
         group: "ai",
-        note: "Runbooks, Richtlinien, Erinnerungen, externe Systeme und verwandte Projekte, die Agenten vor der Arbeit per Slug lesen.",
+        note: "Runbooks, Richtlinien, Gedächtniseinträge, externe Systeme und verwandte Projekte, die Agenten vor der Arbeit über ihren stabilen Kurznamen lesen.",
         noteEli10:
           "Die Anleitungen und Hausregeln des Teams stehen neben der Arbeit. KI-Helfer lesen sie zuerst, wie ein neuer Kollege das Handbuch liest.",
       },
@@ -142,7 +142,7 @@ export const paimosContentDe = {
         label: "Hybride Suche",
         icon: "scan-search",
         group: "work",
-        note: "Volltext auf Deutsch und Englisch, verbunden mit optionaler Ähnlichkeit über pgvector, und reine lexikalische Suche, wenn keine Embeddings konfiguriert sind.",
+        note: "Volltext auf Deutsch und Englisch, verbunden mit optionaler Ähnlichkeit über pgvector, und reine lexikalische Suche, wenn keine Textvektoren konfiguriert sind.",
         noteEli10:
           "Die Suche versteht Deutsch und Englisch und findet auch, was dasselbe bedeutet, aber anders formuliert ist.",
       },
@@ -211,7 +211,7 @@ export const paimosContentDe = {
           "Eine Standard-Open-Source-Lizenz, die Ihre Rechtsabteilung tatsächlich lesen kann: nutzen, ändern, behalten, und niemand kann Sie je einsperren.",
       },
       {
-        label: "Made in Austria",
+        label: "Entwickelt in Österreich",
         icon: "mountain",
         group: "place",
         note: "Entworfen und gebaut in Österreich, in der EU, mit echten Menschen und EU-Normen hinter Ihrem Projektsystem.",
@@ -222,21 +222,21 @@ export const paimosContentDe = {
     glossary: [
       {
         id: "sso",
-        term: "SSO / Single Sign-on",
+        term: "SSO / Einmalanmeldung",
         matches: ["melden sich mit dem Firmenkonto an"],
-        body: "Ein Firmen-Login für viele Werkzeuge. Niemand muss für jede Anwendung ein neues Passwort erfinden und dann verlieren.",
+        body: "Eine Firmenanmeldung für viele Werkzeuge. Niemand muss für jede Anwendung ein neues Passwort erfinden und dann verlieren.",
       },
       {
         id: "oidc",
         term: "OIDC",
         matches: ["OIDC"],
-        body: "Der offene Standard, der Single Sign-on zwischen Ihrem Identitätssystem und Anwendungen wie dieser möglich macht.",
+        body: "Der offene Standard, der Einmalanmeldung (SSO) zwischen Ihrem Identitätssystem und Anwendungen wie dieser möglich macht.",
       },
       {
         id: "pkce",
         term: "PKCE",
         matches: ["PKCE"],
-        body: "Ein zusätzlicher Sicherheitsschritt im Login-Ablauf, der verhindert, dass gestohlene Login-Codes wiederverwendet werden.",
+        body: "Ein zusätzlicher Sicherheitsschritt im Anmeldeablauf, der verhindert, dass gestohlene Anmeldecodes wiederverwendet werden.",
       },
       {
         id: "id-token",
@@ -264,8 +264,8 @@ export const paimosContentDe = {
       },
       {
         id: "event-log",
-        term: "Append-only-Ereignisprotokoll",
-        matches: ["Append-only-Ereignis", "ausgleichendes Ereignis"],
+        term: "Ereignisprotokoll, das nur ergänzt wird",
+        matches: ["als neues Ereignis angefügt", "ausgleichendes Ereignis"],
         body: "Eine Aufzeichnung, in der neue Einträge nur angefügt werden. Nichts wird an Ort und Stelle geändert, die Historie bleibt vollständig.",
       },
       {
@@ -276,8 +276,8 @@ export const paimosContentDe = {
       },
       {
         id: "slug",
-        term: "Slug",
-        matches: ["Slug"],
+        term: "Stabiler Kurzname",
+        matches: ["stabilen Kurznamen"],
         body: "Ein kurzer, stabiler Name für einen Eintrag, etwa deploy-checklist, den Agenten und Links statt eines Titels verwenden können.",
       },
       {
@@ -392,7 +392,7 @@ export const paimosContentDe = {
       simple:
         "Paimos legt die Arbeit, den Hintergrund, das Getane und den Beleg an einen Ort. Menschen und KI-Helfer sehen dasselbe Bild, und Menschen entscheiden.",
       technical:
-        "Paimos verbindet Arbeitsbaum, Wissen, Arbeitsaufträge, Läufe und Berechtigungen in einem mandantenbezogenen Modell über einem Append-only-Ereignisprotokoll. Menschen planen und geben in demselben Modell frei, aus dem Agenten lesen und in das sie zurückberichten.",
+        "Paimos verbindet Arbeitsbaum, Wissen, Arbeitsaufträge, Läufe und Berechtigungen in einem mandantenbezogenen Modell über einem Ereignisprotokoll, das nur ergänzt wird. Menschen planen und geben in demselben Modell frei, aus dem Agenten lesen und in das sie zurückberichten.",
     },
     lead:
       "Paimos verbindet Arbeit, Kontext, Befugnis und Nachweise in einem berechtigungsbewussten System. Menschen planen und geben in demselben Projektmodell frei, aus dem Agenten lesen und in das sie zurückberichten.",
@@ -420,7 +420,7 @@ export const paimosContentDe = {
         visual: { x: 22, y: 68 },
         icon: "book-open-check",
         body:
-          "Schreiben Sie Runbooks, Richtlinien, Erinnerungen, externe Systeme und verwandte Projekte in die Wissensebene des Projekts. Agenten lesen Einträge per Slug, und der Graph zeigt, wie sie verbunden sind.",
+          "Schreiben Sie Runbooks, Richtlinien, Gedächtniseinträge, externe Systeme und verwandte Projekte in die Wissensebene des Projekts. Agenten lesen Einträge über ihren stabilen Kurznamen, und der Graph zeigt, wie sie verbunden sind.",
         meta: "Projektwissen überlebt den aktuellen Rechner und die aktuelle Agentenlaufzeit",
         signal: "Wissenseinträge, Verknüpfungen und Graph",
         reference: {
@@ -436,7 +436,7 @@ export const paimosContentDe = {
         visual: { x: 50, y: 40 },
         icon: "play",
         body:
-          "Legen Sie die Arbeit in einen Arbeitsauftrag mit Abnahmekriterien und einem Budget. Eine registrierte Agentensitzung beansprucht den Lauf und arbeitet innerhalb der Scopes ihres Schlüssels. Für einen geschützten Schritt fragt sie eine Freigabe an, und die Anfrage wartet unter Needs you, bis eine Person entscheidet.",
+          "Legen Sie die Arbeit in einen Arbeitsauftrag mit Abnahmekriterien und einem Budget. Eine registrierte Agentensitzung beansprucht den Lauf und arbeitet innerhalb der Scopes ihres Schlüssels. Für einen geschützten Schritt fragt sie eine Freigabe an, und die Anfrage wartet unter „Braucht Sie“ („Needs you“), bis eine Person entscheidet.",
         meta: "Explizite Befugnis vor der Arbeit, ruhige Aufsicht, solange der Lauf dauert",
         signal: "Arbeitsaufträge, Läufe und Freigaben",
         reference: {
@@ -540,14 +540,14 @@ export const paimosContentDe = {
           title: "Dauerhafte Wissensebene",
           icon: "library",
           body:
-            "Runbooks, Richtlinien, Erinnerungen, externe Systeme und verwandte Projekte werden projekteigenes Wissen statt einer losen Sammlung maschinenlokaler Dateien.",
+            "Runbooks, Richtlinien, Gedächtniseinträge, externe Systeme und verwandte Projekte werden projekteigenes Wissen statt einer losen Sammlung maschinenlokaler Dateien.",
           meta: "Durchstöberbar, durchsuchbar und verknüpfbar",
         },
         {
           title: "Stabile Namen für Agenten",
           body:
-            "Agenten lesen einen Eintrag über seine Art und seinen Slug, zum Beispiel aeon knowledge get runbook deploy-checklist --project KEY, sodass derselbe Verweis aus jedem Harness und aus der CLI funktioniert.",
-          meta: "Ein Verweis, jedes Harness",
+            "Agenten lesen einen Eintrag über seine Art und seinen stabilen Kurznamen, zum Beispiel aeon knowledge get runbook deploy-checklist --project KEY, sodass derselbe Verweis aus jedem Agentenprogramm und aus der CLI funktioniert.",
+          meta: "Ein Verweis, jedes Agentenprogramm",
           reference: {
             label: "Agenten-Integration",
             href: docsUrl("AGENT_INTEGRATION.md"),
@@ -558,13 +558,13 @@ export const paimosContentDe = {
           title: "Wissensgraph",
           icon: "waypoints",
           body:
-            "Wechseln Sie beim Wissen eines Projekts von den Einträgen zum Graphen, um zu sehen, wie Runbooks, Richtlinien, Erinnerungen und Arbeitseinträge einander verknüpfen.",
+            "Wechseln Sie beim Wissen eines Projekts von den Einträgen zum Graphen, um zu sehen, wie Runbooks, Richtlinien, Gedächtniseinträge und Arbeitseinträge einander verknüpfen.",
           meta: "Einträge und Graph, ein Schalter",
         },
         {
           title: "Hybrider Abruf",
           body:
-            "Die Suche führt deutschen und englischen Volltext mit optionaler Ähnlichkeit über pgvector zusammen. Ohne Embeddings-Endpunkt bleibt sie lexikalisch und funktioniert weiter.",
+            "Die Suche führt deutschen und englischen Volltext mit optionaler Ähnlichkeit über pgvector zusammen. Ohne Endpunkt für Textvektoren bleibt sie lexikalisch und funktioniert weiter.",
           meta: "Volltextsuche bleibt immer verfügbar",
         },
         {
@@ -583,7 +583,7 @@ export const paimosContentDe = {
         "Ein Agent mit einem Token ist kein Agent mit einer Berechtigung. Paimos hält Schlüssel, Scopes, Freigaben, Budgets und Läufe explizit, statt sie zu einer mehrdeutigen Aktion zu verschmelzen.",
       items: [
         {
-          title: "Agenten-Harnesses",
+          title: "Agentenprogramme",
           icon: "workflow",
           body:
             "Claude Code, Codex, Cursor und pi starten unter Paimos (macOS und Linux) und erscheinen während der Arbeit im Arbeitsbereich für Agenten: woran sie arbeiten, in welchem Tempo sie vorankommen und was sie von Ihnen brauchen. Grok läuft ohne Werkzeuge auf Apple Silicon; Gemini und OpenCode: nur Kopplung, Start geplant.",
@@ -653,13 +653,13 @@ export const paimosContentDe = {
       "Paimos ist dort am nützlichsten, wo Softwarelieferung, KI-gestützte Arbeit und Kundenverantwortung zusammentreffen. Jede Rolle sieht dieselbe Projektwahrheit aus einem anderen betrieblichen Blickwinkel.",
     items: [
       {
-        title: "Engineering-Teams",
+        title: "Entwicklungsteams",
         body:
           "Geben Sie Menschen und Agenten denselben Arbeitsbaum, dasselbe Wissen und dieselbe Laufhistorie. Weniger Rekonstruktion von Kontext, ohne den Zugang der Agenten zu einem unsichtbaren Seitenkanal zu machen.",
         meta: "Planen, delegieren, prüfen und übergeben in einem Projektmodell",
       },
       {
-        title: "Delivery- und Projektleitung",
+        title: "Verantwortliche für Umsetzung und Projekte",
         body:
           "Verfolgen Sie Beziehungen, Releases, Stunden und die Budgets der Arbeitsaufträge, während Agenten arbeiten.",
         meta: "Operative Lieferung ohne zweite Berichtswahrheit",
@@ -685,7 +685,7 @@ export const paimosContentDe = {
       "Paimos bevorzugt einen kleinen, prüfbaren Betriebs-Fußabdruck: ein Anwendungsprozess und eine Datenbank, statt einer verteilten Plattform aus Pflichtdiensten.",
     paragraphs: [
       "Eine einzelne Go-Binärdatei stellt die Vue-Anwendung und die JSON-API bereit. Postgres 18 mit pgvector ist die maßgebliche Datenhaltung. Jede Zeile trägt ihren Mandanten, und die Sicherheit auf Zeilenebene setzt die Trennung durch. Die Migrationen sind eingebettet und werden beim Start angewendet.",
-      "Anhänge werden auf der lokalen Festplatte gespeichert. Personen melden sich über einen OIDC-Identitätsanbieter an, den der Server erreichen kann. Agenten nutzen abgegrenzte API-Schlüssel. Ein Embeddings-Endpunkt und Webhook-Weckrufe sind optional und laufen nur, wenn ein Betreiber sie konfiguriert.",
+      "Anhänge werden auf der lokalen Festplatte gespeichert. Personen melden sich über einen OIDC-Identitätsanbieter an, den der Server erreichen kann. Agenten nutzen abgegrenzte API-Schlüssel. Ein Endpunkt für Textvektoren und Webhook-Weckrufe sind optional und laufen nur, wenn ein Betreiber sie konfiguriert.",
       "Das Ereignisprotokoll ist die Historie: Jede Änderung wird angefügt, Rückgängig ist ein ausgleichendes Ereignis, und der Posteingang der Agenten sowie die laufende Bearbeitung von Angeboten übertragen Aktualisierungen an geöffnete Seiten.",
     ],
     flow: [
@@ -693,22 +693,22 @@ export const paimosContentDe = {
       "Ein Go-Dienst",
       "Vue-Oberfläche und JSON-API",
       "Postgres 18 mit pgvector, Sicherheit auf Zeilenebene",
-      "OIDC für Personen; optionale Embeddings und Webhooks",
+      "OIDC für Personen; optionale Textvektoren und Webhooks",
     ],
     facts: [
       "Ein Anwendungsprozess und eine Datenbank",
-      "Kein verpflichtendes Redis, keine Message-Queue, kein Objektspeicher",
+      "Kein verpflichtendes Redis, keine Nachrichtenwarteschlange, kein Objektspeicher",
       "Container-Image und Release-Binärdateien",
       "Eingebettete Migrationen beim Start",
       "Mandantentrennung in der Datenbank durchgesetzt",
-      "Append-only-Ereignisprotokoll mit Rückgängig",
+      "Ereignisprotokoll, das nur ergänzt wird, mit Rückgängig",
     ],
   },
   trust: {
     eyebrow: "Vertrauen",
     title: "Vertrauen hinterlässt Nachweise.",
     lead:
-      "Paimos belegt öffentliche Aussagen mit Code, Tests, Release-Prüfsummen und einer expliziten Liste der Grenzen. Das Ziel ist prüfbares Verhalten, kein Compliance-Theater.",
+      "Paimos belegt öffentliche Aussagen mit Code, Tests, Release-Prüfsummen und einer expliziten Liste der Grenzen. Das Ziel ist prüfbares Verhalten, keine bloße Inszenierung der Regelkonformität.",
     items: [
       {
         title: "Identität und Autorisierung",
@@ -779,7 +779,7 @@ export const paimosContentDe = {
       },
       {
         name: "Claude Code, Codex, Cursor und pi",
-        status: "Agenten-Harnesses",
+        status: "Agentenprogramme",
         description:
           "Lokale Agentensitzungen starten unter Paimos, registrieren sich bei einem Projekt, beanspruchen Läufe, fragen Berechtigungen an und melden inhaltsfreie Telemetrie. Grok läuft ohne Werkzeuge; Gemini und OpenCode: nur Kopplung, Start geplant.",
       },
@@ -787,7 +787,7 @@ export const paimosContentDe = {
         name: "aeon-agentd",
         status: "Lokaler Daemon",
         description:
-          "Startet und beaufsichtigt Agentensitzungen auf einem Entwicklerrechner und meldet je Harness-Anmeldung ein Konto für das Arbeitstempo an.",
+          "Startet und beaufsichtigt Agentensitzungen auf einem Entwicklerrechner und meldet je Anmeldung beim Agentenprogramm ein Konto für das Arbeitstempo an.",
       },
       {
         name: "MCP",
@@ -814,10 +814,10 @@ export const paimosContentDe = {
           "Pharos und Janus als Paimos-Werkzeuge, über einen gemeinsamen Vertrag aus Anfrage, Richtlinie, Freigabe, Ausführung und Beleg, sind geplant. Beide laufen heute für sich.",
       },
       {
-        name: "Embeddings-Endpunkt",
+        name: "Endpunkt für Textvektoren",
         status: "Optional",
         description:
-          "Ein OpenAI-kompatibler Embeddings-Endpunkt, der Vektoren mit 1.536 Dimensionen liefert, auch einer auf Ihrer eigenen Hardware, ergänzt die Suche nach Bedeutung. Ohne ihn bleibt die Suche Volltext.",
+          "Ein OpenAI-kompatibler Endpunkt für Textvektoren, der Vektoren mit 1.536 Dimensionen liefert, auch einer auf Ihrer eigenen Hardware, ergänzt die Suche nach Bedeutung. Ohne ihn bleibt die Suche Volltext.",
       },
       {
         name: "Webhook-Weckrufe",
@@ -831,7 +831,7 @@ export const paimosContentDe = {
     eyebrow: "Betriebliche Eignung",
     title: "Nichts vorgaukeln.",
     lead:
-      "Eine brauchbare Entscheidung für den Einsatz hängt an den Grenzen genauso wie an der Funktionsliste. Diese Grenzen beschreiben das aktuelle Release und keine künftige Roadmap.",
+      "Eine brauchbare Entscheidung für den Einsatz hängt an den Grenzen genauso wie an der Funktionsliste. Diese Grenzen beschreiben das aktuelle Release und nicht, was künftig geplant ist.",
     items: [
       "Personen melden sich nur über einen OIDC-Identitätsanbieter an, den der Server erreichen kann. Lokale Anmeldung mit Passwort, TOTP und SAML gibt es nicht.",
       "Aufbewahrungsfristen und Endpunkte für Export oder Löschung pro Person gibt es noch nicht.",
@@ -896,7 +896,7 @@ export const paimosContentDe = {
     {
       question: "Braucht Paimos einen KI-Anbieter?",
       answer:
-        "Nein. Planung, Wissen, Suche, Stunden und Angebote funktionieren ohne jedes Modell. Agenten bringen ihren eigenen Harness mit, und ein Embeddings-Endpunkt ist optional.",
+        "Nein. Planung, Wissen, Suche, Stunden und Angebote funktionieren ohne jedes Modell. Agenten bringen ihr eigenes Agentenprogramm mit, und ein Endpunkt für Textvektoren ist optional.",
     },
     {
       question: "Können wir unseren Identitätsanbieter verwenden?",
@@ -916,7 +916,7 @@ export const paimosContentDe = {
     {
       question: "Was kann ein Agent aus einem Projekt lesen?",
       answer:
-        "Im Rahmen der Scopes seines Schlüssels und der Berechtigungen des Projekts kann ein Agent den Arbeitsbaum, die Beziehungen, Wissenseinträge per Slug, Suchergebnisse sowie seine eigenen Arbeitsaufträge und Läufe lesen.",
+        "Im Rahmen der Scopes seines Schlüssels und der Berechtigungen des Projekts kann ein Agent den Arbeitsbaum, die Beziehungen, Wissenseinträge über ihren stabilen Kurznamen, Suchergebnisse sowie seine eigenen Arbeitsaufträge und Läufe lesen.",
     },
     {
       question: "Wie verhält sich der kommerzielle Weg zum offenen Produkt?",

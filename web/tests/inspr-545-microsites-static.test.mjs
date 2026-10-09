@@ -110,17 +110,22 @@ test("INSPR-555 product pages drop the ticker, the number row and the numbered p
   ]);
   assert.doesNotMatch(aeon + aeonCss, /aeon-ribbon|event-ribbon|aeon-marquee/);
   assert.doesNotMatch(aeon + aeonCss, /aeon-figures__value/);
+  const claimCounts = [];
   for (const slug of ["paimos-aeon", "de/paimos-aeon"]) {
     const content = await source(`content/${slug}.ts`);
     assert.doesNotMatch(content, /ribbon/);
     const figures = content.slice(content.indexOf("  figures: ["), content.indexOf("  theatre: {"));
-    const claims = [...figures.matchAll(/claim: "([^"]+)",\s*linkLabel: "([^"]+)",\s*href: ([^\n]+),/g)];
+    // Comment lines may sit between the fields (the OpenAPI link carries one).
+    const claims = [...figures.matchAll(/claim: "([^"]+)",\s*linkLabel: "([^"]+)",\s*(?:\/\/[^\n]*\n\s*)*href: ([^\n]+),/g)];
+    assert.equal(claims.length, (figures.match(/\bclaim: /g) ?? []).length, `${slug}: every claim has a label and a link`);
     assert.ok(claims.length >= 2 && claims.length <= 3, `${slug}: two or three linked claims`);
+    claimCounts.push(claims.length);
     for (const [, claim, , href] of claims) {
       assert.match(claim, /\.$/, `${slug}: "${claim}" is a sentence`);
       assert.match(href, /^"#[a-z-]+"$|^blob\("[^"]+"\)$/, `${slug}: ${href} points at the page or the source`);
     }
   }
+  assert.equal(claimCounts[0], claimCounts[1], "English and German show the same claims");
   for (const page of [product, aithema]) {
     assert.doesNotMatch(page, /proof-strip__index|content\.proof\.length/);
     assert.match(page, /<ul class="proof-strip" role="list">\s*\{content\.proof\.map\(\(item\) => <li>\{item\}<\/li>\)\}\s*<\/ul>/);

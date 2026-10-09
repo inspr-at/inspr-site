@@ -16,9 +16,9 @@ const editions = [
 test("one constant names the presented release (INSPR-529)", async () => {
   const english = await source("content/paimos-aeon.ts");
   const release = english.match(/export const paimosRelease = \{([\s\S]*?)\n\};/)?.[1] ?? "";
-  assert.match(release, /number: "125"/);
-  assert.match(release, /codename: "Exotic Ejecta"/);
-  assert.match(release, /tag: "v261007063042\.0\.0"/);
+  assert.match(release, /number: "128"/);
+  assert.match(release, /codename: "Hidden Helium"/);
+  assert.match(release, /tag: "v261009095632\.0\.0"/);
   assert.equal((english.match(/v26\d{10}\.0\.0/g) ?? []).length, 1, "the tag literal appears exactly once");
   const german = await source("content/de/paimos-aeon.ts");
   assert.match(german, /import \{ paimosRelease \} from "\.\.\/paimos-aeon";/);

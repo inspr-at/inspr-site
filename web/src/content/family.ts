@@ -368,8 +368,8 @@ export const engineJobs: Array<{
     label: t("Rules as settings", "Regeln als Einstellungen"),
     status: "partly",
     note: t(
-      "Model preferences by type of work, review order and review gates are live; cross-family review as a configurable tenant or project policy is planned.",
-      "Modellpräferenzen je Art der Arbeit, Prüfreihenfolge und Prüfschritte sind live; Prüfung durch eine andere Modellfamilie als konfigurierbare Richtlinie je Mandant oder Projekt ist geplant.",
+      "Model preferences by type of work, review order and review gates are live; cross-family review has configurable tenant and project policies.",
+      "Modellpräferenzen je Art der Arbeit, Prüfreihenfolge und Prüfschritte sind live; die Prüfung durch eine andere Modellfamilie hat konfigurierbare Richtlinien je Mandant und Projekt.",
     ),
   },
   {

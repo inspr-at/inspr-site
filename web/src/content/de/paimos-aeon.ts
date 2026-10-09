@@ -11,7 +11,8 @@ import type { AeonContent } from "../types";
 // both files in sync when product claims change.
 const repositoryUrl = "https://github.com/inspr-at/paimos";
 const tag = paimosRelease.tag;
-const blob = (path: string) => `${repositoryUrl}/blob/${tag}/${path}`;
+// A trailing slash selects a directory; other destinations select files.
+const blob = (path: string) => `${repositoryUrl}/${path.endsWith("/") ? "tree" : "blob"}/${tag}/${path}`;
 
 export const paimosAeonContentDe = {
   name: "PAIMOS AEON",
@@ -83,7 +84,7 @@ export const paimosAeonContentDe = {
     {
       claim: "Eine Datei nach OpenAPI 3.1 beschreibt mehr als 500 API-Pfade.",
       linkLabel: "Vertrag lesen",
-      href: blob("api/openapi.yaml"),
+      href: blob("api/areas/"),
     },
   ],
   theatre: {
@@ -197,7 +198,7 @@ export const paimosAeonContentDe = {
         label: "Mandantentrennung",
         icon: "lock-keyhole",
         group: "security",
-        note: "Sicherheit auf Zeilenebene im FORCE-Modus trennt in Postgres die Mandanten in jeder Tabelle, unterhalb der Anwendung.",
+        note: "Sicherheit auf Zeilenebene im FORCE-Modus trennt in Postgres die Mandantendaten, unterhalb der Anwendung.",
         noteEli10: "Die Daten jeder Organisation sind von der Datenbank selbst abgeschottet.",
       },
       {
@@ -484,7 +485,7 @@ export const paimosAeonContentDe = {
       simple:
         "Unter der Haube ist AEON bewusst einfach: ein Programm, eine Datenbank und eine Aufzeichnung von allem, was geschehen ist.",
       technical:
-        "Eine einzelne Go-Binärdatei bettet die Vue-Anwendung ein und stellt den Vertrag nach OpenAPI 3.1 bereit. Postgres 18 mit pgvector hält jede Zeile unter Sicherheit auf Zeilenebene im FORCE-Modus, eine Ereignistabelle, die nur ergänzt wird, speist die Historie und Live-Aktualisierungen per Server-Sent Events, und aeon-agentd spricht ein Daemon-Protokoll mit den Adaptern für Agentenprogramme.",
+        "Eine einzelne Go-Binärdatei bettet die Vue-Anwendung ein und stellt den Vertrag nach OpenAPI 3.1 bereit. Postgres 18 mit pgvector hält Mandantendaten unter Sicherheit auf Zeilenebene im FORCE-Modus, eine Ereignistabelle, die nur ergänzt wird, speist die Historie und Live-Aktualisierungen per Server-Sent Events, und aeon-agentd spricht ein Daemon-Protokoll mit den Adaptern für Agentenprogramme.",
     },
     diagram: {
       clientsLabel: "Menschen und Werkzeuge",
@@ -506,7 +507,7 @@ export const paimosAeonContentDe = {
       },
       {
         title: "Mandantentrennung in der Datenbank",
-        body: "Sicherheit auf Zeilenebene im FORCE-Modus hält die Mandanten in jeder Tabelle auseinander, unterhalb der Anwendung.",
+        body: "Sicherheit auf Zeilenebene im FORCE-Modus hält die Mandantendaten auseinander, unterhalb der Anwendung.",
         proof: { label: "Schema der Mandantentrennung", path: "internal/db/migrations/0003_principals.sql" },
       },
       {
@@ -517,7 +518,7 @@ export const paimosAeonContentDe = {
       {
         title: "Vertrag zuerst",
         body: "Eine Datei nach OpenAPI 3.1 beschreibt mehr als 500 Pfade; der Server bettet die Web-Anwendung ein, die er ausliefert.",
-        proof: { label: "OpenAPI-Vertrag", path: "api/openapi.yaml" },
+        proof: { label: "OpenAPI-Vertrag", path: "api/areas" },
       },
     ],
   },
@@ -535,7 +536,7 @@ export const paimosAeonContentDe = {
       items: [
         "Diese Agentenprogramme sind unterstützt, und die Abnahme im Live-Betrieb steht noch aus.",
         "Steuerung und Sitzungseinstellungen sind für Claude unter macOS qualifiziert; Cursor unterstützt nur Unterbrechen.",
-        "Nur Claude hat eine qualifizierte Verifikation ohne Werkzeuge; Codex und Cursor verbinden sich ohne automatischen Verifikationslauf.",
+        "Claude und Grok auf Apple Silicon haben eine qualifizierte Verifikation ohne Werkzeuge; Codex und Cursor verbinden sich ohne automatischen Verifikationslauf.",
         "Das Anbinden einer laufenden Sitzung ist früh verfügbar, aus macOS-Terminals.",
         "Tickets, Wissen und Suche laufen über die CLI und die HTTP-API; der MCP-Server ist früh verfügbar.",
         "Regeländerungen als Pull Requests stehen bereit, sobald ein Betreiber sie aktiviert.",

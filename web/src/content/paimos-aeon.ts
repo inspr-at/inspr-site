@@ -14,15 +14,16 @@ const repositoryUrl = "https://github.com/inspr-at/paimos";
 // INSPR-529: the one place that names the presented release. A new release is
 // one edit here; every label, link and proof path below follows it.
 export const paimosRelease = {
-  number: "125",
-  codename: "Exotic Ejecta",
-  tag: "v261007063042.0.0",
-  publishedAt: "2026-10-07",
-  publishedLabel: { en: "7 October 2026", de: "7. Oktober 2026" },
+  number: "128",
+  codename: "Hidden Helium",
+  tag: "v261009095632.0.0",
+  publishedAt: "2026-10-09",
+  publishedLabel: { en: "9 October 2026", de: "9. Oktober 2026" },
 };
 
 const tag = paimosRelease.tag;
-const blob = (path: string) => `${repositoryUrl}/blob/${tag}/${path}`;
+// A trailing slash selects a directory; other destinations select files.
+const blob = (path: string) => `${repositoryUrl}/${path.endsWith("/") ? "tree" : "blob"}/${tag}/${path}`;
 
 export const paimosAeonContent = {
   name: "PAIMOS AEON",
@@ -94,10 +95,8 @@ export const paimosAeonContent = {
     {
       claim: "One OpenAPI 3.1 file describes more than 500 API paths.",
       linkLabel: "Read the contract",
-      // Release 125 commits the contract file (536 paths). From release 128 it
-      // is generated from per-area files and not committed: on that bump, point
-      // this link and the OpenAPI proof below at the per-area source directory.
-      href: blob("api/openapi.yaml"),
+      // The contract is generated; link to its committed per-area sources.
+      href: blob("api/areas/"),
     },
   ],
   theatre: {
@@ -211,7 +210,7 @@ export const paimosAeonContent = {
         label: "Tenant isolation",
         icon: "lock-keyhole",
         group: "security",
-        note: "FORCE row-level security in Postgres separates tenants on every table, below the application.",
+        note: "FORCE row-level security in Postgres separates tenant data, below the application.",
         noteEli10: "Each organisation's data is walled off by the database itself.",
       },
       {
@@ -500,7 +499,7 @@ export const paimosAeonContent = {
       simple:
         "Under the hood, AEON is deliberately simple: one program, one database, and a record of everything that happened.",
       technical:
-        "A single Go binary embeds the Vue app and serves the OpenAPI 3.1 contract. Postgres 18 with pgvector holds every row under FORCE row-level security, an append-only event table drives history and server-sent live updates, and aeon-agentd speaks one daemon protocol to the harness adapters.",
+        "A single Go binary embeds the Vue app and serves the OpenAPI 3.1 contract. Postgres 18 with pgvector holds tenant data under FORCE row-level security, an append-only event table drives history and server-sent live updates, and aeon-agentd speaks one daemon protocol to the harness adapters.",
     },
     diagram: {
       clientsLabel: "People and tools",
@@ -522,7 +521,7 @@ export const paimosAeonContent = {
       },
       {
         title: "Tenancy in the database",
-        body: "FORCE row-level security on every table keeps tenants apart below the application.",
+        body: "FORCE row-level security keeps tenant data apart below the application.",
         proof: { label: "Tenancy schema", path: "internal/db/migrations/0003_principals.sql" },
       },
       {
@@ -533,7 +532,7 @@ export const paimosAeonContent = {
       {
         title: "Contract first",
         body: "One OpenAPI 3.1 file describes more than 500 paths; the server embeds the web app it serves.",
-        proof: { label: "OpenAPI contract", path: "api/openapi.yaml" },
+        proof: { label: "OpenAPI contract", path: "api/areas" },
       },
     ],
   },
@@ -551,7 +550,7 @@ export const paimosAeonContent = {
       items: [
         "These harnesses are supported, and live acceptance is still open.",
         "Steering and session settings are qualified for Claude on macOS; Cursor supports interrupt only.",
-        "Claude is the only harness with qualified tool-free verification; Codex and Cursor connect without an automatic verification run.",
+        "Claude and Grok on Apple silicon have qualified tool-free verification; Codex and Cursor connect without an automatic verification run.",
         "Attaching a running session is in early access, from macOS terminals.",
         "Issues, knowledge and search run through the CLI and HTTP API; the MCP server is in early access.",
         "Rule edits as pull requests are available once an operator enables them.",

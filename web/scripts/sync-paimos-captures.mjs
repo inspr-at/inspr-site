@@ -10,6 +10,7 @@ import { spawnSync } from "node:child_process";
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { verifyAeonCaptures } from "./check-aeon-captures.mjs";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const webRoot = resolve(scriptDir, "..");
@@ -65,7 +66,7 @@ function readJson(path) {
 // aeon scripts/verify-release.mjs fixes the suffix). The tag is stored
 // verbatim; it is never inferred.
 function verifyRelease(releaseKind, release) {
-  if (releaseKind !== "inspr-calendar-v2") fail("release kind must be inspr-calendar-v2");
+  if (!["inspr-calver-3", "inspr-calendar-v2"].includes(releaseKind)) fail("release kind must be inspr-calver-3 or historical inspr-calendar-v2");
   // Same grammar as aeon scripts/verify-release.mjs validCalendarVersion.
   const match = release.match(/^([1-9][0-9])(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])([01][0-9]|2[0-3])([0-5][0-9])([0-5][0-9])\.0\.0$/);
   if (!match) fail("release is not YYMMDDHHMMSS.0.0");
@@ -296,7 +297,11 @@ if (process.argv.includes("--check")) {
   // The public tag is re-proved against the recorded commit on every check,
   // so the build (CI and deploy.sh) cannot publish a false provenance.
   // --offline exists only for hermetic unit tests of the other rules.
-  verifyCommitted(valueAfter("--manifest") || manifestPath, !process.argv.includes("--offline"));
+  const remote = !process.argv.includes("--offline");
+  verifyCommitted(valueAfter("--manifest") || manifestPath, remote);
+  // INSPR-556: extend the gate to release-128 demo frames; the existing
+  // surface/hotspot, dark-spare, video, framing and public-tag checks stay.
+  verifyAeonCaptures(remote ? verifyPublicTag : undefined);
 } else {
   const captureDirArg = valueAfter("--capture-dir");
   const release = valueAfter("--release");

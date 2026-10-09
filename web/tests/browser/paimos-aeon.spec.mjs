@@ -31,7 +31,8 @@ for (const path of routes) {
   test(`${path} moves through the screen theatre by keyboard`, async ({ page }) => {
     await page.goto(`${path}?lang=${path.includes("/de/") ? "de" : "en"}`, { waitUntil: "domcontentloaded" });
     const tabs = page.locator("[data-theatre-tab]");
-    await expect(tabs).toHaveCount(4);
+    // INSPR-556: six release-128 demo tabs preserve the keyboard contract.
+    await expect(tabs).toHaveCount(6);
     await tabs.first().focus();
     await page.keyboard.press("ArrowRight");
     await expect(tabs.nth(1)).toHaveAttribute("aria-selected", "true");
@@ -39,7 +40,7 @@ for (const path of routes) {
     const panel = await tabs.nth(1).getAttribute("aria-controls");
     await expect(page.locator(`#${panel}`)).toBeVisible();
     await page.keyboard.press("End");
-    await expect(tabs.nth(3)).toHaveAttribute("aria-selected", "true");
+    await expect(tabs.last()).toHaveAttribute("aria-selected", "true");
   });
 }
 

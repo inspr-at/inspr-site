@@ -120,15 +120,19 @@ test("the German edition mirrors the English proof paths exactly", async () => {
 
 test("every capture is recorded with its release, source and redaction policy", async () => {
   const manifest = JSON.parse(await source("assets/products/paimos-aeon/capture-manifest.json"));
-  assert.equal(manifest.tag, "v260930115354.0.0");
+  // INSPR-556: release-128 demos; legacy per-file records stay unchanged.
+  assert.equal(manifest.tag, "v261009095632.0.0");
   assert.match(manifest.commit, /^[0-9a-f]{40}$/);
-  assert.equal(manifest.source, "internal INSPR instance");
-  assert.match(manifest.sourceVersionCheck, /260930115354\.0\.0/);
+  assert.equal(manifest.source, "release-128 web UI with the repository's fictional test fixtures");
+  assert.match(manifest.sourceVersionCheck, /verified release-128 source commit/);
+  assert.equal(manifest.syntheticData, true);
+  assert.equal(manifest.legacyCapture.tag, "v260930115354.0.0");
   assert.equal(typeof manifest.syntheticData, "boolean");
-  assert.match(manifest.redaction, /e-mail/);
+  assert.match(manifest.redaction, /sanitized before rendering/);
+  assert.match(manifest.legacyCapture.redaction, /e-mail/);
   const page = await source("components/AeonPage.astro");
   const imports = [...page.matchAll(/from "\.\.\/assets\/products\/paimos-aeon\/([\w-]+\.png)";/g)].map((m) => m[1]);
-  assert.ok(imports.length >= 3 && imports.length <= 7, "the page shows a handful of live screens");
+  assert.ok(imports.length === 8, "six demo frames, plus the retained control and rules screens");
   const recorded = new Set(manifest.files.map((file) => file.name));
   for (const name of imports) assert.ok(recorded.has(name), `${name} is missing from the capture manifest`);
 });
@@ -175,4 +179,37 @@ test("the built Paimos pages render no repository path as visible text", async (
       .replace(/<[^>]+>/g, " ");
     assert.doesNotMatch(text, visiblePath, `${page} shows a repository path`);
   }
+});
+
+// INSPR-556: exercise the new safety boundary with altered provenance and
+// geometry, rather than merely pinning the new happy-path copy.
+test("demo captures reject false release, fixture, safety and pixel provenance", async () => {
+  const { demoProblems } = await import("../scripts/check-aeon-captures.mjs");
+  const manifest = JSON.parse(await source("assets/products/paimos-aeon/capture-manifest.json"));
+  const file = manifest.files.find((file) => file.name === "delivery.png");
+  const bytes = await readFile(new URL(`src/assets/products/paimos-aeon/${file.name}`, webUrl));
+  assert.deepEqual(demoProblems(manifest, file, bytes), []);
+  for (const [field, value, reason] of [
+    ["syntheticData", false, /synthetic data/],
+    ["sourceRepository", "unknown/repo", /source repository/],
+    ["releaseKind", "semver", /release kind/],
+    ["tag", "v261009095633.0.0", /tag\/version/],
+    ["commit", "a".repeat(40), /source commit/],
+    ["route", "https://example.com", /relative app route/],
+    ["fixtures", [], /named repository fixtures/],
+    ["fixtures", ["../private.env"], /named repository fixtures/],
+    ["safety", "", /safety record/],
+    ["crop", { x: 1599, y: 0, width: 1528, height: 849 }, /fit the viewport/],
+    ["width", 1, /PNG dimensions/],
+    ["viewport", { width: 1600, height: 1100 }, /frame viewport/],
+    ["viewport", { width: 1600, height: 1000 }, /fit the viewport/],
+    ["deviceScaleFactor", 1, /frame viewport/],
+  ]) {
+    assert.match(demoProblems(manifest, { ...file, [field]: value }, bytes).join("\n"), reason, field);
+  }
+  const impossible = { ...file, tag: "v260230095632.0.0", version: "260230095632.0.0" };
+  assert.match(demoProblems({ ...manifest, tag: impossible.tag }, impossible, bytes).join("\n"), /real calendar instant/);
+  const corrupt = Buffer.from(bytes);
+  corrupt[0] = 0;
+  assert.match(demoProblems(manifest, file, corrupt).join("\n"), /must be a PNG/);
 });

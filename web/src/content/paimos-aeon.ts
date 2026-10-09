@@ -7,8 +7,8 @@ import type { AeonContent } from "./types";
 // the release tag; proof paths resolve against `sourceTreeUrl`. Planned work
 // appears only through the shared build order, with a status and no date. Left
 // out on purpose: the business module, MCP issue and knowledge tools (early),
-// embedding-ranked search and voice. Screens come from an internal instance and
-// keep their capture date, not a host or a version.
+// embedding-ranked search and voice. INSPR-556: release-128 demo screens keep
+// their release and fixture provenance; older screens keep their own capture date.
 const repositoryUrl = "https://github.com/inspr-at/paimos";
 
 // INSPR-529: the one place that names the presented release. A new release is
@@ -100,47 +100,60 @@ export const paimosAeonContent = {
     },
   ],
   theatre: {
-    eyebrow: "Internal instance",
-    title: "AEON, built with AEON.",
-    lead:
-      "These screens come from an internal instance, where the INSPR team plans, runs and ships AEON with its own agents.",
-    note: "Internal instance · captured 30 September 2026",
+    eyebrow: "Real screens",
+    title: `AEON at release ${paimosRelease.number}.`,
+    lead: "Delivery, independent review and conversations with managed agents, shown in the released app with fictional project data.",
+    note: `Real screen, demo data · release ${paimosRelease.number}`,
     openLabel: "Open full size",
     screens: [
       {
-        id: "tickets",
-        tab: "Tickets",
-        title: "Tickets by epic",
-        body: "The AEON backlog grouped by epic, with agent estimates, progress and ETAs.",
-        alt: "The AEON ticket list grouped by epic, with status, priority, assignee, estimate, progress and ETA columns.",
+        id: "delivery",
+        tab: "Delivery",
+        title: "Live delivery",
+        body: "Release 126 on one timeline, lane by lane: you, the lead, ops and reviewer agents, the builder and the checks. A red band marks the incident since 20:14, and the summary says what runs now and that healthy is expected around 20:35.",
+        alt: "PAIMOS Delivery in Live mode, with release and change timelines and the current delivery status.",
       },
       {
-        id: "graph",
-        tab: "Graph",
-        title: "Tickets, connected",
-        body: "Open tickets, their epics and typed relations as one graph.",
-        alt: "The AEON tickets shown as a graph of epics, tickets and their relations.",
+        id: "review",
+        tab: "Review",
+        title: "Cross-family review",
+        body: "A workspace rule that a change counts as reviewed only when a model of another family reviewed it. The pull request shows the same rule as a GitHub status.",
+        alt: "PAIMOS cross-family review policy with a reviewer from another model family selected.",
       },
       {
-        id: "knowledge",
-        tab: "Knowledge",
-        title: "Knowledge, connected",
-        body: "Runbooks, guidelines and decisions, linked the way agents read them.",
-        alt: "The AEON knowledge graph of linked runbooks, guidelines and memory entries.",
+        id: "chat",
+        tab: "Chat",
+        title: "Chat with an agent",
+        body: "A conversation with the release-lead agent: a code block with Copy, a Read receipt on your message, a message queued for after this turn, and Stop on Esc.",
+        alt: "PAIMOS agent chat with a read receipt, a queued message, a code block and Stop control.",
+      },
+      {
+        id: "attention",
+        tab: "Needs attention",
+        title: "Needs attention",
+        body: "Five autopilot suggestions grouped by project: three AEON tickets from New to Backlog and two PHAROS tickets to cancel. Apply or dismiss each one, or apply all for a project.",
+        alt: "PAIMOS Needs attention grouped by project, with suggested ticket changes and bulk triage.",
+      },
+      {
+        id: "models",
+        tab: "Models",
+        title: "One default model",
+        body: "One default model for all work, with exceptions for UI design (locked), docs and copy, and concepts. Reviews always go to another family, and the next backend build and its reviewer are named.",
+        alt: "PAIMOS Models settings with one default model, task exceptions and independent reviews.",
       },
       {
         id: "usage",
         tab: "Usage",
         title: "Usage",
-        body: "Tickets done, agent time and retries for the AEON project, day by day.",
-        alt: "The AEON usage dashboard for the last seven days: tickets done, agent time, retries and tickets by agent time.",
+        body: "A shared weekly quota with 42% left and its reset time, the two computers signed in, and a usage choice of Careful (selected), Balanced or Max out, with a 10% floor.",
+        alt: "PAIMOS account usage with a careful-use policy, limits, remaining capacity and reset times.",
       },
     ],
   },
   specs: {
     eyebrow: "Specs",
     title: "What you get.",
-    lead: "Nineteen released capabilities. Seven of the images are illustrations and say so. Hover or tap a card for the detail.",
+    lead: "Nineteen released capabilities. Six of the images are illustrations and say so. Hover or tap a card for the detail.",
     leadEli10: "The same nineteen, in plain words.",
     items: [
       {
@@ -154,8 +167,8 @@ export const paimosAeonContent = {
         label: "Control room",
         icon: "panels-top-left",
         group: "ai",
-        note: "Lead and worker trees, live state, model and effort, and messages marked Sent, Delivered and Read.",
-        noteEli10: "One screen shows every AI helper: what it is doing, who it reports to and whether it read your message.",
+        note: "Lead and worker trees, live state, model and effort. Talk to managed agents in a chat that shows sent, delivered and read, renders code cleanly, and stops a reply with Esc.",
+        noteEli10: "See what each helper is doing and chat with managed helpers. You can see whether a message arrived or was read, read their code, and stop a reply with Esc.",
       },
       {
         label: "Your machines",
@@ -182,22 +195,22 @@ export const paimosAeonContent = {
         label: "Capacity routing",
         icon: "route",
         group: "ai",
-        note: "AEON learns run costs and vendor limits, keeps a share for you and hands work to the next account when a vendor stops one.",
-        noteEli10: "If one AI account runs out, the work moves to the next one, and some capacity stays reserved for you.",
+        note: "PAIMOS sees each subscription's limits and reset times, lets you choose careful or full use, and adopts newer versions of the models you use automatically. Usage reading is available where enabled; automatic model updates are opt-in. Choose one default model and a few exceptions.",
+        noteEli10: "See how much each AI account has left and when it refills. Choose careful or full use, one usual model and a few exceptions. Turn on usage reading and automatic model updates if you want them.",
       },
       {
         label: "Governed rules",
         icon: "scroll-text",
         group: "ai",
-        note: "Rules layer from company to task, publish as immutable versions and keep locked floors and byte budgets.",
-        noteEli10: "House rules for the helpers are written once and versioned, and the important ones stay locked in place.",
+        note: "Rules layer from company to task, publish as immutable versions with locked floors and byte budgets, and doctrine is read from git at a pinned commit, with drift checks.",
+        noteEli10: "House rules build on each other, from company to task. Important rules stay locked, size limits keep them readable, and a check tells you when a helper has a different copy.",
       },
       {
-        label: "Git-backed doctrine",
-        icon: "git-branch",
-        group: "ops",
-        note: "Doctrine is read from git at a pinned commit; aeon rules compare and aeon doctor detect drift.",
-        noteEli10: "The rulebook lives in version control, and a check tells you when a helper works from an outdated copy.",
+        label: "Cross-family review",
+        icon: "user-round-check",
+        group: "ai",
+        note: "Choose per company or project that every change needs a review from another model family; PAIMOS checks the author from its own records and flags merges that skipped the queue or a verified review.",
+        noteEli10: "Choose that each change needs a check by a helper from another AI maker. With GitHub connected, PAIMOS checks who wrote it and flags missing review or queue steps. Running the reviews and fixes itself is still a preview.",
       },
       {
         label: "Append-only log",
@@ -238,15 +251,15 @@ export const paimosAeonContent = {
         label: "Clear usage",
         icon: "eye",
         group: "ops",
-        note: "Tokens per session, ticket and epic, with list-price estimates kept apart from subscription use.",
-        noteEli10: "You see how much AI each task used, and estimates are clearly marked as estimates.",
+        note: "Tokens per session, ticket and epic, with list-price estimates kept apart from subscription use. With usage reading enabled, see reported usage, limits and reset times per account, even between runs.",
+        noteEli10: "See how much AI each task used and, when usage reading is enabled, how much each account has left and when it refills. Estimates stay clearly marked.",
       },
       {
-        label: "Live updates",
-        icon: "radio-tower",
+        label: "Delivery dashboard",
+        icon: "panels-top-left",
         group: "ops",
-        note: "Open pages follow the event log through server-sent events, so lists and the outline update as work happens.",
-        noteEli10: "Screens update by themselves the moment something changes.",
+        note: "See per project how fast changes reach live; watch a release live, replay a past one, or compare it with a target. For data the project reports: CI and merge queue via GitHub, release steps when reported.",
+        noteEli10: "See how long changes take to go live. Follow a release, replay an earlier one, or compare it with a goal, using the steps your project reports.",
       },
       {
         label: "Contract first",
@@ -463,6 +476,8 @@ export const paimosAeonContent = {
       { title: "Byte budgets", body: "Each layer has a size budget, so what an agent loads stays readable." },
       { title: "Drift detection", body: "aeon rules compare and aeon doctor show where a harness differs from what was published." },
     ],
+    // INSPR-556: AEON-378/444 live proposals; AEON-680/693 planned routines.
+    learning: "Outcomes already turn into rule proposals a person approves (live). Routines that run agents on a schedule and learn from earlier runs are next (planned).",
     early: "Early access: rule edits as pull requests, once an operator enables them.",
     screenAlt:
       "The AEON agent rules view: company and project rule sets with their locks, one opened set of locked kernel rules, the byte budget and doctrine pinned from git.",
@@ -470,6 +485,7 @@ export const paimosAeonContent = {
       { label: "Rules", path: "internal/rules" },
       { label: "Rules compare", path: "internal/rulescompare" },
       { label: "README: Agent rules", path: "README.md" },
+      { label: "Rule proposals from outcomes", path: "internal/rules/doctrine/analysis_job.go" },
     ],
   },
   // INSPR-544: the retired Journey gives way to the engine, told from the
@@ -478,12 +494,13 @@ export const paimosAeonContent = {
     eyebrow: "The engine",
     title: "The engine that runs the work.",
     lead:
-      "Six jobs run the work around the tickets. Two are live, four are partly live: each one says how far it has shipped.",
+      "Six jobs run the work around the tickets. Four are live, two are partly live: each one says how far it has shipped.",
+    shadow: "Before PAIMOS takes over starts, queueing, model routing, reviews or shipping, it records next to your current process what it would have done, so you compare before switching it on per project. This shadow mode is preview.",
     depths: {
       simple:
         "The engine is the part of AEON that keeps agents and people in step. Some of its jobs already work; others are still being built.",
       technical:
-        "Live today: the admission dial with per-harness limits, model preferences by type of work with review order and review gates, the Decision Desk with a durable inbox, and events with worker attribution, outcomes and session, token and cost reporting.",
+        "Live today: delivery status per ticket and stall alerts with GitHub connected; the admission dial, account limits, reset times and careful or full use; one default model and a few exceptions, with cross-family review as a company or project setting; the merge audit; the Decision Desk and its durable inbox; and events with worker attribution, outcomes and session, token and cost reporting. The desk does not yet replace Needs you on Agents. Starts, queueing, model routing, automatic review rounds and shipping run in shadow mode; host-load throttling is planned.",
     },
     jobs: engineJobs.map((job) => ({ label: job.label.en, status: job.status, note: job.note.en })),
     flowNote: {

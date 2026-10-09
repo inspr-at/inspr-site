@@ -3,7 +3,7 @@
  *
  * An iteration on microsites.css, not a new system. The family tokens, type
  * scale and section rhythm stay; AEON adds its brand gold, the era arc from
- * its mark as the recurring figure, Fraunces italic as the accent voice and
+ * its mark as the recurring figure, upright Geist as the accent voice and
  * a deeper night for the set pieces. Loaded only by AeonPage.
  */
 @layer components {
@@ -615,8 +615,81 @@
     letter-spacing: 0.05em;
   }
 
+  /* INSPR-556 / GUI-27: release-128 theatre uses plain text controls;
+     portrait crops fit the same stage as the wide delivery timeline. */
+  .aeon-theatre .aeon-tabs {
+    gap: 0.6rem 1.4rem;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .aeon-theatre .aeon-tab {
+    padding: 0.6rem 0;
+    border-radius: 0;
+    font-weight: 500;
+  }
+
+  .aeon-theatre .aeon-tab:hover,
+  .aeon-theatre .aeon-tab[aria-selected="true"] {
+    color: var(--ink);
+    background: none;
+    text-decoration: underline;
+    text-underline-offset: 0.3em;
+  }
+
+  .aeon-theatre .aeon-tab[aria-selected="true"] {
+    font-weight: 700;
+  }
+
+  .aeon-theatre .aeon-tab__index,
+  .aeon-theatre .aeon-tab__progress {
+    display: none;
+  }
+
+  .aeon-theatre .aeon-motion-toggle {
+    padding: 0.6rem 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .aeon-theatre__image {
+    display: block;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .aeon-theatre__image:hover {
+    transform: none;
+  }
+
+  .aeon-theatre__image img {
+    display: block;
+    width: 100%;
+    height: min(70vh, 50rem);
+    object-fit: contain;
+  }
+
+  .aeon-theatre__open {
+    display: block;
+    margin-top: 0.8rem;
+    font-size: 0.9rem;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .aeon-theatre__note {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    letter-spacing: normal;
+  }
+
   /* ── Specs, the AEON edition ──────────────────────────────────────── */
-  /* Twenty calm liquid-glass tiles in stable order over a full-bleed light
+  /* Nineteen capability controls in stable order over a full-bleed light
      field. Hover or focus on a card fades its image in as the section's
      background at 20%; click or tap fades the cards out and opens the
      full-screen carousel. Markup: SpecsGrid.astro (the aeon branches);
@@ -1465,6 +1538,14 @@
     }
   }
 
+  /* INSPR-556 / GUI-27: learning and shadow status in plain, spaced prose. */
+  .aeon-rules__learning,
+  .aeon-engine__shadow {
+    max-width: 65ch;
+    margin-block: 1.8rem;
+    line-height: 1.7;
+  }
+
   .aeon-rules h2 {
     margin-top: 0.9rem;
   }
@@ -2284,6 +2365,54 @@
 
   .aeon-reveal-ready .aeon .aeon-rail:not(.is-in) {
     --rail: 0;
+  }
+
+  /* INSPR-556 / GUI-27: capabilities and release statuses remain text,
+     without glass boxes, pill outlines or uppercase mono captions. */
+  .specs--aeon .specs__face,
+  .specs--aeon .specs__tile:hover .specs__face,
+  .specs--aeon .specs__tile:focus-within .specs__face {
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .specs--aeon .specs__icon {
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .aeon .aeon-ledger > li {
+    padding: 1.5rem 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .specs--aeon .specs__catalogue,
+  .specs--aeon .specs__slide-cat,
+  .specs--aeon .specs__slide-source {
+    font-family: var(--font-body);
+    letter-spacing: normal;
+    text-transform: none;
+  }
+
+  .aeon .aeon-ledger .status-chip,
+  .aeon .aeon-engine__flow .status-chip,
+  .aeon .family-band .status-chip {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    font-family: var(--font-body);
+    letter-spacing: normal;
+    text-transform: none;
   }
 
   /* ── Motion ───────────────────────────────────────────────────────── */

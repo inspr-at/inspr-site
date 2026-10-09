@@ -363,6 +363,8 @@ export type AeonContent = {
     /** Section starts in the rules capture, as a fraction of its height. */
     stops: Array<{ label: string; at: number }>;
     points: Array<{ title: string; body: string }>;
+    /** Person-approved rule learning is live; scheduled agent routines remain planned. */
+    learning: string;
     early: string;
     screenAlt: string;
     proof: AeonProof[];
@@ -372,6 +374,8 @@ export type AeonContent = {
     eyebrow: string;
     title: string;
     lead: string;
+    /** Shadow previews compare proposed action with the current process. */
+    shadow: string;
     depths: Depths;
     jobs: Array<{ label: string; status: Status; note: string }>;
     /** The retired flow and the planned Flow 2; the status belongs to Flow 2. */

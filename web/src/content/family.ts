@@ -284,7 +284,7 @@ export const actors: Array<{
       "Dauerhafte Bots führen Routinen aus und fragen, bevor sie nach außen handeln.",
     ),
     status: "planned",
-    statusNote: t("First adapter live", "Erster Adapter live"),
+    statusNote: t("Recurring tickets live; bots and Routines planned", "Wiederkehrende Tickets live; Bots und Routinen geplant"),
   },
   {
     key: "people",
@@ -308,7 +308,7 @@ export const buildOrder: Array<{
     status: "partly",
     statusNote: t(
       "Delivery status per ticket and stall alerts, admission dial, cross-family review setting, Decision Desk and inbox, audit: live. Starts, queueing, model routing, reviews and shipping: shadow preview. Pull requests and merges through Paimos: planned",
-      "Lieferstatus je Ticket und Fristwarnungen, Zulassungsregler, Prüfung durch andere Modellfamilie, Entscheidungsübersicht („Decision Desk“) und Posteingang, Prüfprotokoll: live. Starts, Warteschlangen, Modellwahl, Prüfungen und Auslieferung: Vorschau im Schattenbetrieb. Änderungsanträge und Zusammenführungen über Paimos: geplant",
+      "Lieferstatus je Ticket und Fristwarnungen, Zulassungsregler, Prüfung durch andere Modellfamilie, Entscheidungsübersicht („Decision Desk“) und Posteingang, Prüfprotokoll: live. Starts, Warteschlangen, Modellwahl, Prüfungen und Auslieferung: Vorschau im Schattenbetrieb. Pull Requests und Zusammenführungen über Paimos: geplant",
     ),
   },
   {
@@ -383,7 +383,7 @@ export const engineJobs: Array<{
     status: "partly",
     note: t(
       "The GitHub App can post the cross-family review status, and the merge audit flags skipped queues or missing verified reviews (live with GitHub connected). Pull requests and merges through Paimos remain planned; shipping runs in shadow mode (preview).",
-      "Die GitHub-App kann den Status der Prüfung durch eine andere Modellfamilie setzen. Das Prüfprotokoll meldet übersprungene Zusammenführungswarteschlangen oder fehlende verifizierte Prüfungen (live mit verbundenem GitHub). Änderungsanträge und Zusammenführungen über Paimos bleiben geplant; Auslieferung läuft im Schattenbetrieb (Vorschau).",
+      "Die GitHub-App kann den Status der Prüfung durch eine andere Modellfamilie setzen. Die Merge-Prüfung meldet übersprungene Zusammenführungswarteschlangen oder fehlende verifizierte Prüfungen (live mit verbundenem GitHub). Pull Requests und Zusammenführungen über Paimos bleiben geplant; Auslieferung läuft im Schattenbetrieb (Vorschau).",
     ),
   },
   {

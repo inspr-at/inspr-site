@@ -396,7 +396,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
         </button>
         </div>
 
-        <div class="aeon-theatre__stage" data-aeon-gallery>
+        <div class="aeon-theatre__stage" data-aeon-gallery style={`--aeon-theatre-ratio: ${screens[0].image.width} / ${screens[0].image.height}`}>
           {screens.map((screen, index) => (
             <div
               class="aeon-theatre__panel"
@@ -405,6 +405,8 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
               aria-labelledby={`aeon-tab-${screen.id}`}
               data-theatre-panel
               hidden={index !== 0}
+              inert={index !== 0}
+              aria-hidden={index !== 0 ? "true" : "false"}
             >
               <a
                 class="aeon-theatre__image aeon-shot"
@@ -1121,6 +1123,8 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       });
       panels.forEach((panel, i) => {
         panel.hidden = i !== current;
+        panel.inert = i !== current;
+        panel.setAttribute("aria-hidden", String(i !== current));
       });
       if (focus) tabs[current].focus();
       if (playing) schedule();

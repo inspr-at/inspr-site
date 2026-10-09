@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 export const emailPattern = /\b[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9-]+(?:\.[A-Z0-9-]+)+\b/gi;
 export const ipv4Pattern = /\b(?:\d{1,3}\.){3}\d{1,3}\b/g;
 export const domainPattern = /\b(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,63}\b/gi;
-export const hostPattern = /\b(?!(?:sha256|arm64|amd64|qwen3|woff2|utf8|ipv4)\b)[a-z]{2,4}\d+\b/gi;
+export const hostPattern = /\b(?!(?:sha256|arm64|amd64|qwen3|woff2|utf8|ipv\d+)\b)[a-z]{2,4}\d+\b/gi;
 const publicDomains = new Set(["example.com", "example.org", "github.com", "inspr.at", "www.inspr.at", "paimos.inspr.at", "pharos.inspr.at", "janus.inspr.at", "aithema.inspr.at"]);
 const defaults = { names: "Demo Person", hostPatterns: "demo-host", domains: "demo.example.com", companies: "Demo Company" };
 const fail = (reason) => new Error(`Capture denylist ${reason}. Set INSPR_CAPTURE_DENYLIST to a non-empty local JSON file outside the repositories; capture is disabled.`);
@@ -76,23 +76,27 @@ export function captureTextProblems(text, denylist) {
 export function createCaptureSanitizer(denylist, onReplacement = () => {}) {
   if (!denylist?.rules?.length) throw fail("is empty");
   for (const { replacement } of denylist.rules) if (captureTextProblems(replacement, denylist).length) throw fail("has an unsafe replacement");
-  const sanitizeText = (text, permission = false) => {
+  // Preserve protocol values and path/file references. JSON keys are never rewritten.
+  const protocolField = /(?:^|_)(?:ids?|keys?|routes?|paths?|files?|filenames?|permissions?|scopes?|hash|sha256)(?:$|_)/i;
+  const referenceValue = /^(?:[a-f0-9]{8}-[a-f0-9-]{27,}|[a-f0-9]{40,64}|[A-Z]+-\d+|(?:\.{0,2}\/|[a-z0-9_-]+\/)[^\s]*|[^\s/]+\.(?:ts|mjs|js|json|vue|png|webp|txt|md))$/i;
+  const hostField = /(?:^|_)(?:hostname|machine|host|computer)(?:$|_)/i;
+  const sanitizeText = (text, field) => {
     let next = text;
     for (const { kind, pattern, replacement } of denylist.rules) {
       next = next.replace(pattern, () => { onReplacement(kind, replacement); return replacement; });
     }
-    next = next.replace(ipv4Pattern, "demo-address").replace(hostPattern, "demo-host");
-    next = mapNonEmail(next, (part) => part.replace(domainPattern, (domain) => allowedDomain(domain) ? domain : "demo.example.com"));
-    // A permission identifier is protocol data, never a display domain. Apply
-    // the local denylist regardless, and preserve only valid permission syntax.
-    if (permission && /^[a-z_]+\.(?:read|write|move|delete|act|control|claim|decide|send|manage|recover|force_stop|decide_high|issue|approve|report|refresh|portal_read|portal_accept)$/.test(text) && !denylist.rules.some(({ pattern }) => matches(pattern, text))) return text;
+    if (!protocolField.test(field) && !referenceValue.test(text)) {
+      next = next.replace(ipv4Pattern, "demo-address");
+      if (hostField.test(field) || next.includes(".")) next = next.replace(hostPattern, "demo-host");
+      next = mapNonEmail(next, (part) => part.replace(domainPattern, (domain) => allowedDomain(domain) ? domain : "demo.example.com"));
+    }
     if (next !== text) onReplacement("generic fixture text", next);
     return next;
   };
-  const sanitize = (value, permission = false) => {
-    if (typeof value === "string") return sanitizeText(value, permission);
-    if (Array.isArray(value)) return value.map((item) => sanitize(item, permission));
-    if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, sanitize(item, key === "permissions")]));
+  const sanitize = (value, field = "") => {
+    if (typeof value === "string") return sanitizeText(value, field);
+    if (Array.isArray(value)) return value.map((item) => sanitize(item, field));
+    if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, sanitize(item, key)]));
     return value;
   };
   return sanitize;

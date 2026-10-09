@@ -1,16 +1,17 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
-import test from "node:test";
+import test, { after } from "node:test";
 import ts from "typescript";
 import { captureTextProblems, createCaptureSanitizer, loadCaptureDenylist, emailPattern, ipv4Pattern, hostPattern, domainPattern } from "../scripts/capture-aeon-demo/privacy.mjs";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 const captureDir = "scripts/capture-aeon-demo/";
 const temporary = mkdtempSync(join(tmpdir(), "aeon-capture-privacy-test-"));
+after(() => rmSync(temporary, { recursive: true, force: true }));
 const fixturePath = join(temporary, "denylist.json");
 writeFileSync(fixturePath, JSON.stringify({
   names: [{ value: "Jane Roe", replacement: "Demo Person" }],
@@ -39,7 +40,13 @@ test("the durable demo capture route requires private configuration and uses ins
   assert.match(runner, /"build", "--outDir", join\(output, "site"\), "--configLoader", "runner"/);
   assert.match(runner, /node_modules\/@playwright\/test\/cli\.js/);
   assert.match(config, /executablePath:chrome/);
-  assert.doesNotMatch(runner, /playwright install|ssh|git /);
+  assert.doesNotMatch(runner, /playwright install|ssh/);
+  assert.match(runner, /execFileSync\("git", \["describe", "--tags", "--exact-match", "HEAD"\], \{ cwd: checkout/);
+  assert.match(runner, /execFileSync\("git", \["rev-parse", "HEAD"\], \{ cwd: checkout/);
+  assert.match(runner, /AEON_CAPTURE_TAG: tag/);
+  assert.match(runner, /AEON_CAPTURE_COMMIT: commit/);
+  assert.doesNotMatch(spec, /QA2_APPROVED|10\/10|13 frames|v\d{12}\.0\.0/);
+  assert.match(spec, /process\.env\.AEON_CAPTURE_TAG/);
   assert.ok(runner.indexOf("loadCaptureDenylist({") < runner.indexOf("mkdirSync(target"));
   assert.match(spec, /const denylist = loadCaptureDenylist\(\)/);
   assert.match(spec, /captureTextProblems\(await page\.locator\('body'\)\.innerText\(\), denylist\)/);
@@ -70,11 +77,16 @@ test("generic email, IPv4, domain and host guards catch values absent from the d
   const email = "contact" + "@" + ["outside", "example", "net"].join(".");
   const domain = ["tenant", "example", "net"].join(".");
   const host = "box" + 731;
-  for (const input of [address, email, domain, host, `https://${domain}/status`]) {
+  for (const input of [address, email, domain, `${host}.${domain}`, `https://${domain}/status`]) {
     assert.ok(captureTextProblems(input, fixture).length, "generic private text must fail the body guard");
     assert.notEqual(sanitize(input), input);
     assert.deepEqual(captureTextProblems(sanitize(input), fixture), []);
   }
+  assert.equal(sanitize(host), host, "ordinary display tokens must not be treated as hosts");
+  assert.deepEqual(sanitize({ hostname: host, machine: host, host, computer: host }), {
+    hostname: "demo-host", machine: "demo-host", host: "demo-host", computer: "demo-host",
+  });
+  assert.deepEqual(captureTextProblems("IPv6 and IPv4, UTF8, ARM64", fixture), []);
   assert.equal(sanitize(email), "capture@example.com");
   const exampleEmails = ["jane@example.com", "jane" + "@" + "sample.test", "jane" + "@" + "sample.invalid"];
   for (const input of exampleEmails) {
@@ -87,8 +99,21 @@ test("generic email, IPv4, domain and host guards catch values absent from the d
     assert.deepEqual(captureTextProblems(input, fixture), []);
   }
   assert.deepEqual(sanitize({ permissions: ["delivery.read", domain, email], title: "delivery.read" }), {
-    permissions: ["delivery.read", "demo.example.com", "capture@example.com"], title: "demo.example.com",
-  }, "protocol permissions must still authorize the fixture UI; display text stays guarded");
+    permissions: ["delivery.read", domain, email], title: "demo.example.com",
+  }, "protocol permissions are preserved; display text stays guarded");
+});
+
+
+test("generic replacements preserve JSON keys, identifiers, routes and filenames", () => {
+  const sanitize = createCaptureSanitizer(fixture);
+  const token = "node" + 731;
+  const protocol = { id: token, node_id: token, key: "AEON-731", route: "/api/nodes/731", file: "report.txt", path: "components/work/TicketTable.vue", permissions: ["delivery.read"] };
+  assert.deepEqual(sanitize(protocol), protocol);
+  const key = ["tenant", "example", "net"].join(".");
+  const result = sanitize({ [key]: "contact" + "@" + key, title: "Jane Roe", machine_name: token });
+  assert.equal(result[key], "capture@example.com");
+  assert.equal(result.title, "Demo Person");
+  assert.equal(result.machine_name, "demo-host");
 });
 
 test("denylist loading fails closed on missing, empty, malformed and invalid configuration", () => {
@@ -157,7 +182,7 @@ test("public capture sources contain no literal addresses, private URL domains o
 
 test("the source audit also rejects private domain literals in strings, regexes and comments", () => {
   const publicCodeTerms = new Set([
-    "entry.group.key", "collapsed.has", "words.stop", "m.id", "button.group", "section.delivery", "section.pane",
+    "process.env", "entry.group.key", "collapsed.has", "words.stop", "m.id", "button.group", "section.delivery", "section.pane",
     "delivery.delivered", "textarea.field", "page.locator", "response.json", "path.startsWith", "route.fulfill",
     "page.screenshot", "content.theatre.screens.find", "screen.id", "demo.screen", "screen.body", "lens.images", "specs.items",
   ]);

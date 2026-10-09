@@ -110,7 +110,7 @@ export const paimosAeonContent = {
         id: "delivery",
         tab: "Delivery",
         title: "Live delivery",
-        body: "Release 126 on one timeline, lane by lane: you, the lead, ops and reviewer agents, the builder and the checks. A red band marks the incident since 20:14, and the summary says what runs now and that healthy is expected around 20:35.",
+        body: "A demo release 126 on one timeline, lane by lane: you, the lead, ops and reviewer agents, the builder and the checks. A red band marks the incident since 20:14, and the summary says what runs now and that healthy is expected around 20:35.",
         alt: "PAIMOS Delivery in Live mode, with release and change timelines and the current delivery status.",
       },
       {
@@ -192,7 +192,7 @@ export const paimosAeonContent = {
         noteEli10: "For important steps, a helper has to ask. Only a person can say yes, and the system itself checks that.",
       },
       {
-        label: "Capacity routing",
+        label: "Accounts and models",
         icon: "route",
         group: "ai",
         note: "PAIMOS sees each subscription's limits and reset times, lets you choose careful or full use, and adopts newer versions of the models you use automatically. Usage reading is available where enabled; automatic model updates are opt-in. Choose one default model and a few exceptions.",
@@ -207,7 +207,7 @@ export const paimosAeonContent = {
       },
       {
         label: "Cross-family review",
-        icon: "user-round-check",
+        icon: "git-compare-arrows",
         group: "ai",
         note: "Choose per company or project that every change needs a review from another model family; PAIMOS checks the author from its own records and flags merges that skipped the queue or a verified review.",
         noteEli10: "Choose that each change needs a check by a helper from another AI maker. With GitHub connected, PAIMOS checks who wrote it and flags missing review or queue steps. Running the reviews and fixes itself is still a preview.",
@@ -256,7 +256,7 @@ export const paimosAeonContent = {
       },
       {
         label: "Delivery dashboard",
-        icon: "panels-top-left",
+        icon: "waypoints",
         group: "ops",
         note: "See per project how fast changes reach live; watch a release live, replay a past one, or compare it with a target. For data the project reports: CI and merge queue via GitHub, release steps when reported.",
         noteEli10: "See how long changes take to go live. Follow a release, replay an earlier one, or compare it with a goal, using the steps your project reports.",
@@ -495,7 +495,7 @@ export const paimosAeonContent = {
     title: "The engine that runs the work.",
     lead:
       "Six jobs run the work around the tickets. Four are live, two are partly live: each one says how far it has shipped.",
-    shadow: "Before PAIMOS takes over starts, queueing, model routing, reviews or shipping, it records next to your current process what it would have done, so you compare before switching it on per project. This shadow mode is preview.",
+    shadow: "Before PAIMOS takes over starts, queueing, model routing, reviews or shipping, it records next to your current process what it would have done, so you compare before switching it on per project. This shadow mode is in preview.",
     depths: {
       simple:
         "The engine is the part of AEON that keeps agents and people in step. Some of its jobs already work; others are still being built.",

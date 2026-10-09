@@ -98,14 +98,14 @@ export const paimosAeonContentDe = {
         id: "delivery",
         tab: "Auslieferung",
         title: "Auslieferung verfolgen",
-        body: "Release 126 auf einer Zeitachse, Spur für Spur: Sie, der Leitagent, Betriebs- und Prüfagenten, der Entwicklungsagent und die Prüfschritte. Ein rotes Band markiert den Vorfall seit 20:14 Uhr. Die Zusammenfassung zeigt, was gerade läuft und dass ein störungsfreier Zustand gegen 20:35 Uhr erwartet wird.",
-        alt: "PAIMOS Auslieferungsansicht mit laufenden Vorgängen mit Zeitachsen für Auslieferung und Änderungen sowie aktuellem Lieferstatus.",
+        body: "Eine Demo-Version 126 auf einer Zeitachse, Spur für Spur: Sie, der Leitagent, Betriebs- und Prüfagenten, der Entwicklungsagent und die CI-Prüfungen. Ein rotes Band markiert den Vorfall seit 20:14 Uhr. Die Zusammenfassung zeigt, was gerade läuft und dass ein störungsfreier Zustand gegen 20:35 Uhr erwartet wird.",
+        alt: "PAIMOS Auslieferungsansicht mit Zeitachsen für Auslieferung und Änderungen sowie dem aktuellen Lieferstatus.",
       },
       {
         id: "review",
         tab: "Prüfung",
         title: "Prüfung durch andere Modellfamilie",
-        body: "Eine Regel für den Arbeitsbereich: Eine Änderung gilt erst als geprüft, wenn ein Modell einer anderen Familie sie geprüft hat. Der Änderungsantrag zeigt dieselbe Regel als GitHub-Status.",
+        body: "Eine Regel für den Arbeitsbereich: Eine Änderung gilt erst als geprüft, wenn ein Modell einer anderen Familie sie geprüft hat. Der Pull Request zeigt dieselbe Regel als GitHub-Status.",
         alt: "PAIMOS-Prüfrichtlinie mit ausgewählter Prüfung durch eine andere Modellfamilie.",
       },
       {
@@ -118,7 +118,7 @@ export const paimosAeonContentDe = {
       {
         id: "attention",
         tab: "Handlungsbedarf",
-        title: "Braucht Aufmerksamkeit",
+        title: "Handlungsbedarf",
         body: "Fünf Vorschläge des Autopiloten, nach Projekt gruppiert: drei AEON-Tickets von Neu nach Backlog und zwei PHAROS-Tickets zum Abbrechen. Sie können jeden Vorschlag übernehmen oder verwerfen oder alle Vorschläge eines Projekts übernehmen.",
         alt: "PAIMOS Handlungsbedarf nach Projekt gruppiert, mit vorgeschlagenen Ticketänderungen und Sammelbearbeitung.",
       },
@@ -180,7 +180,7 @@ export const paimosAeonContentDe = {
         noteEli10: "Bei wichtigen Schritten muss ein Helfer fragen. Nur eine Person kann ja sagen, und das System selbst prüft das nach.",
       },
       {
-        label: "Kapazitätssteuerung",
+        label: "Konten und Modelle",
         icon: "route",
         group: "ai",
         note: "PAIMOS sieht die Grenzen und Rücksetzzeiten jedes Abos, lässt Sie vorsichtige oder volle Nutzung wählen und übernimmt neuere Versionen Ihrer Modelle automatisch. Nutzungsdaten werden ausgelesen, wo Sie dies aktiviert haben; automatische Modellaktualisierungen müssen Sie ebenfalls aktivieren. Wählen Sie ein Standardmodell und wenige Ausnahmen.",
@@ -195,7 +195,7 @@ export const paimosAeonContentDe = {
       },
       {
         label: "Prüfung durch andere Modellfamilie",
-        icon: "user-round-check",
+        icon: "git-compare-arrows",
         group: "ai",
         note: "Wählen Sie je Unternehmen oder Projekt, dass jede Änderung eine Prüfung durch eine andere Modellfamilie braucht; PAIMOS prüft den Urheber anhand seiner eigenen Aufzeichnungen und meldet Zusammenführungen, die die Warteschlange oder eine verifizierte Prüfung übersprungen haben.",
         noteEli10: "Wählen Sie, dass jede Änderung eine Prüfung durch einen Helfer eines anderen KI-Herstellers braucht. Mit verbundenem GitHub prüft PAIMOS, wer sie geschrieben hat, und meldet fehlende Prüfungen oder übersprungene Warteschlangen. Selbstständige Prüfungen und Korrekturen sind noch eine Vorschau.",
@@ -244,7 +244,7 @@ export const paimosAeonContentDe = {
       },
       {
         label: "Auslieferungsübersicht",
-        icon: "panels-top-left",
+        icon: "waypoints",
         group: "ops",
         note: "Sehen Sie je Projekt, wie schnell Änderungen live gehen; verfolgen Sie eine Auslieferung, spielen Sie eine frühere nach oder vergleichen Sie sie mit einem Ziel. Grundlage sind die vom Projekt gemeldeten Daten: automatische Prüfungen und Zusammenführungswarteschlange über GitHub, Auslieferungsschritte, wenn sie gemeldet werden.",
         noteEli10: "Sehen Sie, wie lange Änderungen bis zum Live-Betrieb brauchen. Verfolgen Sie eine Auslieferung, spielen Sie eine frühere nach oder vergleichen Sie sie mit einem Ziel, anhand der Schritte, die Ihr Projekt meldet.",
@@ -486,7 +486,7 @@ export const paimosAeonContentDe = {
       simple:
         "Die Arbeitssteuerung ist der Teil von AEON, der Agenten und Menschen im Takt hält. Einige ihrer Aufgaben funktionieren schon, andere sind noch im Aufbau.",
       technical:
-        "Heute live: Lieferstatus je Ticket und Fristwarnungen mit verbundenem GitHub; Zulassungsregler, Kontogrenzen, Rücksetzzeiten und vorsichtige oder volle Nutzung; ein Standardmodell und wenige Ausnahmen, mit Prüfung durch eine andere Modellfamilie als Unternehmens- oder Projekteinstellung; das Prüfprotokoll für Zusammenführungen; die Entscheidungsübersicht („Decision Desk“) mit dauerhaftem Posteingang; sowie Ereignisse mit Zuordnung der Arbeit, Ergebnissen und Berichten zu Sitzungen, Token und Kosten. Die Entscheidungsübersicht („Decision Desk“) ersetzt den Bereich Braucht Sie bei den Agenten noch nicht. Starts, Warteschlangen, Modellwahl, automatische Prüfrunden und Auslieferung laufen im Schattenbetrieb; Drosselung nach Rechnerlast ist geplant.",
+        "Heute live: Lieferstatus je Ticket und Fristwarnungen mit verbundenem GitHub; Zulassungsregler, Kontogrenzen, Rücksetzzeiten und vorsichtige oder volle Nutzung; ein Standardmodell und wenige Ausnahmen, mit Prüfung durch eine andere Modellfamilie als Unternehmens- oder Projekteinstellung; die Merge-Prüfung; die Entscheidungsübersicht („Decision Desk“) mit dauerhaftem Posteingang; sowie Ereignisse mit Zuordnung der Arbeit, Ergebnissen und Berichten zu Sitzungen, Token und Kosten. Die Entscheidungsübersicht („Decision Desk“) ersetzt den Bereich Braucht Sie bei den Agenten noch nicht. Starts, Warteschlangen, Modellwahl, automatische Prüfrunden und Auslieferung laufen im Schattenbetrieb; Drosselung nach Rechnerlast ist geplant.",
     },
     jobs: engineJobs.map((job) => ({ label: job.label.de, status: job.status, note: job.note.de })),
     flowNote: {

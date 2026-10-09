@@ -11,7 +11,7 @@
 // CAPTURE_ONLY selects comma-separated scenes; AEON_CAPTURE_CHROME selects installed Chrome.
 import { copyFileSync, existsSync, mkdirSync, readFileSync, realpathSync } from "node:fs";
 import { loadCaptureDenylist, createCaptureSanitizer } from "./privacy.mjs";
-import { spawnSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -39,6 +39,10 @@ if (!inside.startsWith(`..${sep}`) && inside !== ".." && !inside.startsWith(sep)
 for (const file of ["src/App.vue", "tests/work-fixtures.ts", "node_modules/vite/bin/vite.js", "node_modules/@playwright/test/cli.js"]) {
   if (!existsSync(join(web, file))) throw new Error(`PAIMOS checkout is missing web/${file}`);
 }
+// Read provenance from the supplied checkout, never from this site repository.
+const tag = execFileSync("git", ["describe", "--tags", "--exact-match", "HEAD"], { cwd: checkout, encoding: "utf8" }).trim();
+const commit = execFileSync("git", ["rev-parse", "HEAD"], { cwd: checkout, encoding: "utf8" }).trim();
+if (!tag || !/^[a-f0-9]{40}$/.test(commit)) throw new Error("PAIMOS release provenance is missing or invalid");
 const source = dirname(fileURLToPath(import.meta.url));
 const target = join(web, "tests/site-capture");
 // Refuse to overwrite a different existing spec or config in the supplied checkout.
@@ -54,6 +58,8 @@ const childEnv = {
   ...process.env,
   VITE_CACHE_DIR: join(output, "vite-cache"),
   INSPR_CAPTURE_DENYLIST: denylist.path,
+  AEON_CAPTURE_TAG: tag,
+  AEON_CAPTURE_COMMIT: commit,
   AEON_CAPTURE_WEB: web,
   AEON_CAPTURE_CHECKOUT: checkout,
   AEON_CAPTURE_RUNNER: fileURLToPath(import.meta.url),

@@ -123,66 +123,10 @@ async function setupTicket(page:Page, theme:'light'|'dark'='light', lang:'en'|'d
 
 const CAP = process.env.AEON_CAPTURE_OUTPUT!
 const WEB = process.env.AEON_CAPTURE_WEB!
-if (!CAP || !WEB) throw new Error('Use the capture-aeon-demo/run.mjs runner')
+const tag = process.env.AEON_CAPTURE_TAG!
+const commit = process.env.AEON_CAPTURE_COMMIT!
+if (!CAP || !WEB || !tag || !/^[a-f0-9]{40}$/.test(commit ?? '')) throw new Error('Use the capture-aeon-demo/run.mjs runner')
 const FRAME_NAMES = ['delivery','delivery-compare','ticket-delivery','ticket-delivery-review','models','models-registry','accounts-usage','attention','attention-preview','chat'] as const
-// Opus round 2 approved these PNGs. Compare the final native run before carrying approval forward.
-const QA2_APPROVED: Record<string, { sha256: string; crop: { x:number; y:number; width:number; height:number } }> = {
- "delivery": {
-  "sha256": "fbf7e0590433da89b0b911b0adb7f5248a46e771356434a686744b05999c8ac9",
-  "crop": {
-   "x": 14,
-   "y": 135,
-   "width": 1561,
-   "height": 932
-  }
- },
- "delivery-compare": {
-  "sha256": "699e2abb17d94024a86c207999a3e1a953752e30fcd6a0753c9515b9a4c00159",
-  "crop": {
-   "x": 14,
-   "y": 135,
-   "width": 1561,
-   "height": 932
-  }
- },
- "ticket-delivery": {
-  "sha256": "d13b92823957e95c4cc500fcbe5975610c300d55728507a35c538521ea997126",
-  "crop": {
-   "x": 975,
-   "y": 157,
-   "width": 606,
-   "height": 222
-  }
- },
- "ticket-delivery-review": {
-  "sha256": "eb6481a271644d367692ee61eb7170aeb0e011f4c626e59f381c65abfbe876e6",
-  "crop": {
-   "x": 362,
-   "y": 164,
-   "width": 993,
-   "height": 772
-  }
- },
- "models": {
-  "sha256": "9a8eca1f81728480349b80c8c84245415017148b0a7935e473cd79ead977b5a2",
-  "crop": {
-   "x": 362,
-   "y": 136,
-   "width": 753,
-   "height": 663
-  }
- },
- "models-registry": {
-  "sha256": "48aa861070212fb89d50022b7a2ef0ccdd367b77df5488e1a144bcb1421db11a",
-  "crop": {
-   "x": 362,
-   "y": 156,
-   "width": 753,
-   "height": 860
-  }
- }
-}
-
 function parseCaptureOnly(value: string | undefined): Set<string> {
  if (value === undefined) return new Set(FRAME_NAMES)
  const names = value.split(',').map(name=>name.trim()).filter(Boolean)
@@ -205,8 +149,8 @@ function initializeFrames() {
   if (!Array.isArray(previous)) throw new Error('frames.json must contain an array')
   for (const frame of previous) {
    const name = FRAME_NAMES.find(name=>frame.file===`out/${name}.png`)
-   // Revised evidence includes viewport/scale metadata; the 13 rejected frames did not.
-   if (!name || wantsFrame(name) || retainedFrames.has(name) || !frame.viewport || frame.deviceScaleFactor !== 2 || !frame.sha256 || !existsSync(`${CAP}/${frame.file}`)) continue
+   // Retained evidence requires viewport, scale and digest metadata.
+   if (!name || wantsFrame(name) || retainedFrames.has(name) || !frame.viewport || frame.deviceScaleFactor !== 2 || !frame.sha256 || frame.tag !== tag || frame.commit !== commit || !existsSync(`${CAP}/${frame.file}`)) continue
    const digest = execFileSync('shasum',['-a','256',`${CAP}/${frame.file}`],{encoding:'utf8'}).split(/\s+/)[0]
    expect(digest, `${name}: retained PNG must match recorded evidence`).toBe(frame.sha256)
    frame.overrides = {} // Never carry private replacement metadata from older evidence.
@@ -312,10 +256,10 @@ async function capture(page: Page, name: string, selector: string, used: string[
  // The website supplies the HTML caption; screenshots contain only the real UI.
  await page.screenshot({path:`${CAP}/out/${name}.png`,clip,animations:'disabled'})
  capturedThisRun.add(name)
- frames.push({file:`out/${name}.png`,route:new URL(page.url()).pathname+new URL(page.url()).search+new URL(page.url()).hash,fixtures:used,theme:name.endsWith('-dark')?'dark':'light',viewport,deviceScaleFactor:2,crop:clip,overrides:Object.fromEntries(overrides),altEN,altDE})
+ frames.push({tag,commit,file:`out/${name}.png`,route:new URL(page.url()).pathname+new URL(page.url()).search+new URL(page.url()).hash,fixtures:used,theme:name.endsWith('-dark')?'dark':'light',viewport,deviceScaleFactor:2,crop:clip,overrides:Object.fromEntries(overrides),altEN,altDE})
  writeFileSync(`${CAP}/frames.json`,JSON.stringify(frames,null,2)+'\n')
 }
-test('PAIMOS release 128 public demo frames',async ({page})=>{
+test('PAIMOS public demo frames',async ({page})=>{
  test.setTimeout(240000)
  assertCaptureSourceSelectors()
  initializeFrames()
@@ -478,79 +422,42 @@ test('PAIMOS release 128 public demo frames',async ({page})=>{
 
 
 // Run natively, refresh report.txt with this hook, then obtain Opus visual QA.
-// Keep reporting here: the old summarize.py assumes 13 frames and a baked-in badge.
 test.afterAll(() => {
  const expected = FRAME_NAMES
  frames.sort((a,b)=>expected.findIndex(name=>a.file===`out/${name}.png`)-expected.findIndex(name=>b.file===`out/${name}.png`))
  for (const frame of frames) frame.sha256 = execFileSync('shasum',['-a','256',`${CAP}/${frame.file}`],{encoding:'utf8'}).split(/\s+/)[0]
  writeFileSync(`${CAP}/frames.json`,JSON.stringify(frames,null,2)+'\n')
- const selection = captureOnly === undefined ? 'unset CAPTURE_ONLY\n' : `CAPTURE_ONLY=${[...requestedFrames].join(',')} `
+ const selection = captureOnly === undefined ? '' : `CAPTURE_ONLY=${[...requestedFrames].join(',')} `
  const command = `${selection}node ${JSON.stringify(process.env.AEON_CAPTURE_RUNNER)} ${JSON.stringify(process.env.AEON_CAPTURE_CHECKOUT)} ${JSON.stringify(CAP)}`
  const report = [
-  '# INSPR-556 — PAIMOS AEON release 128 screenshot recapture',
-  '',
-  `Status: ${frames.length === expected.length && captureRunPassed ? '10/10 revised frames captured; Opus visual QA pending.' : `${frames.length}/10 revised frames captured; run incomplete, return its failure to the worker.`}`,
-  '',
-  `Requested frames: ${[...requestedFrames].join(', ')}. Captured in this native run: ${capturedThisRun.size}/${requestedFrames.size}. Fixture/crop/keyboard assertions: ${captureRunPassed ? 'passed for the requested scenes' : 'native run did not complete successfully; inspect its Playwright failure'}.`,
-  '',
-  `Retained evidence from earlier revised native captures: ${retainedFrames.size ? [...retainedFrames].join(', ') + '. PNG digests verified against frames.json; these scenes were not rerun.' : 'none'}`,
-  '',
-  'TODO: INSPR-LEAD must obtain fresh Opus visual QA before using these images publicly. The earlier 13 frames received “QA VERDICT: changes”.',
-  '',
-  'Source: tag `v261009095632.0.0`, commit `2beba30ed75f68a6880ce0427fdc71c8d881fb76`. Application source is unchanged. No live instance, credentials, browser downloads, commits or pushes.',
-  '',
-  'Native rerun command (outside Codex Seatbelt; uses installed Google Chrome):',
-  '',
-  '```sh',command,'```',
-  '',
-  'This spec refreshes frames.json and report.txt itself. CAPTURE_ONLY selects comma-separated frame names and retains valid, hash-verified revised evidence for other frames. Without CAPTURE_ONLY all ten frames are rerendered, even when PNGs already exist. Unknown or empty selections fail. Do not run the legacy summarize.py afterwards.',
-  '',
-  'Build/serve: the existing successful production Vite build in cap/site is fulfilled via Playwright navigation/asset interception. No listening server is needed. To rebuild from web/:',
-  '',
-  '```sh',
-  `VITE_CACHE_DIR="${CAP}/vite-cache" node node_modules/vite/bin/vite.js build --outDir "${CAP}/site" --configLoader runner`,
-  '```',
-  '',
-  'Fixture display text is sanitized using the required operator-local denylist, generic email/address/domain replacements and host-token checks. The pre-screenshot guard rejects any remaining denylisted or generic private markers. Private source values are never included in capture evidence.',
-  '',
-  'Public label: “Real screen, demo data” is supplied by the website as an HTML caption. No image badge, overlay, blur or redaction. Crops start below .app-header and stop above .app-footer. Default padding is 16 CSS px within the viewport; Accounts, attention preview and chat have zero horizontal padding to exclude page text outside their overlay. Chat starts at #session-panel-messages, excluding the broken action row (AEON-1062). Crops fail if their requested content endpoint is cut.',
-  '',
-  'Viewport: 1600 CSS px wide, 2× device scale, light theme, Europe/Vienna, reduced motion. Delivery, registry, Accounts and chat use 1200 CSS px height; remaining screens use 1000. Fixed clocks: Delivery 2026-10-08 20:25 Vienna; Accounts 2026-09-29 14:02; chat 2026-09-29 08:00; other settings 2026-10-09 10:00; attention 2026-10-07 10:00.',
-  '',
-  'Fixture state changes: add Fable 5.1 profiles at high/xhigh/max so Concepts resolves; add a second connected signed-in computer to the Main account; use project-correct PHAROS ticket keys and expand both attention groups; preserve chat’s running run and fresh observed process ownership. The chat panel is widened to 800 CSS px, its thread is scrolled to the top, and enabled Stop plus ownership-bound Esc interruption are asserted. Pending sent messages use the real queue UI. demo-message-2 is the latest own message in the thread and has a Read receipt with CSS opacity 1; demo-message-0 is delivered (its older receipt follows the real UI’s visibility rule).',
-  '',
-  'Excluded: delivery-dark, delivery-replay and chat-dark. Old files with these names may remain from the rejected run; they are not part of the revised inventory and must not be published. The theatre frames are delivery, delivery-compare, ticket-delivery-review, models, attention and chat.',
-  '',
-  '## Round 2 approved hash comparison',
-  '',
-  'The six scenes approved in Opus round 2 have unchanged fixtures and capture options. The shared header floor is below all six recorded crop starts, so no geometry change is expected. Compare native results with their approved SHA-256 values:',
+  '# PAIMOS demo capture', '',
+  `Source: tag ${process.env.AEON_CAPTURE_TAG}, commit ${process.env.AEON_CAPTURE_COMMIT}.`, '',
+  `Status: ${captureRunPassed ? 'requested scenes passed fixture, crop and keyboard assertions' : 'incomplete; inspect the native Playwright failure'}. Opus visual QA pending.`,
+  `Inventory: ${frames.length}/${expected.length} frames. Requested: ${requestedFrames.size}; captured this run: ${capturedThisRun.size}.`,
+  `Retained hash-verified evidence (not rerun): ${[...retainedFrames].join(', ') || 'none'}.`, '',
+  'Native rerun command (outside the Codex sandbox; installed Chrome):', command, '',
+  'CAPTURE_ONLY selects scenes and retains hash-verified evidence for the rest. Without it every scene is rendered again.',
+  'The runner builds the supplied checkout. Playwright intercepts navigation and assets from that build; no listening server is needed.',
+  'Fixture text is sanitized before rendering with the required operator-local denylist and generic email/address/domain checks. The body guard rejects remaining private markers. Private source values are omitted from evidence.',
+  'Website caption: Real screen, demo data. No image badges, overlays, blur or redaction. Obtain fresh Opus visual QA before publishing.', '',
+  '## Per-frame evidence',
  ]
- for (const [name,baseline] of Object.entries(QA2_APPROVED)) {
-  const frame = frames.find(frame=>frame.file===`out/${name}.png`)
-  if (!frame) { report.push(`- ${name}: not captured; approved baseline ${baseline.sha256}.`); continue }
-  if (frame.sha256 === baseline.sha256) report.push(`- ${name}: unchanged (${frame.sha256}).`)
-  else {
-   const cropChanged = JSON.stringify(frame.crop) !== JSON.stringify(baseline.crop)
-   report.push(`- ${name}: CHANGED, ${baseline.sha256} → ${frame.sha256}. ${cropChanged ? `Crop changed from ${JSON.stringify(baseline.crop)} to ${JSON.stringify(frame.crop)} under the shared header-floor calculation; dimensions/pixels differ.` : 'Crop is unchanged; encoded PNG bytes differ despite unchanged scene fixtures/options. The cause cannot be established without native visual comparison; do not carry the earlier approval forward.'}`)
-  }
- }
- report.push('', '## Per-frame evidence')
  for (const frame of frames) {
-  report.push('',`### ${frame.file}`,'',
-   `- Route: \`${frame.route}\``,
+  report.push('', `### ${frame.file}`, '',
+   `- Route: ${frame.route}`,
    `- Fixtures: ${frame.fixtures.join(', ')}`,
    `- Theme: ${frame.theme}`,
    `- Viewport: ${frame.viewport.width}×${frame.viewport.height} CSS px; deviceScaleFactor 2`,
-   `- Crop: \`${JSON.stringify(frame.crop)}\` (CSS px)`,
-   `- SHA-256 (shasum -a 256): \`${frame.sha256}\``,
+   `- Crop: ${JSON.stringify(frame.crop)} (CSS px)`,
+   `- SHA-256: ${frame.sha256}`,
    `- Alt EN: ${frame.altEN}`,
    `- Alt DE: ${frame.altDE}`,
    '- Neutral replacement categories (private source values omitted):')
   const pairs = Object.entries(frame.overrides)
   if (!pairs.length) report.push('  - None.')
-  for (const [before,after] of pairs) report.push(`  - ${JSON.stringify(before)} → ${JSON.stringify(after)}`)
+  for (const [kind, replacement] of pairs) report.push(`  - ${JSON.stringify(kind)} → ${JSON.stringify(replacement)}`)
  }
  const missing = expected.filter(name=>!frames.some(frame=>frame.file===`out/${name}.png`))
- report.push('','## Anything not rendered','',missing.length ? `Missing from the revised inventory: ${missing.join(', ')}. See the native Playwright failure; no passing render or visual approval is claimed.` : 'All ten revised frames have render evidence (current captures plus explicitly retained evidence listed above). Three optional dark/replay frames are excluded as described above.', '')
+ report.push('', `Missing frames: ${missing.join(', ') || 'none'}. Render evidence does not grant visual approval.`, '')
  writeFileSync(`${CAP}/report.txt`,report.join('\n'))
 })

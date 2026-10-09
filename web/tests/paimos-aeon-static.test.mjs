@@ -74,7 +74,6 @@ test("both editions declare their canonical, the release tag and no stray claims
     [/TALKBOX/i, "an operator session"],
     [/from-classic|classic import/i, "classic Paimos"],
     [/\bquotes?\b|\bAngebot/i, "the business module"],
-    [/pm\.augmentoring|pm\.barta/i, "an internal instance"],
     [/semantic search|semantische Suche/i, "semantic search as live"],
     [/\/blob\/main\//, "a link that is not pinned to the release tag"],
   ];
@@ -212,4 +211,43 @@ test("demo captures reject false release, fixture, safety and pixel provenance",
   const corrupt = Buffer.from(bytes);
   corrupt[0] = 0;
   assert.match(demoProblems(manifest, file, corrupt).join("\n"), /must be a PNG/);
+});
+
+// Derive product origins from the public URL registry; W3C is the SVG namespace.
+test("absolute URLs in AEON content and built pages use public hosts", async (t) => {
+  const urlPattern = /https?:\/\/[^\s"'<>`]+/g;
+  const registry = await source("content/urls.ts");
+  const hosts = new Set(["github.com", "gnu.org", "www.w3.org", ...[...registry.matchAll(urlPattern)].map(([url]) => new URL(url).hostname)]);
+  const publicHost = (host) => hosts.has(host) || host === "inspr.at" || host.endsWith(".inspr.at");
+  for (const suffix of ["cm", "lan", "ng", "net"]) assert.equal(publicHost(`private.${suffix}`), false);
+  for (const file of ["src/content/paimos-aeon.ts", "src/content/de/paimos-aeon.ts", "dist/paimos/index.html", "dist/paimos/de/index.html"]) {
+    let text;
+    try { text = await webFile(file); } catch (error) {
+      if (!file.startsWith("dist/") || error.code !== "ENOENT") throw error;
+      t.diagnostic(`${file} is not built; public-host checks still cover source`);
+      continue;
+    }
+    for (const [url] of text.matchAll(urlPattern)) assert.ok(publicHost(new URL(url).hostname), `${file} contains a non-public URL host`);
+    for (const [host] of text.matchAll(/\b(?:[a-z0-9-]+\.)+(?:cm|lan|ng)\b/gi)) assert.ok(publicHost(host.toLowerCase()), `${file} contains a non-public domain`);
+  }
+});
+
+test("the home-page bot status distinguishes released recurring tickets from planned bots", async () => {
+  const family = await source("content/family.ts");
+  const bots = family.slice(family.indexOf('key: "bots"'), family.indexOf('key: "bots"') + 700);
+  assert.match(bots, /status: "planned"/);
+  assert.match(bots, /Recurring tickets live; bots and Routines planned/);
+  assert.match(bots, /Wiederkehrende Tickets live; Bots und Routinen geplant/);
+  assert.doesNotMatch(bots, /First adapter live|Erster Adapter live/);
+});
+
+test("the 19 capability cards keep distinct review and delivery icons", async () => {
+  for (const file of ["content/paimos-aeon.ts", "content/de/paimos-aeon.ts"]) {
+    const text = await source(file);
+    const cards = text.slice(text.indexOf("items: ["), text.indexOf("glossary: ["));
+    const icons = [...cards.matchAll(/icon: "([^"]+)"/g)].map((match) => match[1]);
+    assert.equal(icons.length, 19);
+    for (const icon of ["git-compare-arrows", "waypoints"]) assert.equal(icons.filter((name) => name === icon).length, 1);
+    assert.match(cards, /label: "(?:Accounts and models|Konten und Modelle)"/);
+  }
 });

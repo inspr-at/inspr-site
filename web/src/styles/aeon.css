@@ -490,12 +490,18 @@
     animation: aeon-progress var(--dwell, 7000ms) linear forwards;
   }
 
+  .aeon-theatre__stage {
+    display: grid;
+  }
+
   .aeon-theatre__panel {
+    grid-area: 1 / 1;
     animation: aeon-panel-in 560ms var(--ease) both;
   }
 
   .aeon-theatre__panel[hidden] {
-    display: none;
+    display: block;
+    visibility: hidden;
   }
 
   .aeon-window {
@@ -628,6 +634,7 @@
 
   .aeon-theatre .aeon-tab {
     padding: 0.6rem 0;
+    border-bottom: 2px solid transparent;
     border-radius: 0;
     font-weight: 500;
   }
@@ -636,12 +643,7 @@
   .aeon-theatre .aeon-tab[aria-selected="true"] {
     color: var(--ink);
     background: none;
-    text-decoration: underline;
-    text-underline-offset: 0.3em;
-  }
-
-  .aeon-theatre .aeon-tab[aria-selected="true"] {
-    font-weight: 700;
+    border-bottom-color: currentColor;
   }
 
   .aeon-theatre .aeon-tab__index,
@@ -2403,17 +2405,7 @@
     text-transform: none;
   }
 
-  .aeon .aeon-ledger .status-chip,
-  .aeon .aeon-engine__flow .status-chip,
-  .aeon .family-band .status-chip {
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: none;
-    font-family: var(--font-body);
-    letter-spacing: normal;
-    text-transform: none;
-  }
+
 
   /* ── Motion ───────────────────────────────────────────────────────── */
   @keyframes aeon-arc-draw {
@@ -2454,6 +2446,11 @@
   }
 
   @media (max-width: 40rem) {
+    /* One image box follows the wide demo ratio; tab changes reserve the same space. */
+    .aeon-theatre__image img {
+      height: auto;
+      aspect-ratio: var(--aeon-theatre-ratio);
+    }
     .aeon-chip { max-width: 12rem; padding: 0.5rem 0.75rem; }
     .aeon-chip small { display: none; }
     .aeon-chip--slot-1, .aeon-chip--slot-6 { left: 0; }
@@ -2504,3 +2501,16 @@
     }
   }
 }
+
+/* Unlayered: beat StatusChip scoped styles while retaining its dot shape. */
+  .aeon .aeon-ledger .status-chip,
+  .aeon .aeon-engine__flow .status-chip,
+  .aeon .family-band .status-chip {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    font-family: var(--font-body);
+    letter-spacing: normal;
+    text-transform: none;
+  }

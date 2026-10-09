@@ -499,6 +499,10 @@ const labels = locale === "de"
     grid-column: 1 / -1;
   }
 
+  .workflow--ink .eyebrow {
+    color: #8bd7d2;
+  }
+
   .workflow--ink :is(h2, h3),
   .workflow--ink .workflow__step,
   .workflow--ink .workflow__reference {
@@ -867,10 +871,10 @@ const labels = locale === "de"
   }
 
   .workflow__step {
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    letter-spacing: normal;
+    text-transform: none;
   }
 
   .workflow__panel h3 {
@@ -894,9 +898,11 @@ const labels = locale === "de"
     border: 1px solid rgb(255 255 255 / 0.13);
     border-radius: 0.85rem;
     background: rgb(1 18 30 / 0.25);
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
     line-height: 1.45;
+    letter-spacing: normal;
+    text-transform: none;
   }
 
   .workflow--light .workflow__evidence {
@@ -916,7 +922,10 @@ const labels = locale === "de"
   .workflow__evidence strong {
     color: var(--night-text);
     font-weight: 700;
-    text-transform: uppercase;
+    text-transform: none;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    letter-spacing: normal;
   }
 
   .workflow__reference {

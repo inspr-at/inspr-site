@@ -115,7 +115,7 @@ test("German terms: Freigabe for gate and approval, a translated chip, no Englis
   const german = await source("content/de/paimos-aeon.ts");
   assert.doesNotMatch(german, /Needs you|Made in Austria|genehmig|Genehmig|\bTor\b|\bTore\b/, "no untranslated chip, label or second term for gate");
   assert.match(german, /label: "Braucht Sie"/);
-  assert.match(german, /label: "Gemacht in Österreich"/);
+  assert.match(german, /label: "Entwickelt in Österreich"/);
   assert.match(german, /place: "Herkunft"/);
   assert.match(german, /Kann ein Agent seine eigene Anfrage freigeben\?/);
 });

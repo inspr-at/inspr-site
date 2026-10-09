@@ -122,11 +122,11 @@ const products = [
     ),
     body: copy(
       "Claude Code, Codex, Cursor and pi start under Paimos on macOS and Linux; Grok runs tool-free on Apple silicon; Gemini and OpenCode pair only, and starting them is planned. The engine admits, reviews and audits their work.",
-      "Claude Code, Codex, Cursor und pi starten unter Paimos (macOS und Linux); Grok läuft ohne Werkzeuge auf Apple Silicon; Gemini und OpenCode: nur Kopplung, Start geplant. Die Engine lässt ihre Arbeit zu, prüft und protokolliert sie.",
+      "Claude Code, Codex, Cursor und pi starten unter Paimos (macOS und Linux); Grok läuft ohne Werkzeuge auf Apple Silicon; Gemini und OpenCode: nur Kopplung, Start geplant. Die Arbeitssteuerung lässt ihre Arbeit zu, prüft und protokolliert sie.",
     ),
     detail: copy(
       "Projects · tickets · knowledge · engine",
-      "Projekte · Tickets · Wissen · Engine",
+      "Projekte · Tickets · Wissen · Arbeitssteuerung",
     ),
   },
   {
@@ -149,7 +149,7 @@ const products = [
     ),
     detail: copy(
       "Fleet · backup evidence · guarded deploy",
-      "Flotte · Backup-Nachweise · abgesichertes Deployment",
+      "Flotte · Backup-Nachweise · abgesicherte Bereitstellung",
     ),
   },
   {
@@ -193,7 +193,7 @@ const productReleases = {
 const doctrine = familyProducts.doctrine;
 const doctrineBody = copy(
   "The rulebook every agent loads at session start: a small always-on kernel, domain packs on demand and the inspr CLI. Releases carry a calendar version and are signed.",
-  "Das Regelwerk, das jeder Agent zu Beginn einer Sitzung lädt: ein kleiner, immer aktiver Kernel, Domain-Packs bei Bedarf und die inspr CLI. Releases tragen eine Kalenderversion und sind signiert.",
+  "Das Regelwerk, das jeder Agent zu Beginn einer Sitzung lädt: ein kleiner, immer aktiver Kern, Regeln für einzelne Fachgebiete bei Bedarf und die inspr CLI. Releases tragen eine Kalenderversion und sind signiert.",
 );
 
 // INSPR-543: the page's own build-time facts. Header-only values (CSP, HSTS) are not
@@ -255,7 +255,7 @@ const principles = [
     title: copy("Approval is a visible act", "Freigabe ist eine sichtbare Handlung"),
     body: copy(
       "Requirements are approved in Aithema, review gates run in Paimos, production deploys are confirmed in Pharos and secret permits are issued in Janus.",
-      "Anforderungen werden in Aithema freigegeben, Review-Gates laufen in Paimos, Produktionsbereitstellungen werden in Pharos bestätigt und Freigaben für Geheimnisse werden in Janus erteilt.",
+      "Anforderungen werden in Aithema freigegeben, Prüfschritte laufen in Paimos, Produktionsbereitstellungen werden in Pharos bestätigt und Freigaben für Geheimnisse werden in Janus erteilt.",
     ),
     avoids: copy(
       "Quiet escalation and accidental production authority.",
@@ -279,7 +279,7 @@ const principles = [
     ),
     protects: copy(
       "Your systems and a known rollback.",
-      "Ihre Systeme und einen bekannten Rollback.",
+      "Ihre Systeme und einen bekannten Weg zum Zurücksetzen.",
     ),
   },
 ];
@@ -581,7 +581,7 @@ const principles = [
     >
       <header class="section-intro">
         <p class="eyebrow">{copy("Who does the work", "Wer die Arbeit macht")}</p>
-        <h2 id="actors-title">{copy("Builders, bots and people.", "Builder, Bots und Menschen.")}</h2>
+        <h2 id="actors-title">{copy("Builders, bots and people.", "Entwicklungsagenten, Bots und Menschen.")}</h2>
       </header>
       <ol class="actor-notes">
         {actors.map((actor, index) => (
@@ -621,7 +621,7 @@ const principles = [
             )}
             technical={copy(
               "Each item is Live, Partly live or Planned, in build order. Planned items carry no dates, and the engine's six jobs are listed on the overview.",
-              "Jeder Punkt ist Live, Teilweise live oder Geplant, in der Reihenfolge des Aufbaus. Geplante Punkte haben keine Termine, die sechs Aufgaben der Engine stehen im Überblick.",
+              "Jeder Punkt ist Live, Teilweise live oder Geplant, in der Reihenfolge des Aufbaus. Geplante Punkte haben keine Termine, die sechs Aufgaben der Arbeitssteuerung stehen im Überblick.",
             )}
           />
         </p>
@@ -705,7 +705,7 @@ const principles = [
             )}
             technical={copy(
               "Each rule keeps a decision informed, visible and reversible: evidence before approval, explicit gates, no silent state change.",
-              "Jede Regel hält Entscheidungen informiert, sichtbar und umkehrbar: Nachweise vor der Freigabe, explizite Gates, keine stille Zustandsänderung.",
+              "Jede Regel hält Entscheidungen informiert, sichtbar und umkehrbar: Nachweise vor der Freigabe, explizite Prüfschritte, keine stille Zustandsänderung.",
             )}
           />
         </p>
@@ -743,13 +743,13 @@ const principles = [
       </div>
       <nav class="source-panel__links" aria-label={copy("INSPR source links", "Links zum INSPR-Quellcode")}>
         <a href={repositoryUrl} target="_blank" rel="noopener noreferrer">
-          <span>{copy("INSPR site", "INSPR-Website")}</span><small>{copy("This page and the product microsites", "Diese Seite und die Produkt-Microsites")}</small><b aria-hidden="true">↗</b>
+          <span>{copy("INSPR site", "INSPR-Website")}</span><small>{copy("This page and the product microsites", "Diese Seite und die Produktseiten")}</small><b aria-hidden="true">↗</b>
         </a>
         <a href={productSourcesUrl} target="_blank" rel="noopener noreferrer">
           <span>{copy("Product sources", "Produktquellen")}</span><small>{copy("The four published product repositories", "Die vier veröffentlichten Produkt-Repositories")}</small><b aria-hidden="true">↗</b>
         </a>
         <a href={modulesUrl} target="_blank" rel="noopener noreferrer">
-          <span>{copy("INSPR modules", "INSPR-Module")}</span><small>{copy("The Doctrine: kernel, domain packs and the inspr CLI", "Die Doktrin: Kernel, Domain-Packs und die inspr CLI")}</small><b aria-hidden="true">↗</b>
+          <span>{copy("INSPR modules", "INSPR-Module")}</span><small>{copy("The Doctrine: kernel, domain packs and the inspr CLI", "Die Doktrin: Kernregeln, Regeln für einzelne Fachgebiete und die inspr CLI")}</small><b aria-hidden="true">↗</b>
         </a>
         <a href={siteLicenseUrl} target="_blank" rel="noopener noreferrer">
           <span>{copy("License terms", "Lizenzbedingungen")}</span><small>{copy("This site's AGPL-3.0-only license", "AGPL-3.0-only-Lizenz dieser Website")}</small><b aria-hidden="true">↗</b>
@@ -803,10 +803,10 @@ const principles = [
     repositoryUrl={repositoryUrl}
     licenseName="AGPL-3.0-only"
     licenseUrl={siteLicenseUrl}
-    ctaTitle={copy("Prefer not to run it alone?", "Möchten Sie den offenen Stack nicht allein betreiben?")}
+    ctaTitle={copy("Prefer not to run it alone?", "Möchten Sie den offenen technischen Aufbau nicht allein betreiben?")}
     ctaBody={copy(
       "Augmentoring provides architecture, integration, rollout and operating support as a professional service. All four products remain open source.",
-      "Augmentoring bietet Architektur, Integration, Rollout und Betriebsunterstützung als professionelle Dienstleistung. Alle vier Produkte bleiben Open Source.",
+      "Augmentoring bietet Architektur, Integration, Einführung und Betriebsunterstützung als professionelle Dienstleistung. Alle vier Produkte bleiben Open Source.",
     )}
     locale={locale}
   />
@@ -873,12 +873,13 @@ const principles = [
 
   .umbrella-spec dt {
     color: color-mix(in srgb, var(--secondary-soft) 65%, var(--ink));
-    font-size: 0.62rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: normal;
+    text-transform: none;
     overflow-wrap: break-word;
     hyphens: manual;
     white-space: nowrap;
+    font-family: var(--font-body);
   }
 
   .umbrella-spec dd {
@@ -991,10 +992,11 @@ const principles = [
 
   .umbrella-proof strong {
     align-self: start;
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
+    font-size: 0.85rem;
+    letter-spacing: normal;
     line-height: 1.4;
-    text-transform: uppercase;
+    text-transform: none;
+    font-family: var(--font-body);
   }
 
   .umbrella-proof small {
@@ -1277,10 +1279,11 @@ const principles = [
   .product-story__detail {
     margin-block: 1.5rem;
     color: var(--accent, #0e7772);
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     font-weight: 700;
-    letter-spacing: 0.11em;
-    text-transform: uppercase;
+    letter-spacing: normal;
+    text-transform: none;
+    font-family: var(--font-body);
   }
 
   .text-link {
@@ -1411,11 +1414,11 @@ const principles = [
     border: 1px solid rgb(14 119 114 / 0.14);
     border-radius: 999px;
     background: rgb(216 236 232 / 0.54);
-    font-family: var(--font-mono, monospace);
-    font-size: 0.62rem;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
     font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    letter-spacing: normal;
+    text-transform: none;
   }
 
   .identity-utility__links {
@@ -1432,11 +1435,11 @@ const principles = [
 
   .identity-utility__links > p {
     color: var(--accent-strong, #075e5b);
-    font-family: var(--font-mono, monospace);
-    font-size: 0.65rem;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
     font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    letter-spacing: normal;
+    text-transform: none;
   }
 
   .identity-utility__links .button {

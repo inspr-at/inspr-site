@@ -2,13 +2,13 @@
  *
  * Standard is the base and stays exactly where it is. At Technical, drawers
  * unfold beneath the hero, the four path cards and the four promises, the
- * flow gains its handoff labels, the kickers gain a mono index, and the
+ * flow gains its handoff labels, the kickers gain a section index, and the
  * stack section appears. Simple folds secondary blocks away. Every change
  * is height and opacity on a soft curve, staggered top to bottom; nothing
  * reloads, nothing hijacks the scroll. The header slider and the copy-depth
  * rule live in details-control.css. */
 
-/* ---- Mono index and hairlines on the kickers -------------------------- */
+/* ---- Section index and hairlines on the kickers ----------------------- */
 
 .overview-kicker[data-index]::before {
   content: attr(data-index);

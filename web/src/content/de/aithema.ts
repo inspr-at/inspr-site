@@ -32,10 +32,10 @@ export const aithemaContentDe = {
       simple:
         "Sprechen, tippen oder Dateien ablegen. Aithema macht daraus eine klare Liste dessen, was Sie brauchen, und wartet, bis Sie sie gelesen haben und „Weiter“ sagen.",
       technical:
-        "Sprache, Text und Dateien werden zu einem strukturierten, prüfbaren Anforderungssatz. Aithema ordnet den Input; Prüfung und das explizite „Weiter“ bleiben bei Ihnen, damit nichts Nachgelagertes auf einem ungeprüften Entwurf startet.",
+        "Sprache, Text und Dateien werden zu einem strukturierten, prüfbaren Anforderungssatz. Aithema ordnet die Eingaben; Prüfung und das explizite „Weiter“ bleiben bei Ihnen, damit nichts Nachgelagertes auf einem ungeprüften Entwurf startet.",
     },
     lead:
-      "Sprechen, schreiben oder Dateien teilen. Aithema hilft, aus diesem Input klare Anforderungen zu machen, und wartet dann darauf, dass Sie sie prüfen und „Weiter“ wählen.",
+      "Sprechen, schreiben oder Dateien teilen. Aithema hilft, aus diesen Eingaben klare Anforderungen zu machen, und wartet dann darauf, dass Sie sie prüfen und „Weiter“ wählen.",
     alt: "Ein Anforderungsprisma bündelt diffuses türkis-goldenes Licht zu einem präzisen Entscheidungsobjekt",
     primaryLabel: "Zugang anfragen",
   },
@@ -54,19 +54,19 @@ export const aithemaContentDe = {
       simple:
         "Ideen tauchen in Chats, Notizen und Dateien auf. Das Schwierige ist, daraus eine Fassung zu machen, die ein Mensch lesen, korrigieren und freigeben kann.",
       technical:
-        "Input kommt fragmentiert über Gespräche, Notizen und Dokumente an. Die Arbeit besteht darin, ihn zu einem versionierten, prüfbaren Anforderungssatz zu verdichten, den ein Mensch korrigieren und freigeben kann, bevor die Umsetzung beginnt.",
+        "Eingaben kommen fragmentiert über Gespräche, Notizen und Dokumente an. Die Arbeit besteht darin, sie zu einem versionierten, prüfbaren Anforderungssatz zu verdichten, den ein Mensch korrigieren und freigeben kann, bevor die Umsetzung beginnt.",
     },
     lead:
       "Ideen kommen über Gespräche, Notizen und Dateien. Das Schwierige ist, daraus eine Fassung zu machen, die ein Mensch prüfen, korrigieren und freigeben kann.",
     visualAlt:
-      "Ein Anforderungsprisma macht aus diffusem Input eine präzise Anforderung",
+      "Ein Anforderungsprisma macht aus diffusen Eingaben eine präzise Anforderung",
     visualCaption:
       "Viele Eingaben werden eine prüfbare Anforderung, keine automatische Entscheidung.",
     items: [
       {
         title: "Gespräche sind schnell",
         body:
-          "Wichtige Rahmenbedingungen bleiben unausgesprochen oder gehen zwischen einem Telefonat und dem ersten schriftlichen Briefing verloren.",
+          "Wichtige Rahmenbedingungen bleiben unausgesprochen oder gehen zwischen einem Telefonat und der ersten schriftlichen Aufgabenbeschreibung verloren.",
         meta: "Festhalten, was gemeint war",
         icon: "mic",
       },
@@ -100,7 +100,7 @@ export const aithemaContentDe = {
         "Aithema übernimmt die Verdichtungs- und Strukturierungsarbeit, während die Freigabe eine menschliche Handlung mit einem prüfbaren Artefakt dahinter bleibt.",
     },
     lead:
-      "Aithema übernimmt die Mühe, Input zu ordnen, und lässt die Entscheidung bei Ihnen.",
+      "Aithema übernimmt die Mühe, Eingaben zu ordnen, und lässt die Entscheidung bei Ihnen.",
     steps: [
       {
         number: "01",
@@ -118,7 +118,7 @@ export const aithemaContentDe = {
         title: "Formen",
         visual: { x: 42, y: 52 },
         body:
-          "Aithema ordnet den Input zu Anforderungen, die sich lesen, besprechen und ändern lassen.",
+          "Aithema ordnet die Eingaben zu Anforderungen, die sich lesen, besprechen und ändern lassen.",
         icon: "list-tree",
         signal: "Ein konkreter Anforderungssatz steht zur Prüfung bereit.",
       },
@@ -144,12 +144,12 @@ export const aithemaContentDe = {
       },
     ],
     closing:
-      "Aithema hilft beim schwierigen Stück zwischen Idee und brauchbarem Briefing. Es ersetzt nicht die Person, der die Entscheidung gehört.",
+      "Aithema hilft beim schwierigen Stück zwischen Idee und brauchbarer Aufgabenbeschreibung. Es ersetzt nicht die Person, der die Entscheidung gehört.",
   },
   featureSections: [
     {
       id: "input",
-      eyebrow: "Input",
+      eyebrow: "Eingaben",
       title: "Beginnen Sie mit dem, was Sie schon haben.",
       lead:
         "Eine Anforderung kann als Satz beginnen, als Gespräch oder als Sammlung unterstützender Dateien.",
@@ -157,7 +157,7 @@ export const aithemaContentDe = {
         {
           title: "Sprechen",
           body:
-            "Reden Sie den Bedarf in eigenen Worten durch, statt zuerst ein perfektes Briefing vorzubereiten.",
+            "Reden Sie den Bedarf in eigenen Worten durch, statt zuerst eine perfekte Aufgabenbeschreibung vorzubereiten.",
           icon: "mic",
         },
         {
@@ -234,7 +234,7 @@ export const aithemaContentDe = {
       "Der wiederverwendbare Kern ist als inspr-at/aithema öffentlich auf GitHub unter AGPL-3.0-only, mit getaggten Releases.",
       "Der Zugang zum gehosteten Arbeitsbereich erfolgt auf Einladung; Augmentoring schaltet ihn für Sie frei.",
       "Aithema unterstützt das Formen und Prüfen von Anforderungen; es gibt nichts still frei und beginnt keine Umsetzung.",
-      "Hinweise zu Integration und Self-Hosting folgen den Release-Notes des Kerns; weitergehende Aussagen warten auf prüfbare Belege.",
+      "Hinweise zu Integration und eigenem Betrieb folgen den Release-Hinweisen des Kerns; weitergehende Aussagen warten auf prüfbare Belege.",
     ],
   },
   releasePath: {
@@ -257,17 +257,17 @@ export const aithemaContentDe = {
     {
       question: "Gibt Aithema Anforderungen für mich frei?",
       answer:
-        "Nein. Aithema hilft, den Input zu formen. Sie prüfen das Ergebnis, korrigieren es und entscheiden, ob es weitergeht.",
+        "Nein. Aithema hilft, die Eingaben zu formen. Sie prüfen das Ergebnis, korrigieren es und entscheiden, ob es weitergeht.",
     },
     {
       question: "Wem gehört Aithema?",
       answer:
-        "Aithema ist Teil von INSPR, quelloffen unter AGPL-3.0-only. Augmentoring stellt den gehosteten Arbeitsbereich auf Einladung bereit und bietet professionelle Services, die ihn nutzen.",
+        "Aithema ist Teil von INSPR, quelloffen unter AGPL-3.0-only. Augmentoring stellt den gehosteten Arbeitsbereich auf Einladung bereit und bietet professionelle Dienstleistungen, die ihn nutzen.",
     },
   ],
   finalCta: {
-    title: "Hilfe beim ersten Briefing?",
+    title: "Hilfe bei der ersten Aufgabenbeschreibung?",
     body:
-      "Fragen Sie nach einer Einladung in den gehosteten Arbeitsbereich, oder arbeiten Sie mit Augmentoring, wenn die Anforderungen einen professionellen Serviceweg brauchen.",
+      "Fragen Sie nach einer Einladung in den gehosteten Arbeitsbereich, oder arbeiten Sie mit Augmentoring, wenn die Anforderungen einen professionellen Dienstleistungsweg brauchen.",
   },
 } satisfies PreviewProductContent;

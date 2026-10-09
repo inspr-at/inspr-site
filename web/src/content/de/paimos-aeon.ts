@@ -38,7 +38,7 @@ export const paimosAeonContentDe = {
     { label: "Kontrollraum", href: "#control-room" },
     { label: "Befugnis", href: "#authority" },
     { label: "Regeln", href: "#rules" },
-    { label: "Engine", href: "#engine" },
+    { label: "Arbeitssteuerung", href: "#engine" },
     { label: "Architektur", href: "#architecture" },
     { label: "Was kommt", href: "#next" },
   ],
@@ -52,7 +52,7 @@ export const paimosAeonContentDe = {
     depths: {
       simple:
         "Mit AEON arbeiten Ihr Team und seine KI-Helfer an denselben Projekten. Die Helfer laufen auf Ihren Computern, Sie sehen, was jeder tut, und Menschen geben die wichtigen Schritte frei.",
-      technical: `Release ${paimosRelease.number} „${paimosRelease.codename}“: eine Go-Binärdatei mit eingebetteter Vue-Anwendung, Postgres 18 unter Sicherheit auf Zeilenebene im FORCE-Modus, ein Append-only-Ereignisprotokoll je Mandant, ein Vertrag nach OpenAPI 3.1 und aeon-agentd, das Claude Code, Codex, Cursor und pi auf gekoppelten Rechnern startet.`,
+      technical: `Release ${paimosRelease.number} „${paimosRelease.codename}“: eine Go-Binärdatei mit eingebetteter Vue-Anwendung, Postgres 18 unter Sicherheit auf Zeilenebene im FORCE-Modus, ein Ereignisprotokoll je Mandant, das nur ergänzt wird, ein Vertrag nach OpenAPI 3.1 und aeon-agentd, das Claude Code, Codex, Cursor und pi auf gekoppelten Rechnern startet.`,
     },
     primaryLabel: "Im Einsatz ansehen",
     primaryHref: "#screens",
@@ -62,11 +62,11 @@ export const paimosAeonContentDe = {
       { kind: "run", label: "Live-Sitzung", detail: "Modell, Denkaufwand und Fortschritt im Blick" },
       { kind: "event", label: "approval.proposed", detail: "An das Ereignisprotokoll angefügt" },
       { kind: "run", label: "Nachricht gelesen", detail: "Gesendet, zugestellt, gelesen" },
-      { kind: "approval", label: "Decision Desk", detail: "Offene Entscheidungen warten auf eine Person" },
+      { kind: "approval", label: "Entscheidungsübersicht („Decision Desk“)", detail: "Offene Entscheidungen warten auf eine Person" },
       { kind: "event", label: "node.moved", detail: "Der Arbeitsbaum aktualisiert sich live" },
       { kind: "run", label: "Nächstes Konto", detail: "Die Arbeit geht weiter, wenn ein Anbieter stoppt" },
       { kind: "event", label: "approval.approved", detail: "Eine Person hat entschieden" },
-      { kind: "run", label: "Doktrin gepinnt", detail: "Regeln aus Git, an einem gepinnten Commit" },
+      { kind: "run", label: "Doktrin festgelegt", detail: "Regeln aus Git, an einem festgelegten Commit" },
     ],
   },
   figures: [
@@ -98,8 +98,8 @@ export const paimosAeonContentDe = {
         id: "tickets",
         tab: "Tickets",
         title: "Tickets nach Epic",
-        body: "Das Backlog von AEON, gruppiert nach Epic, mit Schätzungen der Agenten, Fortschritt und ETAs.",
-        alt: "Die Ticketliste von AEON, gruppiert nach Epic, mit Spalten für Status, Priorität, Zuständige, Schätzung, Fortschritt und ETA.",
+        body: "Die offenen Aufgaben von AEON, gruppiert nach Epic, mit Schätzungen der Agenten, Fortschritt und erwarteten Abschlusszeiten.",
+        alt: "Die Ticketliste von AEON, gruppiert nach Epic, mit Spalten für Status, Priorität, Zuständige, Schätzung, Fortschritt und erwartetem Abschlusszeitpunkt.",
       },
       {
         id: "graph",
@@ -120,7 +120,7 @@ export const paimosAeonContentDe = {
         tab: "Nutzung",
         title: "Nutzung",
         body: "Erledigte Tickets, Agentenzeit und Wiederholungen für das Projekt AEON, Tag für Tag.",
-        alt: "Das Nutzungs-Dashboard von AEON für die letzten sieben Tage: erledigte Tickets, Agentenzeit, Wiederholungen und Tickets nach Agentenzeit.",
+        alt: "Die Nutzungsübersicht von AEON für die letzten sieben Tage: erledigte Tickets, Agentenzeit, Wiederholungen und Tickets nach Agentenzeit.",
       },
     ],
   },
@@ -141,7 +141,7 @@ export const paimosAeonContentDe = {
         label: "Kontrollraum",
         icon: "panels-top-left",
         group: "ai",
-        note: "Leitagenten und Worker als Baum, Live-Zustand, Modell und Denkaufwand sowie Nachrichten mit Gesendet, Zugestellt und Gelesen.",
+        note: "Leitagenten und ausführende Agenten als Baum, Live-Zustand, Modell und Denkaufwand sowie Nachrichten mit Gesendet, Zugestellt und Gelesen.",
         noteEli10: "Ein Bildschirm zeigt jeden KI-Helfer: was er gerade tut, wem er berichtet und ob er Ihre Nachricht gelesen hat.",
       },
       {
@@ -187,7 +187,7 @@ export const paimosAeonContentDe = {
         noteEli10: "Das Regelwerk liegt in der Versionsverwaltung, und eine Prüfung meldet, wenn ein Helfer mit einer veralteten Kopie arbeitet.",
       },
       {
-        label: "Append-only-Protokoll",
+        label: "Protokoll, das nur ergänzt wird",
         icon: "file-check-2",
         group: "security",
         note: "Jede Änderung wird an ein Ereignisprotokoll je Mandant angefügt; ein Trigger in der Datenbank verweigert nachträgliche Änderungen und Löschungen.",
@@ -247,7 +247,7 @@ export const paimosAeonContentDe = {
         icon: "server",
         group: "ops",
         note: "Nutzen Sie AEON auf einer Instanz, die Augmentoring für Sie betreibt, oder hosten Sie selbst: eine Binärdatei und Postgres 18 mit Ihrer OIDC-Anmeldung.",
-        noteEli10: "Wir können es für Sie betreiben, oder Sie betreiben es auf Ihren eigenen Servern. Personen melden sich mit dem Firmen-Login an.",
+        noteEli10: "Wir können es für Sie betreiben, oder Sie betreiben es auf Ihren eigenen Servern. Personen melden sich mit dem Firmenkonto an.",
       },
       {
         label: "AGPL-3.0",
@@ -257,18 +257,18 @@ export const paimosAeonContentDe = {
         noteEli10: "Der Quellcode ist offen: Sie können ihn lesen, betreiben und verändern.",
       },
       {
-        label: "Gemacht in Österreich",
+        label: "Entwickelt in Österreich",
         icon: "mountain",
         group: "place",
         note: "Entworfen und gebaut in Graz, Österreich, als Teil der INSPR-Produktfamilie.",
-        noteEli10: "Gemacht in Graz, Österreich, von den Menschen hinter INSPR.",
+        noteEli10: "Entwickelt in Graz, Österreich, von den Menschen hinter INSPR.",
       },
     ],
     glossary: [
       {
         id: "harness",
-        term: "Harness",
-        matches: ["Harness"],
+        term: "Agentenprogramm",
+        matches: ["Agentenprogramm"],
         body: "Das Agentenprogramm, das ein Anbieter ausliefert, etwa Claude Code oder Codex. AEON steuert jedes davon über einen Adapter.",
       },
       {
@@ -281,7 +281,7 @@ export const paimosAeonContentDe = {
         id: "oidc",
         term: "OIDC",
         matches: ["OIDC"],
-        body: "OpenID Connect: das Standardprotokoll für die Anmeldung hinter den meisten Firmen-Logins.",
+        body: "OpenID Connect: das Standardprotokoll für die Anmeldung hinter den meisten Firmenanmeldungen.",
       },
       {
         id: "openapi",
@@ -303,23 +303,23 @@ export const paimosAeonContentDe = {
     eyebrow: "Kontrollraum",
     title: "Alle Agenten in einer Ansicht.",
     lead:
-      "Leitagenten und Worker als Baum, Live-Zustand, Modell und Denkaufwand sowie Nachrichten, die zeigen, wann sie gesendet, zugestellt und gelesen wurden.",
+      "Leitagenten und ausführende Agenten als Baum, Live-Zustand, Modell und Denkaufwand sowie Nachrichten, die zeigen, wann sie gesendet, zugestellt und gelesen wurden.",
     depths: {
       simple:
         "Ein Bildschirm zeigt jeden KI-Helfer: woran er arbeitet, wem er berichtet und ob er Ihre Nachricht gelesen hat.",
       technical:
-        "AgentsView stellt Harness-Sitzungen dar, die über das Daemon-Protokoll gemeldet werden, mit Übergabe der Leitung, verwalteter Steuerung (steuern, unterbrechen, stoppen) und Wiederherstellung von Sitzungen; Zustellungen in den Posteingang werden als Gesendet, Zugestellt und Gelesen verfolgt.",
+        "AgentsView stellt Sitzungen der Agentenprogramme dar, die über das Daemon-Protokoll gemeldet werden, mit Übergabe der Leitung, verwalteter Steuerung (steuern, unterbrechen, stoppen) und Wiederherstellung von Sitzungen; Zustellungen in den Posteingang werden als Gesendet, Zugestellt und Gelesen verfolgt.",
     },
     items: [
       {
         icon: "users-round",
-        title: "Leitagenten und Worker als Baum",
-        body: "Jeder Leitagent mit den Workern, die er gestartet hat, und was jeder gerade tut.",
+        title: "Leitagenten und ausführende Agenten als Baum",
+        body: "Jeder Leitagent mit den ausführenden Agenten, die er gestartet hat, und was jeder gerade tut.",
       },
       {
         icon: "radio-tower",
         title: "Nachrichten mit Empfangsbestätigung",
-        body: "Gesendet, Zugestellt, Gelesen. Bei Sitzungen mit Posteingang wird die Zustellung verfolgt, und Posteingangs-Hooks bringen Nachrichten in die Sitzung. Cursor-Sitzungen haben keinen Posteingang und nehmen nur Unterbrechungen an.",
+        body: "Gesendet, Zugestellt, Gelesen. Bei Sitzungen mit Posteingang wird die Zustellung verfolgt, und Hooks für den Posteingang bringen Nachrichten in die Sitzung. Cursor-Sitzungen haben keinen Posteingang und nehmen nur Unterbrechungen an.",
       },
       {
         icon: "sliders-horizontal",
@@ -334,7 +334,7 @@ export const paimosAeonContentDe = {
       },
     ],
     screenAlt:
-      "Die Sitzungsansicht von AEON im dunklen Modus: Leitagenten mit ihren Workern, jeweils mit Ticket, Modell, Denkaufwand, Fortschritt und Lebenszeichen.",
+      "Die Sitzungsansicht von AEON im dunklen Modus: Leitagenten mit ihren ausführenden Agenten, jeweils mit Ticket, Modell, Denkaufwand, Fortschritt und Lebenszeichen.",
     pairing: {
       eyebrow: "Kopplung",
       title: "Ein neuer Rechner kommt mit einem Befehl und dem Ja einer Person dazu.",
@@ -345,7 +345,7 @@ export const paimosAeonContentDe = {
       ],
     },
     harnessMatrix: {
-      label: "Harnesses",
+      label: "Agentenprogramme",
       rows: [
         {
           status: "live",
@@ -355,7 +355,7 @@ export const paimosAeonContentDe = {
         {
           status: "partly",
           harnesses: ["Grok"],
-          note: "Läuft ohne Werkzeuge auf Apple Silicon: ein Gespräch in einem einzigen Schritt für Prüfungen, kein allgemeiner Builder.",
+          note: "Läuft ohne Werkzeuge auf Apple Silicon: ein Gespräch in einem einzigen Schritt für Prüfungen, kein allgemeiner Entwicklungsagent.",
         },
         {
           status: "planned",
@@ -367,7 +367,7 @@ export const paimosAeonContentDe = {
     proof: [
       { label: "Arbeitsbereich für Agenten", path: "web/src/views/AgentsView.vue" },
       { label: "Verwaltete Steuerung", path: "internal/agentd/managed_control.go" },
-      { label: "Harness-Adapter", path: "internal/agentd/adapters.go" },
+      { label: "Adapter für Agentenprogramme", path: "internal/agentd/adapters.go" },
       { label: "Agenten-Integration", path: "docs/AGENT_INTEGRATION.md" },
     ],
   },
@@ -423,19 +423,19 @@ export const paimosAeonContentDe = {
       { label: "Freigaben", path: "internal/approvals/doc.go" },
       { label: "Durchsetzung der Freigaben", path: "internal/db/migrations/0202_agent_approvals.sql" },
       { label: "Kapazität", path: "internal/capacity" },
-      { label: "Nutzungs-Dashboard", path: "internal/usagedashboard" },
+      { label: "Nutzungsübersicht", path: "internal/usagedashboard" },
     ],
   },
   rules: {
     eyebrow: "Agentenregeln",
     title: "Ein Regelwerk, sechs Ebenen.",
     lead:
-      "Unternehmen, Projekt, Person, Rolle, benannter Agent und Aufgabe: sechs Ebenen, zusammengeführt zu einem Regelwerk. Jede Veröffentlichung ist unveränderlich und versioniert, und die Doktrin wird aus Git an einem gepinnten Commit gelesen.",
+      "Unternehmen, Projekt, Person, Rolle, benannter Agent und Aufgabe: sechs Ebenen, zusammengeführt zu einem Regelwerk. Jede Veröffentlichung ist unveränderlich und versioniert, und die Doktrin wird aus Git an einem festgelegten Commit gelesen.",
     depths: {
       simple:
         "Hausregeln für KI-Helfer werden einmal für das Unternehmen geschrieben und für jedes Projekt, jede Person und jede Aufgabe verfeinert. Die wichtigen bleiben fest verankert.",
       technical:
-        "Die Regel-Engine führt sechs Ebenen zu unveränderlichen, versionierten Veröffentlichungen mit gesperrten Untergrenzen und Byte-Budgets je Ebene zusammen. Die Doktrin aus Git wird bei einem festgelegten Commit gelesen; aeon rules compare und aeon doctor melden Abweichungen gegenüber dem zusammengeführten Regelsatz.",
+        "Die Regelverarbeitung führt sechs Ebenen zu unveränderlichen, versionierten Veröffentlichungen mit gesperrten Untergrenzen und Byte-Budgets je Ebene zusammen. Die Doktrin aus Git wird bei einem festgelegten Commit gelesen; aeon rules compare und aeon doctor melden Abweichungen gegenüber dem zusammengeführten Regelsatz.",
     },
     stops: [
       { label: "Unternehmen", at: 0.045 },
@@ -448,11 +448,11 @@ export const paimosAeonContentDe = {
     points: [
       { title: "Gesperrte Untergrenzen", body: "Eine höhere Ebene kann eine Regel für alle Ebenen darunter sperren." },
       { title: "Byte-Budgets", body: "Jede Ebene hat ein Größenbudget, damit lesbar bleibt, was ein Agent lädt." },
-      { title: "Abweichungen erkennen", body: "aeon rules compare und aeon doctor zeigen, wo ein Harness von der veröffentlichten Fassung abweicht." },
+      { title: "Abweichungen erkennen", body: "aeon rules compare und aeon doctor zeigen, wo ein Agentenprogramm von der veröffentlichten Fassung abweicht." },
     ],
     early: "Früh: Regeländerungen als Pull Requests, sobald ein Betreiber sie aktiviert.",
     screenAlt:
-      "Die Agentenregeln in AEON: Regelsets für Unternehmen und Projekt mit ihren Sperren, ein geöffnetes Set gesperrter Kernel-Regeln, das Byte-Budget und die aus Git gepinnte Doktrin.",
+      "Die Agentenregeln in AEON: Regelsätze für Unternehmen und Projekt mit ihren Sperren, ein geöffneter Satz gesperrter Kernregeln, das Byte-Budget und die aus Git an einem festgelegten Commit gelesene Doktrin.",
     proof: [
       { label: "Regeln", path: "internal/rules" },
       { label: "Regelvergleich", path: "internal/rulescompare" },
@@ -460,15 +460,15 @@ export const paimosAeonContentDe = {
     ],
   },
   engine: {
-    eyebrow: "Die Engine",
-    title: "Die Engine, die die Arbeit steuert.",
+    eyebrow: "Die Arbeitssteuerung",
+    title: "So wird die Arbeit gesteuert.",
     lead:
       "Sechs Aufgaben steuern die Arbeit rund um die Tickets. Zwei sind live, vier sind teilweise live: Jede nennt, wie weit sie ausgeliefert ist.",
     depths: {
       simple:
-        "Die Engine ist der Teil von AEON, der Agenten und Menschen im Takt hält. Einige ihrer Aufgaben funktionieren schon, andere sind noch im Aufbau.",
+        "Die Arbeitssteuerung ist der Teil von AEON, der Agenten und Menschen im Takt hält. Einige ihrer Aufgaben funktionieren schon, andere sind noch im Aufbau.",
       technical:
-        "Heute live: der Zulassungsregler mit Grenzen je Harness, Modellpräferenzen je Art der Arbeit mit Prüfreihenfolge und Review-Gates, der Decision Desk mit dauerhaftem Posteingang sowie Ereignisse mit Zuordnung der Arbeit zu den ausführenden Agenten, Ergebnissen und Berichten zu Sitzungen, Token und Kosten.",
+        "Heute live: der Zulassungsregler mit Grenzen je Agentenprogramm, Modellpräferenzen je Art der Arbeit mit Prüfreihenfolge und Prüfschritten, die Entscheidungsübersicht („Decision Desk“) mit dauerhaftem Posteingang sowie Ereignisse mit Zuordnung der Arbeit zu den ausführenden Agenten, Ergebnissen und Berichten zu Sitzungen, Token und Kosten.",
     },
     jobs: engineJobs.map((job) => ({ label: job.label.de, status: job.status, note: job.note.de })),
     flowNote: {
@@ -484,7 +484,7 @@ export const paimosAeonContentDe = {
       simple:
         "Unter der Haube ist AEON bewusst einfach: ein Programm, eine Datenbank und eine Aufzeichnung von allem, was geschehen ist.",
       technical:
-        "Eine einzelne Go-Binärdatei bettet die Vue-Anwendung ein und stellt den Vertrag nach OpenAPI 3.1 bereit. Postgres 18 mit pgvector hält jede Zeile unter Sicherheit auf Zeilenebene im FORCE-Modus, eine Append-only-Ereignistabelle speist die Historie und Live-Aktualisierungen per Server-Sent Events, und aeon-agentd spricht ein Daemon-Protokoll mit den Harness-Adaptern.",
+        "Eine einzelne Go-Binärdatei bettet die Vue-Anwendung ein und stellt den Vertrag nach OpenAPI 3.1 bereit. Postgres 18 mit pgvector hält jede Zeile unter Sicherheit auf Zeilenebene im FORCE-Modus, eine Ereignistabelle, die nur ergänzt wird, speist die Historie und Live-Aktualisierungen per Server-Sent Events, und aeon-agentd spricht ein Daemon-Protokoll mit den Adaptern für Agentenprogramme.",
     },
     diagram: {
       clientsLabel: "Menschen und Werkzeuge",
@@ -492,7 +492,7 @@ export const paimosAeonContentDe = {
       serverLabel: "Ein Server",
       server: ["Eine Go-Binärdatei", "Eingebettete Web-Anwendung", "Vertrag nach OpenAPI 3.1"],
       databaseLabel: "Eine Datenbank",
-      database: ["Postgres 18", "Sicherheit auf Zeilenebene (FORCE)", "Append-only-Ereignisprotokoll"],
+      database: ["Postgres 18", "Sicherheit auf Zeilenebene (FORCE)", "Ereignisprotokoll, das nur ergänzt wird"],
       daemonLabel: "Ihre Rechner",
       daemon: "aeon-agentd",
       harnesses: ["Claude Code", "Codex", "Cursor", "pi", "Grok (ohne Werkzeuge)"],
@@ -533,7 +533,7 @@ export const paimosAeonContentDe = {
     goodToKnow: {
       title: "Gut zu wissen",
       items: [
-        "Diese Harnesses sind unterstützt, und die Abnahme im Live-Betrieb steht noch aus.",
+        "Diese Agentenprogramme sind unterstützt, und die Abnahme im Live-Betrieb steht noch aus.",
         "Steuerung und Sitzungseinstellungen sind für Claude unter macOS qualifiziert; Cursor unterstützt nur Unterbrechen.",
         "Nur Claude hat eine qualifizierte Verifikation ohne Werkzeuge; Codex und Cursor verbinden sich ohne automatischen Verifikationslauf.",
         "Das Anbinden einer laufenden Sitzung ist früh verfügbar, aus macOS-Terminals.",

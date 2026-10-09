@@ -708,99 +708,35 @@
     transform: scale(1.018);
   }
 
+  /* INSPR-555: the product's key facts as a quiet list between two hairlines;
+     no glass card, count cell, numbered circles or hover effects. */
   .proof-console {
-    position: relative;
-    z-index: 3;
     display: grid;
     grid-template-columns: minmax(9.5rem, 0.52fr) minmax(0, 3.48fr);
-    margin-top: -1rem;
-    overflow: hidden;
-    border: 1px solid rgb(255 255 255 / 0.88);
-    border-radius: var(--radius-md);
-    background: rgb(255 253 249 / 0.8);
-    box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line);
-    -webkit-backdrop-filter: blur(18px);
-    backdrop-filter: blur(18px);
+    column-gap: clamp(1.5rem, 3vw, 2.5rem);
+    align-items: baseline;
+    padding-block: 1.1rem;
+    border-block: 1px solid var(--line);
   }
 
   .proof-console__label {
-    display: grid;
-    align-content: center;
-    gap: 0.55rem;
-    padding: 1.25rem 1.35rem;
-    color: var(--ink-faint);
-    background:
-      linear-gradient(135deg, color-mix(in srgb, var(--accent-soft) 74%, white), rgb(255 255 255 / 0.48));
-    border-right: 1px solid var(--line);
-    font-family: var(--font-mono);
-    font-size: 0.64rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  .proof-console__label strong {
-    color: var(--accent-strong);
-    font-size: 1.25rem;
-    letter-spacing: -0.04em;
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+    line-height: 1.4;
   }
 
   .proof-strip {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.6rem clamp(1.25rem, 2.5vw, 2rem);
     list-style: none;
   }
 
   .proof-strip li {
-    position: relative;
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 0.8rem;
-    align-items: center;
-    min-height: 6.25rem;
-    padding: 1.25rem;
     color: var(--ink);
-    font-size: 0.92rem;
-    line-height: 1.35;
-    transition: color 180ms ease, background 180ms ease;
-  }
-
-  .proof-strip li + li {
-    border-left: 1px solid var(--line);
-  }
-
-  .proof-strip li::after {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 0.18rem;
-    content: "";
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    transform: scaleX(0);
-    transition: transform 260ms var(--ease);
-  }
-
-  .proof-strip li:hover {
-    color: var(--accent-strong);
-    background: color-mix(in srgb, var(--accent-soft) 32%, transparent);
-  }
-
-  .proof-strip li:hover::after {
-    transform: scaleX(1);
-  }
-
-  .proof-strip__index {
-    display: grid;
-    width: 2rem;
-    height: 2rem;
-    place-items: center;
-    color: var(--accent-strong);
-    border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--accent-soft) 72%, white);
-    box-shadow: 0 0 0 0.28rem color-mix(in srgb, var(--accent-soft) 30%, transparent);
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    text-wrap: pretty;
   }
 
   .section {
@@ -2860,25 +2796,11 @@
 
   .proof-console {
     grid-template-columns: 1fr;
-  }
-
-  .proof-console__label {
-    grid-template-columns: 1fr auto;
-    align-items: center;
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
+    row-gap: 0.6rem;
   }
 
   .proof-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .proof-strip li:nth-child(3) {
-    border-left: 0;
-  }
-
-  .proof-strip li:nth-child(n + 3) {
-    border-top: 1px solid var(--line);
   }
 
   .card-grid--two,
@@ -3038,20 +2960,6 @@
 
   .proof-strip {
     grid-template-columns: 1fr;
-  }
-
-  .proof-strip li,
-  .proof-strip li + li,
-  .proof-strip li:nth-child(3) {
-    border-left: 0;
-  }
-
-  .proof-strip li + li {
-    border-top: 1px solid var(--line);
-  }
-
-  .proof-strip li {
-    min-height: 4.6rem;
   }
 
   .inspectable-rail__system,

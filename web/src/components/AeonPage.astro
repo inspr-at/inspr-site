@@ -58,7 +58,7 @@ const labels = locale === "de"
       viewSource: "Quellcode ansehen",
       proof: "Nachweis im Quellcode",
       early: "Früh",
-      figuresAria: "AEON in Zahlen",
+      figuresAria: "Prüfbare Fakten",
       detailsDescription: "Wie viel Detail diese Seite zeigt",
       detailsSimple: "Einfach",
       detailsTechnical: "Technisch",
@@ -92,7 +92,6 @@ const labels = locale === "de"
       enginesAria: "Die sechs Aufgaben der Engine",
       faqEyebrow: "Praktische Fragen",
       faqTitle: "Kurz gefragt.",
-      ribbonAria: "Beispielhafte Ereignisse im Ereignisprotokoll",
       releaseAria: "Aktuelles Release",
       codename: "Codename",
     }
@@ -100,7 +99,7 @@ const labels = locale === "de"
       viewSource: "View the source",
       proof: "Proof in the source",
       early: "Early",
-      figuresAria: "AEON in figures",
+      figuresAria: "Facts you can check",
       detailsDescription: "How much detail this page shows",
       detailsSimple: "Simple",
       detailsTechnical: "Technical",
@@ -134,7 +133,6 @@ const labels = locale === "de"
       enginesAria: "The engine's six jobs",
       faqEyebrow: "Practical questions",
       faqTitle: "In short.",
-      ribbonAria: "Illustrative events in the event log",
       releaseAria: "Current release",
       codename: "Codename",
     };
@@ -306,36 +304,29 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       <div class="page-shell">
         <AeonReleasePlaque release={content.release} mark={aeonMark.src} label={labels.releaseAria} />
       </div>
-
-      <div class="aeon-ribbon" role="group" aria-label={labels.ribbonAria} data-section-pattern="event-ribbon">
-        <p class="aeon-ribbon__label">{content.hero.ribbonLabel}</p>
-        <div class="aeon-ribbon__track">
-          <ol class="aeon-ribbon__list">
-            {content.hero.ribbon.map((event, index) => (
-              <li><span class="aeon-ribbon__seq">#{String(index + 1).padStart(3, "0")}</span>{event}</li>
-            ))}
-          </ol>
-          <ol class="aeon-ribbon__list" aria-hidden="true">
-            {content.hero.ribbon.map((event, index) => (
-              <li><span class="aeon-ribbon__seq">#{String(index + 1).padStart(3, "0")}</span>{event}</li>
-            ))}
-          </ol>
-        </div>
-      </div>
     </section>
 
     <FamilyBand locale={locale} highlight="paimos" />
 
-    <!-- Figures. -->
+    <!-- Figures. INSPR-555: three checkable claims, each with the place that
+         proves it, instead of a row of big numbers. -->
     <section class="aeon-figures page-shell" aria-label={labels.figuresAria} data-section-pattern="figure-ledger">
-      <ol class="aeon-figures__list">
-        {content.figures.map((figure) => (
-          <li data-reveal>
-            <strong class="aeon-figures__value">{figure.value}</strong>
-            <span class="aeon-figures__label">{figure.label}</span>
-          </li>
-        ))}
-      </ol>
+      <ul class="aeon-figures__list" role="list">
+        {content.figures.map((figure) => {
+          const external = !figure.href.startsWith("#");
+          return (
+            <li data-reveal>
+              <p class="aeon-figures__claim">{figure.claim}</p>
+              <a
+                class="aeon-figures__link"
+                href={figure.href}
+                target={external ? "_blank" : undefined}
+                rel={external ? "noopener noreferrer" : undefined}
+              >{figure.linkLabel} <span aria-hidden="true">{external ? "↗" : "↓"}</span></a>
+            </li>
+          );
+        })}
+      </ul>
     </section>
 
     <!-- Screens from the internal instance, with a lightbox gallery. -->
@@ -1224,7 +1215,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
       shown.set(chip, slot);
       requestAnimationFrame(() => chip.classList.add("is-shown"));
     };
-    // The notes, the event ribbon and their float follow the hero loop, whose
+    // The notes and their float follow the hero loop, whose
     // visible Pause control (and its in-view and tab-visibility handling)
     // therefore pauses all hero motion (WCAG 2.2.2).
     const hero = list.closest<HTMLElement>(".aeon-hero");

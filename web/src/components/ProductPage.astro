@@ -321,29 +321,17 @@ const featurePresentations: Record<string, FeaturePresentation> = {
       </>
     )}
 
-    <div
+    <section
       data-depth-min="standard" class="proof-console page-shell"
-      role="group"
       aria-label={labels.proofAria}
       data-section-pattern="proof-strip"
     >
-      <div class="proof-console__label" aria-hidden="true">
-        <span>{labels.proofLabel}</span>
-        <strong>{String(content.proof.length).padStart(2, "0")}</strong>
-      </div>
-      <ol class="proof-strip">
-        {
-          content.proof.map((item, index) => (
-            <li>
-              <span class="proof-strip__index" aria-hidden="true">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              <span>{item}</span>
-            </li>
-          ))
-        }
-      </ol>
-    </div>
+      <!-- INSPR-555: a plain list; no count cell, numbered circles or hover effects. -->
+      <p class="proof-console__label" aria-hidden="true">{labels.proofLabel}</p>
+      <ul class="proof-strip" role="list">
+        {content.proof.map((item) => <li>{item}</li>)}
+      </ul>
+    </section>
 
     {content.specs && (
       <SpecsGrid

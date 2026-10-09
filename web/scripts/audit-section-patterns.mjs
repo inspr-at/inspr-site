@@ -23,7 +23,8 @@ const pages = [
 for (const page of pages) {
   const html = await readFile(page.path, "utf8");
   const patterns = [...html.matchAll(/data-section-pattern="([^"]+)"/g)].map((match) => match[1]);
-  const sectionCount = (html.match(/<section(?:\s|>)/g) ?? []).length;
+  const sectionTags = html.match(/<section(?:\s[^>]*)?>/g) ?? [];
+  const sectionCount = sectionTags.length;
   const counts = new Map();
   for (const pattern of patterns) counts.set(pattern, (counts.get(pattern) ?? 0) + 1);
 
@@ -31,8 +32,12 @@ for (const page of pages) {
     throw new Error(`${page.name}: only ${patterns.length} of ${page.minimum} expected content blocks declare a presentation pattern`);
   }
 
-  if (patterns.length !== sectionCount) {
-    throw new Error(`${page.name}: ${sectionCount} sections render, but ${patterns.length} declare a presentation pattern`);
+  // INSPR-555: every rendered section declares its pattern. A non-section
+  // block (a list, a group) may declare one too; the old count equality only
+  // held when one unpatterned section and one such block cancelled out.
+  const unpatterned = sectionTags.filter((tag) => !tag.includes("data-section-pattern="));
+  if (unpatterned.length > 0) {
+    throw new Error(`${page.name}: ${unpatterned.length} of ${sectionCount} sections declare no presentation pattern: ${unpatterned.map((tag) => tag.slice(0, 80)).join(" | ")}`);
   }
 
   const repeated = [...counts].filter(([, count]) => count > 2);

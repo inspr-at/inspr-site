@@ -300,10 +300,9 @@ export type AeonContent = {
     primaryHref: string;
     alt: string;
     chips: Array<{ kind: "approval" | "run" | "event"; label: string; detail: string }>;
-    ribbonLabel: string;
-    ribbon: string[];
   };
-  figures: Array<{ value: string; label: string }>;
+  /** INSPR-555: a checkable claim and the link to where the page or the source proves it. */
+  figures: Array<{ claim: string; linkLabel: string; href: string }>;
   theatre: {
     eyebrow: string;
     title: string;

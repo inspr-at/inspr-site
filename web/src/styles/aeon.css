@@ -138,7 +138,7 @@
   .aeon-hero {
     position: relative;
     overflow: hidden;
-    padding-top: clamp(3.5rem, 7vw, 6.5rem);
+    padding-block: clamp(3.5rem, 7vw, 6.5rem) clamp(3rem, 6vw, 4.5rem);
     background:
       radial-gradient(48rem 30rem at 82% 22%, rgb(214 155 49 / 0.12), transparent 70%),
       radial-gradient(40rem 30rem at 8% 90%, rgb(67 201 186 / 0.1), transparent 70%);
@@ -380,93 +380,45 @@
   .aeon-chip--slot-5 { bottom: 20%; right: 12%; }
   .aeon-chip--slot-6 { top: 52%; left: -3%; }
 
-  .aeon-ribbon {
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
-    margin-top: clamp(3rem, 6vw, 4.5rem);
-    padding: 0.85rem var(--gutter);
-    color: var(--night-text);
-    background: linear-gradient(90deg, var(--aeon-night), var(--aeon-night-2));
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-  }
-
-  .aeon-ribbon__label {
-    flex: none;
-    color: var(--aeon-gold-bright);
-    font-size: 0.62rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-
-  .aeon-ribbon__track {
-    display: flex;
-    overflow: hidden;
-    mask-image: linear-gradient(90deg, transparent, black 5%, black 95%, transparent);
-  }
-
-  .aeon-ribbon__list {
-    display: flex;
-    flex: none;
-    gap: 2.4rem;
-    padding-right: 2.4rem;
-    list-style: none;
-    animation: aeon-marquee 40s linear infinite;
-  }
-
-  .aeon-ribbon__list li {
-    display: inline-flex;
-    gap: 0.6rem;
-    color: var(--night-text);
-    white-space: nowrap;
-  }
-
-  .aeon-ribbon__list li::after {
-    margin-left: 1.8rem;
-    color: var(--aeon-gold);
-    content: "◆";
-    font-size: 0.5rem;
-    line-height: 1.9;
-  }
-
-  .aeon-ribbon__seq {
-    color: rgb(185 204 213 / 0.55);
-  }
-
   /* ── Figures ──────────────────────────────────────────────────────── */
+  /* The family band above already leaves room; the claims follow it closely. */
   .aeon-figures {
-    padding-block: clamp(3rem, 6vw, 5rem) 0;
+    padding-block: clamp(0.5rem, 1.5vw, 1rem) 0;
   }
 
   .aeon-figures__list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
-    gap: 0 1.2rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    gap: 0 clamp(1.5rem, 3vw, 2.5rem);
     list-style: none;
   }
 
   .aeon-figures__list li {
     display: grid;
     align-content: start;
-    gap: 0.35rem;
+    gap: 0.6rem;
     padding: 1.2rem 0;
     border-top: 1px solid var(--line);
   }
 
-  .aeon-figures__value {
-    font-family: var(--font-display);
-    font-size: clamp(2.6rem, 4.4vw, 4.4rem);
-    font-weight: 680;
-    letter-spacing: -0.06em;
-    line-height: 0.95;
+  .aeon-figures__claim {
     color: var(--ink);
+    font-size: 1.05rem;
+    line-height: 1.45;
+    text-wrap: pretty;
   }
 
-  .aeon-figures__label {
-    color: var(--ink-soft);
-    font-size: 0.95rem;
-    line-height: 1.4;
+  .aeon-figures__link {
+    justify-self: start;
+    color: var(--accent-strong);
+    font-size: 0.92rem;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .aeon-figures__link:hover {
+    color: var(--ink);
   }
 
   /* ── Screens ──────────────────────────────────────────────────────── */
@@ -2283,7 +2235,6 @@
   }
 
   /* The hero's Pause control stops all hero motion. */
-  .aeon-hero.is-paused .aeon-ribbon__list,
   .aeon-hero.is-paused .aeon-chip.is-shown,
   .aeon-hero.is-paused .aeon-pulse {
     animation-play-state: paused;
@@ -2327,8 +2278,6 @@
 
   .aeon-reveal-ready .aeon .aeon-figures__list li.is-in:nth-child(2) { transition-delay: 70ms; }
   .aeon-reveal-ready .aeon .aeon-figures__list li.is-in:nth-child(3) { transition-delay: 140ms; }
-  .aeon-reveal-ready .aeon .aeon-figures__list li.is-in:nth-child(4) { transition-delay: 210ms; }
-  .aeon-reveal-ready .aeon .aeon-figures__list li.is-in:nth-child(5) { transition-delay: 280ms; }
   .aeon-reveal-ready .aeon .aeon-gate__step:nth-child(2) { transition-delay: 110ms; }
   .aeon-reveal-ready .aeon .aeon-gate__step:nth-child(3) { transition-delay: 220ms; }
   .aeon-reveal-ready .aeon .aeon-gate__step:nth-child(4) { transition-delay: 330ms; }
@@ -2358,10 +2307,6 @@
     to { opacity: 1; scale: 1; }
   }
 
-  @keyframes aeon-marquee {
-    to { transform: translateX(-100%); }
-  }
-
   @keyframes aeon-progress {
     to { transform: scaleX(1); }
   }
@@ -2384,8 +2329,6 @@
     .aeon-chip small { display: none; }
     .aeon-chip--slot-1, .aeon-chip--slot-6 { left: 0; }
     .aeon-chip--slot-2, .aeon-chip--slot-4, .aeon-chip--slot-5 { right: 0; }
-    .aeon-ribbon { flex-direction: column; align-items: flex-start; }
-    .aeon-ribbon__track { width: 100%; }
     .specs--aeon .specs__grid { gap: 0.6rem; }
     .specs--aeon .specs__tile { min-height: 7.6rem; }
     .specs--aeon .specs__face { gap: 0.5rem; padding: 0.8rem 0.85rem 0.9rem; }
@@ -2406,13 +2349,8 @@
     .aeon-pulse,
     .aeon-diagram__link span,
     .aeon-diagram__drop span,
-    .aeon-theatre__panel,
-    .aeon-ribbon__list {
+    .aeon-theatre__panel {
       animation: none;
-    }
-
-    .aeon-ribbon__track {
-      overflow-x: auto;
     }
 
     .aeon-shot,

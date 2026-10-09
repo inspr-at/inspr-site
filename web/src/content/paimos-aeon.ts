@@ -79,22 +79,26 @@ export const paimosAeonContent = {
       { kind: "event", label: "approval.approved", detail: "A person decided" },
       { kind: "run", label: "Doctrine pinned", detail: "Rules read from git at a pinned commit" },
     ],
-    ribbonLabel: "Append-only event log",
-    ribbon: [
-      "node.created",
-      "node.moved",
-      "approval.proposed",
-      "approval.approved",
-      "node.updated",
-      "approval.revoked",
-    ],
   },
   figures: [
-    { value: "4", label: "harnesses that start under Paimos" },
-    { value: "6", label: "rule layers" },
-    { value: "6", label: "engine jobs, two of them live" },
-    { value: "1", label: "event log per tenant" },
-    { value: "300+", label: "API paths, one OpenAPI 3.1 contract" },
+    {
+      claim: "Rules from six scopes (company, project, person, agent role, named agent and task) merge into one rulebook; doctrine is read from git at a pinned commit.",
+      linkLabel: "How the rules work",
+      href: "#rules",
+    },
+    {
+      claim: "People and agents write to one append-only event log per tenant.",
+      linkLabel: "See the architecture",
+      href: "#architecture",
+    },
+    {
+      claim: "One OpenAPI 3.1 file describes more than 500 API paths.",
+      linkLabel: "Read the contract",
+      // Release 125 commits the contract file (536 paths). From release 128 it
+      // is generated from per-area files and not committed: on that bump, point
+      // this link and the OpenAPI proof below at the per-area source directory.
+      href: blob("api/openapi.yaml"),
+    },
   ],
   theatre: {
     eyebrow: "Internal instance",
@@ -249,7 +253,7 @@ export const paimosAeonContent = {
         label: "Contract first",
         icon: "braces",
         group: "ops",
-        note: "One OpenAPI 3.1 file with 300+ paths, served by a single binary that embeds the web app.",
+        note: "One OpenAPI 3.1 file with more than 500 paths, served by a single binary that embeds the web app.",
         noteEli10: "Everything the app can do is described in one public contract that other tools can use.",
       },
       {
@@ -528,7 +532,7 @@ export const paimosAeonContent = {
       },
       {
         title: "Contract first",
-        body: "One OpenAPI 3.1 file describes 300+ paths; the server embeds the web app it serves.",
+        body: "One OpenAPI 3.1 file describes more than 500 paths; the server embeds the web app it serves.",
         proof: { label: "OpenAPI contract", path: "api/openapi.yaml" },
       },
     ],

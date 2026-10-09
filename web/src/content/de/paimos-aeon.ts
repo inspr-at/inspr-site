@@ -68,22 +68,23 @@ export const paimosAeonContentDe = {
       { kind: "event", label: "approval.approved", detail: "Eine Person hat entschieden" },
       { kind: "run", label: "Doktrin gepinnt", detail: "Regeln aus Git, an einem gepinnten Commit" },
     ],
-    ribbonLabel: "Append-only-Ereignisprotokoll",
-    ribbon: [
-      "node.created",
-      "node.moved",
-      "approval.proposed",
-      "approval.approved",
-      "node.updated",
-      "approval.revoked",
-    ],
   },
   figures: [
-    { value: "4", label: "Harnesses, die unter Paimos starten" },
-    { value: "6", label: "Regel-Ebenen" },
-    { value: "6", label: "Engine-Aufgaben, zwei davon live" },
-    { value: "1", label: "Ereignisprotokoll je Mandant" },
-    { value: "300+", label: "API-Pfade, ein Vertrag nach OpenAPI 3.1" },
+    {
+      claim: "Regeln aus sechs Ebenen (Unternehmen, Projekt, Person, Agentenrolle, benannter Agent und Aufgabe) ergeben ein Regelwerk; die Doktrin wird aus Git an einem festgelegten Commit gelesen.",
+      linkLabel: "So wirken die Regeln",
+      href: "#rules",
+    },
+    {
+      claim: "Menschen und Agenten schreiben in ein fortlaufendes Ereignisprotokoll je Mandant; Einträge werden nur angefügt.",
+      linkLabel: "Zur Architektur",
+      href: "#architecture",
+    },
+    {
+      claim: "Eine Datei nach OpenAPI 3.1 beschreibt mehr als 500 API-Pfade.",
+      linkLabel: "Vertrag lesen",
+      href: blob("api/openapi.yaml"),
+    },
   ],
   theatre: {
     eyebrow: "Interne Instanz",
@@ -238,7 +239,7 @@ export const paimosAeonContentDe = {
         label: "Vertrag zuerst",
         icon: "braces",
         group: "ops",
-        note: "Eine Datei nach OpenAPI 3.1 mit 300+ Pfaden, bereitgestellt von einer einzigen Binärdatei, die die Web-Anwendung einbettet.",
+        note: "Eine Datei nach OpenAPI 3.1 mit mehr als 500 Pfaden, bereitgestellt von einer einzigen Binärdatei, die die Web-Anwendung einbettet.",
         noteEli10: "Alles, was die Anwendung kann, ist in einem öffentlichen Vertrag beschrieben, den auch andere Werkzeuge nutzen können.",
       },
       {
@@ -515,7 +516,7 @@ export const paimosAeonContentDe = {
       },
       {
         title: "Vertrag zuerst",
-        body: "Eine Datei nach OpenAPI 3.1 beschreibt 300+ Pfade; der Server bettet die Web-Anwendung ein, die er ausliefert.",
+        body: "Eine Datei nach OpenAPI 3.1 beschreibt mehr als 500 Pfade; der Server bettet die Web-Anwendung ein, die er ausliefert.",
         proof: { label: "OpenAPI-Vertrag", path: "api/openapi.yaml" },
       },
     ],

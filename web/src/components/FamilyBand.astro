@@ -142,9 +142,11 @@ const region = locale === "de" ? "Der INSPR-Ablauf" : "The INSPR flow";
     font-weight: 700;
   }
 
+  /* "Planned:" reads as a label, upright: no italics on INSPR pages (INSPR-494). */
   .family-band__notes em {
     color: var(--ink);
-    font-style: italic;
+    font-style: normal;
+    font-weight: 700;
   }
 
   /* Narrow: the rail turns vertical, one stop per row. */

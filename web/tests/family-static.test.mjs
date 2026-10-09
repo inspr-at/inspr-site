@@ -118,7 +118,7 @@ test("the band stays a quiet rail: no boxes, no pills, no layout shift on the cu
   const style = band.slice(band.indexOf("<style>"));
   assert.match(band, /<span class="family-band__dot" aria-hidden="true"><\/span>/);
   assert.match(band, /aria-current=\{step\.key === current \? "step" : undefined\}/);
-  assert.doesNotMatch(style, /border-radius:\s*var\(--radius|dashed|border-top-width|box-shadow|background:\s*var\(--accent-soft\)/);
+  assert.doesNotMatch(style, /border-radius:\s*var\(--radius|dashed|border-top-width|box-shadow|background:\s*var\(--accent-soft\)|font-style:\s*italic/);
   assert.doesNotMatch(style, /\[aria-current\][^{]*\{[^}]*(?:font-weight|border-width|padding|margin|transform)/);
   for (const locale of ["en", "de"]) {
     assert.ok(family.flow.underneath.lead[locale].trim(), `underneath lead (${locale})`);

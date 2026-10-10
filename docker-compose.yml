@@ -133,8 +133,9 @@ services:
       # Empty values disable signup gracefully (door + login still work).
       #
       # PREFERRED: INSPR_AUTH_SA_PAT — scoped to ORG_USER_MANAGER on
-      # the INSPR org, minted by auth/bootstrap-zitadel.sh step 10
-      # (INSPR-162). Blast radius is bounded if the container env leaks.
+      # the INSPR org, minted by the scoped service-account step in
+      # auth/bootstrap-zitadel.sh (INSPR-162). Blast radius is bounded
+      # if the container env leaks.
       #
       # LEGACY: ZITADEL_API_PAT held the IAM_OWNER bootstrap PAT in v1.
       # Kept as a fallback during the migration window so existing

@@ -5,6 +5,7 @@ import {
   mkdir,
   mkdtemp,
   readFile,
+  readdir,
   rm,
   stat,
   writeFile,
@@ -298,6 +299,47 @@ test("identity bootstrap requires environment identity and passwords without emb
   assert.equal(problems.length, 0, problems.join("\n"));
 });
 
+test("identity bootstrap never calls password complexity or login policy endpoints", async () => {
+  const script = await readFile(new URL("../../auth/bootstrap-zitadel.sh", import.meta.url), "utf8");
+  // Match every API prefix and method, including create, update and reset paths.
+  assert.equal(/\/policies\/(?:password\/complexity|login)\b|\/settings\/(?:password|login)\b|PasswordComplexity|LoginPolicy/.test(script), false, "password complexity and login policy endpoints are forbidden, including v2 and RPC forms");
+  assert.equal(script.includes("RELAX_PAYLOAD"), false, "the policy relaxation step must be removed");
+});
+
+test("identity bootstrap cross-file references use step names", async () => {
+  const root = fileURLToPath(new URL("../../", import.meta.url));
+  const numberedReference = /\bbootstrap\b[^\n]*(?:\n[^\n]*)?\bstep\s+\d+\b/i;
+  assert.equal(numberedReference.test(["auth/bootstrap-zitadel.sh", "step", "10"].join(" ")), true);
+  assert.equal(numberedReference.test(["bootstrap-zitadel.sh\n#", "step", "9"].join(" ")), true);
+  assert.equal(numberedReference.test("the scoped service-account step in auth/bootstrap-zitadel.sh"), false);
+  const excludedDirectories = new Set([".git", ".astro", ".cache", ".agents", ".codex", ".machinekey", "node_modules", "dist"]);
+  const problems = [];
+  const scan = async (directory = "") => {
+    for (const entry of await readdir(join(root, directory), { withFileTypes: true })) {
+      const file = join(directory, entry.name);
+      if (entry.isDirectory()) {
+        if (!excludedDirectories.has(entry.name)) await scan(file);
+        continue;
+      }
+      if (!entry.isFile() || file === "auth/bootstrap-zitadel.sh") continue;
+      // Never read credential files; skip binary assets and generated lockfiles.
+      if (/^(?:\.env(?!\.example$)|id_)/.test(entry.name)
+        || /\.(?:env|age|gpg|pem|key|png|jpe?g|webp|gif|ico|mp4|webm|woff2?|ttf|pdf|lock)$/i.test(entry.name)
+        || entry.name === "package-lock.json") continue;
+      const bytes = await readFile(join(root, file));
+      if (bytes.includes(0)) continue;
+      let text;
+      try { text = new TextDecoder("utf-8", { fatal: true }).decode(bytes); } catch { continue; }
+      const lines = text.split("\n");
+      for (const [index, line] of lines.entries()) {
+        if (numberedReference.test(`${line}\n${lines[index + 1] ?? ""}`)) problems.push(`${file}:${index + 1}`);
+      }
+    }
+  };
+  await scan();
+  assert.equal(problems.length, 0, `Use named bootstrap steps: ${problems.join(", ")}`);
+});
+
 test("identity bootstrap help needs no configuration and missing inputs fail before host or network steps", async () => {
   const path = fileURLToPath(new URL("../../auth/bootstrap-zitadel.sh", import.meta.url));
   const root = await mkdtemp(join(tmpdir(), "inspr-bootstrap-inputs-"));
@@ -320,6 +362,9 @@ test("identity bootstrap help needs no configuration and missing inputs fail bef
         assert.equal(result.stdout.includes(key), true, `help must document ${key}`);
       }
       assert.equal(result.stdout.includes("--create-user"), true, "help must document explicit user creation");
+      assert.equal(/instance default: min 8 bytes,[\s\S]*uppercase, lowercase, number and symbol/.test(result.stdout), true, "help must document all password requirements");
+      assert.equal(result.stdout.includes("Spaces count as symbols"), true, "help must describe symbol semantics");
+      assert.equal(result.stdout.includes("Preserves password and login policies"), true, "help must document policy preservation");
     }
     const inputs = {
       COMPOSE_DIR: "/srv/web-host/inspr-at", USER_LOGIN_NAME: "demo-user",
@@ -373,7 +418,7 @@ test("identity bootstrap credential comments report only file and line", async (
   assert.deepEqual(problemsFor('# operator-supplied password is accepted\n# token rotation is explicit\n# secret is redacted\n# access-token failure: "Token.Invalid"', "fixture.sh"), []);
 });
 
-test("identity bootstrap validates inputs and explicit user creation before any API mutation", async () => {
+test("identity bootstrap validates inputs, user creation and password complexity before any API mutation", async () => {
   const source = await readFile(new URL("../../auth/bootstrap-zitadel.sh", import.meta.url), "utf8");
   assert.equal((source.match(/^USER_SEARCH=/gm) ?? []).length, 1, "the human-user lookup must be reused");
   const root = await mkdtemp(join(tmpdir(), "inspr-bootstrap-preflight-"));
@@ -395,6 +440,9 @@ if (!url) process.exit(96);
 const path = new URL(url).pathname;
 const record = (name) => appendFileSync(process.env.BOOTSTRAP_CALL_LOG, name + "\\n");
 const json = (value) => process.stdout.write(JSON.stringify(value));
+if (/\\/policies\\/(?:password\\/complexity|login)\\b|\\/settings\\/(?:password|login)\\b|PasswordComplexity|LoginPolicy/.test(path)) {
+  record("forbidden-policy"); process.exit(97);
+}
 if (path === "/.well-known/openid-configuration") { record("ready"); process.exit(0); }
 if (path === "/management/v1/orgs/me") {
   record("org"); json({ org: { id: "fixture-org", name: "Fixture Org" } }); process.exit(0);
@@ -410,7 +458,8 @@ if (path === "/management/v1/users/_search") {
   json({ result: process.env.BOOTSTRAP_USER_STATE === "existing" ? [{ id: "existing-user" }] : [] }); process.exit(0);
 }
 if (path === "/management/v1/projects/_search") {
-  record("project-lookup"); json({ result: [{ id: "fixture-project", name: "inspr.at" }] }); process.exit(0);
+  record("project-lookup");
+  json({ result: process.env.BOOTSTRAP_PROJECT_STATE === "missing" ? [] : [{ id: "fixture-project", name: "inspr.at" }] }); process.exit(0);
 }
 if (path === "/management/v1/projects/fixture-project/apps/_search") {
   record("app-lookup"); json({ result: [{ id: "fixture-app", name: "inspr-www-auth" }] }); process.exit(0);
@@ -418,7 +467,9 @@ if (path === "/management/v1/projects/fixture-project/apps/_search") {
 if (path === "/management/v1/projects/fixture-project/apps/fixture-app") {
   record("app-detail"); json({ app: { oidcConfig: { clientId: "fixture-client" } } }); process.exit(0);
 }
-record(path.endsWith("/_generate_client_secret") ? "rotate-secret" : "mutation");
+record(path === "/management/v1/projects" ? "project-create" : path.endsWith("/_generate_client_secret") ? "rotate-secret" : "mutation");
+// Keep the downstream jq parse valid so pipefail exposes the intercepted curl status.
+if (path === "/management/v1/projects") json({ id: "fixture-project" });
 process.exit(98);
 `, { mode: 0o755 });
     await writeFile(join(bin, "jq"), `#!${process.execPath}
@@ -438,6 +489,7 @@ let value;
 if (filter === ".org.id") value = data.org.id;
 else if (filter === ".org.name") value = data.org.name;
 else if (filter === ".result[0].id // empty") value = data.result[0]?.id ?? "";
+else if (filter === ".id") value = data.id;
 else if (filter.includes(".result[]?")) value = data.result.find((item) => item.name === named("n"))?.id ?? "";
 else if (filter === ".app.oidcConfig.clientId") value = data.app.oidcConfig.clientId;
 else process.exit(3);
@@ -448,6 +500,7 @@ process.stdout.write(String(value) + "\\n");
       USER_LOGIN_NAME: "demo-user", USER_FIRST: "Ada", USER_LAST: "Example",
       USER_EMAIL: "ada@example.com", SMTP_PASSWORD: "synthetic-relay-input",
       BOOTSTRAP_CALL_LOG: calls, BOOTSTRAP_USER_STATE: "missing",
+      BOOTSTRAP_PROJECT_STATE: "existing",
     };
     const run = async (flags = [], extra = {}) => {
       await writeFile(calls, "");
@@ -484,17 +537,41 @@ process.stdout.write(String(value) + "\\n");
       assert.deepEqual(reset.order, []);
     }
     for (const mode of ["lookup-error", "malformed"]) {
-      const { result, order } = await run(["--create-user"], { BOOTSTRAP_USER_STATE: mode, USER_PASSWORD: "synthetic-test-input" });
+      const { result, order } = await run(["--create-user"], { BOOTSTRAP_USER_STATE: mode, USER_PASSWORD: "Demo7+ab" });
       assert.notEqual(result.status, 0);
       assert.deepEqual(order, ["ready", "org", "user-lookup"]);
     }
+    // Synthetic fixtures isolate each missing requirement, including the old
+    // lowercase-only case. Non-ASCII letters do not satisfy ASCII upper/lower.
+    for (const password of ["De7+abc", "demo7+ab", "DEMO7+AB", "DemoX+ab", "Demo7xab", "ééÉ7+abc", "ÉÉé7+ABC"]) {
+      for (const [mode, flags] of [["missing", ["--create-user"]], ["existing", ["--reset-password"]]]) {
+        for (const projectState of ["missing", "existing"]) {
+          const { result, order } = await run(flags, {
+            BOOTSTRAP_USER_STATE: mode, BOOTSTRAP_PROJECT_STATE: projectState, USER_PASSWORD: password,
+          });
+          assert.equal(result.status, 1);
+          assert.equal(result.stderr.includes("USER_PASSWORD must meet the instance default: at least 8 bytes, including uppercase, lowercase, number and symbol"), true, "weak passwords must fail clearly");
+          assert.deepEqual(order, ["ready", "org", "user-lookup"], "weak passwords must fail before any mutation or secret generation");
+        }
+      }
+    }
     for (const [mode, flags, password] of [
       ["existing", [], undefined], ["existing", [], ""], ["existing", ["--create-user"], undefined],
-      ["existing", ["--reset-password"], "synthetic-test-input"], ["missing", ["--create-user"], "synthetic-test-input"],
+      ["existing", ["--create-user"], "synthetic-test-input"],
+      ["existing", ["--reset-password"], "Demo7+ab"], ["missing", ["--create-user"], "Demo7+ab"],
+      ["existing", ["--reset-password"], "Synthetic-test-input7+"], ["missing", ["--create-user"], "Synthetic-test-input7+"],
+      ["existing", ["--reset-password"], "Demo7 ab"], ["missing", ["--create-user"], "Demo7 ab"],
+      ["existing", ["--reset-password"], "Aa1+éé"], ["missing", ["--create-user"], "Aa1+éé"],
     ]) {
-      const { result, order } = await run(flags, { BOOTSTRAP_USER_STATE: mode, USER_PASSWORD: password });
-      assert.equal(result.status, 98, "validated inputs may reach the intercepted first mutation");
-      assert.deepEqual(order, ["ready", "org", "user-lookup", "project-lookup", "app-lookup", "app-detail", "rotate-secret"]);
+      for (const projectState of ["missing", "existing"]) {
+        const { result, order } = await run(flags, {
+          BOOTSTRAP_USER_STATE: mode, BOOTSTRAP_PROJECT_STATE: projectState, USER_PASSWORD: password, LC_ALL: "en_US.UTF-8",
+        });
+        assert.equal(result.status, 98, "validated inputs may reach the intercepted first mutation");
+        assert.deepEqual(order, projectState === "missing"
+          ? ["ready", "org", "user-lookup", "project-lookup", "project-create"]
+          : ["ready", "org", "user-lookup", "project-lookup", "app-lookup", "app-detail", "rotate-secret"]);
+      }
     }
   } finally {
     await rm(root, { recursive: true, force: true });

@@ -76,9 +76,10 @@ var (
 	// PAT for the Zitadel management API. Used only by /enter for user
 	// creation + passwordless registration link delivery.
 	//
-	// Prefer the scoped service-account PAT (INSPR_AUTH_SA_PAT — minted
-	// by auth/bootstrap-zitadel.sh step 10, has only ORG_USER_MANAGER on
-	// the INSPR org). Fall back to the legacy ZITADEL_API_PAT variable
+	// Prefer the scoped service-account PAT (INSPR_AUTH_SA_PAT), minted
+	// by the scoped service-account step in auth/bootstrap-zitadel.sh
+	// with only ORG_USER_MANAGER on the INSPR org. Fall back to the legacy
+	// ZITADEL_API_PAT variable
 	// for backward compatibility during the migration window — it
 	// historically held the IAM_OWNER bootstrap PAT, which is too broad
 	// for production use (see INSPR-162). Empty value disables /enter

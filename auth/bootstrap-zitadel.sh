@@ -11,32 +11,32 @@
 #   1. Reads the bootstrap machine-user PAT (IAM_OWNER) from
 #      ./.machinekey/pat.txt — written by Zitadel at first init via
 #      ZITADEL_FIRSTINSTANCE_PATPATH. This PAT is used ONLY by this script.
-#   2. Discovers the INSPR org via /management/v1/orgs/me.
-#      Checks the configured human user before any API writes.
-#   3. Finds or creates the project "inspr.at".
-#   4. Finds or creates the OIDC web application; rotates client_secret
+#   2. Waits for Zitadel readiness.
+#   3. Discovers the INSPR org via /management/v1/orgs/me.
+#      Checks the configured human user and any password needed for creation
+#      or reset before any API writes. Preserves password and login policies.
+#   4. Finds or creates the project "inspr.at".
+#   5. Finds or creates the OIDC web application; rotates client_secret
 #      only when --rotate-secret (or --write-env) is passed.
-#   5. Relaxes org password complexity (drops uppercase requirement) so
-#      the bootstrap human-user password admits.
 #   6. Creates a missing human user only with --create-user; resets password only
 #      when --reset-password is passed, and grants ORG_OWNER so the
 #      user can administer the INSPR org in the Console.
-#   7. (skipped — folded into 6)
-#   8. Patches the built-in ZITADEL Console OIDC app to enable the
+#   7. Patches the built-in ZITADEL Console OIDC app to enable the
 #      REFRESH_TOKEN grant (works around upstream issue #8392).
-#   9. SMTP relay config (INSPR-163) — finds-or-creates an SMTP config
+#   8. SMTP relay config (INSPR-163) — finds-or-creates an SMTP config
 #      pointed at the web host's docker network alias `smtp:25` and
 #      activates it. Idempotent via description-based lookup.
-#  10. Scoped service-account (INSPR-162) — finds-or-creates the
+#   9. Scoped service-account (INSPR-162) — finds-or-creates the
 #      `inspr-auth-sa` machine user with ORG_USER_MANAGER (only the
 #      scope inspr-auth needs: create users + send passwordless link),
 #      grants it the role, and mints a long-lived PAT. The PAT is
 #      retrievable only at creation, so re-runs preserve the existing
 #      one unless --rotate-sa-pat (or --write-env, which auto-implies)
 #      is passed.
-#  11. Prints OIDC_CLIENT_ID/SECRET + INSPR_AUTH_SA_PAT (redacted by
+#  10. Prints OIDC_CLIENT_ID/SECRET + INSPR_AUTH_SA_PAT (redacted by
 #      default; use --print-secret for cleartext) and writes them to
 #      .env when --write-env is passed.
+#  11. Removes the legacy PAT from .env only with --remove-legacy-pat.
 #
 # FLAGS:
 #   --write-env       Persist all minted values to .env (auto-implies
@@ -70,6 +70,9 @@
 # CONDITIONAL ENVIRONMENT (no default):
 #   USER_PASSWORD      Required for a missing user with --create-user, or for
 #                      --reset-password. Omit on re-runs that preserve it.
+#                      Must meet the instance default: min 8 bytes,
+#                      including uppercase, lowercase, number and symbol.
+#                      Spaces count as symbols.
 #                      Never printed; user must change it on next login.
 # OPTIONAL SMTP IDENTITY:
 #   SMTP_FROM_ADDRESS  Sender address (defaults to USER_EMAIL).
@@ -198,7 +201,7 @@ ORG_NAME="$(echo "$ORG_ME" | jq -r '.org.name')"
 log "Using org name='$ORG_NAME' id=$ORG_ID"
 AUTH+=(-H "x-zitadel-orgid: $ORG_ID")
 
-# Read-only preflight: resolve the user and validate creation before API writes.
+# Read-only preflight: resolve the user and validate creation/reset before API writes.
 # Zitadel uses POST for search queries; this lookup does not modify the user.
 log "Looking for existing user '${USER_LOGIN_NAME}'…"
 USER_SEARCH="$(curl -fsS "${AUTH[@]}" -X POST "${ZITADEL_BASE}/management/v1/users/_search" -d "$(jq -n --arg ln "$USER_LOGIN_NAME" '{queries:[{userNameQuery:{userName:$ln, method:"TEXT_QUERY_METHOD_EQUALS"}}]}')")"
@@ -206,6 +209,17 @@ USER_ID="$(echo "$USER_SEARCH" | jq -r '.result[0].id // empty')"
 if [ -z "$USER_ID" ]; then
   [ "$CREATE_USER" = "1" ] || die "bootstrap login not found; use --create-user to create the configured user"
   : "${USER_PASSWORD:?set USER_PASSWORD to create the bootstrap user}"
+fi
+if [ -z "$USER_ID" ] || [ "$RESET_PASSWORD" = "1" ]; then
+  (
+    # Match Zitadel's byte length and ASCII character classes regardless of locale.
+    export LC_ALL=C
+    if [[ ${#USER_PASSWORD} -lt 8 || ! "$USER_PASSWORD" =~ [A-Z] ||
+          ! "$USER_PASSWORD" =~ [a-z] || ! "$USER_PASSWORD" =~ [0-9] ||
+          ! "$USER_PASSWORD" =~ [^A-Za-z0-9] ]]; then
+      die "USER_PASSWORD must meet the instance default: at least 8 bytes, including uppercase, lowercase, number and symbol"
+    fi
+  )
 fi
 
 # ── 4. Find or create the project ───────────────────────────────────────
@@ -285,40 +299,7 @@ else
   log "Client id=$CLIENT_ID (secret unchanged)"
 fi
 
-# ── 6. Relax the org password complexity policy to admit the bootstrap pwd
-#       Default policy requires upper+lower+number+symbol; we drop the
-#       upper requirement so the operator-supplied bootstrap password is accepted.
-#       The user is expected to rotate via the console; this is a spike-
-#       grade convenience, not a long-term setting.
-log "Relaxing org password complexity (drop uppercase requirement)…"
-# Idempotent across runs:
-#   - First run: no custom policy → PUT 404 → POST creates it
-#   - Subsequent runs: custom policy exists → PUT 200 (or 409 "no changes")
-# We treat 200/201/409 all as success; only abort on truly unexpected codes.
-RELAX_PAYLOAD='{"minLength":"8","hasLowercase":true,"hasUppercase":false,"hasNumber":true,"hasSymbol":true}'
-HTTP_CODE="$(curl -sS -o /tmp/policy.out -w '%{http_code}' "${AUTH[@]}" -X PUT "${ZITADEL_BASE}/management/v1/policies/password/complexity" -d "$RELAX_PAYLOAD")"
-case "$HTTP_CODE" in
-  200|201)
-    log "  policy updated (HTTP $HTTP_CODE)"
-    ;;
-  409)
-    log "  policy already at desired state (HTTP 409 — no-op)"
-    ;;
-  404|400)
-    log "  no custom policy yet → creating one"
-    POST_CODE="$(curl -sS -o /tmp/policy.out -w '%{http_code}' "${AUTH[@]}" -X POST "${ZITADEL_BASE}/management/v1/policies/password/complexity" -d "$RELAX_PAYLOAD")"
-    case "$POST_CODE" in
-      200|201|409) log "  created (HTTP $POST_CODE)" ;;
-      *) log "  WARN: create returned HTTP $POST_CODE — body:"; cat /tmp/policy.out >&2 ;;
-    esac
-    ;;
-  *)
-    log "  WARN: policy PUT returned HTTP $HTTP_CODE — body:"
-    cat /tmp/policy.out >&2
-    ;;
-esac
-
-# ── 7. Create the human user ────────────────────────────────────────────
+# ── 6. Create or reset the human user and assert the org role ────────────
 # Reuse the read-only preflight result; creation was authorized before API writes.
 if [ -z "$USER_ID" ]; then
   log "Creating user…"
@@ -348,7 +329,7 @@ fi
 log "User id=$USER_ID"
 assert_org_role "$USER_ID" "$USER_ORG_ROLE" "$USER_LOGIN_NAME"
 
-# ── 8. Patch ZITADEL Console OIDC app — enable refresh tokens ───────────
+# ── 7. Patch ZITADEL Console OIDC app — enable refresh tokens ───────────
 # Self-hosted Zitadel ships the built-in Console OIDC app with ONLY the
 # AUTHORIZATION_CODE grant. The browser-side console can therefore obtain
 # an access token but never refresh it, so after the access-token TTL
@@ -418,7 +399,7 @@ else
                cat /tmp/console.out >&2 ;;
     esac
 
-    # ── 8b. VERIFY the Console refresh-token grant actually landed. ──
+    # ── 7b. VERIFY the Console refresh-token grant actually landed. ──
     # The PUT could succeed (200/201/400-No-changes) but Zitadel might
     # silently keep its prior config (some upstream versions had this
     # bug pattern). Re-GET the oidc_config and assert REFRESH_TOKEN is
@@ -437,7 +418,7 @@ else
   fi
 fi
 
-# ── 9. SMTP relay configuration (INSPR-163) ─────────────────────────────
+# ── 8. SMTP relay configuration (INSPR-163) ─────────────────────────────
 # Zitadel needs SMTP wired BEFORE the magic-link signup flow can deliver
 # its passwordless-registration emails. We point at the host-local namshi
 # relay (alias `smtp:25` on the web host's Traefik network) which smarthosts
@@ -510,7 +491,7 @@ else
   activate_smtp "$EXISTING_SMTP_ID"
 fi
 
-# ── 10. Scoped service account for inspr-auth (INSPR-162) ───────────────
+# ── 9. Scoped service account for inspr-auth (INSPR-162) ────────────────
 # Replace the IAM_OWNER bootstrap PAT in inspr-auth's env with a scoped
 # machine user that only has the org-level permissions /enter actually
 # needs: create users + send the passwordless-registration link email.
@@ -576,7 +557,7 @@ else
   log "  Leaving SA PAT unchanged (use --rotate-sa-pat to mint a new one)"
 fi
 
-# ── 11. Display + optionally write to .env ──────────────────────────────
+# ── 10. Display + optionally write to .env ──────────────────────────────
 # DEFAULT: redact every secret (only length printed) so stdout-captured
 # runs don't leak into terminals/transcripts/CI logs. Pass --print-secret
 # to opt into cleartext (e.g. when copying to a different env file).
@@ -640,7 +621,7 @@ if [ "$WROTE_ANYTHING" = "1" ]; then
   log "Done. Now: cd ${COMPOSE_DIR} && docker compose up -d --no-deps --force-recreate inspr-auth"
 fi
 
-# ── 12. Optional legacy-PAT cleanup ─────────────────────────────────────
+# ── 11. Optional legacy-PAT cleanup ─────────────────────────────────────
 # Post-migration to INSPR_AUTH_SA_PAT, the legacy ZITADEL_API_PAT line in
 # .env is dead weight — kept as a fallback in main.go for the migration
 # window but never read once INSPR_AUTH_SA_PAT is set. Holding it adds

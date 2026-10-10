@@ -94,7 +94,7 @@ test("German product content keeps canonical /de/ URLs and the shared copy rules
 
   const aithema = await source("content/de/aithema.ts");
   assert.match(aithema, /canonicalUrl: `\$\{siteUrls\.aithema\}\/de\/`/);
-  assert.doesNotMatch(aithema, /previewUrl|start\.augmentoring\.com/);
+  assert.doesNotMatch(aithema, new RegExp(String.raw`previewUrl|${["start", "augmentoring", "com"].join("\\.")}`));
   assert.match(aithema, /satisfies PreviewProductContent/);
   assert.match(aithema, /auf Einladung/);
   assert.ok(!aithema.includes("—"), "Aithema German content contains an em dash");

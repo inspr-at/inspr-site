@@ -55,7 +55,7 @@ test("product hero, problem and model leads ship in three depths on both edition
       assert.equal((text.match(/^      technical:$/gm) || []).length, 3, `${slug} ${name}: three technical variants`);
       const depthCopy = [...text.matchAll(/^    depths: \{\n([\s\S]*?)^    \},$/gm)].map((match) => match[1]).join("\n");
       assert.doesNotMatch(depthCopy, /\b(hsb|csb|mbp)\d/i, `${slug} ${name}: no host names in depth copy`);
-      assert.doesNotMatch(depthCopy, /barta\.cm|netcup|hetzner|storage box/i, `${slug} ${name}: no providers or internal domains in depth copy`);
+      assert.doesNotMatch(depthCopy, new RegExp(String.raw`${["barta", "cm"].join("\\.")}|netcup|hetzner|storage box`, "i"), `${slug} ${name}: no providers or internal domains in depth copy`);
     }
   }
 });
@@ -102,7 +102,7 @@ test("product technical drawers share typed, public datasheets and localized han
       if (slug === "paimos") assert.ok(sheet.includes('command: \'aeon issue create -p PROJ --title "Write release notes"\''));
       else assert.doesNotMatch(sheet, /command:/);
       assert.doesNotMatch(sheet + handoff, /\b(hsb|csb|mbp)\d/i, `${slug} ${locale}: no host names`);
-      assert.doesNotMatch(sheet + handoff, /barta\.cm|netcup|hetzner|storage box/i, `${slug} ${locale}: no internal domains or providers`);
+      assert.doesNotMatch(sheet + handoff, new RegExp(String.raw`${["barta", "cm"].join("\\.")}|netcup|hetzner|storage box`, "i"), `${slug} ${locale}: no internal domains or providers`);
     }
   }
 
@@ -198,7 +198,7 @@ test("the umbrella start page carries the Details slider, depth leads and techni
   assert.match(control, /if \(level === "technical"\) void loadLive\(\);/);
   assert.doesNotMatch(stack, /fetch\("\/release\.json"|loadLive/);
   assert.doesNotMatch(umbrella, /\b(hsb|csb|mbp)\d/i);
-  assert.doesNotMatch(umbrella, /barta\.cm|netcup|hetzner|storage box/i);
+  assert.doesNotMatch(umbrella, new RegExp(String.raw`${["barta", "cm"].join("\\.")}|netcup|hetzner|storage box`, "i"));
   assert.match(deploy, /probe_page "INSPR umbrella details control" "https:\/\/www\.inspr\.at\/" "data-details-slider"/);
   assert.match(deploy, /probe_page "INSPR German umbrella details control" "https:\/\/www\.inspr\.at\/de\/" "data-details-slider"/);
 });

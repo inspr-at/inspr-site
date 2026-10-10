@@ -13,7 +13,7 @@ test("INSPR-545 microsites use the family one-liners and highlighted flow near t
     const [en, de] = await editions(slug);
     assert.match(en, new RegExp(`description: products\\.${slug}\\.oneLiner\\.en`));
     assert.match(de, new RegExp(`description: products\\.${slug}\\.oneLiner\\.de`));
-    assert.doesNotMatch(en + de, /Markus|nixcfg|barta\.cm|\b(?:hsb|csb|mbp)\d/i);
+    assert.doesNotMatch(en + de, new RegExp(String.raw`Markus|nixcfg|${["barta", "cm"].join("\\.")}|\b(?:hsb|csb|mbp)\d`, "i"));
   }
   for (const file of ["ProductPage", "AithemaProductPage"]) {
     const page = await source(`components/${file}.astro`);

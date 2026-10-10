@@ -4,6 +4,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import { operator } from "../src/content/legal.ts";
 import { isAllowedPublicDomain, isLockfile, loadPublicIdentityDenylist, publicIdentityProblems, repositoryRoot, trackedText } from "./support/public-identity.mjs";
 
 test("tracked public text carries no private infrastructure identity", (t) => {
@@ -59,6 +60,82 @@ test("public business domains allow only the exact hostname and www", () => {
     const match = /public\.example\.com/i.exec(line);
     assert.equal(isAllowedPublicDomain(line, match, allowlist), allowed);
   }
+});
+
+test("email rules allow only legal declarations and approved public domains", () => {
+  const personal = ["ada.person", "mail-provider.net"].join("@");
+  for (const file of ["fixture.txt", "web/src/content/legal.ts.bak", "other/legal.ts"]) {
+    assert.deepEqual(publicIdentityProblems(`neutral\n${personal}`, { file }), [`${file}:2: non-example-email`]);
+  }
+  assert.deepEqual(publicIdentityProblems(personal, { file: "web/src/content/legal.ts" }), []);
+  assert.deepEqual(publicIdentityProblems(operator.email, { file: "fixture.txt" }), ["fixture.txt:1: non-example-email"]);
+  assert.deepEqual(publicIdentityProblems(operator.email, { file: "web/src/content/legal.ts" }), []);
+  for (const domain of [
+    "example.com", "example.org", "example.test", "example.invalid", "demo.example.com",
+    "inspr.at", "auth.inspr.at", "nested.auth.inspr.at", "demo.localhost.zitadel",
+    "github.com", "users.noreply.github.com",
+  ]) {
+    const email = ["support", domain].join("@");
+    assert.deepEqual(publicIdentityProblems(`mailto:${email}`, { file: "fixture.txt" }), []);
+    assert.deepEqual(publicIdentityProblems(email.toUpperCase(), { file: "fixture.txt" }), []);
+  }
+  assert.deepEqual(publicIdentityProblems("hello@inspr.at", { file: "fixture.txt" }), []);
+  for (const domain of [
+    "otherexample.com", "example.com.evil.net", "otherinspr.at", "inspr.at.evil.net",
+    "localhost.zitadel", "otherlocalhost.zitadel", "demo.localhost.zitadel.evil.net",
+    "private.github.com", "othergithub.com", "users.noreply.github.com.evil.net",
+  ]) {
+    assert.deepEqual(publicIdentityProblems(["role", domain].join("@"), { file: "fixture.txt" }), ["fixture.txt:1: non-example-email"]);
+  }
+  // Built assets use multiple @ separators, not mailbox addresses.
+  assert.deepEqual(publicIdentityProblems('/_astro/index@dark@abc123.css', { file: "fixture.html" }), []);
+});
+
+test("imprint domain denylist allowance is restricted to its legal declaration", () => {
+  const domain = operator.email.split("@")[1];
+  const denylist = { rules: [{ kind: "domains", pattern: new RegExp(domain.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i") }] };
+  assert.deepEqual(publicIdentityProblems(domain, { file: "fixture.txt", denylist }), ["fixture.txt:1: operator-domains"]);
+  assert.deepEqual(publicIdentityProblems(domain, { file: "web/src/content/legal.ts", denylist }), []);
+});
+
+test("project and GitHub mailboxes have narrow public allowances", () => {
+  for (const local of ["hello", "admin", "no-reply", "noreply", "support", "security", "postmaster"]) {
+    for (const domain of ["inspr.at", "auth.inspr.at"]) {
+      assert.deepEqual(publicIdentityProblems([local, domain].join("@")), []);
+    }
+  }
+  for (const domain of ["inspr.at", "auth.inspr.at", "github.com"]) {
+    assert.deepEqual(publicIdentityProblems(["ada.person", domain].join("@"), { file: "fixture.txt" }), ["fixture.txt:1: non-example-email"]);
+  }
+  assert.deepEqual(publicIdentityProblems(["noreply", "github.com"].join("@"), { file: "fixture.txt" }), ["fixture.txt:1: non-example-email"]);
+  assert.deepEqual(publicIdentityProblems(["support", "github.com"].join("@")), []);
+  for (const local of ["demo-user", "12345+demo-user", "12345+demo[bot]"]) {
+    const email = [local, "users.noreply.github.com"].join("@");
+    assert.deepEqual(publicIdentityProblems(`Signed-off-by: Demo <${email}>`), []);
+  }
+  assert.deepEqual(publicIdentityProblems(["12345+demo[bot]", "evil.com"].join("@"), { file: "fixture.txt" }), ["fixture.txt:1: non-example-email"]);
+});
+
+test("escaped email addresses and domains are scanned without leaking values", () => {
+  const email = ["ada.person", "mail-provider.net"].join("@");
+  const escaped = email.replace(/\./g, "\\.");
+  assert.deepEqual(publicIdentityProblems(`neutral\n${escaped}`, { file: "fixture.txt" }), ["fixture.txt:2: non-example-email"]);
+  assert.deepEqual(publicIdentityProblems(escaped, { file: "web/src/content/legal.ts" }), []);
+  assert.deepEqual(publicIdentityProblems(`${email} ${escaped}`, { file: "fixture.txt" }), ["fixture.txt:1: non-example-email"]);
+  const domain = "corp.invalid";
+  const denylist = { rules: [{ kind: "domains", pattern: /corp\.invalid/i }] };
+  assert.deepEqual(publicIdentityProblems(domain.replace(/\./g, "\\."), { file: "fixture.txt", denylist }), ["fixture.txt:1: operator-domains"]);
+});
+
+test("email domain ends cannot backtrack or hide behind punctuation", () => {
+  for (const [local, domain] of [
+    ["_x", "evil.com_"], ["x", "evil.com@"], ["x", "inspr.at.evil_com"],
+    ["hello", "inspr.at.evil_com"], ["support", "github.com.evil_com"],
+  ]) {
+    assert.deepEqual(publicIdentityProblems([local, domain].join("@"), { file: "fixture.txt" }), ["fixture.txt:1: non-example-email"]);
+  }
+  assert.deepEqual(publicIdentityProblems(["x", "evil.com."].join("@"), { file: "fixture.txt" }), ["fixture.txt:1: non-example-email"]);
+  assert.deepEqual(publicIdentityProblems("Contact hello@inspr.at."), []);
 });
 
 test("home paths are rejected with only file, line and rule reported", () => {

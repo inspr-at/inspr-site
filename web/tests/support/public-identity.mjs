@@ -6,6 +6,18 @@ import { operator } from "../../src/content/legal.ts";
 import { loadCaptureDenylist } from "../../scripts/capture-aeon-demo/privacy.mjs";
 
 export const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url));
+const legalFile = "web/src/content/legal.ts";
+// Bound the whole address so multi-@ asset filenames cannot match fragments.
+const emailAddress = /(?<![a-z0-9._%+@\[\]-])[a-z0-9._%+-]+(?:\[bot\])?@[a-z0-9_-]+(?:\.[a-z0-9_-]+)+\.?(?![a-z0-9_.-])/gi;
+const roleMailboxes = new Set(["hello", "admin", "no-reply", "noreply", "support", "security", "postmaster"]);
+const allowedEmailAddress = (address) => {
+  const [local, rawDomain] = address.toLowerCase().split("@");
+  const domain = rawDomain.replace(/\.$/, "");
+  return /^(?:[a-z0-9-]+\.)*example\.(?:com|org|test|invalid)$/.test(domain)
+    || (roleMailboxes.has(local) && /^(?:[a-z0-9-]+\.)*inspr\.at$/.test(domain))
+    || /^(?:[a-z0-9-]+\.)+localhost\.zitadel$/.test(domain)
+    || (local === "support" && domain === "github.com") || domain === "users.noreply.github.com";
+};
 const ipv4 = /(?<![a-z0-9_.])(?:\d{1,3}\.){3}\d{1,3}(?![a-z0-9_.])/gi;
 const privateAddress = (address) => {
   const octets = address.split(".").map(Number);
@@ -32,9 +44,11 @@ const businessHost = new URL(urls.match(/business:[\s\S]*?"(https:\/\/[^\"]+)"/)
 const authorHandle = urls.match(/author: "https:\/\/github\.com\/([^\"]+)"/)[1];
 const publicLiterals = new Map([
   ["names", new Set([operator.name, ...operator.name.split(/\s+/), authorHandle].map((value) => value.toLowerCase()))],
-  ["domains", new Set([operator.email.split("@")[1], businessHost, `www.${businessHost}`].map((value) => value.toLowerCase()))],
+  ["domains", new Set([businessHost, `www.${businessHost}`].map((value) => value.toLowerCase()))],
   ["companies", new Set([businessHost.split(".")[0].toLowerCase(), "hetzner", "hetzner cloud", "netcup", "aws", "google", "google cloud", "oracle", "oracle cloud"])],
 ]);
+// The imprint email domain is public only in its canonical legal declaration.
+const legalDomains = new Set([...publicLiterals.get("domains"), operator.email.split("@")[1].toLowerCase()]);
 
 export function isAllowedPublicDomain(line, match, allowlist = publicLiterals.get("domains")) {
   // Check the full hostname, not an allowlisted suffix of a private subdomain.
@@ -54,30 +68,37 @@ export function loadPublicIdentityDenylist({ path = process.env.INSPR_IDENTITY_D
 
 export function publicIdentityProblems(text, { file = "content", denylist = null } = {}) {
   const problems = [];
-  for (const [index, line] of text.split("\n").entries()) {
+  for (const [index, sourceLine] of text.split("\n").entries()) {
     const rules = new Set();
-    if (/\/(?:home|Users)\/[A-Za-z0-9._-]+/.test(line)) rules.add("home-path");
-    if (/\.ts\.(?:net|[a-z0-9-]+\.[a-z]{2,})(?![a-z0-9-])/i.test(line)) rules.add("mesh-host-domain");
-    if (/(?<![a-z0-9_-])(?:[a-z0-9_-]+\.)+lan(?![a-z0-9_-])/i.test(line)) rules.add("local-host-domain");
-    for (const match of line.matchAll(ipv4)) {
-      if (!privateAddress(match[0])) continue;
-      const prefix = line.slice(0, match.index);
-      if (/(?:[a-z][a-z0-9+.-]*:)?\/\/(?:[^\s/"'<>]*@)?$/i.test(prefix)) {
-        rules.add("private-ip-url");
-        continue;
+    for (const line of new Set([sourceLine, sourceLine.replace(/\\\./g, ".")])) {
+      if (file !== legalFile) {
+        for (const match of line.matchAll(emailAddress)) {
+          if (!allowedEmailAddress(match[0])) rules.add("non-example-email");
+        }
       }
-      const cidr = match[0] + (line.slice(match.index + match[0].length).match(/^\/\d+(?![a-z0-9_.])/i)?.[0] ?? "");
-      if (!allowedCidrs.has(cidr) && !fixtureAddresses.get(file)?.has(match[0])) rules.add("private-ip-address");
-    }
-    for (const { kind, pattern } of denylist?.rules ?? []) {
-      // Literal domain entries such as a local suffix must not match code words.
-      const start = kind === "names" || kind === "companies" ? "(?<![a-z0-9_-])" : "";
-      const end = kind === "hostPatterns" ? "(?![a-z0-9])" : "(?![a-z0-9_-])";
-      const bounded = new RegExp(`${start}(?:${pattern.source})${end}`, "gi");
-      const haystack = kind === "hostPatterns" ? line.replace(/_/g, " ") : line;
-      for (const match of haystack.matchAll(bounded)) {
-        const allowed = kind === "domains" ? isAllowedPublicDomain(line, match) : publicLiterals.get(kind)?.has(match[0].toLowerCase());
-        if (!allowed) rules.add(`operator-${kind}`);
+      if (/\/(?:home|Users)\/[A-Za-z0-9._-]+/.test(line)) rules.add("home-path");
+      if (/\.ts\.(?:net|[a-z0-9-]+\.[a-z]{2,})(?![a-z0-9-])/i.test(line)) rules.add("mesh-host-domain");
+      if (/(?<![a-z0-9_-])(?:[a-z0-9_-]+\.)+lan(?![a-z0-9_-])/i.test(line)) rules.add("local-host-domain");
+      for (const match of line.matchAll(ipv4)) {
+        if (!privateAddress(match[0])) continue;
+        const prefix = line.slice(0, match.index);
+        if (/(?:[a-z][a-z0-9+.-]*:)?\/\/(?:[^\s/"'<>]*@)?$/i.test(prefix)) {
+          rules.add("private-ip-url");
+          continue;
+        }
+        const cidr = match[0] + (line.slice(match.index + match[0].length).match(/^\/\d+(?![a-z0-9_.])/i)?.[0] ?? "");
+        if (!allowedCidrs.has(cidr) && !fixtureAddresses.get(file)?.has(match[0])) rules.add("private-ip-address");
+      }
+      for (const { kind, pattern } of denylist?.rules ?? []) {
+        // Literal domain entries such as a local suffix must not match code words.
+        const start = kind === "names" || kind === "companies" ? "(?<![a-z0-9_-])" : "";
+        const end = kind === "hostPatterns" ? "(?![a-z0-9])" : "(?![a-z0-9_-])";
+        const bounded = new RegExp(`${start}(?:${pattern.source})${end}`, "gi");
+        const haystack = kind === "hostPatterns" ? line.replace(/_/g, " ") : line;
+        for (const match of haystack.matchAll(bounded)) {
+          const allowed = kind === "domains" ? isAllowedPublicDomain(line, match, file === legalFile ? legalDomains : publicLiterals.get("domains")) : publicLiterals.get(kind)?.has(match[0].toLowerCase());
+          if (!allowed) rules.add(`operator-${kind}`);
+        }
       }
     }
     for (const rule of rules) problems.push(`${file}:${index + 1}: ${rule}`);

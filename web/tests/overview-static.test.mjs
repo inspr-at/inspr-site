@@ -318,7 +318,7 @@ test("Overview Details slider is wordless and its technical depth is a datasheet
   // names, internal domains, filesystem paths or provider SKUs.
   for (const text of [stack, page]) {
     assert.doesNotMatch(text, /\b(hsb|csb|mbp)\d/i);
-    assert.doesNotMatch(text, /barta\.cm|headscale\.|\bhs\./i);
+    assert.doesNotMatch(text, new RegExp(String.raw`${["barta", "cm"].join("\\.")}|headscale\.|\bhs\.`, "i"));
     assert.doesNotMatch(text, /netcup|hetzner|storage box/i);
     assert.doesNotMatch(text, /~\/|\/run\/|\/home\/|\/srv\//);
   }

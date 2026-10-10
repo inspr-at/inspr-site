@@ -854,7 +854,7 @@ func consumeEnterCSRF(w http.ResponseWriter, r *http.Request) bool {
 
 // signupClientIP follows the production edge contract rather than trusting an
 // arbitrary private peer. inspr-auth has no published port and is attached to
-// csb1_traefik, a bridge shared by unrelated containers. The only authoritative
+// the web host's Traefik network, a bridge shared by unrelated containers. The only authoritative
 // proxy boundary is therefore: current IP resolved from the deployment-owned
 // Docker DNS service name "traefik", the plugin's trusted marker, and a secret
 // header overwritten only after the Cloudflare source allowlist. Missing or

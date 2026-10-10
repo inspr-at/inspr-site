@@ -57,7 +57,7 @@ assert.match(
   /inspr-auth-edge-token\.headers\.customrequestheaders\.X-Inspr-Edge-Token=\$\{ENTER_EDGE_TOKEN:-\}/,
 );
 
-// Reproduce the deployed v1.3.3 defect: csb1 explicitly trusts 172.16/12, so
+// Reproduce the deployed v1.3.3 defect: the web host explicitly trusts 172.16/12, so
 // a sibling can make the plugin copy an attacker-selected CF-Connecting-IP.
 const pluginTrust = blockList(contract.cloudflarewarp.configuredTrustedSourceRanges);
 const siblingIP = "172.20.0.44";

@@ -24,7 +24,7 @@
 #   8. Patches the built-in ZITADEL Console OIDC app to enable the
 #      REFRESH_TOKEN grant (works around upstream issue #8392).
 #   9. SMTP relay config (INSPR-163) — finds-or-creates an SMTP config
-#      pointed at the docker network alias `smtp:25` (csb1-smtp-1) and
+#      pointed at the web host's docker network alias `smtp:25` and
 #      activates it. Idempotent via description-based lookup.
 #  10. Scoped service-account (INSPR-162) — finds-or-creates the
 #      `inspr-auth-sa` machine user with ORG_USER_MANAGER (only the
@@ -56,7 +56,7 @@
 #                     fallback in main.go would have nothing to fall
 #                     back to during a brief window).
 #
-# REQUIRES on host: docker, jq, curl. (Standard csb1 toolchain.)
+# REQUIRES on host: docker, jq, curl. (Standard web host toolchain.)
 
 set -euo pipefail
 
@@ -407,7 +407,7 @@ fi
 # ── 9. SMTP relay configuration (INSPR-163) ─────────────────────────────
 # Zitadel needs SMTP wired BEFORE the magic-link signup flow can deliver
 # its passwordless-registration emails. We point at the host-local namshi
-# relay (csb1-smtp-1, alias `smtp:25` on csb1_traefik) which smarthosts
+# relay (alias `smtp:25` on the web host's Traefik network) which smarthosts
 # to mail.hover.com — inspr-auth never touches SMTP credentials.
 #
 # v2.54 quirks captured (probed 2026-05-11):

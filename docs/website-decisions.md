@@ -67,14 +67,14 @@ legacy surface available without broadening current-page execution.
 **Ticket:** INSPR-93
 **Status:** Updated; release mechanics superseded by D-008
 
-Keep the existing **Caddy + docker-compose** stack on csb1, fronted by
+Keep the existing **Caddy + docker-compose** stack on the web host, fronted by
 Traefik. The `inspr-www` service mounts the immutable `./releases` tree at
 `/srv/releases:ro` and the frozen `./site` archive at `/srv/v1:ro`. A release
 changes the `releases/current` symlink transactionally; it does not mutate the
 archive, container or network.
 
 **Why:** the existing infra works, is declarative, and is documented across
-the playbook (csb1, Headscale tailnet, Traefik routing). Replacing it would
+the playbook (the web host, Headscale mesh network, Traefik routing). Replacing it would
 be an unrelated risk for an unrelated reward.
 
 ---
@@ -435,7 +435,7 @@ the INSPR-528 follow-up). The audit still requires all eleven visible Aithema
 sections to declare a bounded presentation pattern.
 
 The application repository owns Caddy host routing and static release content,
-not the csb1 Traefik runtime. `NIX-408` added and applied the edge route and DNS
+not the web host's Traefik runtime. `NIX-408` added and applied the edge route and DNS
 for `aithema.inspr.at` before its first deployment. The live deploy probe remains
 fail-closed and restores the previous release rather than publishing a
 partially reachable family.
@@ -448,8 +448,8 @@ partially reachable family.
 **Ticket:** INSPR-336
 **Status:** Committed
 
-The csb1 container runtime has one source: nixcfg's
-`hosts/csb1/docker/compose-spec.nix`. The tracked `docker-compose.yml` and the
+The web host's container runtime has one source: its Compose specification in
+the private fleet config (nixcfg). The tracked `docker-compose.yml` and the
 file historically left in the remote site directory are pre-adoption
 snapshots. Neither is runtime evidence, and their byte equality is not a
 deployment gate.

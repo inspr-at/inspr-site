@@ -15,7 +15,7 @@
 #       + zitadel-postgres   pinned (no Watchtower) so an upstream Zitadel
 #                            release can't silently break the foundation.
 #
-# Secrets in `.env` (gitignored, deployed out-of-band to csb1):
+# Secrets in `.env` (gitignored, deployed out-of-band to the web host):
 #   ZITADEL_MASTERKEY         — 32 raw bytes for at-rest crypto (rotate = re-init)
 #   ZITADEL_POSTGRES_PASSWORD — Zitadel DB user password
 #   ZITADEL_ADMIN_PASSWORD    — initial console admin (zitadel-admin@inspr.localhost.zitadel)
@@ -43,7 +43,7 @@ services:
       - caddy_config:/config
     labels:
       - traefik.enable=true
-      - traefik.docker.network=csb1_traefik
+      - traefik.docker.network=${INSPR_AT_TRAEFIK_NETWORK:-web_traefik}
       # One router per public hostname keeps certificate issuance isolated:
       # a missing product DNS record cannot block the other microsites.
       - traefik.http.routers.inspr-www.rule=Host(`www.inspr.at`)
@@ -144,7 +144,7 @@ services:
       ZITADEL_API_PAT: ${ZITADEL_API_PAT:-}
     labels:
       - traefik.enable=true
-      - traefik.docker.network=csb1_traefik
+      - traefik.docker.network=${INSPR_AT_TRAEFIK_NETWORK:-web_traefik}
       # Catch the three auth paths on inspr.at; priority 100 > inspr-www's
       # default so this rule wins even though inspr-www's Host() also
       # matches the same hostname.
@@ -246,7 +246,7 @@ services:
       - ./.machinekey:/machinekey
     labels:
       - traefik.enable=true
-      - traefik.docker.network=csb1_traefik
+      - traefik.docker.network=${INSPR_AT_TRAEFIK_NETWORK:-web_traefik}
       - traefik.http.routers.zitadel.rule=Host(`auth.inspr.at`)
       - traefik.http.routers.zitadel.tls=true
       - traefik.http.routers.zitadel.tls.certresolver=default
@@ -265,7 +265,8 @@ services:
 networks:
   traefik:
     external: true
-    name: csb1_traefik
+    # The web host's Traefik network; this file is historical reference only.
+    name: ${INSPR_AT_TRAEFIK_NETWORK:-web_traefik}
 
 volumes:
   caddy_data:

@@ -1,7 +1,7 @@
 name: auth-image
 
 # INSPR-253 — build the inspr-auth OIDC bridge from auth/ and publish it to
-# GHCR so the image running on csb1 has a reproducible, versioned source.
+# GHCR so the image running on the web host has a reproducible, versioned source.
 #
 #   pull_request touching auth/   build + vulnerability gate, no push
 #   push to main touching auth/   scan, sign, then publish :main and :sha-<commit>
@@ -11,7 +11,7 @@ name: auth-image
 # Every published image carries BuildKit SLSA provenance and an SPDX SBOM and
 # is signed keyless with cosign through this workflow's GitHub OIDC identity.
 # As in pharos (OPS-88) the signing job stays on GitHub-hosted infrastructure,
-# not on Blacksmith. The csb1 digest pin in nixcfg is not touched from here;
+# not on Blacksmith. The web host's digest pin in the private fleet config is not touched from here;
 # moving it off the legacy rescue tag is a reviewed nixcfg change.
 
 on:

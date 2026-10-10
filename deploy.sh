@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2029 # Deployment paths intentionally expand client-side.
-# deploy.sh - deploy the INSPR microsite family to csb1.
+# deploy.sh - deploy the INSPR microsite family to the web host.
 #
 # Current build and archive are intentionally separate:
 #   web/dist/ -> releases/builds/<id>/   (immutable, checksum-verified)
@@ -9,7 +9,7 @@
 #   site/                                 (v1 archive, never written)
 #
 # Runtime ownership: the inspr-www container (with inspr-auth, zitadel and
-# zitadel-postgres) is declared in nixcfg hosts/csb1/docker/compose-spec.nix
+# zitadel-postgres) is declared in the private fleet config (nixcfg)
 # since OPS-136. deploy.sh writes release content and the bind-mounted
 # Caddyfile only; it never reads, uploads or applies docker-compose.yml. A
 # changed Caddyfile restarts the stateless inspr-www container so the fresh
@@ -22,7 +22,10 @@
 # and the retired /paimos-legacy page is gone (INSPR-531).
 #
 # Env vars:
-#   INSPR_AT_HOST       SSH alias or host (default: csb1)
+#   INSPR_AT_HOST       required web host SSH alias or host
+#   INSPR_AT_DEPLOY_LOCAL
+#                       local KEY=VALUE fallback (default: $ROOT/.deploy.local)
+#                       only INSPR_AT_* keys and literal values; no shell syntax
 #   INSPR_AT_SSH_PORT   optional SSH port (required when the host-key alias uses
 #                       OpenSSH's bracketed [host]:port form)
 #   INSPR_AT_SSH_HOSTNAME
@@ -97,7 +100,38 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-HOST="${INSPR_AT_HOST:-csb1}"
+say() { printf '\033[1;36m->\033[0m %s\n' "$*"; }
+ok()  { printf '\033[1;32mOK\033[0m %s\n' "$*"; }
+die() { printf '\033[1;31mERROR\033[0m %s\n' "$*" >&2; exit 1; }
+
+# Parse data only, never shell code. Explicit environment values take precedence.
+if [ "${INSPR_AT_HOST+set}" != set ]; then
+  DEPLOY_LOCAL="${INSPR_AT_DEPLOY_LOCAL:-$ROOT/.deploy.local}"
+  if [ "${INSPR_AT_DEPLOY_LOCAL+set}" = set ] && [ ! -e "$DEPLOY_LOCAL" ]; then
+    die "INSPR_AT_DEPLOY_LOCAL points to a missing path"
+  fi
+  if [ -e "$DEPLOY_LOCAL" ]; then
+    [ -f "$DEPLOY_LOCAL" ] && [ -r "$DEPLOY_LOCAL" ] || die "deployment local file must be readable"
+    DEPLOY_LOCAL_LINE=0
+    DEPLOY_LOCAL_KEYS=" "
+    while IFS= read -r line || [ -n "$line" ]; do
+      DEPLOY_LOCAL_LINE=$((DEPLOY_LOCAL_LINE + 1))
+      [[ "$line" != *$'\r' ]] || die "CRLF line endings not allowed at deployment local line $DEPLOY_LOCAL_LINE"
+      [ -n "$line" ] || continue
+      [[ "$line" =~ ^INSPR_AT_[A-Z0-9_]+= ]] || die "invalid deployment local key at line $DEPLOY_LOCAL_LINE (only INSPR_AT_* KEY=VALUE entries are allowed)"
+      key="${line%%=*}"
+      [[ "$DEPLOY_LOCAL_KEYS" != *" $key "* ]] || die "duplicate deployment local key at line $DEPLOY_LOCAL_LINE"
+      DEPLOY_LOCAL_KEYS+="$key "
+      value="${line#*=}"
+      [[ "$value" =~ ^[][[:alnum:].@:/_-]*$ ]] || die "unsafe deployment local value at line $DEPLOY_LOCAL_LINE (shell syntax is not allowed)"
+      if [ "${!key+set}" != set ]; then
+        printf -v "$key" '%s' "$value"
+      fi
+    done < "$DEPLOY_LOCAL"
+  fi
+fi
+[ -n "${INSPR_AT_HOST:-}" ] || die "set INSPR_AT_HOST to the web host's SSH alias, or put it in .deploy.local"
+HOST="$INSPR_AT_HOST"
 SSH_PORT="${INSPR_AT_SSH_PORT:-}"
 SSH_HOSTNAME="${INSPR_AT_SSH_HOSTNAME:-}"
 SSH_HOST_KEY_ALIAS="${INSPR_AT_SSH_HOST_KEY_ALIAS:-}"
@@ -131,10 +165,6 @@ RELEASE_SET_DIGEST=""
 CALENDAR_VERSION=""
 MANIFEST_RELEASE_SEQUENCE=""
 ROLLBACK_TO="${ROLLBACK_TO:-}"
-
-say() { printf '\033[1;36m->\033[0m %s\n' "$*"; }
-ok()  { printf '\033[1;32mOK\033[0m %s\n' "$*"; }
-die() { printf '\033[1;31mERROR\033[0m %s\n' "$*" >&2; exit 1; }
 
 SSH_ARGS=(-o BatchMode=yes -o ConnectTimeout=10)
 SCP_ARGS=(-o BatchMode=yes -o ConnectTimeout=10)

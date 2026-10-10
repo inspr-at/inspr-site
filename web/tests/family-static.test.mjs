@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { loadPublicIdentityDenylist, publicIdentityProblems } from "./support/public-identity.mjs";
 
 const sourceUrl = new URL("../src/", import.meta.url);
 const source = (relativePath) => readFile(new URL(relativePath, sourceUrl), "utf8");
@@ -84,7 +85,8 @@ test("the engine's six jobs, the build order and the actors are complete", () =>
 
 test("family.ts carries no host names, internal domains or personal names", async () => {
   const text = await source("content/family.ts");
-  assert.doesNotMatch(text, /barta\.cm|csb|hsb|mbp|\.lan\b/i);
+  const problems = publicIdentityProblems(text, { file: "web/src/content/family.ts", denylist: loadPublicIdentityDenylist() });
+  assert.equal(problems.length, 0, problems.join("\n"));
   assert.doesNotMatch(text, /\bmarkus\b|\bbarta\b/i);
   assert.doesNotMatch(text, /TODO/);
 });

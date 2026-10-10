@@ -177,8 +177,8 @@ Traefik terminates public TLS. A Caddy container serves:
 - the read-only archive in `site/`.
 
 The containers themselves (`inspr-www`, `inspr-auth`, `zitadel`,
-`zitadel-postgres`) have been declared in nixcfg
-(`hosts/csb1/docker/compose-spec.nix`, compose project `csb1`) since OPS-136
+`zitadel-postgres`) have been declared in the private fleet config (nixcfg)
+under the web host's Compose specification and project since OPS-136
 on 2026-08-04. `docker-compose.yml` in this repository is the pre-adoption
 definition and is not a runtime source. `deploy.sh` never reads, uploads or
 applies that historical file; drift from any historical host copy is
@@ -312,7 +312,14 @@ new bundle into a fresh directory with that script, review the manifest
 digest independently, and change the pin in the same reviewed change.
 
 Run production deployment from the repository root with the configured SSH
-alias:
+alias. Set `INSPR_AT_HOST` to the web host's SSH alias, or put
+`INSPR_AT_HOST=web-host` (using your local alias) in the gitignored
+`.deploy.local`. `INSPR_AT_DEPLOY_LOCAL` can select another local file.
+The fallback file is read only when `INSPR_AT_HOST` is unset; explicit
+environment settings always win. It accepts only `INSPR_AT_*` keys with
+literal `KEY=VALUE` entries and blank lines, without quotes, comments,
+expansion or shell commands. CRLF line endings, duplicate keys and a missing
+explicit local-file path are rejected. Missing or unsafe host settings stop before SSH:
 
 ```bash
 ./deploy.sh
@@ -340,7 +347,7 @@ third-party identity service and remains operationally separate from the four
 public product sites.
 
 The bridge has no published host port and is reachable publicly only through
-Traefik on `csb1_traefik`. That Docker bridge is shared with unrelated
+Traefik on the web host's Traefik network. That Docker bridge is shared with unrelated
 containers, and the deployed cloudflarewarp v1.3.3 middleware incorrectly
 trusts `172.16.0.0/12`, so neither a private source nor its rewritten headers
 are identity evidence. The deployable edge contract filters the auth router to
@@ -356,7 +363,7 @@ intentionally sharing one public bucket instead of trusting attacker-selected
 identity.
 
 The repository compose file is executable reference evidence, not the
-authoritative csb1 configuration. **NIX-400 is a required rollout dependency**:
+authoritative web host configuration. **NIX-400 is a required rollout dependency**:
 it owns the matching Cloudflare-first middleware and age-backed attestation in
 nixcfg. No INSPR-310 image may be rolled out as fully functional before NIX-400
 lands; without its token the application remains safe but uses the shared proxy
@@ -389,7 +396,7 @@ limit or deny already-known email keys. The pinned
 endpoint, event, and role evidence is recorded in
 [`auth/ZITADEL-CONTRACT.md`](auth/ZITADEL-CONTRACT.md).
 
-The image running on csb1 (`ghcr.io/inspr-at/inspr-auth:legacy-20260511`) was
+The image running on the web host (`ghcr.io/inspr-at/inspr-auth:legacy-20260511`) was
 built from this `auth/` source; the host's working copy differs only by the
 later AGPL image label and the module path from the organisation move.
 
@@ -418,8 +425,8 @@ the Go binary fails pull requests and publishes alike. Keep `go.mod` and the
 base image moving; do not silence the scan.
 
 Cut a release with `git tag -a auth-vX.Y.Z -m "..." && git push origin
-auth-vX.Y.Z`. The package is private by decision; csb1's compose units
-authenticate with a scoped read token (nixcfg NIX-384). Moving the csb1
+auth-vX.Y.Z`. The package is private by decision; the web host's compose units
+authenticate with a scoped read token (nixcfg NIX-384). Moving the web host's
 digest pin to a published version is a reviewed nixcfg change (INSPR-253,
 step 3). `auth-legacy-rehome.yml` (dispatch only) copies the hand-built
 2026-05-11 rescue manifest into this package as `legacy-20260511`, digest

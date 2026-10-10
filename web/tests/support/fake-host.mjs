@@ -5,8 +5,8 @@
 // checks. deploy.sh therefore exercises its real remote steps: the lock, the
 // release-set listing, sealing, the ledger, symlink promotion and rollback.
 //
-// deploy.sh runs its remote steps with GNU coreutils (the production host,
-// csb1, is NixOS): `mv -T`, `base64 -w0` and friends. The fake host runs them
+// deploy.sh runs its remote steps with GNU coreutils (the web host
+// is NixOS): `mv -T`, `base64 -w0` and friends. The fake host runs them
 // locally, so the tests need GNU coreutils first on PATH. Without them every
 // fake-host checkout stops with one clear message instead of cascading noise.
 //
@@ -75,7 +75,10 @@ printf '%s\\n' "$command" | /bin/bash -se`,
 source="\${@: -2:1}"
 target="\${@: -1}"
 exec cp -p "$source" "/\${target#*:/}"`,
-  rsync: `${logLine("rsync")}
+  // Some local rsync implementations resolve their receiver through PATH.
+  // That subprocess is not a deployment transport and needs no fake handling.
+  rsync: `if [ "$1" = --server ]; then exec "$REAL_RSYNC" "$@"; fi
+${logLine("rsync")}
 arguments=()
 skip=0
 dry=0
@@ -191,6 +194,7 @@ export async function createCheckout(host, { release = null, caddyfile = "fixtur
     PATH: `${fakeBin}:${process.env.PATH}`,
     REAL_RSYNC: realRsync,
     TRANSPORT_LOG: transportLog,
+    INSPR_AT_HOST: "web-host",
     INSPR_AT_DIR: host.dir,
     SKIP_PROBE: "1",
     ...(release ? { SKIP_BUILD: "1" } : {}),

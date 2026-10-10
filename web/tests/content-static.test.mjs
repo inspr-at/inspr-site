@@ -986,6 +986,120 @@ test("one validated release identity is visible across the site family", async (
   assert.match(deploy, /data-release-id=/);
 });
 
+test("deployment host resolution uses literal local settings and environment precedence", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "inspr-deploy-settings-"));
+  try {
+    const deploy = await readFile(new URL("../../deploy.sh", import.meta.url), "utf8");
+    // Execute the real initialization and validation, stopping before any transport.
+    const transportStart = deploy.indexOf("\nremote_ssh()");
+    assert.ok(transportStart > 0, "the initialization ends before remote transport");
+    const initialization = deploy.slice(0, transportStart);
+    const script = join(root, "deploy.sh");
+    await writeFile(script, `${initialization}\nprintf '%s\\n' "$HOST" "$SSH_PORT" "$SSH_HOST_KEY_ALIAS" "$REMOTE_DIR"\n`);
+    const local = join(root, ".deploy.local");
+    const alternate = join(root, "alternate.local");
+    const marker = join(root, "shell-was-executed");
+    const run = (extra = {}) => spawnSync("/bin/bash", [script], {
+      cwd: root,
+      encoding: "utf8",
+      env: { PATH: process.env.PATH ?? "/usr/bin:/bin", ...extra },
+    });
+
+    await t.test("missing settings fail before transport", () => {
+      const result = run();
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /set INSPR_AT_HOST to the web host's SSH alias, or put it in \.deploy\.local/);
+    });
+    await t.test("environment host wins without reading local shell syntax", async () => {
+      await writeFile(local, `INSPR_AT_HOST=$(touch ${marker})\n`);
+      const result = run({ INSPR_AT_HOST: "environment-host" });
+      assert.equal(result.status, 0);
+      assert.equal(result.stdout.split("\n")[0], "environment-host");
+      await assert.rejects(stat(marker), { code: "ENOENT" });
+    });
+    await t.test("default local file parses all settings, including a final line without newline", async () => {
+      await writeFile(local, "\nINSPR_AT_HOST=web-host\nINSPR_AT_SSH_HOSTNAME=web-host.example.internal\nINSPR_AT_SSH_HOST_KEY_ALIAS=[web-host.example.internal]:2222\nINSPR_AT_SSH_PORT=2222\nINSPR_AT_DIR=/srv/inspr-at");
+      const result = run();
+      assert.equal(result.status, 0, result.stderr);
+      assert.deepEqual(result.stdout.trim().split("\n"), ["web-host", "2222", "[web-host.example.internal]:2222", "/srv/inspr-at"]);
+    });
+    await t.test("alternate file is used and explicit environment settings win", async () => {
+      await writeFile(alternate, "INSPR_AT_HOST=alternate-host\nINSPR_AT_SSH_PORT=2222\n");
+      const result = run({ INSPR_AT_DEPLOY_LOCAL: alternate, INSPR_AT_SSH_PORT: "2200" });
+      assert.equal(result.status, 0, result.stderr);
+      assert.deepEqual(result.stdout.split("\n").slice(0, 2), ["alternate-host", "2200"]);
+    });
+    await t.test("an explicit missing local path is reported without disclosure", () => {
+      const missing = join(root, "missing.local");
+      const result = run({ INSPR_AT_DEPLOY_LOCAL: missing });
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /INSPR_AT_DEPLOY_LOCAL points to a missing path/);
+      assert.ok(!result.stderr.includes(missing));
+    });
+    await t.test("CRLF lines fail with a specific redacted diagnostic", async () => {
+      for (const settings of ["INSPR_AT_HOST=redacted-host\r\n", "\r\nINSPR_AT_HOST=redacted-host\n"]) {
+        await writeFile(local, settings);
+        const result = run();
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /CRLF line endings not allowed/);
+        assert.doesNotMatch(result.stderr, /shell syntax|redacted-host/);
+      }
+    });
+    await t.test("duplicate keys fail even when overridden by the environment", async () => {
+      for (const [settings, extra] of [
+        ["INSPR_AT_HOST=web-host\nINSPR_AT_HOST=duplicate-host\n", {}],
+        ["INSPR_AT_HOST=web-host\nINSPR_AT_SSH_PORT=2222\nINSPR_AT_SSH_PORT=2223\n", { INSPR_AT_SSH_PORT: "2200" }],
+      ]) {
+        await writeFile(local, settings);
+        const result = run(extra);
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /duplicate deployment local key at line/);
+        assert.doesNotMatch(result.stderr, /duplicate-host|2222|2223/);
+      }
+    });
+    await t.test("non-INSPR_AT keys and malformed entries are rejected", async () => {
+      for (const entry of ["PATH=/untrusted", "HOST=web-host", "export INSPR_AT_HOST=web-host", "INSPR_AT_HOST", "# shell comment"]) {
+        await writeFile(local, `INSPR_AT_HOST=web-host\n${entry}\n`);
+        const result = run();
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /invalid deployment local key at line 2/);
+        assert.doesNotMatch(result.stderr, /\/untrusted/);
+      }
+    });
+    await t.test("shell syntax is rejected without execution or value disclosure", async () => {
+      for (const value of [`$(touch ${marker})`, `\`touch ${marker}\``, `web-host;touch ${marker}`, "${HOME}", "'web-host'", "web-host # comment"]) {
+        await writeFile(local, `INSPR_AT_HOST=${value}\n`);
+        const result = run();
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /unsafe deployment local value/);
+        assert.ok(!result.stderr.includes(value));
+        await assert.rejects(stat(marker), { code: "ENOENT" });
+      }
+    });
+    await t.test("missing local host and explicitly empty environment host fail closed", async () => {
+      await writeFile(local, "INSPR_AT_SSH_PORT=2222\n");
+      assert.equal(run().status, 1);
+      await writeFile(local, "INSPR_AT_HOST=web-host\n");
+      assert.equal(run({ INSPR_AT_HOST: "" }).status, 1);
+    });
+    await t.test("local settings retain existing host and port validation", async () => {
+      for (const [settings, message] of [
+        ["INSPR_AT_HOST=-unsafe\n", /unsafe INSPR_AT_HOST value/],
+        ["INSPR_AT_HOST=web-host\nINSPR_AT_SSH_PORT=65536\n", /SSH_PORT must be between/],
+        ["INSPR_AT_HOST=web-host\nINSPR_AT_SSH_HOSTNAME=web-host.example.internal\n", /must be set together/],
+        ["INSPR_AT_HOST=web-host\nINSPR_AT_SSH_HOSTNAME=web-host.example.internal\nINSPR_AT_SSH_HOST_KEY_ALIAS=[web-host.example.internal]:2222\nINSPR_AT_SSH_PORT=2223\n", /must match the bracketed/],
+      ]) {
+        await writeFile(local, settings);
+        const result = run();
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, message);
+      }
+    });
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("direct SSH deployment overrides preserve one pinned host identity", async () => {
   const deployUrl = new URL("../../deploy.sh", import.meta.url);
   const deployPath = fileURLToPath(deployUrl);
@@ -999,45 +1113,46 @@ test("direct SSH deployment overrides preserve one pinned host identity", async 
   assert.match(deploy, /RSYNC_SSH\+="[^"]*Hostname=\$SSH_HOSTNAME[^"]*HostKeyAlias=\$SSH_HOST_KEY_ALIAS"/);
 
   const baseEnvironment = {
+    INSPR_AT_HOST: "web-host",
     PATH: process.env.PATH ?? "/usr/bin:/bin",
   };
   const rejected = [
     {
-      environment: { INSPR_AT_SSH_HOSTNAME: "100.64.0.4" },
+      environment: { INSPR_AT_SSH_HOSTNAME: "192.0.2.4" },
       message: /must be set together/,
     },
     {
       environment: {
-        INSPR_AT_SSH_HOSTNAME: "100.64.0.4;touch-bad",
-        INSPR_AT_SSH_HOST_KEY_ALIAS: "csb1.ts.barta.cm",
+        INSPR_AT_SSH_HOSTNAME: "192.0.2.4;touch-bad",
+        INSPR_AT_SSH_HOST_KEY_ALIAS: "web-host.example.internal",
       },
       message: /must be a DNS name or IPv4 address/,
     },
     {
       environment: {
-        INSPR_AT_SSH_HOSTNAME: "100.64.0.4",
+        INSPR_AT_SSH_HOSTNAME: "192.0.2.4",
         INSPR_AT_SSH_HOST_KEY_ALIAS: "-oUnsafeOption",
       },
       message: /contains unsafe characters/,
     },
     {
       environment: {
-        INSPR_AT_SSH_HOSTNAME: "100.64.0.4",
-        INSPR_AT_SSH_HOST_KEY_ALIAS: "[csb1.ts.barta.cm]:0",
+        INSPR_AT_SSH_HOSTNAME: "192.0.2.4",
+        INSPR_AT_SSH_HOST_KEY_ALIAS: "[web-host.example.internal]:0",
       },
       message: /port must be between 1 and 65535/,
     },
     {
       environment: {
-        INSPR_AT_SSH_HOSTNAME: "100.64.0.4",
-        INSPR_AT_SSH_HOST_KEY_ALIAS: "[csb1.ts.barta.cm]:2222",
+        INSPR_AT_SSH_HOSTNAME: "192.0.2.4",
+        INSPR_AT_SSH_HOST_KEY_ALIAS: "[web-host.example.internal]:2222",
       },
       message: /SSH_PORT is required for a bracketed/,
     },
     {
       environment: {
-        INSPR_AT_SSH_HOSTNAME: "100.64.0.4",
-        INSPR_AT_SSH_HOST_KEY_ALIAS: "[csb1.ts.barta.cm]:2222",
+        INSPR_AT_SSH_HOSTNAME: "192.0.2.4",
+        INSPR_AT_SSH_HOST_KEY_ALIAS: "[web-host.example.internal]:2222",
         INSPR_AT_SSH_PORT: "2223",
       },
       message: /SSH_PORT must match the bracketed/,
@@ -1091,8 +1206,8 @@ test("direct SSH deployment overrides preserve one pinned host identity", async 
       "services:\n  legacy-local:\n    image: local-only\n",
     );
     const bracketedAlias = checkout.run({
-      INSPR_AT_SSH_HOSTNAME: "100.64.0.4",
-      INSPR_AT_SSH_HOST_KEY_ALIAS: "[csb1.ts.barta.cm]:2222",
+      INSPR_AT_SSH_HOSTNAME: "192.0.2.4",
+      INSPR_AT_SSH_HOST_KEY_ALIAS: "[web-host.example.internal]:2222",
       INSPR_AT_SSH_PORT: "2222",
     });
     assert.equal(
@@ -1125,20 +1240,20 @@ test("direct SSH deployment overrides preserve one pinned host identity", async 
     };
     for (const arguments_ of [...sshRecords, ...scpRecords]) {
       assertOption(arguments_, "StrictHostKeyChecking=yes");
-      assertOption(arguments_, "Hostname=100.64.0.4");
-      assertOption(arguments_, "HostKeyAlias=[csb1.ts.barta.cm]:2222");
+      assertOption(arguments_, "Hostname=192.0.2.4");
+      assertOption(arguments_, "HostKeyAlias=[web-host.example.internal]:2222");
     }
     for (const arguments_ of sshRecords) {
       assert.ok(arguments_.some((argument, index) => (
         argument === "-p" && arguments_[index + 1] === "2222"
       )));
-      assert.ok(arguments_.includes("csb1"));
+      assert.ok(arguments_.includes("web-host"));
     }
     for (const arguments_ of scpRecords) {
       assert.ok(arguments_.some((argument, index) => (
         argument === "-P" && arguments_[index + 1] === "2222"
       )));
-      assert.ok(arguments_.some((argument) => argument.startsWith("csb1:")));
+      assert.ok(arguments_.some((argument) => argument.startsWith("web-host:")));
     }
 
     const expectedRsyncShell = [
@@ -1146,15 +1261,15 @@ test("direct SSH deployment overrides preserve one pinned host identity", async 
       "-o BatchMode=yes",
       "-o ConnectTimeout=10",
       "-o StrictHostKeyChecking=yes",
-      "-o Hostname=100.64.0.4",
-      "-o HostKeyAlias=[csb1.ts.barta.cm]:2222",
+      "-o Hostname=192.0.2.4",
+      "-o HostKeyAlias=[web-host.example.internal]:2222",
       "-p 2222",
     ].join(" ");
     for (const arguments_ of rsyncRecords) {
       const shellIndex = arguments_.indexOf("-e");
       assert.notEqual(shellIndex, -1);
       assert.equal(arguments_[shellIndex + 1], expectedRsyncShell);
-      assert.ok(arguments_.some((argument) => argument.startsWith("csb1:")));
+      assert.ok(arguments_.some((argument) => argument.startsWith("web-host:")));
     }
   } finally {
     await rm(host.root, { recursive: true, force: true });

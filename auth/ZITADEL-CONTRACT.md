@@ -1,6 +1,6 @@
 # ZITADEL signup contract
 
-`/enter` targets the ZITADEL image pinned on `csb1`:
+`/enter` targets the ZITADEL image pinned on the web host:
 
 - image digest: `sha256:5fb493fdb73204667cdd05715ef5f140049bf2781e10fd8ca407ce5aaa29f3df`
 - source revision: `8565d24fd8df5bd35294313cfbfcc2e15aea20e9`
@@ -58,7 +58,7 @@ distinct account state.
 
 ## Required edge dependency
 
-NIX-400 owns the authoritative csb1 Cloudflare-only router gate and age-backed
+NIX-400 owns the authoritative web host Cloudflare-only router gate and age-backed
 proxy-attestation secret. It must land before this signup flow is rolled out.
 This repository's compose file is reference evidence only; when the token is
 absent or mismatched, the application deliberately ignores forwarded identity

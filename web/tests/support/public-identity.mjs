@@ -56,6 +56,7 @@ export function publicIdentityProblems(text, { file = "content", denylist = null
   const problems = [];
   for (const [index, line] of text.split("\n").entries()) {
     const rules = new Set();
+    if (/\/(?:home|Users)\/[A-Za-z0-9._-]+/.test(line)) rules.add("home-path");
     if (/\.ts\.(?:net|[a-z0-9-]+\.[a-z]{2,})(?![a-z0-9-])/i.test(line)) rules.add("mesh-host-domain");
     if (/(?<![a-z0-9_-])(?:[a-z0-9_-]+\.)+lan(?![a-z0-9_-])/i.test(line)) rules.add("local-host-domain");
     for (const match of line.matchAll(ipv4)) {

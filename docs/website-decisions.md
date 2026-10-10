@@ -209,8 +209,8 @@ never a build target, mirror target or deployment target. In particular, never
 copy `web/dist/` over `site/` and never use `rsync --delete` against the local or
 remote archive.
 
-**Why a push-based script (and not git-pull-on-host):** the remote
-`/home/mba/docker/inspr-at/` is a flat directory, not a git checkout.
+**Why a push-based script (and not git-pull-on-host):** the deploy directory on
+the web host (INSPR_AT_DIR) is a flat directory, not a git checkout.
 Making it a checkout adds a deploy-key materialization + a "what if
 local and remote drift?" failure mode for negligible benefit — build
 artifacts have to land there either way. Push-based rsync from one

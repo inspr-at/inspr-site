@@ -277,6 +277,230 @@ test("identity edge rejects the deployed sibling-header spoof contract", () => {
   assert.match(contract.stdout, /inspr-auth edge contract: ok/);
 });
 
+test("identity bootstrap requires environment identity and passwords without embedded credentials", async () => {
+  const script = await readFile(new URL("../../auth/bootstrap-zitadel.sh", import.meta.url), "utf8");
+  // Boolean assertions keep script contents and any regression values out of failures.
+  assert.equal(/^\s*USER_PASSWORD=/m.test(script), false, "bootstrap password must have no assignment/default");
+  assert.equal(/\$\{[A-Z_]*PASSWORD:-[^}]+\}/.test(script), false, "password defaults are forbidden");
+  for (const key of ["COMPOSE_DIR", "USER_LOGIN_NAME", "USER_FIRST", "USER_LAST", "USER_EMAIL", "USER_PASSWORD", "SMTP_PASSWORD"]) {
+    assert.equal(script.includes(': "${' + key + ':?set ' + key + ' '), true, `${key} must be required`);
+  }
+  assert.equal(/passwordChangeRequired:\s*true/.test(script), true, "import must require a password change");
+  assert.equal(/changeRequired:\s*true/.test(script), true, "reset must require a password change");
+  assert.equal(/(?:passwordChangeRequired|changeRequired):\s*false/.test(script), false, "password change must not be disabled");
+  assert.equal(/^\s*(?:echo|printf|log|die)\b[^\n]*\$(?:USER_PASSWORD\b|\{USER_PASSWORD[}:])/m.test(script), false, "bootstrap password must not be printed");
+  const problems = [];
+  for (const [index, line] of script.split("\n").entries()) {
+    for (const match of line.matchAll(/[A-Za-z0-9._%+-]+@([A-Za-z0-9.-]+\.[A-Za-z]{2,})/g)) {
+      if (!/(?:^|\.)example\.(?:com|org|net)$/.test(match[1])) problems.push(`auth/bootstrap-zitadel.sh:${index + 1}`);
+    }
+  }
+  assert.equal(problems.length, 0, problems.join("\n"));
+});
+
+test("identity bootstrap help needs no configuration and missing inputs fail before host or network steps", async () => {
+  const path = fileURLToPath(new URL("../../auth/bootstrap-zitadel.sh", import.meta.url));
+  const root = await mkdtemp(join(tmpdir(), "inspr-bootstrap-inputs-"));
+  try {
+    const bin = join(root, "bin");
+    const steps = join(root, "steps");
+    await mkdir(bin);
+    for (const command of ["curl", "docker", "jq", "cat", "grep"]) {
+      await writeFile(join(bin, command), `#!/bin/bash\nprintf '%s\\n' '${command}' >> '${steps}'\nexit 99\n`, { mode: 0o755 });
+    }
+    const run = (args, extra = {}) => spawnSync("/bin/bash", [path, ...args], {
+      cwd: root,
+      encoding: "utf8",
+      env: { PATH: `${bin}:${process.env.PATH ?? "/usr/bin:/bin"}`, ...extra },
+    });
+    for (const flag of ["--help", "-h"]) {
+      const result = run([flag]);
+      assert.equal(result.status, 0);
+      for (const key of ["COMPOSE_DIR", "USER_LOGIN_NAME", "USER_FIRST", "USER_LAST", "USER_EMAIL", "USER_PASSWORD", "SMTP_PASSWORD"]) {
+        assert.equal(result.stdout.includes(key), true, `help must document ${key}`);
+      }
+      assert.equal(result.stdout.includes("--create-user"), true, "help must document explicit user creation");
+    }
+    const inputs = {
+      COMPOSE_DIR: "/srv/web-host/inspr-at", USER_LOGIN_NAME: "demo-user",
+      USER_FIRST: "Ada", USER_LAST: "Example", USER_EMAIL: "ada@example.com",
+      SMTP_PASSWORD: "synthetic-relay-input",
+    };
+    for (const key of Object.keys(inputs)) {
+      for (const value of [undefined, ""]) {
+        const result = run([], { ...inputs, [key]: value });
+        assert.equal(result.status, 1);
+        assert.equal(result.stderr.includes(`set ${key} `), true, `missing ${key} must fail clearly`);
+        assert.equal(result.stdout, "");
+        for (const secretKey of ["SMTP_PASSWORD"]) {
+          assert.equal(result.stderr.includes(inputs[secretKey]), false, "password inputs must stay redacted");
+        }
+      }
+    }
+    for (const value of [undefined, ""]) {
+      const result = run(["--reset-password"], { ...inputs, USER_PASSWORD: value });
+      assert.equal(result.status, 1);
+      assert.equal(result.stderr.includes("set USER_PASSWORD to reset"), true);
+      assert.equal(result.stdout, "");
+    }
+    await assert.rejects(stat(steps), { code: "ENOENT" });
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("identity bootstrap credential comments report only file and line", async () => {
+  const problemsFor = (text, file) => {
+    const problems = [];
+    for (const [index, line] of text.split("\n").entries()) {
+      if (!/^\s*#/.test(line) || !/password|passwort|secret|token/i.test(line)) continue;
+      const errorCodes = new Set(["Token.Invalid"]);
+      const quoted = [...line.matchAll(/"([^"]*)"|'([^']*)'/g)]
+        .some((match) => !errorCodes.has(match[1] ?? match[2]));
+      const credential = line.split(/\s+/).some((word) => word.length >= 8
+        && /[A-Za-z]/.test(word) && /[0-9]/.test(word) && /[^A-Za-z0-9]/.test(word));
+      if (quoted || credential) problems.push(`${file}:${index + 1}`);
+    }
+    return problems;
+  };
+  const file = "auth/bootstrap-zitadel.sh";
+  const script = await readFile(new URL("../../auth/bootstrap-zitadel.sh", import.meta.url), "utf8");
+  const problems = problemsFor(script, file);
+  assert.equal(problems.length, 0, problems.join("\n"));
+  for (const comment of ["# password 'example'", '# SECRET "example"', "# passwort Demo7+abc", "# token Demo7+abc"]) {
+    assert.deepEqual(problemsFor(`neutral\n${comment}`, "fixture.sh"), ["fixture.sh:2"]);
+  }
+  assert.deepEqual(problemsFor('# operator-supplied password is accepted\n# token rotation is explicit\n# secret is redacted\n# access-token failure: "Token.Invalid"', "fixture.sh"), []);
+});
+
+test("identity bootstrap validates inputs and explicit user creation before any API mutation", async () => {
+  const source = await readFile(new URL("../../auth/bootstrap-zitadel.sh", import.meta.url), "utf8");
+  assert.equal((source.match(/^USER_SEARCH=/gm) ?? []).length, 1, "the human-user lookup must be reused");
+  const root = await mkdtemp(join(tmpdir(), "inspr-bootstrap-preflight-"));
+  try {
+    const bin = join(root, "bin");
+    const compose = join(root, "compose");
+    const script = join(root, "bootstrap.sh");
+    const calls = join(root, "calls");
+    await mkdir(bin);
+    await mkdir(join(compose, ".machinekey"), { recursive: true });
+    await writeFile(join(compose, ".machinekey", "pat.txt"), "synthetic-bootstrap-input\n");
+    await writeFile(script, source);
+    // Stubs record operation names only, never headers, payloads or inputs.
+    await writeFile(join(bin, "curl"), `#!${process.execPath}
+const { appendFileSync } = require("node:fs");
+const args = process.argv.slice(2);
+const url = args.find((arg) => arg.startsWith("https://"));
+if (!url) process.exit(96);
+const path = new URL(url).pathname;
+const record = (name) => appendFileSync(process.env.BOOTSTRAP_CALL_LOG, name + "\\n");
+const json = (value) => process.stdout.write(JSON.stringify(value));
+if (path === "/.well-known/openid-configuration") { record("ready"); process.exit(0); }
+if (path === "/management/v1/orgs/me") {
+  record("org"); json({ org: { id: "fixture-org", name: "Fixture Org" } }); process.exit(0);
+}
+if (path === "/management/v1/users/_search") {
+  record("user-lookup");
+  if (!args.includes("x-zitadel-orgid: fixture-org")) process.exit(96);
+  const query = JSON.parse(args[args.indexOf("-d") + 1]);
+  const lookup = query.queries[0].userNameQuery;
+  if (lookup.userName !== process.env.USER_LOGIN_NAME || lookup.method !== "TEXT_QUERY_METHOD_EQUALS") process.exit(96);
+  if (process.env.BOOTSTRAP_USER_STATE === "lookup-error") process.exit(22);
+  if (process.env.BOOTSTRAP_USER_STATE === "malformed") { process.stdout.write("invalid-json"); process.exit(0); }
+  json({ result: process.env.BOOTSTRAP_USER_STATE === "existing" ? [{ id: "existing-user" }] : [] }); process.exit(0);
+}
+if (path === "/management/v1/projects/_search") {
+  record("project-lookup"); json({ result: [{ id: "fixture-project", name: "inspr.at" }] }); process.exit(0);
+}
+if (path === "/management/v1/projects/fixture-project/apps/_search") {
+  record("app-lookup"); json({ result: [{ id: "fixture-app", name: "inspr-www-auth" }] }); process.exit(0);
+}
+if (path === "/management/v1/projects/fixture-project/apps/fixture-app") {
+  record("app-detail"); json({ app: { oidcConfig: { clientId: "fixture-client" } } }); process.exit(0);
+}
+record(path.endsWith("/_generate_client_secret") ? "rotate-secret" : "mutation");
+process.exit(98);
+`, { mode: 0o755 });
+    await writeFile(join(bin, "jq"), `#!${process.execPath}
+const { readFileSync } = require("node:fs");
+const args = process.argv.slice(2);
+const named = (key) => {
+  for (let i = 0; i < args.length; i++) if (args[i] === "--arg" && args[i + 1] === key) return args[i + 2];
+};
+if (args.includes("-n")) {
+  process.stdout.write(JSON.stringify({ queries: [{ userNameQuery: { userName: named("ln"), method: "TEXT_QUERY_METHOD_EQUALS" } }] }));
+  process.exit(0);
+}
+let data;
+try { data = JSON.parse(readFileSync(0, "utf8")); } catch { process.exit(3); }
+const filter = args.at(-1);
+let value;
+if (filter === ".org.id") value = data.org.id;
+else if (filter === ".org.name") value = data.org.name;
+else if (filter === ".result[0].id // empty") value = data.result[0]?.id ?? "";
+else if (filter.includes(".result[]?")) value = data.result.find((item) => item.name === named("n"))?.id ?? "";
+else if (filter === ".app.oidcConfig.clientId") value = data.app.oidcConfig.clientId;
+else process.exit(3);
+process.stdout.write(String(value) + "\\n");
+`, { mode: 0o755 });
+    const inputs = {
+      PATH: `${bin}:${process.env.PATH ?? "/usr/bin:/bin"}`, COMPOSE_DIR: compose,
+      USER_LOGIN_NAME: "demo-user", USER_FIRST: "Ada", USER_LAST: "Example",
+      USER_EMAIL: "ada@example.com", SMTP_PASSWORD: "synthetic-relay-input",
+      BOOTSTRAP_CALL_LOG: calls, BOOTSTRAP_USER_STATE: "missing",
+    };
+    const run = async (flags = [], extra = {}) => {
+      await writeFile(calls, "");
+      const result = spawnSync("/bin/bash", [script, "--write-env", ...flags], {
+        cwd: root, encoding: "utf8", env: { ...inputs, ...extra },
+      });
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr.includes(inputs.SMTP_PASSWORD), false, "passwords must not appear in diagnostics");
+      if (extra.USER_PASSWORD) assert.equal(result.stderr.includes(extra.USER_PASSWORD), false, "passwords must not appear in diagnostics");
+      return { result, order: (await readFile(calls, "utf8")).trim().split("\n").filter(Boolean) };
+    };
+    for (const key of ["COMPOSE_DIR", "USER_LOGIN_NAME", "USER_FIRST", "USER_LAST", "USER_EMAIL", "SMTP_PASSWORD"]) {
+      for (const value of [undefined, ""]) {
+        const { result, order } = await run([], { [key]: value });
+        assert.equal(result.status, 1);
+        assert.equal(result.stderr.includes(`set ${key} `), true);
+        assert.deepEqual(order, []);
+      }
+    }
+    for (const value of [undefined, "", "synthetic-test-input"]) {
+      const { result, order } = await run([], { USER_PASSWORD: value });
+      assert.equal(result.status, 1);
+      assert.equal(result.stderr.includes("use --create-user"), true);
+      assert.deepEqual(order, ["ready", "org", "user-lookup"]);
+    }
+    for (const value of [undefined, ""]) {
+      const creation = await run(["--create-user"], { USER_PASSWORD: value });
+      assert.equal(creation.result.status, 1);
+      assert.equal(creation.result.stderr.includes("set USER_PASSWORD to create"), true);
+      assert.deepEqual(creation.order, ["ready", "org", "user-lookup"]);
+      const reset = await run(["--reset-password"], { USER_PASSWORD: value });
+      assert.equal(reset.result.status, 1);
+      assert.equal(reset.result.stderr.includes("set USER_PASSWORD to reset"), true);
+      assert.deepEqual(reset.order, []);
+    }
+    for (const mode of ["lookup-error", "malformed"]) {
+      const { result, order } = await run(["--create-user"], { BOOTSTRAP_USER_STATE: mode, USER_PASSWORD: "synthetic-test-input" });
+      assert.notEqual(result.status, 0);
+      assert.deepEqual(order, ["ready", "org", "user-lookup"]);
+    }
+    for (const [mode, flags, password] of [
+      ["existing", [], undefined], ["existing", [], ""], ["existing", ["--create-user"], undefined],
+      ["existing", ["--reset-password"], "synthetic-test-input"], ["missing", ["--create-user"], "synthetic-test-input"],
+    ]) {
+      const { result, order } = await run(flags, { BOOTSTRAP_USER_STATE: mode, USER_PASSWORD: password });
+      assert.equal(result.status, 98, "validated inputs may reach the intercepted first mutation");
+      assert.deepEqual(order, ["ready", "org", "user-lookup", "project-lookup", "app-lookup", "app-detail", "rotate-secret"]);
+    }
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("product copy contains no em dashes and no hardcoded business host", async () => {
   for (const { slug } of products) {
     const content = await source(`content/${slug}.ts`);
@@ -986,7 +1210,7 @@ test("one validated release identity is visible across the site family", async (
   assert.match(deploy, /data-release-id=/);
 });
 
-test("deployment host resolution uses literal local settings and environment precedence", async (t) => {
+test("deployment host and directory resolution uses literal local settings and environment precedence", async (t) => {
   const root = await mkdtemp(join(tmpdir(), "inspr-deploy-settings-"));
   try {
     const deploy = await readFile(new URL("../../deploy.sh", import.meta.url), "utf8");
@@ -995,14 +1219,14 @@ test("deployment host resolution uses literal local settings and environment pre
     assert.ok(transportStart > 0, "the initialization ends before remote transport");
     const initialization = deploy.slice(0, transportStart);
     const script = join(root, "deploy.sh");
-    await writeFile(script, `${initialization}\nprintf '%s\\n' "$HOST" "$SSH_PORT" "$SSH_HOST_KEY_ALIAS" "$REMOTE_DIR"\n`);
+    await writeFile(script, `${initialization}\nprintf '%s\\n' "$HOST" "$SSH_PORT" "$SSH_HOST_KEY_ALIAS" "$REMOTE_DIR" "$SSH_HOSTNAME"\n`);
     const local = join(root, ".deploy.local");
     const alternate = join(root, "alternate.local");
     const marker = join(root, "shell-was-executed");
     const run = (extra = {}) => spawnSync("/bin/bash", [script], {
       cwd: root,
       encoding: "utf8",
-      env: { PATH: process.env.PATH ?? "/usr/bin:/bin", ...extra },
+      env: { PATH: process.env.PATH ?? "/usr/bin:/bin", INSPR_AT_DIR: "/srv/web-host/inspr-at", ...extra },
     });
 
     await t.test("missing settings fail before transport", () => {
@@ -1019,15 +1243,44 @@ test("deployment host resolution uses literal local settings and environment pre
     });
     await t.test("default local file parses all settings, including a final line without newline", async () => {
       await writeFile(local, "\nINSPR_AT_HOST=web-host\nINSPR_AT_SSH_HOSTNAME=web-host.example.internal\nINSPR_AT_SSH_HOST_KEY_ALIAS=[web-host.example.internal]:2222\nINSPR_AT_SSH_PORT=2222\nINSPR_AT_DIR=/srv/inspr-at");
-      const result = run();
+      const result = run({ INSPR_AT_DIR: undefined });
       assert.equal(result.status, 0, result.stderr);
-      assert.deepEqual(result.stdout.trim().split("\n"), ["web-host", "2222", "[web-host.example.internal]:2222", "/srv/inspr-at"]);
+      assert.deepEqual(result.stdout.trim().split("\n"), ["web-host", "2222", "[web-host.example.internal]:2222", "/srv/inspr-at", "web-host.example.internal"]);
+    });
+    await t.test("environment directory wins over the local file", async () => {
+      await writeFile(local, "INSPR_AT_HOST=web-host\nINSPR_AT_DIR=/srv/local/inspr-at\n");
+      const result = run({ INSPR_AT_DIR: "/srv/web-host/inspr-at" });
+      assert.equal(result.status, 0, result.stderr);
+      assert.equal(result.stdout.trim().split("\n")[3], "/srv/web-host/inspr-at");
+    });
+    await t.test("environment host requires the directory in the environment too", async () => {
+      await writeFile(local, "INSPR_AT_HOST=local-host\nINSPR_AT_DIR=/srv/local/inspr-at\n");
+      const result = run({ INSPR_AT_HOST: "environment-host", INSPR_AT_DIR: undefined });
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /set INSPR_AT_DIR in the environment to the deploy directory on the web host/);
+      assert.doesNotMatch(result.stderr, /\.deploy\.local/);
+      assert.equal(result.stdout, "");
+    });
+    await t.test("environment host never picks up local SSH transport keys", async () => {
+      await writeFile(local, "INSPR_AT_HOST=local-host\nINSPR_AT_DIR=/srv/local/inspr-at\nINSPR_AT_SSH_HOSTNAME=local-host.example.internal\nINSPR_AT_SSH_HOST_KEY_ALIAS=[local-host.example.internal]:2222\nINSPR_AT_SSH_PORT=2222\n");
+      const result = run({ INSPR_AT_HOST: "environment-host" });
+      assert.equal(result.status, 0, result.stderr);
+      assert.deepEqual(result.stdout.trim().split("\n"), ["environment-host", "", "", "/srv/web-host/inspr-at"]);
+      const withPort = run({ INSPR_AT_HOST: "environment-host", INSPR_AT_SSH_PORT: "2200" });
+      assert.equal(withPort.status, 0, withPort.stderr);
+      assert.deepEqual(withPort.stdout.trim().split("\n"), ["environment-host", "2200", "", "/srv/web-host/inspr-at"]);
     });
     await t.test("alternate file is used and explicit environment settings win", async () => {
-      await writeFile(alternate, "INSPR_AT_HOST=alternate-host\nINSPR_AT_SSH_PORT=2222\n");
+      await writeFile(alternate, "INSPR_AT_HOST=alternate-host\nINSPR_AT_SSH_PORT=2222\nINSPR_AT_DIR=/srv/alternate/inspr-at\n");
       const result = run({ INSPR_AT_DEPLOY_LOCAL: alternate, INSPR_AT_SSH_PORT: "2200" });
       assert.equal(result.status, 0, result.stderr);
       assert.deepEqual(result.stdout.split("\n").slice(0, 2), ["alternate-host", "2200"]);
+      assert.equal(result.stdout.trim().split("\n")[3], "/srv/web-host/inspr-at");
+      const localDirectory = run({ INSPR_AT_DEPLOY_LOCAL: alternate, INSPR_AT_HOST: "environment-host", INSPR_AT_DIR: undefined });
+      assert.equal(localDirectory.status, 1);
+      assert.match(localDirectory.stderr, /set INSPR_AT_DIR in the environment to the deploy directory on the web host/);
+      assert.doesNotMatch(localDirectory.stderr, /\.deploy\.local/);
+      assert.equal(localDirectory.stdout, "");
     });
     await t.test("an explicit missing local path is reported without disclosure", () => {
       const missing = join(root, "missing.local");
@@ -1100,6 +1353,48 @@ test("deployment host resolution uses literal local settings and environment pre
   }
 });
 
+test("missing deployment directory fails before any build or remote step", async () => {
+  const root = await mkdtemp(join(tmpdir(), "inspr-deploy-missing-directory-"));
+  try {
+    const script = join(root, "deploy.sh");
+    await writeFile(script, await readFile(new URL("../../deploy.sh", import.meta.url), "utf8"));
+    const bin = join(root, "bin");
+    const steps = join(root, "steps");
+    await mkdir(bin);
+    for (const command of ["npm", "node", "ssh", "scp", "rsync", "curl", "docker"]) {
+      await writeFile(join(bin, command), `#!/bin/bash\nprintf '%s\\n' '${command}' >> '${steps}'\nexit 99\n`, { mode: 0o755 });
+    }
+    const run = (extra = {}) => spawnSync("/bin/bash", [script], {
+      cwd: root,
+      encoding: "utf8",
+      env: { PATH: `${bin}:${process.env.PATH ?? "/usr/bin:/bin"}`, INSPR_AT_HOST: "web-host", ...extra },
+    });
+    const assertMissing = async (extra = {}) => {
+      const result = run(extra);
+      assert.equal(result.status, 1);
+      if (Object.hasOwn(extra, "INSPR_AT_HOST") && extra.INSPR_AT_HOST === undefined) {
+        assert.match(result.stderr, /set INSPR_AT_DIR to the deploy directory on the web host, or put it in \.deploy\.local/);
+      } else {
+        assert.match(result.stderr, /set INSPR_AT_DIR in the environment to the deploy directory on the web host/);
+        assert.doesNotMatch(result.stderr, /\.deploy\.local/);
+      }
+      assert.doesNotMatch(result.stdout, /building Astro|uploading immutable release/);
+      await assert.rejects(stat(steps), { code: "ENOENT" });
+    };
+    await assertMissing();
+    await writeFile(join(root, ".deploy.local"), "INSPR_AT_HOST=web-host\n");
+    await assertMissing();
+    await assertMissing({ INSPR_AT_HOST: undefined });
+    await writeFile(join(root, ".deploy.local"), "INSPR_AT_HOST=web-host\nINSPR_AT_DIR=\n");
+    await assertMissing();
+    await assertMissing({ INSPR_AT_HOST: undefined });
+    await writeFile(join(root, ".deploy.local"), "INSPR_AT_HOST=web-host\nINSPR_AT_DIR=/srv/local/inspr-at\n");
+    await assertMissing({ INSPR_AT_DIR: "" });
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("direct SSH deployment overrides preserve one pinned host identity", async () => {
   const deployUrl = new URL("../../deploy.sh", import.meta.url);
   const deployPath = fileURLToPath(deployUrl);
@@ -1114,6 +1409,7 @@ test("direct SSH deployment overrides preserve one pinned host identity", async 
 
   const baseEnvironment = {
     INSPR_AT_HOST: "web-host",
+    INSPR_AT_DIR: "/srv/web-host/inspr-at",
     PATH: process.env.PATH ?? "/usr/bin:/bin",
   };
   const rejected = [

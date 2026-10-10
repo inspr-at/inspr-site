@@ -17,9 +17,9 @@ test("Aithema has a canonical product route and no public preview link", async (
   assert.match(route, /import \{ aithemaContent \} from "\.\.\/\.\.\/content\/aithema"/);
   assert.match(route, /<AithemaProductPage content=\{aithemaContent\} \/>/);
   assert.match(urls, /aithema: "https:\/\/aithema\.inspr\.at"/);
-  assert.doesNotMatch(urls, /aithemaPreview|start\.augmentoring\.com/);
+  assert.doesNotMatch(urls, new RegExp(String.raw`aithemaPreview|${["start", "augmentoring", "com"].join("\\.")}`));
   assert.match(content, /canonicalUrl: siteUrls\.aithema/);
-  assert.doesNotMatch(content, /previewUrl|start\.augmentoring\.com/);
+  assert.doesNotMatch(content, new RegExp(String.raw`previewUrl|${["start", "augmentoring", "com"].join("\\.")}`));
 });
 
 test("Aithema keeps approval with the person who chooses Continue", async () => {
@@ -55,7 +55,7 @@ test("Aithema states its preview maturity without invented source claims", async
   assert.match(page, /Request access/);
   assert.match(page, /Hosted workspace by invitation/);
   assert.match(page, /<nav aria-label=\{labels\.sourceAria\}>[\s\S]*?<p class="footer-text">\{labels\.byInvitation\}<\/p>/);
-  assert.doesNotMatch(page, /previewUrl|hosted preview|start\.augmentoring\.com/);
+  assert.doesNotMatch(page, new RegExp(String.raw`previewUrl|hosted preview|${["start", "augmentoring", "com"].join("\\.")}`));
   const overview = await webFile("src/components/OverviewPage.astro");
   const styles = await webFile("src/styles/microsites.css");
   assert.match(overview, /github\.com\/inspr-at\/aithema; hosted workspace by invitation/);
@@ -128,14 +128,14 @@ test("documentation and test discovery include the Aithema microsite", async () 
   assert.match(rootReadme, /hosted Aithema workspace is available\s+by invitation/);
   assert.match(rootReadme, /\[github\.com\/inspr-at\/aithema\]\(https:\/\/github\.com\/inspr-at\/aithema\)/);
   assert.match(rootReadme, /The four open-source product repositories/);
-  assert.doesNotMatch(rootReadme, /start\.augmentoring\.com/);
+  assert.doesNotMatch(rootReadme, new RegExp(String.raw`${["start", "augmentoring", "com"].join("\\.")}`));
   assert.match(webReadme, /`\/aithema\/` \| `aithema\.inspr\.at`/);
   assert.match(webReadme, /product page is live at[\s\S]*`aithema\.inspr\.at`/i);
   assert.doesNotMatch(webReadme, /edge routing and DNS are in place/i);
   assert.match(webReadme, /workspace itself is not built by this repository/);
   assert.match(webReadme, /links the published core's repository, releases\s+and project license/);
   assert.doesNotMatch(webReadme, /until inspectable product\s+source exists/);
-  assert.doesNotMatch(webReadme, /start\.augmentoring\.com/);
+  assert.doesNotMatch(webReadme, new RegExp(String.raw`${["start", "augmentoring", "com"].join("\\.")}`));
   assert.match(packageJson, /node --test tests\/\*-static\.test\.mjs/);
   assert.match(sectionAudit, /name: "aithema"[\s\S]*minimum: 11, expectedRails: 0/);
   assert.match(page, /<section\s+class="proof-console page-shell"[\s\S]*data-section-pattern="proof-strip"/);

@@ -12,12 +12,13 @@
 #      ./.machinekey/pat.txt — written by Zitadel at first init via
 #      ZITADEL_FIRSTINSTANCE_PATPATH. This PAT is used ONLY by this script.
 #   2. Discovers the INSPR org via /management/v1/orgs/me.
+#      Checks the configured human user before any API writes.
 #   3. Finds or creates the project "inspr.at".
 #   4. Finds or creates the OIDC web application; rotates client_secret
 #      only when --rotate-secret (or --write-env) is passed.
 #   5. Relaxes org password complexity (drops uppercase requirement) so
 #      the bootstrap human-user password admits.
-#   6. Finds or creates the human user "markus"; resets password only
+#   6. Creates a missing human user only with --create-user; resets password only
 #      when --reset-password is passed, and grants ORG_OWNER so the
 #      user can administer the INSPR org in the Console.
 #   7. (skipped — folded into 6)
@@ -45,6 +46,8 @@
 #                     restart immediately after.
 #   --rotate-sa-pat   Mint a NEW INSPR_AUTH_SA_PAT (revokes the old one
 #                     by replacement). Requires inspr-auth restart.
+#   --create-user     Allow creation of the configured human user if missing.
+#                     Without this flag, an unknown login fails before API writes.
 #   --reset-password  Reset the bootstrap human-user password.
 #   --print-secret    Print secrets in cleartext (default: <redacted>).
 #   --remove-legacy-pat
@@ -56,19 +59,28 @@
 #                     fallback in main.go would have nothing to fall
 #                     back to during a brief window).
 #
+# REQUIRED ENVIRONMENT (no defaults):
+#   COMPOSE_DIR        Deploy directory on the web host.
+#   USER_LOGIN_NAME    Bootstrap human user's login name.
+#   USER_FIRST         Bootstrap human user's first name.
+#   USER_LAST          Bootstrap human user's last name.
+#   USER_EMAIL         Bootstrap human user's e-mail address.
+#   SMTP_PASSWORD      Relay credential, or a nonempty placeholder when the
+#                      relay does not use authentication (Zitadel requires it).
+# CONDITIONAL ENVIRONMENT (no default):
+#   USER_PASSWORD      Required for a missing user with --create-user, or for
+#                      --reset-password. Omit on re-runs that preserve it.
+#                      Never printed; user must change it on next login.
+# OPTIONAL SMTP IDENTITY:
+#   SMTP_FROM_ADDRESS  Sender address (defaults to USER_EMAIL).
+#   SMTP_REPLY_TO      Reply address (defaults to SMTP_FROM_ADDRESS).
+#
 # REQUIRES on host: docker, jq, curl. (Standard web host toolchain.)
 
 set -euo pipefail
 
 ZITADEL_BASE="${ZITADEL_BASE:-https://auth.inspr.at}"
-COMPOSE_DIR="${COMPOSE_DIR:-/home/mba/docker/inspr-at}"
-ENV_FILE="${COMPOSE_DIR}/.env"
 WRITE_ENV=0
-USER_LOGIN_NAME="markus"
-USER_FIRST="Markus"
-USER_LAST="Barta"
-USER_EMAIL="markus@barta.com"
-USER_PASSWORD="${USER_PASSWORD:-changemesoon26!}"
 USER_ORG_ROLE="${USER_ORG_ROLE:-ORG_OWNER}"
 PROJECT_NAME="inspr.at"
 APP_NAME="inspr-www-auth"
@@ -77,6 +89,7 @@ POST_LOGOUT_URI="https://inspr.at/"
 
 PRINT_SECRET=0
 RESET_PASSWORD=0
+CREATE_USER=0
 ROTATE_SECRET=0
 ROTATE_SA_PAT=0
 REMOVE_LEGACY_PAT=0
@@ -85,13 +98,25 @@ for arg in "$@"; do
     --write-env) WRITE_ENV=1 ;;
     --print-secret) PRINT_SECRET=1 ;;
     --reset-password) RESET_PASSWORD=1 ;;
+    --create-user) CREATE_USER=1 ;;
     --rotate-secret) ROTATE_SECRET=1 ;;
     --rotate-sa-pat) ROTATE_SA_PAT=1 ;;
     --remove-legacy-pat) REMOVE_LEGACY_PAT=1 ;;
     -h|--help)
-      sed -n '1,60p' "$0"; exit 0 ;;
+      sed -n '1,/^$/p' "$0"; exit 0 ;;
   esac
 done
+
+: "${COMPOSE_DIR:?set COMPOSE_DIR to the deploy directory on the web host}"
+: "${USER_LOGIN_NAME:?set USER_LOGIN_NAME to the bootstrap user login name}"
+: "${USER_FIRST:?set USER_FIRST to the bootstrap user first name}"
+: "${USER_LAST:?set USER_LAST to the bootstrap user last name}"
+: "${USER_EMAIL:?set USER_EMAIL to the bootstrap user e-mail address}"
+: "${SMTP_PASSWORD:?set SMTP_PASSWORD to the relay credential or a nonempty placeholder for a relay without authentication}"
+if [ "$RESET_PASSWORD" = "1" ]; then
+  : "${USER_PASSWORD:?set USER_PASSWORD to reset the bootstrap user password}"
+fi
+ENV_FILE="${COMPOSE_DIR}/.env"
 
 # Per-key writeback gates. Default off — we never silently overwrite a
 # secret in .env unless the user opted in (--write-env) OR the key is
@@ -173,6 +198,16 @@ ORG_NAME="$(echo "$ORG_ME" | jq -r '.org.name')"
 log "Using org name='$ORG_NAME' id=$ORG_ID"
 AUTH+=(-H "x-zitadel-orgid: $ORG_ID")
 
+# Read-only preflight: resolve the user and validate creation before API writes.
+# Zitadel uses POST for search queries; this lookup does not modify the user.
+log "Looking for existing user '${USER_LOGIN_NAME}'…"
+USER_SEARCH="$(curl -fsS "${AUTH[@]}" -X POST "${ZITADEL_BASE}/management/v1/users/_search" -d "$(jq -n --arg ln "$USER_LOGIN_NAME" '{queries:[{userNameQuery:{userName:$ln, method:"TEXT_QUERY_METHOD_EQUALS"}}]}')")"
+USER_ID="$(echo "$USER_SEARCH" | jq -r '.result[0].id // empty')"
+if [ -z "$USER_ID" ]; then
+  [ "$CREATE_USER" = "1" ] || die "bootstrap login not found; use --create-user to create the configured user"
+  : "${USER_PASSWORD:?set USER_PASSWORD to create the bootstrap user}"
+fi
+
 # ── 4. Find or create the project ───────────────────────────────────────
 log "Looking for existing project '${PROJECT_NAME}'…"
 PROJ_LIST="$(curl -fsS "${AUTH[@]}" "${ZITADEL_BASE}/management/v1/projects/_search" -d '{}')"
@@ -215,8 +250,8 @@ if [ -z "$APP_ID" ] || [ "$APP_ID" = "null" ]; then
   CLIENT_SECRET="$(echo "$APP_RESP" | jq -r '.clientSecret')"
 else
   # IMPORTANT: Zitadel only returns the client secret at create time or
-  # explicit _generate_client_secret. There's no "read existing secret"
-  # path. So:
+  # explicit _generate_client_secret. Existing credentials cannot be retrieved
+  # again after creation. So:
   #   - Default re-run (no flags): leave secret untouched, just confirm
   #     client_id. The previously-rendered .env stays valid; restart of
   #     consumers not required.
@@ -252,7 +287,7 @@ fi
 
 # ── 6. Relax the org password complexity policy to admit the bootstrap pwd
 #       Default policy requires upper+lower+number+symbol; we drop the
-#       upper requirement so the user-chosen "changemesoon26!" admits.
+#       upper requirement so the operator-supplied bootstrap password is accepted.
 #       The user is expected to rotate via the console; this is a spike-
 #       grade convenience, not a long-term setting.
 log "Relaxing org password complexity (drop uppercase requirement)…"
@@ -284,9 +319,7 @@ case "$HTTP_CODE" in
 esac
 
 # ── 7. Create the human user ────────────────────────────────────────────
-log "Looking for existing user '${USER_LOGIN_NAME}'…"
-USER_SEARCH="$(curl -fsS "${AUTH[@]}" "${ZITADEL_BASE}/management/v1/users/_search" -d "$(jq -n --arg ln "$USER_LOGIN_NAME" '{queries:[{userNameQuery:{userName:$ln, method:"TEXT_QUERY_METHOD_EQUALS"}}]}')")"
-USER_ID="$(echo "$USER_SEARCH" | jq -r '.result[0].id // empty')"
+# Reuse the read-only preflight result; creation was authorized before API writes.
 if [ -z "$USER_ID" ]; then
   log "Creating user…"
   USER_RESP="$(curl -fsS "${AUTH[@]}" -X POST "${ZITADEL_BASE}/management/v1/users/human/_import" \
@@ -295,14 +328,14 @@ if [ -z "$USER_ID" ]; then
         profile: { firstName: $fn, lastName: $lln, displayName: ($fn + " " + $lln), preferredLanguage: "en" },
         email: { email: $em, isEmailVerified: true },
         password: $pw,
-        passwordChangeRequired: false,
+        passwordChangeRequired: true,
         requestPasswordlessRegistration: false
       }')")"
   USER_ID="$(echo "$USER_RESP" | jq -r '.userId')"
 elif [ "$RESET_PASSWORD" = "1" ]; then
   log "User exists (id=$USER_ID); resetting password (--reset-password requested)…"
   PWRESP="$(curl -sS -o /tmp/pwreset.out -w '%{http_code}' "${AUTH[@]}" -X POST "${ZITADEL_BASE}/management/v1/users/${USER_ID}/password" \
-    -d "$(jq -n --arg pw "$USER_PASSWORD" '{newPassword:{password:$pw, changeRequired:false}}')")"
+    -d "$(jq -n --arg pw "$USER_PASSWORD" '{newPassword:{password:$pw, changeRequired:true}}')")"
   if [ "$PWRESP" != "200" ]; then
     log "  WARN: password reset returned HTTP $PWRESP — body:"
     cat /tmp/pwreset.out >&2
@@ -319,7 +352,7 @@ assert_org_role "$USER_ID" "$USER_ORG_ROLE" "$USER_LOGIN_NAME"
 # Self-hosted Zitadel ships the built-in Console OIDC app with ONLY the
 # AUTHORIZATION_CODE grant. The browser-side console can therefore obtain
 # an access token but never refresh it, so after the access-token TTL
-# (default ~12h) the user gets stuck on a persistent "Token.Invalid"
+# (default roughly twelve hours) the user gets stuck on a persistent "Token.Invalid"
 # error toast with no auto-recovery path. Adding REFRESH_TOKEN to the
 # grant set lets the console silently refresh and the toast disappears
 # from the UX entirely.
@@ -424,10 +457,9 @@ fi
 #     advertises no AUTH; Zitadel only sends AUTH if user is non-empty.
 SMTP_HOST="${SMTP_HOST:-smtp:25}"
 SMTP_USER="${SMTP_USER:-}"
-SMTP_PASSWORD="${SMTP_PASSWORD:-x}"
-SMTP_FROM_ADDRESS="${SMTP_FROM_ADDRESS:-markus@barta.com}"
+SMTP_FROM_ADDRESS="${SMTP_FROM_ADDRESS:-$USER_EMAIL}"
 SMTP_FROM_NAME="${SMTP_FROM_NAME:-INSPR}"
-SMTP_REPLY_TO="${SMTP_REPLY_TO:-markus@barta.com}"
+SMTP_REPLY_TO="${SMTP_REPLY_TO:-$SMTP_FROM_ADDRESS}"
 SMTP_DESCRIPTION="INSPR local relay (no auth — trusted docker net)"
 
 log "Configuring Zitadel SMTP relay…"

@@ -1447,7 +1447,7 @@ func readAtMost(r interface{ Read([]byte) (int, error) }, n int) ([]byte, error)
 }
 
 // splitName returns first + last from a single "Display Name" string.
-// "Markus" → ("Markus", "Markus"), "Markus Barta" → ("Markus", "Barta"),
+// "Ada" → ("Ada", "Ada"), "Ada Example" → ("Ada", "Example"),
 // "Mary Jane Watson" → ("Mary", "Jane Watson"). Zitadel requires both
 // fields non-empty, so a single token gets duplicated to satisfy the
 // constraint without fabricating data.

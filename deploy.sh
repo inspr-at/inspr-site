@@ -33,7 +33,7 @@
 #                       together with INSPR_AT_SSH_HOST_KEY_ALIAS
 #   INSPR_AT_SSH_HOST_KEY_ALIAS
 #                       pinned known_hosts identity for a direct override
-#   INSPR_AT_DIR        remote dir (default: /home/mba/docker/inspr-at)
+#   INSPR_AT_DIR        required deploy directory on the web host
 #   SKIP_BUILD=1        reuse existing web/dist/
 #   SKIP_PROBE=1        skip read-only post-deploy HTTPS probes
 #   PROBE_TIMEOUT       maximum seconds per probe (default: 20)
@@ -105,6 +105,7 @@ ok()  { printf '\033[1;32mOK\033[0m %s\n' "$*"; }
 die() { printf '\033[1;31mERROR\033[0m %s\n' "$*" >&2; exit 1; }
 
 # Parse data only, never shell code. Explicit environment values take precedence.
+DEPLOY_HOST_FROM_ENV="${INSPR_AT_HOST+set}"
 if [ "${INSPR_AT_HOST+set}" != set ]; then
   DEPLOY_LOCAL="${INSPR_AT_DEPLOY_LOCAL:-$ROOT/.deploy.local}"
   if [ "${INSPR_AT_DEPLOY_LOCAL+set}" = set ] && [ ! -e "$DEPLOY_LOCAL" ]; then
@@ -131,11 +132,18 @@ if [ "${INSPR_AT_HOST+set}" != set ]; then
   fi
 fi
 [ -n "${INSPR_AT_HOST:-}" ] || die "set INSPR_AT_HOST to the web host's SSH alias, or put it in .deploy.local"
+if [ -z "${INSPR_AT_DIR:-}" ]; then
+  if [ "$DEPLOY_HOST_FROM_ENV" = set ]; then
+    die "set INSPR_AT_DIR in the environment to the deploy directory on the web host"
+  else
+    die "set INSPR_AT_DIR to the deploy directory on the web host, or put it in .deploy.local"
+  fi
+fi
 HOST="$INSPR_AT_HOST"
 SSH_PORT="${INSPR_AT_SSH_PORT:-}"
 SSH_HOSTNAME="${INSPR_AT_SSH_HOSTNAME:-}"
 SSH_HOST_KEY_ALIAS="${INSPR_AT_SSH_HOST_KEY_ALIAS:-}"
-REMOTE_DIR="${INSPR_AT_DIR:-/home/mba/docker/inspr-at}"
+REMOTE_DIR="$INSPR_AT_DIR"
 PROBE_TIMEOUT="${PROBE_TIMEOUT:-20}"
 PROBE_ATTEMPTS="${PROBE_ATTEMPTS:-20}"
 PROBE_RESOLVE_IP="${PROBE_RESOLVE_IP:-}"

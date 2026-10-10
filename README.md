@@ -312,14 +312,23 @@ new bundle into a fresh directory with that script, review the manifest
 digest independently, and change the pin in the same reviewed change.
 
 Run production deployment from the repository root with the configured SSH
-alias. Set `INSPR_AT_HOST` to the web host's SSH alias, or put
-`INSPR_AT_HOST=web-host` (using your local alias) in the gitignored
-`.deploy.local`. `INSPR_AT_DEPLOY_LOCAL` can select another local file.
+alias. Set `INSPR_AT_HOST` to the web host's SSH alias and `INSPR_AT_DIR` to
+the deploy directory on that host. Both are required. Alternatively, put both
+in the gitignored `.deploy.local` (using your local alias and deploy path):
+
+```text
+INSPR_AT_HOST=web-host
+INSPR_AT_DIR=/srv/web-host/inspr-at
+```
+
+`INSPR_AT_DEPLOY_LOCAL` can select another local file.
 The fallback file is read only when `INSPR_AT_HOST` is unset; explicit
 environment settings always win. It accepts only `INSPR_AT_*` keys with
 literal `KEY=VALUE` entries and blank lines, without quotes, comments,
 expansion or shell commands. CRLF line endings, duplicate keys and a missing
-explicit local-file path are rejected. Missing or unsafe host settings stop before SSH:
+explicit local-file path are rejected. When the environment supplies the host,
+it must also supply the directory; no directory or SSH transport keys are read
+from the file. Missing or unsafe settings stop before any build or SSH step:
 
 ```bash
 ./deploy.sh

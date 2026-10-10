@@ -61,6 +61,20 @@ test("public business domains allow only the exact hostname and www", () => {
   }
 });
 
+test("home paths are rejected with only file, line and rule reported", () => {
+  for (const base of ["home", "Users"]) {
+    const path = ["", base, "ada-demo", "x"].join("/");
+    assert.deepEqual(publicIdentityProblems(`neutral\n${path}`, { file: "fixture.txt" }), ["fixture.txt:2: home-path"]);
+    const bare = ["", base, "x-demo"].join("/");
+    for (const source of [`HOME=${bare}`, `cd ${bare} &&`, bare]) {
+      assert.deepEqual(publicIdentityProblems(source, { file: "fixture.txt" }), ["fixture.txt:1: home-path"]);
+    }
+  }
+  for (const path of ["/srv/web-host/inspr-at", "/home", "/home/", "/Users"]) {
+    assert.deepEqual(publicIdentityProblems(path), []);
+  }
+});
+
 test("CIDR and synthetic fixture allowances are exact and never permit private URLs", () => {
   const cidrs = "10.0.0.0/8 172.16.0.0/12 192.168.0.0/16";
   assert.deepEqual(publicIdentityProblems(cidrs, { file: "Caddyfile" }), []);

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated": "2026-10-19T19:45:23+02:00",
+  "generated": "2026-10-19T21:28:26+02:00",
   "base": "https://media.inspr.at/films/",
   "episodes": [
     {
@@ -109,6 +109,115 @@
         "9x16": "w05/v6/poster-9x16.jpg",
         "16x9_small": "w05/v6/poster-16x9-small.jpg",
         "9x16_small": "w05/v6/poster-9x16-small.jpg"
+      },
+      "published": "2026-10-19"
+    },
+    {
+      "id": "W07",
+      "version": 1,
+      "question": "What if another model reviewed it?",
+      "answer": "Fresh eyes. Clean code.",
+      "tagline": "The self-improving software factory.",
+      "subline": "You decide. PAIMOS learns.",
+      "link": "www.paimos.com",
+      "words": [
+        {
+          "shot": 1,
+          "kind": "question",
+          "text": "What if another model reviewed it?",
+          "start_s": 0,
+          "end_s": 5
+        },
+        {
+          "shot": 2,
+          "kind": "caption",
+          "text": "Give your code fresh eyes.",
+          "start_s": 5,
+          "end_s": 8.6
+        },
+        {
+          "shot": 3,
+          "kind": "caption",
+          "text": "Another family takes a look.",
+          "start_s": 8.6,
+          "end_s": 12.5
+        },
+        {
+          "shot": 4,
+          "kind": "caption",
+          "text": "See what needs fixing.",
+          "start_s": 12.5,
+          "end_s": 14.4
+        },
+        {
+          "shot": 5,
+          "kind": "caption",
+          "text": "Fresh commit. Fresh review.",
+          "start_s": 14.4,
+          "end_s": 16.1
+        },
+        {
+          "shot": 6,
+          "kind": "caption",
+          "text": "Right on your pull request.",
+          "start_s": 16.1,
+          "end_s": 19
+        },
+        {
+          "shot": 7,
+          "kind": "caption",
+          "text": "One setting. Every review.",
+          "start_s": 19,
+          "end_s": 25.5
+        },
+        {
+          "shot": 8,
+          "kind": "answer",
+          "text": "Fresh eyes. Clean code.",
+          "start_s": 23.6,
+          "end_s": 25.5
+        }
+      ],
+      "duration_s": 30,
+      "formats": {
+        "16x9": {
+          "file": "w07/v1/16x9.mp4",
+          "width": 1920,
+          "height": 1080,
+          "fps": 60,
+          "bytes": 20931961,
+          "sha256": "567a3d665c4b310e9919dc9243637356b94fea9f912777c0a8b12c62fd8aff0e",
+          "web": {
+            "file": "w07/v1/16x9-720.mp4",
+            "width": 1280,
+            "height": 720,
+            "fps": 30,
+            "bytes": 2538500,
+            "sha256": "a51d8f6e531e9ec3481b206034e0e9a2a9295e69980e406afa54a9e214718ddd"
+          }
+        },
+        "9x16": {
+          "file": "w07/v1/9x16.mp4",
+          "width": 1080,
+          "height": 1920,
+          "fps": 60,
+          "bytes": 20218046,
+          "sha256": "8dbd0633b57f1084b512f95d1b9ae29001f00b88fc9808ae806b8368844356a6",
+          "web": {
+            "file": "w07/v1/9x16-720.mp4",
+            "width": 720,
+            "height": 1280,
+            "fps": 30,
+            "bytes": 2441320,
+            "sha256": "11f11ac42de2d5175c53cd0f50f01600c4f32fab195b1e592b51de75db4bfc11"
+          }
+        }
+      },
+      "poster": {
+        "16x9": "w07/v1/poster-16x9.jpg",
+        "9x16": "w07/v1/poster-9x16.jpg",
+        "16x9_small": "w07/v1/poster-16x9-small.jpg",
+        "9x16_small": "w07/v1/poster-9x16-small.jpg"
       },
       "published": "2026-10-19"
     },

@@ -18,7 +18,9 @@ This repository powers the bilingual INSPR site family:
   and guarded production deployment ([Deutsch](https://pharos.inspr.at/de/));
 - [janus.inspr.at](https://janus.inspr.at) - permits, approved secret-backed use
   and access rotation ([Deutsch](https://janus.inspr.at/de/));
-- [v1.inspr.at](https://v1.inspr.at) - the frozen pre-relaunch archive.
+- [v1.inspr.at](https://v1.inspr.at) - the frozen pre-relaunch archive;
+- [paimos.com](https://paimos.com) - the PAIMOS front door: a short pitch and
+  the "What if…?" films (English), linking into paimos.inspr.at.
 
 Aithema (pronounced **AI-Thema**) is the first product in the family sequence
 and owns requirements. Its product page is live at `aithema.inspr.at`. The
@@ -119,6 +121,31 @@ screen from its synthetic visual-test fixture.
 Shared URLs, including the professional-services destination, are centralized
 in `web/src/content/urls.ts`. Set `PUBLIC_BUSINESS_URL` at build time when
 the business hostname changes.
+
+### paimos.com and its films
+
+`web/src/pages/paimos-com/` builds the paimos.com root (Caddy serves the
+`paimos-com/` directory for that host; `www.inspr.at/paimos-com/` redirects
+there). Its PAIMOS colours and display face come from
+`web/src/styles/paimos-tokens.css`, the same file paimos.inspr.at uses.
+
+The films are produced and versioned outside this repository and served from
+`media.inspr.at`; no video ever enters git. The site reads a committed,
+normalised snapshot of the public film manifest (schema 1, validated by
+`web/film-manifest.mjs`). Without a snapshot, or with no cleared film in it,
+paimos.com renders without its showreel. To pick up a new manifest:
+
+```bash
+cd web
+npm run films:sync -- https://media.inspr.at/films/manifest.json --check-media
+```
+
+Commit `src/content/films/manifest.json` and deploy. `npm run build` refuses a
+manifest whose media origin the CSP or the privacy notice does not cover. To
+preview films that are not public yet, serve them from this computer and point
+a local build at a copy of their manifest with a loopback `base`
+(`PAIMOS_FILM_MANIFEST=<path> npm run dev`); a release build refuses that
+override.
 
 ## Verification
 

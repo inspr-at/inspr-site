@@ -1,0 +1,358 @@
+---
+/**
+ * INSPR-572: paimos.com, the public front door. A short pitch on the films'
+ * pearl ground, the "What if…?" showreel, three answers that link into
+ * paimos.inspr.at, and the plain facts. The showreel renders only when the
+ * committed film manifest lists a cleared film (src/content/films.ts), so the
+ * page is complete with none.
+ *
+ * Without JavaScript the films are a swipeable list whose posters link to the
+ * video files. The enhancement plays the visible film muted, one at a time, and
+ * adds pause, sound and previous/next controls; reduced motion and Save-Data
+ * keep every film on its poster until a person presses play.
+ */
+import { Image, getImage } from "astro:assets";
+import MicrositeLayout from "../layouts/MicrositeLayout.astro";
+import MicrositeHeader from "./MicrositeHeader.astro";
+import MicrositeFooter from "./MicrositeFooter.astro";
+import { paimosComContent as content } from "../content/paimos-com";
+import { films } from "../content/films";
+import { siteUrls } from "../content/urls";
+import "@fontsource-variable/geist/index.css";
+import "../styles/paimos-tokens.css";
+import "../styles/paimos-com.css";
+
+import aeonMark from "../assets/products/paimos/logo.svg";
+import deliveryShot from "../assets/products/paimos-aeon/delivery.png";
+
+// Phones held upright get the 9:16 cut; everything else gets 16:9. The video
+// sources, the posters and the stage's aspect ratio all use this one query.
+const portrait = "(max-width: 47.99rem) and (orientation: portrait)";
+const og = await getImage({ src: deliveryShot, width: 1200, format: "jpg", quality: 82 });
+const ogImage = new URL(og.src, siteUrls.paimosCom).href;
+const hasFilms = films.length > 0;
+
+const nav = [
+  ...(hasFilms ? [content.nav.films] : []),
+  content.nav.answers,
+  content.nav.facts,
+  content.nav.product,
+];
+const countLabel = (index: number) =>
+  content.films.of.replace("{n}", String(index + 1)).replace("{total}", String(films.length));
+---
+
+<MicrositeLayout
+  title={content.seo.title}
+  description={content.seo.description}
+  canonical={content.canonicalUrl}
+  ogImage={ogImage}
+  ogImageAlt={content.hero.screenAlt}
+  favicon={aeonMark.src}
+  theme="paimos"
+>
+  <MicrositeHeader
+    name={content.name}
+    category={content.category}
+    logo={aeonMark.src}
+    active="paimos"
+    homeHref="/"
+    nav={nav}
+  />
+
+  <main id="main-content" class="landing">
+    <section class="landing-hero" aria-labelledby="landing-title" data-section-pattern="front-door-hero">
+      <div class="landing-hero__copy page-shell">
+        <p class="eyebrow">{content.hero.eyebrow}</p>
+        <h1 id="landing-title">
+          <span>{content.hero.title}</span>
+          <em class="landing-accent">{content.hero.accent}</em>
+        </h1>
+        <p class="landing-hero__lead">{content.hero.lead}</p>
+        <div class="button-row">
+          {hasFilms ? (
+            <a class="button" href="#films">{content.hero.filmsLabel} <span aria-hidden="true">↓</span></a>
+          ) : (
+            <a class="button" href={content.hero.runningHref}>{content.hero.runningLabel} <span aria-hidden="true">↗</span></a>
+          )}
+          <a class="button button--ghost" href={siteUrls.paimos}>{content.hero.productLabel} <span aria-hidden="true">↗</span></a>
+          <a class="button button--ghost" href={content.repositoryUrl} target="_blank" rel="noopener noreferrer">
+            {content.hero.sourceLabel} <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </div>
+
+      <figure class="landing-hero__stage page-shell">
+        <svg class="landing-hero__arc" viewBox="0 0 600 150" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id="landing-arc-gold" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0" stop-color="#d69b31" stop-opacity="0.15" />
+              <stop offset="0.5" stop-color="#e6b04c" />
+              <stop offset="1" stop-color="#d69b31" stop-opacity="0.15" />
+            </linearGradient>
+          </defs>
+          <path d="M30 138 A368 368 0 0 1 570 138" />
+        </svg>
+        <div class="landing-hero__screen">
+          <Image
+            src={deliveryShot}
+            alt={content.hero.screenAlt}
+            widths={[800, 1280, 1800, 2400]}
+            sizes="(min-width: 80rem) 72rem, 94vw"
+            loading="eager"
+            fetchpriority="high"
+          />
+        </div>
+        <figcaption>{content.hero.screenCaption}</figcaption>
+      </figure>
+    </section>
+
+    {hasFilms && (
+      <section id="films" class="landing-films" aria-labelledby="films-title" data-section-pattern="film-carousel" data-showreel>
+        <div class="page-shell">
+          <div class="landing-head">
+            <p class="eyebrow">{content.films.eyebrow}</p>
+            <h2 id="films-title">{content.films.title}</h2>
+            <p class="section-lead">{content.films.lead}</p>
+          </div>
+
+          <ol class="reel__track" aria-label={content.films.listLabel} data-reel-track>
+            {films.map((film, index) => {
+              const poster16 = film.poster["16x9"];
+              const poster9 = film.poster["9x16"];
+              const transcriptId = `film-${film.id.toLowerCase()}-transcript`;
+              return (
+                <li
+                  class="reel__item"
+                  id={`film-${film.id.toLowerCase()}`}
+                  aria-label={`${countLabel(index)}: ${film.question}`}
+                  data-reel-item
+                >
+                  <figure class="reel__stage">
+                    <video
+                      class="reel__video"
+                      muted
+                      playsinline
+                      preload="none"
+                      width={film.video["16x9"].width}
+                      height={film.video["16x9"].height}
+                      aria-describedby={transcriptId}
+                      data-reel-video
+                    >
+                      <source media={portrait} src={film.video["9x16"].src} type="video/mp4" />
+                      <source src={film.video["16x9"].src} type="video/mp4" />
+                    </video>
+                    <a class="reel__poster" href={film.video["16x9"].src} data-reel-poster>
+                      <picture>
+                        <source media={portrait} srcset={poster9} width={film.video["9x16"].width} height={film.video["9x16"].height} />
+                        <img
+                          src={poster16}
+                          alt=""
+                          width={film.video["16x9"].width}
+                          height={film.video["16x9"].height}
+                          loading={index === 0 ? "eager" : "lazy"}
+                          decoding="async"
+                        />
+                      </picture>
+                      <span class="reel__play"><span aria-hidden="true">▶</span> {content.films.play}</span>
+                    </a>
+                  </figure>
+                  <div class="reel__copy">
+                    <p class="reel__count">{countLabel(index)}</p>
+                    <h3>{film.question}</h3>
+                    <p class="reel__answer">{film.answer}</p>
+                    <details class="reel__transcript" id={transcriptId}>
+                      <summary>{content.films.transcript}</summary>
+                      <ol>
+                        {film.words.map((word) => <li data-kind={word.kind}>{word.text}</li>)}
+                      </ol>
+                    </details>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+
+          <div class="reel__controls" data-reel-controls hidden>
+            <button type="button" class="reel__step" data-reel-previous aria-label={content.films.previous}><span aria-hidden="true">←</span></button>
+            <ol class="reel__picks">
+              {films.map((film, index) => (
+                <li>
+                  <button type="button" data-reel-pick={index} aria-controls={`film-${film.id.toLowerCase()}`}>{film.question}</button>
+                </li>
+              ))}
+            </ol>
+            <button type="button" class="reel__step" data-reel-next aria-label={content.films.next}><span aria-hidden="true">→</span></button>
+            <div class="reel__toggles">
+              <button type="button" data-reel-pause data-label-pause={content.films.pause} data-label-play={content.films.resume}>{content.films.pause}</button>
+              <button type="button" data-reel-sound aria-pressed="false" data-label-on={content.films.soundOn} data-label-off={content.films.soundOff}>{content.films.soundOn}</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    )}
+
+    <section id="answers" class="landing-answers section" aria-labelledby="answers-title" data-section-pattern="answer-triptych">
+      <div class="page-shell">
+        <div class="landing-head">
+          <p class="eyebrow">{content.answers.eyebrow}</p>
+          <h2 id="answers-title">{content.answers.title}</h2>
+        </div>
+        <ul class="landing-answers__grid">
+          {content.answers.items.map((item) => (
+            <li>
+              <p class="landing-answers__kicker">{item.kicker}</p>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+              <a href={item.href}>{item.linkLabel} <span aria-hidden="true">↗</span></a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <section id="what" class="landing-facts section" aria-labelledby="facts-title" data-section-pattern="fact-list">
+      <div class="page-shell landing-facts__grid">
+        <div class="landing-head">
+          <p class="eyebrow">{content.facts.eyebrow}</p>
+          <h2 id="facts-title">{content.facts.title}</h2>
+          <a class="button button--ghost" href={siteUrls.paimos}>{content.facts.linkLabel} <span aria-hidden="true">↗</span></a>
+        </div>
+        <dl>
+          {content.facts.items.map((item) => (
+            <div>
+              <dt>{item.term}</dt>
+              <dd>{item.detail}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
+  </main>
+
+  <MicrositeFooter
+    name={content.name}
+    repositoryUrl={content.repositoryUrl}
+    licenseName="AGPL-3.0-only"
+    licenseUrl={content.licenseUrl}
+    ctaTitle={content.finalCta.title}
+    ctaBody={content.finalCta.body}
+  />
+</MicrositeLayout>
+
+<script>
+  // The showreel enhancement, bundled by Astro into a same-origin module.
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
+
+  for (const root of document.querySelectorAll<HTMLElement>("[data-showreel]")) {
+    const track = root.querySelector<HTMLElement>("[data-reel-track]");
+    const controls = root.querySelector<HTMLElement>("[data-reel-controls]");
+    const items = [...root.querySelectorAll<HTMLElement>("[data-reel-item]")];
+    const videos = items.map((item) => item.querySelector<HTMLVideoElement>("[data-reel-video]"));
+    const picks = [...root.querySelectorAll<HTMLButtonElement>("[data-reel-pick]")];
+    const pauseButton = root.querySelector<HTMLButtonElement>("[data-reel-pause]");
+    const soundButton = root.querySelector<HTMLButtonElement>("[data-reel-sound]");
+    if (!track || !controls || !pauseButton || !soundButton || videos.some((video) => !video)) continue;
+
+    root.dataset.enhanced = "";
+    controls.hidden = false;
+    let active = 0;
+    let inView = false;
+    // Autoplay is a default a person can switch off; motion preferences and
+    // Save-Data start with it off.
+    let playing = !reducedMotion.matches && !saveData;
+    let sound = false;
+
+    const render = () => {
+      items.forEach((item, index) => item.toggleAttribute("data-active", index === active));
+      picks.forEach((pick, index) => pick.setAttribute("aria-current", index === active ? "true" : "false"));
+      pauseButton.textContent = playing ? pauseButton.dataset.labelPause ?? "" : pauseButton.dataset.labelPlay ?? "";
+      soundButton.textContent = sound ? soundButton.dataset.labelOff ?? "" : soundButton.dataset.labelOn ?? "";
+      soundButton.setAttribute("aria-pressed", String(sound));
+    };
+
+    const sync = () => {
+      videos.forEach((video, index) => {
+        if (!video) return;
+        video.muted = !sound;
+        if (index === active && playing && inView && !document.hidden) {
+          video.preload = "auto";
+          video.play().catch(() => {
+            // A browser that refuses autoplay keeps the poster and its play link.
+            playing = false;
+            render();
+          });
+        } else if (!video.paused) {
+          video.pause();
+        }
+      });
+      render();
+    };
+
+    const show = (index: number, scroll = true) => {
+      active = Math.max(0, Math.min(items.length - 1, index));
+      if (scroll) {
+        track.scrollTo({
+          left: items[active].offsetLeft - track.offsetLeft,
+          behavior: reducedMotion.matches ? "auto" : "smooth",
+        });
+      }
+      sync();
+    };
+
+    videos.forEach((video, index) => {
+      video?.addEventListener("playing", () => items[index].setAttribute("data-started", ""));
+      // One pass through the films, then the last end card stays.
+      video?.addEventListener("ended", () => {
+        if (index < items.length - 1) show(index + 1);
+        else {
+          playing = false;
+          render();
+        }
+      });
+    });
+
+    root.querySelectorAll<HTMLAnchorElement>("[data-reel-poster]").forEach((poster, index) => {
+      poster.addEventListener("click", (event) => {
+        event.preventDefault();
+        playing = true;
+        show(index);
+      });
+    });
+    picks.forEach((pick, index) => pick.addEventListener("click", () => show(index)));
+    root.querySelector("[data-reel-previous]")?.addEventListener("click", () => show(active - 1));
+    root.querySelector("[data-reel-next]")?.addEventListener("click", () => show(active + 1));
+    pauseButton.addEventListener("click", () => {
+      playing = !playing;
+      sync();
+    });
+    soundButton.addEventListener("click", () => {
+      sound = !sound;
+      sync();
+    });
+
+    // A swipe or scroll that brings another film into view makes it active.
+    const itemObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const index = items.indexOf(entry.target as HTMLElement);
+          if (entry.isIntersecting && index !== active) show(index, false);
+        }
+      },
+      { root: track, threshold: 0.6 },
+    );
+    items.forEach((item) => itemObserver.observe(item));
+
+    // Films play only while the showreel is on screen and the tab is visible.
+    new IntersectionObserver(
+      ([entry]) => {
+        inView = entry.isIntersecting;
+        sync();
+      },
+      { threshold: 0.35 },
+    ).observe(root);
+    document.addEventListener("visibilitychange", sync);
+    render();
+  }
+</script>

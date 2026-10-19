@@ -33,10 +33,18 @@
 		Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=(), browsing-topics=()"
 		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
 		Cross-Origin-Opener-Policy "same-origin"
-		Cross-Origin-Resource-Policy "same-origin"
-		Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; script-src 'self' 'sha256-DSv7vgLSN1bj36CyJzlHeafVeifZaqgNDlDDlgnScFY=' 'sha256-Fv81oDJzdp+/94PhyvQ+peTsyAV+EVPhgH5qCPv1PSg=' 'sha256-m1oZ+c962dAU/hl4PW1RH/9IRS93TjhsGDA7JYYIXXk=' 'sha256-eBDjGmuPzGRCCoF4yQvT6pfwxCBCv1hXC7FU0FDEu9o='; connect-src 'self'; media-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
+		Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://media.inspr.at; font-src 'self' data:; script-src 'self' 'sha256-DSv7vgLSN1bj36CyJzlHeafVeifZaqgNDlDDlgnScFY=' 'sha256-Fv81oDJzdp+/94PhyvQ+peTsyAV+EVPhgH5qCPv1PSg=' 'sha256-m1oZ+c962dAU/hl4PW1RH/9IRS93TjhsGDA7JYYIXXk=' 'sha256-eBDjGmuPzGRCCoF4yQvT6pfwxCBCv1hXC7FU0FDEu9o='; connect-src 'self'; media-src 'self' https://media.inspr.at; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
 		-Server
 	}
+
+	# INSPR-572: paimos.com embeds the films and posters from media.inspr.at, so
+	# that host alone allows cross-origin embedding; every other host keeps its
+	# resources to its own origin. Set here rather than in the block above: that
+	# block is deferred (it deletes Server) and would overwrite a per-host value.
+	@media_host host media.inspr.at
+	@not_media_host not host media.inspr.at
+	header @not_media_host Cross-Origin-Resource-Policy "same-origin"
+	header @media_host Cross-Origin-Resource-Policy "cross-origin"
 
 	# Everything is short-lived by default. Astro's content-addressed assets are
 	# safe to cache indefinitely; stable root assets get a one-hour lifetime.
@@ -86,10 +94,23 @@
 	@apex host inspr.at
 	redir @apex https://www.inspr.at{uri} 308
 
+	# INSPR-572: paimos.com is canonical on the apex. Traefik normally folds
+	# www onto it before Caddy; this is the same defence in depth.
+	@paimos_com_www host www.paimos.com
+	redir @paimos_com_www https://paimos.com{uri} 308
+
+	# The front door's build directory is not a second public page on the
+	# umbrella host.
+	@paimos_com_on_www {
+		host www.inspr.at
+		path /paimos-com /paimos-com/*
+	}
+	redir @paimos_com_on_www https://paimos.com/ 308
+
 	# Publish hashed assets before HTML is switched and retain old hashes for
 	# clients with cached documents. Stable public files follow `current`.
 	@current_hashed {
-		host www.inspr.at aithema.inspr.at paimos.inspr.at pharos.inspr.at janus.inspr.at
+		host www.inspr.at aithema.inspr.at paimos.inspr.at pharos.inspr.at janus.inspr.at paimos.com
 		path /_astro/*
 	}
 	handle @current_hashed {
@@ -98,7 +119,7 @@
 	}
 
 	@current_public {
-		host www.inspr.at aithema.inspr.at paimos.inspr.at pharos.inspr.at janus.inspr.at
+		host www.inspr.at aithema.inspr.at paimos.inspr.at pharos.inspr.at janus.inspr.at paimos.com
 		path /favicon.svg /favicon.ico /og.jpg /scripts/*
 	}
 	handle @current_public {
@@ -116,6 +137,38 @@
 	@paimos host paimos.inspr.at
 	handle @paimos {
 		root * /srv/releases/current/paimos
+		try_files {path} {path}.html {path}/index.html
+		file_server
+	}
+
+	# INSPR-572: media.inspr.at serves the paimos.com films from /srv/media
+	# (mounted read-only; OPS syncs it write-once). Only the manifest and files
+	# inside an immutable films/<ep>/v<n>/ directory exist; the files are cached
+	# for a year, the manifest for five minutes, and any other path is a 404.
+	# The CSP above allows this origin for media and images; the film build gate
+	# (web/scripts/check-film-manifest.mjs) requires that.
+	handle @media_host {
+		@media_file path_regexp ^/films/[a-z0-9]+/v[1-9][0-9]*/[A-Za-z0-9][A-Za-z0-9._-]*$
+		@media_manifest path /films/manifest.json
+		handle @media_file {
+			root * /srv/media
+			header Cache-Control "public, max-age=31536000, immutable"
+			file_server
+		}
+		handle @media_manifest {
+			root * /srv/media
+			header Cache-Control "public, max-age=300"
+			file_server
+		}
+		handle {
+			respond "404 Not Found" 404
+		}
+	}
+
+	# INSPR-572: paimos.com, the front door with the films.
+	@paimos_com host paimos.com
+	handle @paimos_com {
+		root * /srv/releases/current/paimos-com
 		try_files {path} {path}.html {path}/index.html
 		file_server
 	}
@@ -147,6 +200,8 @@
 	}
 
 	handle_errors {
+		# A film that is not synced yet must not be cached as a 404 for a year.
+		header Cache-Control "no-store"
 		respond "{err.status_code} {err.status_text}" {err.status_code}
 	}
 }

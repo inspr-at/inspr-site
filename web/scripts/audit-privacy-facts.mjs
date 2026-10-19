@@ -40,6 +40,16 @@ const familyOrigins = new Set(familyKeys.map((key) => {
   return new URL(value).origin;
 }));
 if (familyOrigins.size !== 5) throw new Error("Expected five family origins in siteUrls/productLinks");
+// INSPR-572: reviewed first-party resource origins outside the five family
+// hosts. Each one must be named in the privacy notice (content/legal.ts), so a
+// new media host cannot ship before the notice describes it.
+const reviewedOrigins = new Map([
+  ["https://media.inspr.at", "the paimos.com films and their posters, served by INSPR's own media host"],
+]);
+const legalSource = await readFile(join(webRoot, "src/content/legal.ts"), "utf8");
+for (const origin of reviewedOrigins.keys()) {
+  if (!legalSource.includes(new URL(origin).host)) throw new Error(`${origin} is reviewed but the privacy notice does not name it`);
+}
 
 function fail(file, message, value) {
   violations.add(`${file}: ${message}: ${JSON.stringify(value)}`);
@@ -58,7 +68,7 @@ function auditUrl(file, value, context, webSocket = false) {
   if (!url || /^data:/i.test(url)) return;
   try {
     const parsed = new URL(webSocket ? url.replace(/^ws:/i, "http:").replace(/^wss:/i, "https:") : url, [...familyOrigins][0]);
-    if (familyOrigins.has(parsed.origin)) return;
+    if (familyOrigins.has(parsed.origin) || reviewedOrigins.has(parsed.origin)) return;
   } catch { /* Invalid resource URLs also fail closed. */ }
   fail(file, `third-party or unsupported ${context}`, value);
 }

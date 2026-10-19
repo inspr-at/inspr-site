@@ -5,34 +5,10 @@
  * scale and section rhythm stay; AEON adds its brand gold, the era arc from
  * its mark as the recurring figure, upright Geist as the accent voice and
  * a deeper night for the set pieces. Loaded only by AeonPage.
+ * INSPR-572: the brand tokens and Geist display face live in
+ * paimos-tokens.css, shared with paimos.com.
  */
 @layer components {
-  .aeon {
-    --aeon-gold: #d69b31;
-    --aeon-gold-bright: #f1c56d;
-    --aeon-gold-deep: #9a6a12;
-    --aeon-gold-soft: #f6e6c2;
-    --aeon-teal: #0e6f6c;
-    --aeon-glow: #43c9ba;
-    --aeon-pearl: #f7f6f2;
-    --aeon-night: #051827;
-    --aeon-night-2: #0a2537;
-    --aeon-line-night: rgb(185 204 213 / 0.16);
-    --aeon-serif: "Geist Variable", "Helvetica Neue", Arial, sans-serif;
-  }
-
-  /* AEON's display face: Geist, a contemporary variable grotesk. It replaces
-     the family's Space Grotesk on this page only (aeon.css loads nowhere else). */
-  html[data-product="paimos"] {
-    --font-display: "Geist Variable", "Helvetica Neue", Arial, sans-serif;
-  }
-
-  html[data-product="paimos"] :is(h1, h2, h3) {
-    font-variation-settings: normal;
-    font-weight: 620;
-    letter-spacing: -0.045em;
-  }
-
   /* The accent voice: one phrase per heading, the same face, light and gold. */
   .aeon-accent {
     display: block;

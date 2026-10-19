@@ -1,0 +1,434 @@
+/*
+ * INSPR-572: paimos.com, the front door. Built on microsites.css (shell, type
+ * scale, buttons, header and footer) and the shared PAIMOS tokens; it adds the
+ * films' grammar: a pearl ground, the product floating dead centre on a soft
+ * contact shadow, and a night stage for the showreel. Loaded only by
+ * PaimosLanding.
+ */
+@layer components {
+  .landing {
+    background: var(--aeon-pearl);
+  }
+
+  .landing h2 {
+    max-width: 18ch;
+  }
+
+  .landing-head {
+    display: grid;
+    gap: 0.9rem;
+    margin-bottom: clamp(2rem, 4.5vw, 3.4rem);
+  }
+
+  .landing-head .section-lead {
+    margin-top: 0;
+  }
+
+  .landing-accent {
+    display: block;
+    font-family: var(--font-display);
+    font-style: normal;
+    font-weight: 330;
+    letter-spacing: -0.05em;
+    color: var(--aeon-gold-deep);
+  }
+
+  /* Hero: type first, then the real screen under the gold arc. */
+  .landing-hero {
+    padding-block: clamp(3.5rem, 8vw, 7rem) clamp(3rem, 7vw, 6rem);
+    text-align: center;
+  }
+
+  .landing-hero__copy {
+    display: grid;
+    justify-items: center;
+  }
+
+  .landing-hero h1 {
+    max-width: 16ch;
+    margin-top: 1rem;
+    font-size: clamp(2.6rem, 6.2vw + 0.6rem, 6.4rem);
+    line-height: 0.98;
+    text-wrap: balance;
+  }
+
+  .landing-hero h1 .landing-accent {
+    margin-top: 0.35em;
+    font-size: 0.56em;
+    line-height: 1.1;
+  }
+
+  .landing-hero__lead {
+    max-width: 44rem;
+    margin-top: 1.6rem;
+    color: var(--ink-soft);
+    font-size: clamp(1.08rem, 0.75vw + 0.92rem, 1.36rem);
+    line-height: 1.54;
+    text-wrap: pretty;
+  }
+
+  .landing-hero .button-row {
+    justify-content: center;
+  }
+
+  .landing-hero__stage {
+    position: relative;
+    margin-top: clamp(3rem, 7vw, 5.5rem);
+    max-width: 76rem;
+  }
+
+  .landing-hero__arc {
+    display: block;
+    width: min(100%, 52rem);
+    margin: 0 auto -1.2rem;
+    overflow: visible;
+  }
+
+  .landing-hero__arc path {
+    fill: none;
+    stroke: url(#landing-arc-gold);
+    stroke-width: 2.4;
+    stroke-linecap: round;
+  }
+
+  .landing-hero__screen {
+    position: relative;
+    overflow: hidden;
+    border-radius: clamp(0.8rem, 1.4vw, 1.4rem);
+    background: var(--surface-solid);
+    box-shadow:
+      0 1px 2px rgb(10 30 45 / 0.06),
+      0 30px 60px -28px rgb(10 30 45 / 0.35),
+      0 60px 120px -60px rgb(10 30 45 / 0.25);
+  }
+
+  .landing-hero__screen img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .landing-hero__stage figcaption {
+    margin-top: 1rem;
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+  }
+
+  /* Showreel: one film on a night stage, the others a swipe away. */
+  .landing-films {
+    padding-block: var(--section-space);
+    color: var(--night-text);
+    background:
+      radial-gradient(circle at 50% 0%, rgb(214 155 49 / 0.14), transparent 42rem),
+      linear-gradient(180deg, var(--aeon-night), var(--aeon-night-2));
+  }
+
+  .landing-films .eyebrow {
+    color: var(--aeon-gold-bright);
+  }
+
+  .landing-films h2 {
+    color: white;
+  }
+
+  .landing-films .section-lead {
+    color: var(--night-soft);
+  }
+
+  .reel__track {
+    display: grid;
+    grid-auto-columns: 100%;
+    grid-auto-flow: column;
+    gap: var(--gutter);
+    padding: 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    list-style: none;
+  }
+
+  [data-enhanced] .reel__track {
+    scrollbar-width: none;
+  }
+
+  [data-enhanced] .reel__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .reel__item {
+    display: grid;
+    gap: clamp(1.4rem, 3vw, 2.4rem);
+    scroll-snap-align: start;
+  }
+
+  .reel__stage {
+    position: relative;
+    width: 100%;
+    max-width: 72rem;
+    margin: 0 auto;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    border-radius: clamp(0.8rem, 1.4vw, 1.4rem);
+    background: black;
+    box-shadow: 0 40px 90px -40px rgb(0 0 0 / 0.7), 0 0 0 1px var(--aeon-line-night);
+  }
+
+  .reel__video,
+  .reel__poster,
+  .reel__poster picture,
+  .reel__poster img {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .reel__video,
+  .reel__poster img {
+    object-fit: cover;
+  }
+
+  .reel__poster {
+    color: white;
+    text-decoration: none;
+    transition: opacity 400ms var(--ease);
+  }
+
+  .reel__item[data-started] .reel__poster {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .reel__play {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(1rem, 3vw, 2rem);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 1.2rem;
+    border-radius: 999px;
+    background: rgb(5 24 39 / 0.72);
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.22);
+    font-weight: 700;
+    transform: translateX(-50%);
+    backdrop-filter: blur(6px);
+  }
+
+  .reel__poster:hover .reel__play,
+  .reel__poster:focus-visible .reel__play {
+    background: var(--aeon-gold-deep);
+  }
+
+  .reel__copy {
+    display: grid;
+    gap: 0.6rem;
+    width: 100%;
+    max-width: 72rem;
+    margin: 0 auto;
+  }
+
+  .reel__count {
+    color: var(--aeon-gold-bright);
+    font-size: 0.85rem;
+    font-weight: 620;
+  }
+
+  .reel__copy h3 {
+    color: white;
+    font-size: clamp(1.5rem, 1.6vw + 1rem, 2.3rem);
+    line-height: 1.12;
+  }
+
+  .reel__answer {
+    color: var(--night-soft);
+    font-size: clamp(1.06rem, 0.5vw + 0.95rem, 1.24rem);
+  }
+
+  .reel__transcript summary {
+    width: fit-content;
+    color: var(--aeon-gold-bright);
+    font-weight: 620;
+    cursor: pointer;
+  }
+
+  .reel__transcript ol {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 0.8rem;
+    padding-left: 1.2rem;
+    color: var(--night-soft);
+  }
+
+  .reel__controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    max-width: 72rem;
+    margin: clamp(1.6rem, 3vw, 2.4rem) auto 0;
+  }
+
+  .reel__controls[hidden] {
+    display: none;
+  }
+
+  .reel__controls button {
+    min-height: 2.75rem;
+    padding: 0.55rem 1rem;
+    color: white;
+    background: rgb(255 255 255 / 0.06);
+    border: 1px solid rgb(255 255 255 / 0.22);
+    border-radius: 999px;
+    font: inherit;
+    font-weight: 620;
+    cursor: pointer;
+  }
+
+  .reel__controls button:hover {
+    border-color: var(--aeon-gold-bright);
+  }
+
+  .reel__controls button:focus-visible {
+    outline: 2px solid var(--aeon-gold-bright);
+    outline-offset: 2px;
+  }
+
+  .reel__controls .reel__step {
+    width: 2.75rem;
+    padding: 0;
+  }
+
+  .reel__picks {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .reel__picks button[aria-current="true"] {
+    color: var(--aeon-night);
+    background: var(--aeon-gold-bright);
+    border-color: var(--aeon-gold-bright);
+  }
+
+  .reel__toggles {
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  @media (max-width: 47.99rem) and (orientation: portrait) {
+    .reel__stage {
+      width: min(100%, calc(78svh * 9 / 16));
+      aspect-ratio: 9 / 16;
+    }
+
+    .reel__copy {
+      max-width: calc(78svh * 9 / 16);
+    }
+
+    /* On a phone the questions are the swipe itself; the arrows stay. */
+    .reel__picks {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reel__poster {
+      transition: none;
+    }
+  }
+
+  /* Three answers, one per film, each a door into paimos.inspr.at. */
+  .landing-answers__grid {
+    display: grid;
+    gap: clamp(1rem, 2vw, 1.6rem);
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 60rem) {
+    .landing-answers__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .landing-answers__grid li {
+    display: grid;
+    align-content: start;
+    gap: 0.75rem;
+    padding: clamp(1.4rem, 2.4vw, 2rem);
+    background: var(--surface-solid);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+  }
+
+  .landing-answers__kicker {
+    color: var(--aeon-gold-deep);
+    font-size: 0.85rem;
+    font-weight: 620;
+  }
+
+  .landing-answers__grid h3 {
+    font-size: clamp(1.35rem, 1vw + 1rem, 1.75rem);
+    line-height: 1.15;
+  }
+
+  .landing-answers__grid a {
+    width: fit-content;
+    margin-top: 0.4rem;
+    color: var(--accent-strong);
+    font-weight: 700;
+  }
+
+  /* The plain facts: what it is, in four lines. */
+  .landing-facts {
+    background: var(--surface-solid);
+    border-top: 1px solid var(--line);
+  }
+
+  .landing-facts__grid {
+    display: grid;
+    gap: clamp(2rem, 4vw, 4rem);
+  }
+
+  @media (min-width: 60rem) {
+    .landing-facts__grid {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      align-items: start;
+    }
+  }
+
+  .landing-facts .landing-head .button {
+    width: fit-content;
+    margin-top: 0.6rem;
+  }
+
+  .landing-facts dl {
+    display: grid;
+    gap: 0;
+  }
+
+  .landing-facts dl div {
+    display: grid;
+    gap: 0.35rem;
+    padding-block: 1.2rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .landing-facts dl div:first-child {
+    border-top: 1px solid var(--line);
+  }
+
+  .landing-facts dt {
+    font-weight: 700;
+  }
+
+  .landing-facts dd {
+    color: var(--ink-soft);
+  }
+}

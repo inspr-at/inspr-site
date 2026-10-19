@@ -298,12 +298,16 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
       chapters = [...chapterList.querySelectorAll<HTMLButtonElement>("[data-cinema-chapter]")];
       segments = [...track.querySelectorAll<HTMLElement>("[data-cinema-segment]")];
       texts = [...textList.querySelectorAll<HTMLElement>("[data-cinema-text]")];
+      // getAttribute, not dataset: a hyphen before a digit is not camel-cased,
+      // so data-full-16x9 is dataset["full-16x9"] and the camel-cased key is
+      // undefined. That left every film without a source (INSPR-572).
+      const source = (chapter: HTMLElement, name: string) => chapter.getAttribute(name) || undefined;
       films = chapters.map((chapter) => ({
         question: chapter.dataset.question ?? "",
         duration: Number(chapter.dataset.duration) || 30,
         sources: {
-          "16x9": { full: chapter.dataset.full16x9 ?? "", web: chapter.dataset.web16x9 || undefined },
-          "9x16": { full: chapter.dataset.full9x16 ?? "", web: chapter.dataset.web9x16 || undefined },
+          "16x9": { full: source(chapter, "data-full-16x9") ?? "", web: source(chapter, "data-web-16x9") },
+          "9x16": { full: source(chapter, "data-full-9x16") ?? "", web: source(chapter, "data-web-9x16") },
         },
       }));
       starts = films.map((_, i) => films.slice(0, i).reduce((sum, film) => sum + film.duration, 0));

@@ -205,6 +205,12 @@ test("one screen, one button: Watch now opens the films under a curtain, in the 
   assert.match(component, /role="slider"/);
   assert.match(component, /aria-live="polite" data-cinema-status/);
   for (const key of ['"escape"', '"k"', '"m"', '"f"', '"c"', '"arrowright"', '"arrowleft"']) assert.ok(component.includes(`key === ${key}`), key);
+  // The reel goes round until someone stops it.
+  assert.match(component, /void switchTo\(\(index \+ 1\) % films\.length\);/);
+  assert.doesNotMatch(component, /else void closeReel\(\);/);
+  // Idle controls leave in full screen too: only keyboard focus, the transcript or a drag keep them.
+  assert.match(component, /bar\.querySelector\(":focus-visible"\) !== null \|\| root\.hasAttribute\("data-transcript"\) \|\| dragging/);
+  assert.doesNotMatch(component, /bar\.contains\(document\.activeElement\)/);
   // The front door is the films: no answer cards, no fact list, no background film.
   assert.doesNotMatch(component, /landing-answers|landing-facts|landing-hero__film/);
 });

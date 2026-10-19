@@ -3,8 +3,9 @@
  * INSPR-572: paimos.com, the public front door. One screen: the gold arc, the
  * tagline and one button. The player bar already waits at the foot with the
  * films' questions as chapters. Watch now draws a black curtain over the
- * whole page and plays the "What if…?" films back to back, with sound; the
- * end, Esc or Close lift the curtain back to the tagline.
+ * whole page and plays the "What if…?" films back to back, with sound, round
+ * and round until someone pauses or leaves; Esc or Close lift the curtain
+ * back to the tagline.
  *
  * The player picks each film's cut for the screen it plays on: 9:16 when the
  * screen is taller than wide, else 16:9, and the full 1080p60 file only for
@@ -354,13 +355,18 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
     };
 
     // ---- Controls visibility --------------------------------------------
+    // While a film plays the controls leave after a few still seconds, also
+    // over the bar and in full screen, and return on any movement. Only
+    // keyboard focus in the bar, an open transcript or a drag keep them; a
+    // mouse click leaves focus on its button but is no reason to stay.
     const showControls = () => {
       root.dataset.controls = "shown";
       window.clearTimeout(hideTimer);
       if (!open || !playing) return;
       hideTimer = window.setTimeout(() => {
-        const busyWithControls = bar.matches(":hover") || bar.contains(document.activeElement) || root.hasAttribute("data-transcript");
-        if (open && playing && !busyWithControls) root.dataset.controls = "hidden";
+        const keepControls = bar.querySelector(":focus-visible") !== null || root.hasAttribute("data-transcript") || dragging;
+        if (open && playing && !keepControls) root.dataset.controls = "hidden";
+        else showControls();
       }, 2600);
     };
 
@@ -414,10 +420,10 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
       }
     };
 
-    // Buffer the next film in the waiting element while this one plays.
+    // Buffer the next film in the waiting element while this one plays; after
+    // the last film the reel starts again with the first.
     const bufferNext = () => {
-      const next = index + 1;
-      if (next < films.length) void prepare(standby(), next);
+      void prepare(standby(), (index + 1) % films.length);
     };
 
     // Change film, or change cut within a film: the waiting element takes
@@ -517,8 +523,7 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
       video.addEventListener("ended", () => {
         if (!open || video !== current()) return;
         chapters[index].setAttribute("data-watched", "");
-        if (index < films.length - 1) void switchTo(index + 1);
-        else void closeReel();
+        void switchTo((index + 1) % films.length);
       });
       video.addEventListener("waiting", () => root.setAttribute("data-buffering", ""));
       video.addEventListener("playing", () => root.removeAttribute("data-buffering"));

@@ -171,10 +171,6 @@
     pointer-events: auto;
   }
 
-  .cinema[data-state="open"][data-controls="hidden"] .cinema__screen {
-    cursor: none;
-  }
-
   .cinema__video {
     position: absolute;
     inset: 0;
@@ -233,10 +229,22 @@
     background: linear-gradient(to top, rgb(0 0 0 / 0.72), rgb(0 0 0 / 0.35) 60%, transparent);
   }
 
+  /* Controls leave slowly and come back quickly, the cursor with them. */
+  .cinema[data-state="open"] .cinema__bar,
+  .cinema[data-state="open"] .cinema__close {
+    transition: color var(--cinema-fade) ease, opacity 200ms ease, background var(--cinema-fade) ease, visibility 0s;
+  }
+
   .cinema[data-state="open"][data-controls="hidden"] .cinema__bar,
   .cinema[data-state="open"][data-controls="hidden"] .cinema__close {
     opacity: 0;
     pointer-events: none;
+    transition: color var(--cinema-fade) ease, opacity 700ms ease, background var(--cinema-fade) ease, visibility 0s;
+  }
+
+  .cinema[data-state="open"][data-controls="hidden"],
+  .cinema[data-state="open"][data-controls="hidden"] * {
+    cursor: none;
   }
 
   .cinema__bar-inner {

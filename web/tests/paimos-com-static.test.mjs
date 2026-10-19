@@ -106,7 +106,7 @@ test("paimos.com is its own host with robots and sitemap, built into paimos-com/
 
 test("the edge serves paimos.com, folds www onto the apex and keeps media.inspr.at to films", async () => {
   const caddy = await read("../Caddyfile");
-  assert.match(caddy, /@paimos_com host paimos\.com\n\thandle @paimos_com \{\n\t\troot \* \/srv\/releases\/current\/paimos-com/);
+  assert.match(caddy, /@paimos_com host paimos\.com\n\thandle @paimos_com \{[\s\S]*?\n\t\thandle \{\n\t\t\troot \* \/srv\/releases\/current\/paimos-com/);
   assert.match(caddy, /@paimos_com_www host www\.paimos\.com\n\tredir @paimos_com_www https:\/\/paimos\.com\{uri\} 308/);
   assert.match(caddy, /path \/paimos-com \/paimos-com\/\*\n\t\}\n\tredir @paimos_com_on_www https:\/\/paimos\.com\/ 308/);
   for (const matcher of ["@current_hashed", "@current_public"]) {
@@ -130,9 +130,10 @@ test("the edge serves paimos.com, folds www onto the apex and keeps media.inspr.
   assert.doesNotMatch(shared, /Cross-Origin-Resource-Policy/);
   assert.match(caddy, /header @not_media_host Cross-Origin-Resource-Policy "same-origin"/);
   assert.match(caddy, /header @media_host Cross-Origin-Resource-Policy "cross-origin"/);
-  assert.match(shared, /img-src 'self' data: https:\/\/media\.inspr\.at;/);
-  assert.match(shared, /media-src 'self' https:\/\/media\.inspr\.at;/);
-  assert.match(shared, /connect-src 'self' https:\/\/media\.inspr\.at;/);
+  const publicPolicies = caddy.match(/\n\theader @not_paimos_admin \{([\s\S]*?)\n\t\}/)[1];
+  assert.match(publicPolicies, /img-src 'self' data: https:\/\/media\.inspr\.at;/);
+  assert.match(publicPolicies, /media-src 'self' https:\/\/media\.inspr\.at;/);
+  assert.match(publicPolicies, /connect-src 'self' https:\/\/media\.inspr\.at;/);
   assert.match(caddy, /handle_errors \{\n\t\t# [^\n]+\n\t\theader Cache-Control "no-store"/);
   // The privacy notice says the servers keep no access logs.
   assert.doesNotMatch(caddy, /^\s*log(\s|$)/m);

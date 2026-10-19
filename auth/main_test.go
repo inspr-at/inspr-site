@@ -1548,3 +1548,395 @@ func requireTransientCookie(t *testing.T, cookies map[string]*http.Cookie, name 
 	}
 	return cookie
 }
+
+func newAdminTestAuth(t *testing.T) *adminAuth {
+	t.Helper()
+	t.Setenv("ADMIN_BASE_URL", "https://paimos.com")
+	t.Setenv("ADMIN_OIDC_CLIENT_ID", "admin-test-client")
+	t.Setenv("ADMIN_OIDC_CLIENT_SECRET", "admin-test-secret")
+	t.Setenv("ADMIN_COOKIE_KEY", strings.Repeat("11", 32))
+	t.Setenv("ADMIN_ALLOWED_SUBJECTS", " invited-subject, second-subject, ,")
+	admin, err := loadAdminAuth()
+	if err != nil || admin == nil {
+		t.Fatalf("load dummy admin config: %v", err)
+	}
+	admin.oauthCfg.Endpoint.AuthURL = "https://issuer.example/authorize"
+	return admin
+}
+
+func startAdminTestLogin(t *testing.T, admin *adminAuth) (*http.Cookie, url.Values, adminLoginAttempt) {
+	t.Helper()
+	recorder := httptest.NewRecorder()
+	withAdminAuth(http.NotFoundHandler(), admin).ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "https://paimos.com/admin/login", nil))
+	if recorder.Code != http.StatusFound {
+		t.Fatalf("login status = %d", recorder.Code)
+	}
+	response := recorder.Result()
+	if len(response.Cookies()) != 1 {
+		t.Fatal("login must set exactly one cookie")
+	}
+	cookie := responseCookies(response)[adminCookieName]
+	requireAdminCookie(t, cookie, stateTTL)
+	request := httptest.NewRequest(http.MethodGet, "https://paimos.com/admin/callback", nil)
+	request.AddCookie(cookie)
+	var attempt adminLoginAttempt
+	if err := admin.readCookie(request, "login", &attempt); err != nil {
+		t.Fatalf("read attempt: %v", err)
+	}
+	location, err := url.Parse(response.Header.Get("Location"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return cookie, location.Query(), attempt
+}
+
+func requireAdminCookie(t *testing.T, cookie *http.Cookie, ttl time.Duration) {
+	t.Helper()
+	if cookie == nil || cookie.Value == "" || cookie.Name != adminCookieName || !strings.HasPrefix(cookie.Name, "__Secure-") ||
+		cookie.Domain != "" || cookie.Path != "/admin" || !cookie.Secure || !cookie.HttpOnly || cookie.SameSite != http.SameSiteLaxMode ||
+		cookie.MaxAge != int(ttl.Seconds()) || time.Until(cookie.Expires) < ttl-5*time.Second || time.Until(cookie.Expires) > ttl {
+		t.Fatal("admin cookie scope, flags or lifetime mismatch")
+	}
+}
+
+func TestAdminLoginUsesIndependentStateNonceAndPKCE(t *testing.T) {
+	admin := newAdminTestAuth(t)
+	_, query, attempt := startAdminTestLogin(t, admin)
+	if query.Get("state") != attempt.State || query.Get("nonce") != attempt.Nonce ||
+		attempt.State == "" || attempt.State == attempt.Nonce || attempt.Verifier == attempt.State ||
+		query.Get("code_challenge") != oauth2.S256ChallengeFromVerifier(attempt.Verifier) || query.Get("code_challenge_method") != "S256" ||
+		query.Get("redirect_uri") != "https://paimos.com/admin/callback" || query.Get("client_id") != "admin-test-client" ||
+		query.Get("response_type") != "code" || query.Get("scope") != "openid" {
+		t.Fatal("authorization redirect is not bound to the expected admin attempt")
+	}
+	if attempt.Exp <= time.Now().Unix() || attempt.Exp > time.Now().Add(stateTTL).Unix() {
+		t.Fatal("attempt expiry outside the five-minute lifetime")
+	}
+	_, _, second := startAdminTestLogin(t, admin)
+	if second.State == attempt.State || second.Nonce == attempt.Nonce || second.Verifier == attempt.Verifier {
+		t.Fatal("login attempts reused security values")
+	}
+}
+
+func TestAdminCallbackVerifiesSignedTokensBeforeAdmission(t *testing.T) {
+	privateKey, err := rsa.GenerateKey(cryptorand.Reader, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		name   string
+		status int
+	}{
+		{"valid", http.StatusSeeOther},
+		{"bad state", http.StatusBadRequest},
+		{"bad nonce", http.StatusBadRequest},
+		{"missing nonce", http.StatusBadRequest},
+		{"wrong audience", http.StatusBadRequest},
+		{"wrong issuer", http.StatusBadRequest},
+		{"expired token", http.StatusBadRequest},
+		{"tampered signature", http.StatusBadRequest},
+		{"unlisted subject", http.StatusForbidden},
+		{"verified email is not a subject", http.StatusForbidden},
+		{"unverified email is not a subject", http.StatusForbidden},
+		{"empty allowlist", http.StatusForbidden},
+		{"missing subject", http.StatusBadRequest},
+		{"expired attempt", http.StatusBadRequest},
+		{"missing cookie", http.StatusBadRequest},
+		{"tampered attempt", http.StatusBadRequest},
+		{"duplicate state", http.StatusBadRequest},
+		{"provider error", http.StatusBadRequest},
+		{"missing code", http.StatusBadRequest},
+		{"exchange failure", http.StatusBadRequest},
+		{"missing ID token", http.StatusBadRequest},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			admin := newAdminTestAuth(t)
+			cookie, query, attempt := startAdminTestLogin(t, admin)
+			claims := map[string]any{
+				"iss": "https://issuer.example", "aud": admin.oauthCfg.ClientID, "sub": "invited-subject",
+				"iat": time.Now().Add(-time.Minute).Unix(), "exp": time.Now().Add(time.Minute).Unix(), "nonce": attempt.Nonce,
+			}
+			callback := url.Values{"code": {"test-code"}, "state": {query.Get("state")}}
+			switch test.name {
+			case "bad state":
+				callback.Set("state", "different-state")
+			case "bad nonce":
+				claims["nonce"] = "different-nonce"
+			case "missing nonce":
+				delete(claims, "nonce")
+			case "wrong audience":
+				claims["aud"] = clientID
+			case "wrong issuer":
+				claims["iss"] = "https://other.example"
+			case "expired token":
+				claims["exp"] = time.Now().Add(-time.Minute).Unix()
+			case "unlisted subject":
+				claims["sub"] = "uninvited-subject"
+			case "verified email is not a subject", "unverified email is not a subject":
+				claims["sub"], claims["email"], claims["email_verified"] = "uninvited-subject", "invited@example.invalid", test.name == "verified email is not a subject"
+				admin.allowedSubjects = map[string]bool{"invited@example.invalid": true}
+			case "empty allowlist":
+				admin.allowedSubjects = map[string]bool{}
+			case "missing subject":
+				delete(claims, "sub")
+			case "expired attempt":
+				attempt.Exp = time.Now().Add(-time.Minute).Unix()
+				recorder := httptest.NewRecorder()
+				if err := admin.writeCookie(recorder, "login", attempt, stateTTL); err != nil {
+					t.Fatal(err)
+				}
+				cookie = responseCookies(recorder.Result())[adminCookieName]
+			case "missing cookie":
+				cookie = nil
+			case "tampered attempt":
+				cookie.Value = "tampered"
+			case "duplicate state":
+				callback.Add("state", "other")
+			case "provider error":
+				callback.Del("code")
+				callback.Set("error", "access_denied")
+				callback.Set("error_description", "private-provider-detail")
+			case "missing code":
+				callback.Del("code")
+			}
+			rawToken := signTestJWT(t, privateKey, map[string]any{"alg": "RS256", "typ": "JWT"}, claims)
+			if test.name == "tampered signature" {
+				parts := strings.Split(rawToken, ".")
+				signature, _ := base64.RawURLEncoding.DecodeString(parts[2])
+				signature[0] ^= 0xff
+				rawToken = parts[0] + "." + parts[1] + "." + base64.RawURLEncoding.EncodeToString(signature)
+			}
+			exchanges := 0
+			endpoint := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				exchanges++
+				if err := r.ParseForm(); err != nil {
+					t.Error(err)
+				}
+				id, secret, ok := r.BasicAuth()
+				if r.Method != http.MethodPost || !ok || id != admin.oauthCfg.ClientID || secret != "admin-test-secret" ||
+					r.Form.Get("code") != "test-code" || r.Form.Get("grant_type") != "authorization_code" ||
+					r.Form.Get("redirect_uri") != "https://paimos.com/admin/callback" || r.Form.Get("code_verifier") != attempt.Verifier {
+					t.Error("token exchange lost client authentication, redirect URI or PKCE binding")
+				}
+				w.Header().Set("Content-Type", "application/json")
+				if test.name == "exchange failure" {
+					w.WriteHeader(http.StatusBadRequest)
+					_, _ = w.Write([]byte(`{"error":"private-provider-detail"}`))
+					return
+				}
+				if test.name == "missing ID token" {
+					_, _ = w.Write([]byte(`{"access_token":"test-access","token_type":"Bearer"}`))
+					return
+				}
+				_ = json.NewEncoder(w).Encode(map[string]any{"access_token": "test-access", "token_type": "Bearer", "id_token": rawToken})
+			}))
+			t.Cleanup(endpoint.Close)
+			admin.oauthCfg.Endpoint.TokenURL = endpoint.URL
+			admin.oauthCfg.Endpoint.AuthStyle = oauth2.AuthStyleInHeader
+			admin.verifier = oidc.NewVerifier("https://issuer.example", &oidc.StaticKeySet{PublicKeys: []crypto.PublicKey{&privateKey.PublicKey}}, &oidc.Config{ClientID: admin.oauthCfg.ClientID})
+			recorder := httptest.NewRecorder()
+			request := httptest.NewRequest(http.MethodGet, "https://paimos.com/admin/callback?"+callback.Encode(), nil)
+			if cookie != nil {
+				request.AddCookie(cookie)
+			}
+			withAdminAuth(http.NotFoundHandler(), admin).ServeHTTP(recorder, request)
+			if recorder.Code != test.status {
+				t.Fatalf("status = %d, want %d", recorder.Code, test.status)
+			}
+			if strings.Contains(recorder.Body.String(), rawToken) || strings.Contains(recorder.Body.String(), "private-provider-detail") {
+				t.Fatal("callback leaked provider data")
+			}
+			written := responseCookies(recorder.Result())[adminCookieName]
+			if test.status != http.StatusSeeOther {
+				if written == nil || written.Value != "" || written.MaxAge != -1 {
+					t.Fatal("rejected callback did not clear its attempt")
+				}
+			} else {
+				requireAdminCookie(t, written, sessionTTL)
+				if recorder.Header().Get("Location") != "https://paimos.com/admin/" {
+					t.Fatal("successful callback did not return to the studio")
+				}
+				verify := httptest.NewRecorder()
+				request := httptest.NewRequest(http.MethodGet, "https://paimos.com/admin/_auth/verify", nil)
+				request.AddCookie(written)
+				withAdminAuth(http.NotFoundHandler(), admin).ServeHTTP(verify, request)
+				if verify.Code != http.StatusNoContent {
+					t.Fatal("successful callback did not mint a valid session")
+				}
+			}
+			switch test.name {
+			case "bad state", "expired attempt", "missing cookie", "tampered attempt", "duplicate state", "provider error", "missing code":
+				if exchanges != 0 {
+					t.Fatal("invalid callback reached the provider")
+				}
+			}
+		})
+	}
+}
+
+func TestAdminVerifyFailsClosedAndKeepsCookieScopesSeparate(t *testing.T) {
+	for _, name := range []string{"valid", "missing", "tampered", "expired", "apex cookie", "renamed apex cookie", "different admin key", "login attempt", "empty allowlist", "removed subject", "duplicate cookie"} {
+		t.Run(name, func(t *testing.T) {
+			admin := newAdminTestAuth(t)
+			session := adminSession{Subject: "invited-subject", Exp: time.Now().Add(time.Hour).Unix()}
+			if name == "expired" {
+				session.Exp = time.Now().Add(-time.Second).Unix()
+			}
+			written := httptest.NewRecorder()
+			if err := admin.writeCookie(written, "session", session, sessionTTL); err != nil {
+				t.Fatal(err)
+			}
+			cookie := responseCookies(written.Result())[adminCookieName]
+			switch name {
+			case "missing":
+				cookie = nil
+			case "tampered":
+				sealed, _ := base64.RawURLEncoding.DecodeString(cookie.Value)
+				sealed[len(sealed)-1] ^= 0xff
+				cookie.Value = base64.RawURLEncoding.EncodeToString(sealed)
+			case "apex cookie", "renamed apex cookie":
+				apex := httptest.NewRecorder()
+				if err := writeSession(apex, sessionPayload{Name: "invited-subject", Exp: session.Exp}); err != nil {
+					t.Fatal(err)
+				}
+				cookie = responseCookies(apex.Result())[sessionCookieName]
+				if name == "renamed apex cookie" {
+					cookie.Name = adminCookieName
+				}
+			case "different admin key":
+				t.Setenv("ADMIN_COOKIE_KEY", strings.Repeat("22", 32))
+				var err error
+				admin, err = loadAdminAuth()
+				if err != nil {
+					t.Fatal(err)
+				}
+			case "login attempt":
+				cookie, _, _ = startAdminTestLogin(t, admin)
+			case "empty allowlist":
+				admin.allowedSubjects = map[string]bool{}
+			case "removed subject":
+				delete(admin.allowedSubjects, session.Subject)
+			}
+			recorder := httptest.NewRecorder()
+			request := httptest.NewRequest(http.MethodGet, "https://paimos.com/admin/_auth/verify", nil)
+			request.Header.Set("X-Forwarded-User", "invited-subject")
+			request.Header.Set("Remote-User", "invited-subject")
+			request.Header.Set("X-Forwarded-Email", "invited@example.invalid")
+			if cookie != nil {
+				request.AddCookie(cookie)
+				if name == "duplicate cookie" {
+					request.AddCookie(cookie)
+				}
+			}
+			withAdminAuth(http.NotFoundHandler(), admin).ServeHTTP(recorder, request)
+			want := http.StatusUnauthorized
+			if name == "valid" {
+				want = http.StatusNoContent
+			}
+			if recorder.Code != want {
+				t.Fatalf("status = %d, want %d", recorder.Code, want)
+			}
+			if len(recorder.Result().Cookies()) != 0 {
+				t.Fatal("verification unexpectedly set a cookie")
+			}
+		})
+	}
+}
+
+func TestAdminLogoutClearsOnlyAdminCookie(t *testing.T) {
+	admin := newAdminTestAuth(t)
+	for _, method := range []string{http.MethodGet, http.MethodPost} {
+		recorder := httptest.NewRecorder()
+		withAdminAuth(http.NotFoundHandler(), admin).ServeHTTP(recorder, httptest.NewRequest(method, "https://paimos.com/admin/logout?return_to=https://other.example/", nil))
+		cookies := recorder.Result().Cookies()
+		if recorder.Code != http.StatusSeeOther || recorder.Header().Get("Location") != "https://paimos.com/" || len(cookies) != 1 {
+			t.Fatal("logout must return to the neutral public home and clear one cookie")
+		}
+		cookie := cookies[0]
+		if cookie.Name != adminCookieName || cookie.Value != "" || cookie.MaxAge != -1 || cookie.Path != "/admin" || cookie.Domain != "" ||
+			!cookie.Secure || !cookie.HttpOnly || cookie.SameSite != http.SameSiteLaxMode || !cookie.Expires.Before(time.Now()) {
+			t.Fatal("logout cookie does not clear the exact admin scope")
+		}
+	}
+}
+
+func TestAdminConfigurationAndDisabledRoutes(t *testing.T) {
+	for _, name := range []string{"ADMIN_BASE_URL", "ADMIN_OIDC_CLIENT_ID", "ADMIN_OIDC_CLIENT_SECRET", "ADMIN_COOKIE_KEY", "ADMIN_ALLOWED_SUBJECTS"} {
+		t.Setenv(name, "")
+	}
+	admin, err := loadAdminAuth()
+	if err != nil || admin != nil {
+		t.Fatal("absent configuration did not disable admin")
+	}
+	for _, path := range []string{"/admin/login", "/admin/callback", "/admin/logout", "/admin/_auth/verify"} {
+		recorder := httptest.NewRecorder()
+		withAdminAuth(http.NotFoundHandler(), admin).ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "https://paimos.com"+path, nil))
+		if recorder.Code != http.StatusNotFound {
+			t.Fatalf("disabled %s status = %d", path, recorder.Code)
+		}
+	}
+	for _, test := range []struct{ name, value string }{
+		{"ADMIN_BASE_URL", ""}, {"ADMIN_OIDC_CLIENT_ID", ""}, {"ADMIN_OIDC_CLIENT_SECRET", ""}, {"ADMIN_COOKIE_KEY", ""},
+		{"ADMIN_BASE_URL", "http://paimos.com"}, {"ADMIN_BASE_URL", "https://other.example"},
+		{"ADMIN_OIDC_CLIENT_ID", clientID}, {"ADMIN_COOKIE_KEY", "not-hex"},
+		{"ADMIN_COOKIE_KEY", strings.Repeat("11", 33)}, {"ADMIN_COOKIE_KEY", strings.Repeat("11", 31)},
+		{"ADMIN_COOKIE_KEY", fmt.Sprintf("%x", cookieKey)},
+	} {
+		t.Run(test.name+" invalid", func(t *testing.T) {
+			newAdminTestAuth(t)
+			t.Setenv(test.name, test.value)
+			if _, err := loadAdminAuth(); err == nil {
+				t.Fatal("invalid or partial admin configuration was accepted")
+			}
+		})
+	}
+	for _, value := range []string{"", " , , "} {
+		newAdminTestAuth(t)
+		t.Setenv("ADMIN_ALLOWED_SUBJECTS", value)
+		admin, err := loadAdminAuth()
+		if err != nil || admin == nil || len(admin.allowedSubjects) != 0 {
+			t.Fatal("empty allowlist must configure a scope that denies everyone")
+		}
+	}
+}
+
+func TestAdminRoutingPreservesApexAndRejectsForwardedHosts(t *testing.T) {
+	admin := newAdminTestAuth(t)
+	for _, configured := range []*adminAuth{nil, admin} {
+		for _, path := range []string{"/login", "/welcome", "/logout", "/enter", "/enter/verify", "/healthz", "/admin/login"} {
+			request := httptest.NewRequest(http.MethodGet, "https://inspr.at"+path, nil)
+			request.Header.Set("X-Forwarded-Host", "paimos.com")
+			apex := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r != request || r.Host != "inspr.at" || r.URL.Path != path {
+					t.Fatal("admin scope rewrote an apex request")
+				}
+				w.Header().Set("X-Apex", "unchanged")
+				http.SetCookie(w, &http.Cookie{Name: sessionCookieName, Value: "test-apex", Path: "/"})
+				w.WriteHeader(http.StatusAccepted)
+				_, _ = w.Write([]byte("apex response"))
+			})
+			recorder := httptest.NewRecorder()
+			withAdminAuth(apex, configured).ServeHTTP(recorder, request)
+			if recorder.Code != http.StatusAccepted || recorder.Body.String() != "apex response" || recorder.Header().Get("X-Apex") != "unchanged" ||
+				recorder.Header().Get("Cache-Control") != "" || recorder.Header().Get("Content-Security-Policy") != "" || len(recorder.Result().Cookies()) != 1 {
+				t.Fatal("admin scope changed an apex response")
+			}
+		}
+	}
+	for _, path := range []string{"/login", "/welcome", "/logout", "/enter", "/admin/unknown"} {
+		recorder := httptest.NewRecorder()
+		apex := http.HandlerFunc(func(http.ResponseWriter, *http.Request) { t.Fatal("paimos.com reached apex handlers") })
+		withAdminAuth(apex, admin).ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "https://paimos.com"+path, nil))
+		if recorder.Code != http.StatusNotFound {
+			t.Fatalf("unexpected paimos route %s status = %d", path, recorder.Code)
+		}
+	}
+	for _, path := range []string{"/admin/login", "/admin/callback", "/admin/logout", "/admin/_auth/verify"} {
+		recorder := httptest.NewRecorder()
+		withAdminAuth(http.NotFoundHandler(), admin).ServeHTTP(recorder, httptest.NewRequest(http.MethodPut, "https://paimos.com"+path, nil))
+		if recorder.Code != http.StatusMethodNotAllowed || recorder.Header().Get("Cache-Control") != "private, no-store" ||
+			recorder.Header().Get("Referrer-Policy") != "same-origin" || recorder.Header().Get("X-Robots-Tag") != "noindex, nofollow, noarchive" {
+			t.Fatal("admin method or error headers incorrect")
+		}
+	}
+}

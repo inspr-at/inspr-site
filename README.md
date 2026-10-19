@@ -491,6 +491,44 @@ package is deleted.
 Never commit a populated `.env`, machine key, OIDC secret, cookie key, or
 bootstrap token. The checked `.env.example` contains placeholders only.
 
+### paimos.com admin sign-in
+
+`paimos.com/admin/` serves an invited studio tree through Caddy. Set
+`ADMIN_BASE_URL=https://paimos.com`, `ADMIN_OIDC_CLIENT_ID`,
+`ADMIN_OIDC_CLIENT_SECRET`, `ADMIN_COOKIE_KEY` (exactly 64 hex characters,
+independent of `COOKIE_KEY`), and `ADMIN_ALLOWED_SUBJECTS` (comma-separated
+ZITADEL `sub` values) in the **inspr-auth container environment**. It shares
+`OIDC_ISSUER=https://auth.inspr.at` with the apex but requires a separate
+confidential ZITADEL Web application, keeping the audience, credentials and
+redirect registration independent. Use Authorization Code with S256 PKCE and
+the exact redirect URI `https://paimos.com/admin/callback`; only `openid` is
+requested. Email and forwarded identity headers never authorize access.
+
+`GET /admin/login` starts sign-in, `GET /admin/callback` completes it,
+`GET|POST /admin/logout` clears only the admin session and returns to
+`https://paimos.com/`, and `GET /admin/_auth/verify` returns 204 or 401 for
+Caddy. One host-only, Secure, HttpOnly, SameSite=Lax cookie,
+`__Secure-paimos_admin`, is limited to `/admin`. AES-256-GCM with purpose-bound
+authenticated data protects the five-minute state/nonce/PKCE attempt, then the
+eight-hour subject/expiry session. Each verification rechecks the subject
+allowlist. An absent or empty allowlist denies everyone. Removing a subject
+requires a bridge restart; rotating `ADMIN_COOKIE_KEY` invalidates all admin
+cookies. With no admin configuration the bridge returns 404 for admin routes;
+partial or invalid configuration fails startup. Apex behavior is unchanged.
+
+OPS must provision that ZITADEL application and the container environment,
+publish and pin the reviewed auth image in nixcfg, keep both containers on the
+`traefik` Docker network with `inspr-auth:8080` reachable only there, and mount
+VID's separate studio output directory read-only at `/srv/admin` in Caddy
+(`index.html` at its root). VID writes to that host directory, never the public
+Astro build or this public repository. OPS chooses and records its host path.
+Traefik must preserve Host and route paimos.com, including `/admin/*`, to
+Caddy; no direct paimos.com auth router is needed. Caddy verifies before every
+private file access, redirects a 401 to login, and serves no private files if
+verification fails or the bridge is unavailable. Keep Cloudflare caching
+disabled for `/admin` and `/admin/*`. The existing apex edge attestation,
+Cloudflare gate and signup rate buckets remain independent and required.
+
 ## Product sources
 
 - [Aithema](https://github.com/inspr-at/aithema) - product page:

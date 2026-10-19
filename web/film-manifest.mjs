@@ -193,3 +193,31 @@ export function filmUrl(base, path) {
   if (!url.href.startsWith(base)) throw new Error(`film manifest: ${path} leaves ${base}`);
   return url.href;
 }
+
+/**
+ * The films as the page shows them, in carousel order: absolute URLs, both
+ * renditions per cut (the player picks one per screen), and the transcript as
+ * the film's timed words followed by its end card. The build and the page's
+ * live refresh share this one mapping.
+ */
+export function filmViews(manifest) {
+  const url = (path) => filmUrl(manifest.base, path);
+  const source = (rendition) => ({ src: url(rendition.file), width: rendition.width, height: rendition.height });
+  const cut = (format) => ({ full: source(format), web: format.web ? source(format.web) : undefined });
+  return orderFilms(manifest.episodes).map((film) => ({
+    id: film.id,
+    version: film.version,
+    question: film.question,
+    answer: film.answer,
+    words: [
+      ...film.words.map((word) => ({ kind: word.kind, text: word.text, start: word.start_s, end: word.end_s })),
+      ...[film.tagline, film.subline, film.link]
+        .filter((line) => line !== undefined)
+        .map((line) => ({ kind: "endcard", text: line })),
+    ],
+    durationSeconds: film.duration_s,
+    published: film.published,
+    video: { "16x9": cut(film.formats["16x9"]), "9x16": cut(film.formats["9x16"]) },
+    poster: { "16x9": url(film.poster["16x9"]), "9x16": url(film.poster["9x16"]) },
+  }));
+}

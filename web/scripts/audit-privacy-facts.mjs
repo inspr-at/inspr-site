@@ -27,6 +27,11 @@ const counts = { pages: 0, css: 0, js: 0, unloaded: 0 };
 // Scope by emitted component name AND exact token expression, never a wildcard.
 const requestAllowList = [
   { file: /^_astro\/DetailsControl\.astro_astro_type_script_index_0_lang\.[\w-]+\.js$/, api: "fetch", expression: "window.location.pathname" },
+  // INSPR-572: paimos.com's player reads the live film manifest. The URL is the
+  // build's data-manifest attribute (the snapshot's base plus manifest.json),
+  // on media.inspr.at, which reviewedOrigins and the privacy notice cover; the
+  // CSP's connect-src allows that origin and nothing else.
+  { file: /^_astro\/PaimosLanding\.astro_astro_type_script_index_0_lang\.[\w-]+\.js$/, api: "fetch", expression: 'String(document.querySelector("[data-cinema]")?.dataset.manifest)' },
 ];
 // No computed storage mappings are needed: emitted keys are literals or bindings.
 

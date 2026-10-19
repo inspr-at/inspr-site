@@ -1,11 +1,16 @@
 ---
 /**
- * INSPR-572: paimos.com, the public front door. One screen: the gold arc, the
- * tagline and one button. The player bar already waits at the foot with the
- * films' questions as chapters. Watch now draws a black curtain over the
- * whole page and plays the "What if…?" films back to back, with sound, round
- * and round until someone pauses or leaves; Esc or Close lift the curtain
- * back to the tagline.
+ * INSPR-572: paimos.com, the public front door. One screen, no site header:
+ * the gold arc, the AEON mark under it, the tagline and one button. The
+ * player bar already waits at the foot with the films' questions as chapters.
+ * Watch now draws a black curtain over the whole page and plays the
+ * "What if…?" films back to back, with sound, round and round until someone
+ * pauses or leaves; Esc or Close lift the curtain back to the tagline.
+ *
+ * The films in the HTML come from the committed manifest snapshot
+ * (src/content/films.ts). On the page the player also reads the live
+ * manifest next to the films and, if it validates and differs, shows what
+ * it lists: a film Markus clears and VID publishes plays without a release.
  *
  * The player picks each film's cut for the screen it plays on: 9:16 when the
  * screen is taller than wide, else 16:9, and the full 1080p60 file only for
@@ -14,19 +19,17 @@
  * so the next film is buffered while one plays and each change is a
  * crossfade, never a load.
  *
- * Without JavaScript Watch now opens the first film's file. The films render
- * only when the committed film manifest lists a cleared one
- * (src/content/films.ts); without one the button leads to paimos.inspr.at.
- * On a fresh arrival the arc draws itself and the words follow
- * (public/scripts/paimos-intro.js decides, storing nothing).
+ * Without JavaScript Watch now opens the first film's file; without any
+ * cleared film the button leads to paimos.inspr.at. On a fresh arrival the
+ * arc draws itself and the rest follows (public/scripts/paimos-intro.js
+ * decides, storing nothing).
  */
 import { getImage } from "astro:assets";
 import { Captions, Maximize, Minimize, Pause, Play, SkipBack, SkipForward, Volume2, VolumeX, X } from "@lucide/astro";
 import MicrositeLayout from "../layouts/MicrositeLayout.astro";
-import MicrositeHeader from "./MicrositeHeader.astro";
 import MicrositeFooter from "./MicrositeFooter.astro";
 import { paimosComContent as content } from "../content/paimos-com";
-import { films } from "../content/films";
+import { filmManifestUrl, films } from "../content/films";
 import { siteUrls } from "../content/urls";
 import { releaseMetadata } from "../../release-metadata.mjs";
 import "@fontsource-variable/geist/index.css";
@@ -53,6 +56,7 @@ const clock = (seconds: number) => {
 const filmLabel = (index: number) =>
   content.player.film.replace("{n}", String(index + 1)).replace("{total}", String(films.length));
 const noScriptFilm = lead ? (lead.video["16x9"].web ?? lead.video["16x9"].full).src : siteUrls.paimos;
+const filmKey = films.map((film) => `${film.id}:${film.version}`).join(",");
 const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
 ---
 
@@ -66,14 +70,6 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
   theme="paimos"
 >
   <script is:inline slot="head" src={`/scripts/paimos-intro.js?v=${releaseMetadata.releaseId}`}></script>
-  <MicrositeHeader
-    name={content.name}
-    category={content.category}
-    logo={aeonMark.src}
-    active="paimos"
-    homeHref="/"
-    nav={[content.nav.product]}
-  />
 
   <main id="main-content" class="landing">
     <section
@@ -81,8 +77,11 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
       aria-labelledby="landing-title"
       data-section-pattern="front-door-cinema"
       data-cinema
-      data-state="idle"
+      data-state={hasFilms ? "idle" : "none"}
       data-controls="shown"
+      data-manifest={filmManifestUrl}
+      data-films={filmKey}
+      data-film-label={content.player.film}
     >
       <div class="cinema__intro page-shell">
         <svg class="cinema__arc" viewBox="0 0 600 150" aria-hidden="true" focusable="false">
@@ -97,23 +96,32 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
           <path class="cinema__arc-glow" d="M30 138 A368 368 0 0 1 570 138" pathLength="1" />
           <path class="cinema__arc-line" d="M30 138 A368 368 0 0 1 570 138" pathLength="1" />
         </svg>
+        <img class="cinema__mark" src={aeonMark.src} alt="" width="64" height="64" />
         <p class="eyebrow">{content.hero.eyebrow}</p>
         <h1 id="landing-title">
           <span>{content.hero.title}</span>
           <em class="landing-accent">{content.hero.accent}</em>
         </h1>
-        {hasFilms ? (
-          <a class="cinema__watch" href={noScriptFilm} data-cinema-watch>
-            <span class="cinema__watch-disc"><Play {...icon} fill="currentColor" /></span>
-            <span>{content.player.watch}</span>
-            <span class="cinema__watch-time">{clock(totalSeconds)}</span>
-          </a>
-        ) : (
-          <a class="cinema__watch" href={siteUrls.paimos}>
-            <span>{content.hero.learnLabel}</span>
-            <span aria-hidden="true">↗</span>
-          </a>
-        )}
+        <a
+          class="cinema__watch"
+          href={noScriptFilm}
+          data-cinema-watch
+          data-learn-href={siteUrls.paimos}
+          data-learn-label={content.hero.learnLabel}
+        >
+          {hasFilms ? (
+            <>
+              <span class="cinema__watch-disc"><Play {...icon} fill="currentColor" /></span>
+              <span>{content.player.watch}</span>
+              <span class="cinema__watch-time" data-cinema-total>{clock(totalSeconds)}</span>
+            </>
+          ) : (
+            <>
+              <span>{content.hero.learnLabel}</span>
+              <span aria-hidden="true">↗</span>
+            </>
+          )}
+        </a>
       </div>
 
       {hasFilms && (
@@ -140,10 +148,10 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
               <button type="button" class="cinema__icon cinema__step" aria-label={content.player.next} title={`${content.player.next} (Shift →)`} data-cinema-step="1">
                 <SkipForward {...icon} />
               </button>
-              <p class="cinema__time" aria-hidden="true"><span data-cinema-elapsed>0:00</span> / {clock(totalSeconds)}</p>
+              <p class="cinema__time" aria-hidden="true"><span data-cinema-elapsed>0:00</span> / <span data-cinema-total>{clock(totalSeconds)}</span></p>
 
               <div class="cinema__timeline">
-                <ol class="cinema__chapters">
+                <ol class="cinema__chapters" data-cinema-chapters>
                   {films.map((film, index) => {
                     const web16 = film.video["16x9"].web;
                     const web9 = film.video["9x16"].web;
@@ -201,7 +209,7 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
 
           <div class="cinema__transcript" id="cinema-transcript" data-cinema-transcript>
             <h2 class="cinema__transcript-title">{content.player.transcriptTitle}</h2>
-            <ol>
+            <ol data-cinema-texts>
               {films.map((film, index) => (
                 <li data-cinema-text={index}>
                   <h3>{film.question}</h3>
@@ -234,6 +242,8 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
 <script>
   // The player, bundled by Astro into a same-origin module. FADE matches
   // --cinema-fade in paimos-com.css.
+  import { filmViews, parseFilmManifest, type FilmView } from "../../film-manifest.mjs";
+
   type Cut = "16x9" | "9x16";
   type Film = { question: string; duration: number; sources: Record<Cut, { full: string; web?: string }> };
 
@@ -268,26 +278,40 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
   const soundButton = root?.querySelector<HTMLButtonElement>("[data-cinema-sound]");
   const fullscreenButton = root?.querySelector<HTMLButtonElement>("[data-cinema-fullscreen]");
   const transcriptButton = root?.querySelector<HTMLButtonElement>("[data-cinema-transcript-toggle]");
-  const transcript = root?.querySelector<HTMLElement>("[data-cinema-transcript]");
+  const chapterList = root?.querySelector<HTMLElement>("[data-cinema-chapters]");
+  const textList = root?.querySelector<HTMLElement>("[data-cinema-texts]");
   const track = root?.querySelector<HTMLElement>("[data-cinema-track]");
   const elapsedLabel = root?.querySelector<HTMLElement>("[data-cinema-elapsed]");
   const status = root?.querySelector<HTMLElement>("[data-cinema-status]");
-  const chapters = [...(root?.querySelectorAll<HTMLButtonElement>("[data-cinema-chapter]") ?? [])];
-  const segments = [...(root?.querySelectorAll<HTMLElement>("[data-cinema-segment]") ?? [])];
-  const texts = [...(root?.querySelectorAll<HTMLElement>("[data-cinema-text]") ?? [])];
   const videos = [...(root?.querySelectorAll<HTMLVideoElement>("[data-cinema-video]") ?? [])];
 
-  if (root && watchLink && bar && closeButton && toggle && soundButton && fullscreenButton && transcriptButton && transcript && track && videos.length === 2 && chapters.length > 0) {
-    const films: Film[] = chapters.map((chapter) => ({
-      question: chapter.dataset.question ?? "",
-      duration: Number(chapter.dataset.duration) || 30,
-      sources: {
-        "16x9": { full: chapter.dataset.full16x9 ?? "", web: chapter.dataset.web16x9 || undefined },
-        "9x16": { full: chapter.dataset.full9x16 ?? "", web: chapter.dataset.web9x16 || undefined },
-      },
-    }));
-    const starts = films.map((_, i) => films.slice(0, i).reduce((sum, film) => sum + film.duration, 0));
-    const total = films.reduce((sum, film) => sum + film.duration, 0);
+  if (root && watchLink && bar && closeButton && toggle && soundButton && fullscreenButton && transcriptButton && chapterList && textList && track && videos.length === 2) {
+    let chapters: HTMLButtonElement[] = [];
+    let segments: HTMLElement[] = [];
+    let texts: HTMLElement[] = [];
+    let films: Film[] = [];
+    let starts: number[] = [];
+    let total = 0;
+
+    // Read the films from the chapter buttons, the one record the markup keeps.
+    const collect = () => {
+      chapters = [...chapterList.querySelectorAll<HTMLButtonElement>("[data-cinema-chapter]")];
+      segments = [...track.querySelectorAll<HTMLElement>("[data-cinema-segment]")];
+      texts = [...textList.querySelectorAll<HTMLElement>("[data-cinema-text]")];
+      films = chapters.map((chapter) => ({
+        question: chapter.dataset.question ?? "",
+        duration: Number(chapter.dataset.duration) || 30,
+        sources: {
+          "16x9": { full: chapter.dataset.full16x9 ?? "", web: chapter.dataset.web16x9 || undefined },
+          "9x16": { full: chapter.dataset.full9x16 ?? "", web: chapter.dataset.web9x16 || undefined },
+        },
+      }));
+      starts = films.map((_, i) => films.slice(0, i).reduce((sum, film) => sum + film.duration, 0));
+      total = films.reduce((sum, film) => sum + film.duration, 0);
+      root.querySelectorAll<HTMLElement>("[data-cinema-total]").forEach((label) => { label.textContent = clock(total); });
+      track.setAttribute("aria-valuemax", String(Math.round(total)));
+    };
+    collect();
 
     let index = 0;
     let active = 0;
@@ -297,6 +321,7 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
     let sound = true;
     let hideTimer = 0;
     let dragging = false;
+    let pending: FilmView[] | null = null;
     const current = () => videos[active];
     const standby = () => videos[1 - active];
 
@@ -304,15 +329,10 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
     bar.hidden = false;
     closeButton.hidden = false;
     fullscreenButton.hidden = !document.fullscreenEnabled;
-    // The bar sits at the foot of the first screen: the section is one
-    // viewport minus the header, so fixing the bar while playing moves nothing.
-    const header = document.querySelector<HTMLElement>(".site-header");
-    const measure = () => root.style.setProperty("--cinema-header", `${header?.offsetHeight ?? 0}px`);
-    measure();
 
     // ---- Rendering -------------------------------------------------------
     const render = () => {
-      root.dataset.state = open ? "open" : "idle";
+      if (films.length > 0) root.dataset.state = open ? "open" : "idle";
       root.toggleAttribute("data-paused", open && !playing);
       toggle.setAttribute("aria-label", (playing ? toggle.dataset.labelPause : toggle.dataset.labelPlay) ?? "");
       toggle.toggleAttribute("data-playing", playing);
@@ -328,6 +348,7 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
     };
 
     const progress = () => {
+      if (films.length === 0) return;
       const video = current();
       const local = open && video.dataset.film === String(index) ? Math.min(video.currentTime, films[index].duration) : 0;
       const reel = open ? starts[index] + local : 0;
@@ -420,6 +441,14 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
       }
     };
 
+    const unload = (video: HTMLVideoElement) => {
+      video.pause();
+      video.removeAttribute("data-shown");
+      video.removeAttribute("src");
+      video.removeAttribute("data-film");
+      video.load();
+    };
+
     // Buffer the next film in the waiting element while this one plays; after
     // the last film the reel starts again with the first.
     const bufferNext = () => {
@@ -440,22 +469,19 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
       if (playing) await start(incoming);
       incoming.setAttribute("data-shown", "");
       await fadeOut(outgoing);
-      outgoing.removeAttribute("src");
-      outgoing.removeAttribute("data-film");
-      outgoing.load();
+      unload(outgoing);
       if (status) status.textContent = `${chapters[i].getAttribute("aria-label")}`;
       busy = false;
       bufferNext();
     };
 
     const openReel = async (i = 0, time = 0) => {
-      if (busy || open) return;
+      if (busy || open || films.length === 0) return;
       busy = true;
       if (window.scrollY > 0) {
         window.scrollTo({ top: 0, behavior: reducedMotion.matches ? "auto" : "smooth" });
         for (let tries = 0; tries < 40 && window.scrollY > 0; tries++) await wait(25);
       }
-      measure();
       document.documentElement.classList.add("cinema-open");
       open = true;
       playing = true;
@@ -496,6 +522,8 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
       index = 0;
       busy = false;
       watchLink.focus({ preventScroll: true });
+      // A live manifest that arrived while the films played applies now.
+      if (pending) applyFilms(pending);
     };
 
     const setPlaying = async (next: boolean) => {
@@ -508,6 +536,7 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
     };
 
     const seek = (reel: number) => {
+      if (films.length === 0) return;
       const target = Math.max(0, Math.min(total - 0.05, reel));
       let i = films.length - 1;
       while (i > 0 && starts[i] > target) i--;
@@ -518,11 +547,90 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
       progress();
     };
 
+    // ---- The live manifest -------------------------------------------------
+    // The films VID publishes next to the media are the record of what is
+    // cleared. A manifest that validates and lists other films than the build
+    // replaces the chapters, the timeline and the transcript; one that lists
+    // none turns Watch now into Learn more. Anything else keeps the build's.
+    const element = <K extends keyof HTMLElementTagNameMap>(tag: K, attributes: Record<string, string | undefined> = {}, text?: string) => {
+      const node = document.createElement(tag);
+      for (const [name, value] of Object.entries(attributes)) if (value !== undefined) node.setAttribute(name, value);
+      if (text !== undefined) node.textContent = text;
+      return node;
+    };
+    const applyFilms = (views: FilmView[]) => {
+      pending = null;
+      videos.forEach(unload);
+      active = 0;
+      index = 0;
+      const label = root.dataset.filmLabel ?? "{n} / {total}";
+      chapterList.replaceChildren(...views.map((film, i) => {
+        const item = element("li", { style: `--share: ${film.durationSeconds}` });
+        item.append(element("button", {
+          type: "button",
+          title: film.question,
+          "aria-label": `${label.replace("{n}", String(i + 1)).replace("{total}", String(views.length))}: ${film.question}`,
+          "data-cinema-chapter": String(i),
+          "data-duration": String(film.durationSeconds),
+          "data-question": film.question,
+          "data-full-16x9": film.video["16x9"].full.src,
+          "data-full-9x16": film.video["9x16"].full.src,
+          "data-web-16x9": film.video["16x9"].web?.src,
+          "data-web-9x16": film.video["9x16"].web?.src,
+        }, film.question));
+        return item;
+      }));
+      const handle = track.querySelector(".cinema__handle");
+      track.replaceChildren(...views.map((film) => {
+        const segment = element("span", { class: "cinema__segment", style: `--share: ${film.durationSeconds}`, "data-cinema-segment": "" });
+        segment.append(element("span", { class: "cinema__fill" }));
+        return segment;
+      }), ...(handle ? [handle] : []));
+      textList.replaceChildren(...views.map((film, i) => {
+        const item = element("li", { "data-cinema-text": String(i) });
+        const lines = element("ol");
+        lines.append(...film.words.map((word) => element("li", {
+          "data-kind": word.kind,
+          "data-start": word.start === undefined ? undefined : String(word.start),
+          "data-end": word.end === undefined ? undefined : String(word.end),
+        }, word.text)));
+        item.append(element("h3", {}, film.question), lines);
+        return item;
+      }));
+      root.dataset.films = views.map((film) => `${film.id}:${film.version}`).join(",");
+      collect();
+      if (views.length === 0) {
+        root.dataset.state = "none";
+        bar.hidden = true;
+        watchLink.href = watchLink.dataset.learnHref ?? "/";
+        watchLink.replaceChildren(element("span", {}, watchLink.dataset.learnLabel ?? ""), element("span", { "aria-hidden": "true" }, "↗"));
+      } else {
+        watchLink.href = (views[0].video["16x9"].web ?? views[0].video["16x9"].full).src;
+      }
+      render();
+      progress();
+    };
+    const refresh = async () => {
+      const source = root.dataset.manifest;
+      if (!source) return;
+      try {
+        const response = await fetch(String(document.querySelector<HTMLElement>("[data-cinema]")?.dataset.manifest), { cache: "no-cache", credentials: "omit" });
+        if (!response.ok) return;
+        const manifest = parseFilmManifest(await response.json(), { allowLoopbackBase: new URL(source).protocol === "http:" });
+        const views = filmViews(manifest);
+        if (views.map((film) => `${film.id}:${film.version}`).join(",") === root.dataset.films) return;
+        if (open || busy) pending = views;
+        else applyFilms(views);
+      } catch {
+        // An unreachable or invalid live manifest leaves the build's films playing.
+      }
+    };
+
     // ---- Events ----------------------------------------------------------
     videos.forEach((video) => {
       video.addEventListener("ended", () => {
         if (!open || video !== current()) return;
-        chapters[index].setAttribute("data-watched", "");
+        chapters[index]?.setAttribute("data-watched", "");
         void switchTo((index + 1) % films.length);
       });
       video.addEventListener("waiting", () => root.setAttribute("data-buffering", ""));
@@ -530,6 +638,7 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
     });
 
     watchLink.addEventListener("click", (event) => {
+      if (films.length === 0) return;
       event.preventDefault();
       void openReel(0);
     });
@@ -542,17 +651,20 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
     root.querySelectorAll<HTMLButtonElement>("[data-cinema-step]").forEach((step) => {
       const direction = Number(step.dataset.cinemaStep);
       step.addEventListener("click", () => {
-        const target = Math.max(0, Math.min(films.length - 1, index + direction));
+        const target = (index + direction + films.length) % films.length;
         if (!open) void openReel(target);
         else if (target !== index) void switchTo(target);
         else current().currentTime = 0;
       });
     });
-    chapters.forEach((chapter, i) => chapter.addEventListener("click", () => {
+    chapterList.addEventListener("click", (event) => {
+      const chapter = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-cinema-chapter]");
+      if (!chapter) return;
+      const i = Number(chapter.dataset.cinemaChapter);
       if (!open) void openReel(i);
       else if (i !== index) void switchTo(i);
       else current().currentTime = 0;
-    }));
+    });
     soundButton.addEventListener("click", () => {
       sound = !sound;
       current().muted = !sound;
@@ -599,7 +711,7 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
 
     const reelNow = () => (open ? starts[index] + current().currentTime : 0);
     document.addEventListener("keydown", (event) => {
-      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey || films.length === 0) return;
       const target = event.target as HTMLElement | null;
       if (target?.closest("input, textarea, select, [contenteditable]")) return;
       const onTrack = target === track;
@@ -629,7 +741,6 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
     // and the film carries on from the same moment in it.
     let resizeTimer = 0;
     const recut = () => {
-      measure();
       if (!open || busy) return;
       const video = current();
       if (video.getAttribute("src") !== sourceFor(films[index])) void switchTo(index, video.currentTime);
@@ -645,5 +756,6 @@ const icon = { "stroke-width": 1.75, "aria-hidden": "true" } as const;
 
     render();
     progress();
+    void refresh();
   }
 </script>

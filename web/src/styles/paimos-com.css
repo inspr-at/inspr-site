@@ -1,8 +1,10 @@
 /*
  * INSPR-572: paimos.com, the front door. Built on microsites.css (shell,
- * header, footer) and the shared PAIMOS tokens. One screen in two states:
+ * footer) and the shared PAIMOS tokens; the page has no site header. One
+ * screen in two states:
  *
- *   idle  the gold arc, the tagline and Watch now on pearl, with the player
+ *   idle  the gold arc with the AEON mark under it, the tagline and Watch now
+ *         on pearl, with the player
  *         bar waiting at the foot of the screen. On a fresh arrival
  *         (html[data-intro="play"], set by public/scripts/paimos-intro.js)
  *         the arc draws itself and the rest follows.
@@ -36,7 +38,7 @@
     position: relative;
     display: grid;
     grid-template-rows: 1fr auto;
-    min-height: calc(100svh - var(--cinema-header, 5.5rem));
+    min-height: 100svh;
     background: var(--aeon-pearl);
   }
 
@@ -50,11 +52,21 @@
     text-align: center;
   }
 
+  /* The mark sits in the hollow under the arc: the arc is a quarter as tall
+     as it is wide, so pulling the mark up by an eighth of the width centres
+     it under the curve at every size. */
   .cinema__arc {
     display: block;
     width: min(100%, 46rem);
-    margin-bottom: clamp(-1.6rem, -2vw, -0.6rem);
+    margin-bottom: calc(min(100vw - 2.5rem, 46rem) * -0.13);
     overflow: visible;
+  }
+
+  .cinema__mark {
+    display: block;
+    width: clamp(3rem, 5vw, 4.25rem);
+    height: auto;
+    margin-bottom: clamp(1rem, 2.4vh, 1.6rem);
   }
 
   .cinema__arc path {
@@ -583,25 +595,33 @@
       cinema-glow-settle 1400ms ease-in-out 1500ms backwards;
   }
 
+  @keyframes cinema-mark-in {
+    from { opacity: 0; transform: scale(0.82); }
+    to { opacity: 1; transform: none; }
+  }
+
+  html[data-intro="play"] .cinema__mark {
+    animation: cinema-mark-in 900ms var(--ease) 950ms backwards;
+  }
+
   html[data-intro="play"] .cinema .eyebrow {
-    animation: cinema-rise 700ms var(--ease) 900ms backwards;
+    animation: cinema-rise 700ms var(--ease) 1150ms backwards;
   }
 
   html[data-intro="play"] .cinema h1 > span {
-    animation: cinema-rise 900ms var(--ease) 1050ms backwards;
-  }
-
-  html[data-intro="play"] .cinema h1 .landing-accent {
     animation: cinema-rise 900ms var(--ease) 1300ms backwards;
   }
 
-  html[data-intro="play"] .cinema__watch {
-    animation: cinema-rise 800ms var(--ease) 1550ms backwards;
+  html[data-intro="play"] .cinema h1 .landing-accent {
+    animation: cinema-rise 900ms var(--ease) 1550ms backwards;
   }
 
-  html[data-intro="play"] .cinema__bar,
-  html[data-intro="play"] .site-header {
-    animation: cinema-fade-in 900ms ease 1800ms backwards;
+  html[data-intro="play"] .cinema__watch {
+    animation: cinema-rise 800ms var(--ease) 1800ms backwards;
+  }
+
+  html[data-intro="play"] .cinema__bar {
+    animation: cinema-fade-in 900ms ease 2050ms backwards;
   }
 
   @media (prefers-reduced-motion: reduce) {

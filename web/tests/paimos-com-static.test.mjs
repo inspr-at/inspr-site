@@ -118,7 +118,9 @@ test("the edge serves paimos.com, folds www onto the apex and keeps media.inspr.
   assert.match(media, /@media_file path_regexp \^\/films\/\[a-z0-9\]\+\/v\[1-9\]\[0-9\]\*\/\[A-Za-z0-9\]\[A-Za-z0-9\._-\]\*\$/);
   assert.match(media, /@media_manifest path \/films\/manifest\.json/);
   assert.match(media, /handle @media_file \{\n\t\t\troot \* \/srv\/media\n\t\t\theader Cache-Control "public, max-age=31536000, immutable"\n\t\t\tfile_server\n/);
-  assert.match(media, /handle @media_manifest \{\n\t\t\troot \* \/srv\/media\n\t\t\theader Cache-Control "public, max-age=300"\n\t\t\tfile_server\n/);
+  assert.match(media, /handle @media_manifest \{\n\t\t\troot \* \/srv\/media\n\t\t\theader Cache-Control "public, max-age=300"\n\t\t\theader Access-Control-Allow-Origin "https:\/\/paimos\.com"\n\t\t\tfile_server\n/);
+  // Only the manifest is readable cross-origin, and only by paimos.com.
+  assert.equal((caddy.match(/Access-Control-Allow-Origin/g) ?? []).length, 1);
   assert.match(media, /handle \{\n\t\t\trespond "404 Not Found" 404/);
   assert.doesNotMatch(media, /browse/);
 
@@ -130,6 +132,7 @@ test("the edge serves paimos.com, folds www onto the apex and keeps media.inspr.
   assert.match(caddy, /header @media_host Cross-Origin-Resource-Policy "cross-origin"/);
   assert.match(shared, /img-src 'self' data: https:\/\/media\.inspr\.at;/);
   assert.match(shared, /media-src 'self' https:\/\/media\.inspr\.at;/);
+  assert.match(shared, /connect-src 'self' https:\/\/media\.inspr\.at;/);
   assert.match(caddy, /handle_errors \{\n\t\t# [^\n]+\n\t\theader Cache-Control "no-store"/);
   // The privacy notice says the servers keep no access logs.
   assert.doesNotMatch(caddy, /^\s*log(\s|$)/m);
@@ -140,12 +143,17 @@ test("the privacy notice names paimos.com and media.inspr.at in both languages",
   for (const phrase of [
     "janus.inspr.at, paimos.com and media.inspr.at",
     "janus.inspr.at, paimos.com und media.inspr.at",
-    "The films on paimos.com and their preview images come from media.inspr.at",
-    "Die Filme auf paimos.com und ihre Vorschaubilder kommen von media.inspr.at",
+    "The films on paimos.com, their preview images and the list of films come from media.inspr.at",
+    "Die Filme auf paimos.com, ihre Vorschaubilder und die Filmliste kommen von media.inspr.at",
+    "To show a film, its preview image or the list of films, your browser connects directly to my web server",
+    "Um einen Film, sein Vorschaubild oder die Filmliste zu zeigen, verbindet sich Ihr Browser direkt mit meinem Webserver.",
     "media.inspr.at is not delivered through Cloudflare.",
     "media.inspr.at wird nicht über Cloudflare ausgeliefert.",
   ]) assert.ok(legal.includes(phrase), phrase);
-  assert.match(await read("scripts/audit-privacy-facts.mjs"), /\["https:\/\/media\.inspr\.at", "[^"]+"\]/);
+  const audit = await read("scripts/audit-privacy-facts.mjs");
+  assert.match(audit, /\["https:\/\/media\.inspr\.at", "[^"]+"\]/);
+  // The one reviewed dynamic request: the live manifest, from the page's own attribute.
+  assert.match(audit, /PaimosLanding\\\.astro_astro_type_script_index_0_lang[^\n]+expression: 'String\(document\.querySelector\("\[data-cinema\]"\)\?\.dataset\.manifest\)'/);
 });
 
 test("paimos.com copy keeps to the agreed words", async () => {
@@ -180,9 +188,9 @@ test("one screen, one button: Watch now opens the films under a curtain, in the 
   const css = await read("src/styles/paimos-com.css");
   const content = await read("src/content/paimos-com.ts");
   // One button on the opening screen; without JavaScript it opens the first film.
-  assert.equal((component.match(/class="cinema__watch"/g) ?? []).length, 2, "Watch now, or Learn more without films");
+  assert.equal((component.match(/class="cinema__watch"/g) ?? []).length, 1, "one button: Watch now, or Learn more without films");
   assert.match(content, /watch: "Watch now"/);
-  assert.match(component, /<a class="cinema__watch" href=\{noScriptFilm\} data-cinema-watch>/);
+  assert.match(component, /class="cinema__watch"\n\s+href=\{noScriptFilm\}\n\s+data-cinema-watch/);
   // The curtain covers the whole page; two video elements take turns.
   assert.match(css, /\.cinema\[data-state="open"\] \.cinema__curtain \{\n\s+opacity: 1;/);
   assert.equal((component.match(/data-cinema-video><\/video>/g) ?? []).length, 2);
@@ -211,6 +219,42 @@ test("one screen, one button: Watch now opens the films under a curtain, in the 
   // Idle controls leave in full screen too: only keyboard focus, the transcript or a drag keep them.
   assert.match(component, /bar\.querySelector\(":focus-visible"\) !== null \|\| root\.hasAttribute\("data-transcript"\) \|\| dragging/);
   assert.doesNotMatch(component, /bar\.contains\(document\.activeElement\)/);
+  // No site header: the AEON mark sits under the arc, above the eyebrow.
+  assert.doesNotMatch(component, /MicrositeHeader/);
+  assert.match(component, /<\/svg>\n\s+<img class="cinema__mark" src=\{aeonMark\.src\} alt="" width="64" height="64" \/>\n\s+<p class="eyebrow">/);
+  // The live manifest: validated with the build's parser, mapped with the build's views.
+  assert.match(component, /import \{ filmViews, parseFilmManifest, type FilmView \} from "\.\.\/\.\.\/film-manifest\.mjs";/);
+  assert.match(component, /data-manifest=\{filmManifestUrl\}/);
+  assert.match(component, /if \(open \|\| busy\) pending = views;/, "a new list never interrupts a playing film");
+  assert.match(component, /node\.textContent = text;/, "live text is set as text, never as HTML");
+  assert.doesNotMatch(component, /innerHTML/);
   // The front door is the films: no answer cards, no fact list, no background film.
   assert.doesNotMatch(component, /landing-answers|landing-facts|landing-hero__film/);
+});
+
+test("the committed snapshot holds only cleared films, on the media host", async () => {
+  const snapshot = parseFilmManifest(JSON.parse(await read("src/content/films/manifest.json")));
+  assert.equal(snapshot.base, "https://media.inspr.at/films/");
+  assert.ok(snapshot.episodes.length > 0);
+  assert.ok(!JSON.stringify(snapshot).includes("public_ok"));
+});
+
+test("VID can validate an export without touching the site", async () => {
+  const script = join(webRoot, "scripts/sync-film-manifest.mjs");
+  const fixturePath = join(webRoot, "tests/fixtures/film-manifest.json");
+  const valid = spawnSync(process.execPath, [script, fixturePath, "--validate"], { encoding: "utf8" });
+  assert.equal(valid.status, 0, valid.stderr);
+  assert.match(valid.stdout, /valid schema 1 \(W09 v6, W05 v6, W16 v1, W33 v1\); nothing written/);
+  const pinned = spawnSync(process.execPath, [script, fixturePath, "--validate", "--only", "W05,W16"], { encoding: "utf8" });
+  assert.match(pinned.stdout, /\(W05 v6, W16 v1\)/);
+  const unknown = spawnSync(process.execPath, [script, fixturePath, "--validate", "--only", "W99"], { encoding: "utf8" });
+  assert.notEqual(unknown.status, 0);
+  assert.match(unknown.stderr, /--only names films the manifest lacks: W99/);
+  const raw = JSON.parse(await read("tests/fixtures/film-manifest.json"));
+  raw.episodes[0].public_ok = { by: "someone" };
+  const root = await mkdtemp(join(tmpdir(), "inspr-film-validate-"));
+  await writeFile(join(root, "manifest.json"), JSON.stringify(raw));
+  const leaked = spawnSync(process.execPath, [script, join(root, "manifest.json"), "--validate"], { encoding: "utf8" });
+  assert.notEqual(leaked.status, 0);
+  assert.match(leaked.stderr, /public_ok/);
 });

@@ -126,24 +126,42 @@ the business hostname changes.
 
 `web/src/pages/paimos-com/` builds the paimos.com root (Caddy serves the
 `paimos-com/` directory for that host; `www.inspr.at/paimos-com/` redirects
-there). Its PAIMOS colours and display face come from
-`web/src/styles/paimos-tokens.css`, the same file paimos.inspr.at uses.
+there). It is one screen without a site header: the arc, the AEON mark, the
+tagline and Watch now, which plays the "What if…?" films full screen. Its
+PAIMOS colours and display face come from `web/src/styles/paimos-tokens.css`,
+the same file paimos.inspr.at uses.
 
 The films are produced and versioned outside this repository and served from
-`media.inspr.at`; no video ever enters git. The site reads a committed,
-normalised snapshot of the public film manifest (schema 1, validated by
-`web/film-manifest.mjs`). Without a snapshot, or with no cleared film in it,
-paimos.com renders without its showreel. To pick up a new manifest:
+`media.inspr.at/films/`; no video ever enters git. The manifest next to them
+(schema 1, validated by `web/film-manifest.mjs`) is the record of what is
+cleared: it lists only films Markus approved, each at its newest public
+version. paimos.com uses it twice:
 
-```bash
-cd web
-npm run films:sync -- https://media.inspr.at/films/manifest.json --check-media
-```
+- the page reads the live manifest when it loads and plays what it lists, so a
+  newly cleared film plays within five minutes of being published, without a
+  release;
+- the release renders the committed snapshot
+  (`web/src/content/films/manifest.json`) into the HTML, for search engines,
+  the transcript and visitors without JavaScript. With no snapshot, or no film
+  in it, the page shows the tagline and Learn more.
 
-Commit `src/content/films/manifest.json` and deploy. `npm run build` refuses a
-manifest whose media origin the CSP or the privacy notice does not cover. To
-preview films that are not public yet, serve them from this computer and point
-a local build at a copy of their manifest with a loopback `base`
+Adding a film once Markus has approved it:
+
+1. VID exports the film into `<ep>/v<n>/` and adds it to the export's
+   manifest, then validates the manifest (no dependencies needed):
+   `node web/scripts/sync-film-manifest.mjs <manifest.json> --validate`.
+2. OPS publishes it: the files first, the manifest last. paimos.com plays the
+   film from then on.
+3. With the next release the snapshot follows:
+   `cd web && npm run films:sync -- https://media.inspr.at/films/manifest.json --check-media`,
+   commit `src/content/films/manifest.json` (the only file the change touches)
+   and release.
+
+`npm run build` refuses a snapshot whose media origin the CSP or the privacy
+notice does not cover. A film comes off paimos.com by removing it from the
+live manifest; the next release removes it from the snapshot. To preview films
+that are not public, serve them from this computer and point a local build at
+a copy of their manifest with a loopback `base`
 (`PAIMOS_FILM_MANIFEST=<path> npm run dev`); a release build refuses that
 override.
 

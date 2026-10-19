@@ -1,18 +1,31 @@
-// INSPR-572: copy VID's public film manifest into the committed snapshot.
+// INSPR-572: VID's public film manifest, checked or copied into the site.
 //
-//   node scripts/sync-film-manifest.mjs <https-url | path> [--check-media]
+//   node scripts/sync-film-manifest.mjs <https-url | path> [--validate] [--check-media] [--only W05,W16]
 //
-// The manifest is validated and normalised (film-manifest.mjs) before
-// anything is written, so the snapshot only ever holds the fields the site
-// renders. --check-media sends a HEAD request for every video and poster and
-// compares each video's Content-Length with the manifest; it downloads nothing.
-// Commit the snapshot and deploy; the films themselves never enter git.
+//   --validate     check the manifest against schema 1 and write nothing. VID
+//                  runs this on an export before OPS syncs it; it needs no
+//                  installed dependencies.
+//   --check-media  send a HEAD request for every video and poster and compare
+//                  each video's Content-Length with the manifest; downloads
+//                  nothing.
+//   --only         keep only these films (ids), for a snapshot that must hold
+//                  exactly the films Markus cleared.
+//
+// Without --validate the manifest is validated, normalised (film-manifest.mjs)
+// and written to src/content/films/manifest.json, which holds only the fields
+// the site renders. Commit it and release; the films never enter git.
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { filmUrl, parseFilmManifest } from "../film-manifest.mjs";
 
-const [source, ...flags] = process.argv.slice(2);
-if (!source || flags.some((flag) => flag !== "--check-media")) {
-  console.error("usage: node scripts/sync-film-manifest.mjs <https-url | path> [--check-media]");
+const args = process.argv.slice(2);
+const source = args.find((arg) => !arg.startsWith("--") && args[args.indexOf(arg) - 1] !== "--only");
+const validateOnly = args.includes("--validate");
+const checkMedia = args.includes("--check-media");
+const onlyIndex = args.indexOf("--only");
+const only = onlyIndex === -1 ? null : (args[onlyIndex + 1] ?? "").split(",").map((id) => id.trim()).filter(Boolean);
+const known = new Set(["--validate", "--check-media", "--only"]);
+if (!source || args.some((arg) => arg.startsWith("--") && !known.has(arg)) || (only && only.length === 0)) {
+  console.error("usage: node scripts/sync-film-manifest.mjs <https-url | path> [--validate] [--check-media] [--only W05,W16]");
   process.exit(2);
 }
 
@@ -27,8 +40,14 @@ async function read(location) {
 }
 
 const manifest = parseFilmManifest(JSON.parse(await read(source)));
+if (only) {
+  const missing = only.filter((id) => !manifest.episodes.some((film) => film.id === id));
+  if (missing.length > 0) throw new Error(`film manifest: --only names films the manifest lacks: ${missing.join(", ")}`);
+  manifest.episodes = manifest.episodes.filter((film) => only.includes(film.id));
+}
+const summary = manifest.episodes.map((film) => `${film.id} v${film.version}`).join(", ") || "no films";
 
-if (flags.includes("--check-media")) {
+if (checkMedia) {
   const problems = [];
   for (const film of manifest.episodes) {
     const files = [];
@@ -49,7 +68,12 @@ if (flags.includes("--check-media")) {
   console.log("film media: every file answers with the manifest's size");
 }
 
+if (validateOnly) {
+  console.log(`film manifest: valid schema 1 (${summary}); nothing written`);
+  process.exit(0);
+}
+
 const target = new URL("../src/content/films/manifest.json", import.meta.url);
 await mkdir(new URL(".", target), { recursive: true });
 await writeFile(target, `${JSON.stringify(manifest, null, 2)}\n`);
-console.log(`film manifest: ${manifest.episodes.length} film(s) written to src/content/films/manifest.json`);
+console.log(`film manifest: ${summary} written to src/content/films/manifest.json`);

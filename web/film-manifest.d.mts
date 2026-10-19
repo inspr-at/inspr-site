@@ -48,3 +48,26 @@ export const FILM_ORDER: string[];
 export function parseFilmManifest(value: unknown, options?: { allowLoopbackBase?: boolean }): FilmManifest;
 export function orderFilms(episodes: FilmEpisode[], order?: string[]): FilmEpisode[];
 export function filmUrl(base: string, path: string): string;
+
+export interface FilmSource {
+  src: string;
+  width: number;
+  height: number;
+}
+
+export interface FilmView {
+  id: string;
+  version: number;
+  question: string;
+  answer: string;
+  /** The film's words in order with their timing, then its end card (tagline, subline, link). */
+  words: Array<{ kind: string; text: string; start?: number; end?: number }>;
+  durationSeconds: number;
+  published: string;
+  /** Per cut: the full file and, when VID ships one, the lighter web rendition. */
+  video: Record<"16x9" | "9x16", { full: FilmSource; web?: FilmSource }>;
+  /** Full-size posters: the small ones are thumbnails, too soft for the stage. */
+  poster: Record<"16x9" | "9x16", string>;
+}
+
+export function filmViews(manifest: FilmManifest): FilmView[];

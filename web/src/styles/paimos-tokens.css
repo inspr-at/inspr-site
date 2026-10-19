@@ -1,0 +1,34 @@
+/*
+ * INSPR-572: the PAIMOS brand tokens, shared by paimos.inspr.at (AeonPage)
+ * and paimos.com (PaimosLanding) so the two sites cannot drift apart.
+ *
+ * Moved unchanged from aeon.css: the gold of the AEON mark, the pearl and
+ * night grounds the films and set pieces use, and Geist as the display face.
+ * Both pages render with data-product="paimos", and the rules stay in the
+ * components layer they had in aeon.css, so the cascade is the same as before.
+ * Each page that imports this file also imports @fontsource-variable/geist.
+ */
+@layer components {
+  html[data-product="paimos"] {
+    --aeon-gold: #d69b31;
+    --aeon-gold-bright: #f1c56d;
+    --aeon-gold-deep: #9a6a12;
+    --aeon-gold-soft: #f6e6c2;
+    --aeon-teal: #0e6f6c;
+    --aeon-glow: #43c9ba;
+    --aeon-pearl: #f7f6f2;
+    --aeon-night: #051827;
+    --aeon-night-2: #0a2537;
+    --aeon-line-night: rgb(185 204 213 / 0.16);
+    --aeon-serif: "Geist Variable", "Helvetica Neue", Arial, sans-serif;
+    /* AEON's display face: Geist, a contemporary variable grotesk. It replaces
+       the family's Space Grotesk on the PAIMOS pages only. */
+    --font-display: "Geist Variable", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  html[data-product="paimos"] :is(h1, h2, h3) {
+    font-variation-settings: normal;
+    font-weight: 620;
+    letter-spacing: -0.045em;
+  }
+}

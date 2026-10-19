@@ -5,6 +5,8 @@
 // preferences in local storage only, delivery through Cloudflare, and web
 // servers configured without access logs. Re-verify those facts whenever the
 // edge, the layout scripts or the hosting change. Not legal advice.
+// INSPR-572: paimos.com joins the hosts, and its films come from
+// media.inspr.at, which is not delivered through Cloudflare.
 
 export const operator = {
   name: "Markus Barta",
@@ -33,8 +35,8 @@ export type LegalDocument = {
   blocks: LegalBlock[];
 };
 
-const hosts = "www.inspr.at, aithema.inspr.at, paimos.inspr.at, pharos.inspr.at and janus.inspr.at";
-const hostsDe = "www.inspr.at, aithema.inspr.at, paimos.inspr.at, pharos.inspr.at und janus.inspr.at";
+const hosts = "www.inspr.at, aithema.inspr.at, paimos.inspr.at, pharos.inspr.at, janus.inspr.at, paimos.com and media.inspr.at";
+const hostsDe = "www.inspr.at, aithema.inspr.at, paimos.inspr.at, pharos.inspr.at, janus.inspr.at, paimos.com und media.inspr.at";
 
 export const legalContent: Record<"legal" | "privacy", Record<"en" | "de", LegalDocument>> = {
   legal: {
@@ -46,7 +48,7 @@ export const legalContent: Record<"legal" | "privacy", Record<"en" | "de", Legal
       lead: "INSPR is open-source software by Markus Barta. These websites are operated and published by him.",
       contactLabel: "Operator and publisher",
       emailLabel: "Email",
-      updated: "Last updated: 2 October 2026",
+      updated: "Last updated: 19 October 2026",
       blocks: [
         {
           heading: "Operator and publisher",
@@ -90,7 +92,7 @@ export const legalContent: Record<"legal" | "privacy", Record<"en" | "de", Legal
       lead: "INSPR ist Open-Source-Software von Markus Barta. Diese Websites werden von ihm betrieben und herausgegeben.",
       contactLabel: "Betreiber und Herausgeber",
       emailLabel: "E-Mail",
-      updated: "Stand: 2. Oktober 2026",
+      updated: "Stand: 19. Oktober 2026",
       blocks: [
         {
           heading: "Betreiber, Medieninhaber und Herausgeber",
@@ -136,7 +138,7 @@ export const legalContent: Record<"legal" | "privacy", Record<"en" | "de", Legal
       lead: "Very little. This page says what, who is responsible and how to reach them.",
       contactLabel: "Controller",
       emailLabel: "Email",
-      updated: "Last updated: 2 October 2026",
+      updated: "Last updated: 19 October 2026",
       blocks: [
         {
           heading: "Controller",
@@ -146,7 +148,7 @@ export const legalContent: Record<"legal" | "privacy", Record<"en" | "de", Legal
         {
           heading: "What these websites do not do",
           paragraphs: [
-            "There are no accounts, no cookies set by these pages, no analytics or tracking tools and no scripts, fonts or images from third parties. Fonts and images come from the same host as the page.",
+            "There are no accounts, no cookies set by these pages, no analytics or tracking tools and no scripts, fonts or images from third parties. Fonts and images come from the same host as the page. The films on paimos.com, their preview images and the list of films come from media.inspr.at, my own media host on the same server.",
           ],
         },
         {
@@ -160,6 +162,7 @@ export const legalContent: Record<"legal" | "privacy", Record<"en" | "de", Legal
           paragraphs: [
             "To deliver a page, your browser sends your IP address, the time, the requested address and technical details such as the browser type. The websites are delivered through Cloudflare, which processes this data to deliver the pages quickly and to protect them from abuse (Art. 6(1)(f) GDPR, legitimate interest in reliable and secure operation). Providing this data is technically necessary to open the pages; without it they cannot be delivered. Cloudflare may process data outside the EU. Cloudflare acts as my processor under its standard data processing addendum. When data is transferred to the United States, Cloudflare relies on its certification under the EU-U.S. Data Privacy Framework and, should that lapse, on the EU Standard Contractual Clauses. Cloudflare publishes no fixed retention period for visitor connection data; it keeps the data only as long as needed for the purposes of the service, as its privacy policy and data processing addendum describe. I do not set or control these periods. For its own security purposes Cloudflare may act as a separate controller; its privacy policy describes this.",
             "The web servers behind Cloudflare are configured without access logs.",
+            "media.inspr.at is not delivered through Cloudflare. To show a film, its preview image or the list of films, your browser connects directly to my web server, which uses the connection data described above only to deliver the file, on the same legal basis, and is configured without access logs.",
           ],
           links: [
             { label: "Cloudflare privacy policy", href: "https://www.cloudflare.com/privacypolicy/" },
@@ -200,7 +203,7 @@ export const legalContent: Record<"legal" | "privacy", Record<"en" | "de", Legal
       lead: "Sehr wenig. Diese Seite sagt, was, wer verantwortlich ist und wie Sie ihn erreichen.",
       contactLabel: "Verantwortlicher",
       emailLabel: "E-Mail",
-      updated: "Stand: 2. Oktober 2026",
+      updated: "Stand: 19. Oktober 2026",
       blocks: [
         {
           heading: "Verantwortlicher",
@@ -210,7 +213,7 @@ export const legalContent: Record<"legal" | "privacy", Record<"en" | "de", Legal
         {
           heading: "Was diese Websites nicht tun",
           paragraphs: [
-            "Es gibt keine Benutzerkonten, keine von diesen Seiten gesetzten Cookies, keine Analyse- oder Tracking-Werkzeuge und keine Skripte, Schriften oder Bilder von Dritten. Schriften und Bilder kommen vom selben Host wie die Seite.",
+            "Es gibt keine Benutzerkonten, keine von diesen Seiten gesetzten Cookies, keine Analyse- oder Tracking-Werkzeuge und keine Skripte, Schriften oder Bilder von Dritten. Schriften und Bilder kommen vom selben Host wie die Seite. Die Filme auf paimos.com, ihre Vorschaubilder und die Filmliste kommen von media.inspr.at, meinem eigenen Medien-Host auf demselben Server.",
           ],
         },
         {
@@ -224,6 +227,7 @@ export const legalContent: Record<"legal" | "privacy", Record<"en" | "de", Legal
           paragraphs: [
             "Zur Auslieferung einer Seite sendet Ihr Browser Ihre IP-Adresse, die Uhrzeit, die angeforderte Adresse und technische Angaben wie den Browsertyp. Die Websites werden über Cloudflare ausgeliefert. Cloudflare verarbeitet diese Daten, um die Seiten schnell auszuliefern und vor Missbrauch zu schützen (Art. 6 Abs. 1 lit. f DSGVO, berechtigtes Interesse an zuverlässigem und sicherem Betrieb). Die Bereitstellung dieser Daten ist technisch nötig, um die Seiten zu öffnen; ohne sie können die Seiten nicht ausgeliefert werden. Cloudflare kann Daten auch außerhalb der EU verarbeiten. Cloudflare handelt als mein Auftragsverarbeiter auf Grundlage seines standardmäßigen Auftragsverarbeitungsvertrags (Data Processing Addendum). Bei Übermittlungen in die Vereinigten Staaten stützt sich Cloudflare auf seine Zertifizierung unter dem EU-US-Datenschutzrahmen (EU-U.S. Data Privacy Framework) und, sollte diese wegfallen, auf die EU-Standardvertragsklauseln. Cloudflare veröffentlicht keine feste Speicherfrist für Verbindungsdaten von Besuchern; die Daten werden nur so lange gespeichert, wie es für die Zwecke des Dienstes nötig ist, wie in seiner Datenschutzerklärung und seinem Auftragsverarbeitungsvertrag beschrieben. Ich lege diese Fristen weder fest noch steuere ich sie. Für eigene Sicherheitszwecke kann Cloudflare als eigenständiger Verantwortlicher handeln; seine Datenschutzerklärung beschreibt dies.",
             "Die Webserver hinter Cloudflare sind ohne Zugriffsprotokolle konfiguriert.",
+            "media.inspr.at wird nicht über Cloudflare ausgeliefert. Um einen Film, sein Vorschaubild oder die Filmliste zu zeigen, verbindet sich Ihr Browser direkt mit meinem Webserver. Er verwendet die oben beschriebenen Verbindungsdaten nur, um die Datei auszuliefern, auf derselben Rechtsgrundlage, und ist ohne Zugriffsprotokolle konfiguriert.",
           ],
           links: [
             { label: "Datenschutzerklärung von Cloudflare", href: "https://www.cloudflare.com/privacypolicy/" },

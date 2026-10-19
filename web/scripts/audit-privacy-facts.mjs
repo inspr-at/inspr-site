@@ -27,6 +27,11 @@ const counts = { pages: 0, css: 0, js: 0, unloaded: 0 };
 // Scope by emitted component name AND exact token expression, never a wildcard.
 const requestAllowList = [
   { file: /^_astro\/DetailsControl\.astro_astro_type_script_index_0_lang\.[\w-]+\.js$/, api: "fetch", expression: "window.location.pathname" },
+  // INSPR-572: paimos.com's player reads the live film manifest. The URL is the
+  // build's data-manifest attribute (the snapshot's base plus manifest.json),
+  // on media.inspr.at, which reviewedOrigins and the privacy notice cover; the
+  // CSP's connect-src allows that origin and nothing else.
+  { file: /^_astro\/PaimosLanding\.astro_astro_type_script_index_0_lang\.[\w-]+\.js$/, api: "fetch", expression: 'String(document.querySelector("[data-cinema]")?.dataset.manifest)' },
 ];
 // No computed storage mappings are needed: emitted keys are literals or bindings.
 
@@ -40,6 +45,16 @@ const familyOrigins = new Set(familyKeys.map((key) => {
   return new URL(value).origin;
 }));
 if (familyOrigins.size !== 5) throw new Error("Expected five family origins in siteUrls/productLinks");
+// INSPR-572: reviewed first-party resource origins outside the five family
+// hosts. Each one must be named in the privacy notice (content/legal.ts), so a
+// new media host cannot ship before the notice describes it.
+const reviewedOrigins = new Map([
+  ["https://media.inspr.at", "the paimos.com films and their posters, served by INSPR's own media host"],
+]);
+const legalSource = await readFile(join(webRoot, "src/content/legal.ts"), "utf8");
+for (const origin of reviewedOrigins.keys()) {
+  if (!legalSource.includes(new URL(origin).host)) throw new Error(`${origin} is reviewed but the privacy notice does not name it`);
+}
 
 function fail(file, message, value) {
   violations.add(`${file}: ${message}: ${JSON.stringify(value)}`);
@@ -58,7 +73,7 @@ function auditUrl(file, value, context, webSocket = false) {
   if (!url || /^data:/i.test(url)) return;
   try {
     const parsed = new URL(webSocket ? url.replace(/^ws:/i, "http:").replace(/^wss:/i, "https:") : url, [...familyOrigins][0]);
-    if (familyOrigins.has(parsed.origin)) return;
+    if (familyOrigins.has(parsed.origin) || reviewedOrigins.has(parsed.origin)) return;
   } catch { /* Invalid resource URLs also fail closed. */ }
   fail(file, `third-party or unsupported ${context}`, value);
 }

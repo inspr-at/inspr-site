@@ -1,0 +1,436 @@
+{
+  "schema": 1,
+  "generated": "2026-10-19T19:45:23+02:00",
+  "base": "https://media.inspr.at/films/",
+  "episodes": [
+    {
+      "id": "W05",
+      "version": 6,
+      "question": "What if 20+ agents felt easy?",
+      "answer": "All done. Told you: easy.",
+      "tagline": "The self-improving software factory.",
+      "subline": "You decide. PAIMOS learns.",
+      "link": "www.paimos.com",
+      "words": [
+        {
+          "shot": 1,
+          "kind": "question",
+          "text": "What if 20+ agents felt easy?",
+          "start_s": 0,
+          "end_s": 3.4
+        },
+        {
+          "shot": 2,
+          "kind": "caption",
+          "text": "Every agent’s question. On your desk.",
+          "start_s": 3.4,
+          "end_s": 6.9
+        },
+        {
+          "shot": 3,
+          "kind": "caption",
+          "text": "With context and a recommendation.",
+          "start_s": 6.9,
+          "end_s": 10.6
+        },
+        {
+          "shot": 4,
+          "kind": "caption",
+          "text": "Once, always, or as a rule.",
+          "start_s": 10.6,
+          "end_s": 12.5
+        },
+        {
+          "shot": 5,
+          "kind": "caption",
+          "text": "For things only you decide.",
+          "start_s": 12.5,
+          "end_s": 16.1
+        },
+        {
+          "shot": 6,
+          "kind": "caption",
+          "text": "Agents and teammates have it immediately.",
+          "start_s": 16.1,
+          "end_s": 18.9
+        },
+        {
+          "shot": 7,
+          "kind": "caption",
+          "text": "Then the desk is empty.",
+          "start_s": 18.9,
+          "end_s": 25.5
+        },
+        {
+          "shot": 8,
+          "kind": "answer",
+          "text": "All done. Told you: easy.",
+          "start_s": 23.6,
+          "end_s": 25.5
+        }
+      ],
+      "duration_s": 30,
+      "formats": {
+        "16x9": {
+          "file": "w05/v6/16x9.mp4",
+          "width": 1920,
+          "height": 1080,
+          "fps": 60,
+          "bytes": 19714892,
+          "sha256": "b091c104679f6f2a415d67b80181cb8231b26bb217c2a71ed99d8c87787aab71",
+          "web": {
+            "file": "w05/v6/16x9-720.mp4",
+            "width": 1280,
+            "height": 720,
+            "fps": 30,
+            "bytes": 2430087,
+            "sha256": "00bd3dab29300d8a6e86323b25896f25e377735fa24445ad11b85b881b63692f"
+          }
+        },
+        "9x16": {
+          "file": "w05/v6/9x16.mp4",
+          "width": 1080,
+          "height": 1920,
+          "fps": 60,
+          "bytes": 22316104,
+          "sha256": "0459fb6fd48069178f5e21a35b5eed881095d8e32421f08fcbd88d5961234c42",
+          "web": {
+            "file": "w05/v6/9x16-720.mp4",
+            "width": 720,
+            "height": 1280,
+            "fps": 30,
+            "bytes": 2609259,
+            "sha256": "412fde4a6d53386e7fba6cdce581b6687273d033c5595d3b8f2104a1c575e6ae"
+          }
+        }
+      },
+      "poster": {
+        "16x9": "w05/v6/poster-16x9.jpg",
+        "9x16": "w05/v6/poster-9x16.jpg",
+        "16x9_small": "w05/v6/poster-16x9-small.jpg",
+        "9x16_small": "w05/v6/poster-9x16-small.jpg"
+      },
+      "published": "2026-10-19"
+    },
+    {
+      "id": "W09",
+      "version": 6,
+      "question": "What if you set your agents’ pace?",
+      "answer": "You set the pace.",
+      "tagline": "The self-improving software factory.",
+      "subline": "You decide. PAIMOS learns.",
+      "link": "www.paimos.com",
+      "words": [
+        {
+          "shot": 1,
+          "kind": "question",
+          "text": "What if you set your agents’ pace?",
+          "start_s": 0,
+          "end_s": 3.4
+        },
+        {
+          "shot": 2,
+          "kind": "caption",
+          "text": "Easily set how many agents run at once.",
+          "start_s": 3.4,
+          "end_s": 8.6
+        },
+        {
+          "shot": 3,
+          "kind": "caption",
+          "text": "Dial up or down. No one is cut off.",
+          "start_s": 8.6,
+          "end_s": 12.5
+        },
+        {
+          "shot": 4,
+          "kind": "caption",
+          "text": "Set individual limits.",
+          "start_s": 12.5,
+          "end_s": 16.1
+        },
+        {
+          "shot": 5,
+          "kind": "caption",
+          "text": "Spread the week. Stay on pace.",
+          "start_s": 16.1,
+          "end_s": 19.9
+        },
+        {
+          "shot": 6,
+          "kind": "caption",
+          "text": "Wind down anytime.",
+          "start_s": 19.9,
+          "end_s": 22.4
+        },
+        {
+          "shot": 8,
+          "kind": "answer",
+          "text": "You set the pace.",
+          "start_s": 24.6,
+          "end_s": 26.5
+        }
+      ],
+      "duration_s": 30,
+      "formats": {
+        "16x9": {
+          "file": "w09/v6/16x9.mp4",
+          "width": 1920,
+          "height": 1080,
+          "fps": 60,
+          "bytes": 17397135,
+          "sha256": "91563131c8e6bd524142b07be0bee69b4886e311d63de5452aeedf8e28604375",
+          "web": {
+            "file": "w09/v6/16x9-720.mp4",
+            "width": 1280,
+            "height": 720,
+            "fps": 30,
+            "bytes": 2186971,
+            "sha256": "218435820045bf9b87d653dd3875991f6d98e691510cedaf3ef614d4c2d079f5"
+          }
+        },
+        "9x16": {
+          "file": "w09/v6/9x16.mp4",
+          "width": 1080,
+          "height": 1920,
+          "fps": 60,
+          "bytes": 15808912,
+          "sha256": "b53581ce5804002852d251c47db524d3d504835ea828c69ab32e84b169c7fbd1",
+          "web": {
+            "file": "w09/v6/9x16-720.mp4",
+            "width": 720,
+            "height": 1280,
+            "fps": 30,
+            "bytes": 2003329,
+            "sha256": "54d3ae2a5d2beb0f073d9043ae30c3788a06966df46160dff2a313084325b4ec"
+          }
+        }
+      },
+      "poster": {
+        "16x9": "w09/v6/poster-16x9.jpg",
+        "9x16": "w09/v6/poster-9x16.jpg",
+        "16x9_small": "w09/v6/poster-16x9-small.jpg",
+        "9x16_small": "w09/v6/poster-9x16-small.jpg"
+      },
+      "published": "2026-10-19"
+    },
+    {
+      "id": "W16",
+      "version": 1,
+      "question": "What if all agents shared one rulebook?",
+      "answer": "Now they do. One rulebook.",
+      "tagline": "The self-improving software factory.",
+      "subline": "You decide. PAIMOS learns.",
+      "link": "www.paimos.com",
+      "words": [
+        {
+          "shot": 1,
+          "kind": "question",
+          "text": "What if all agents shared one rulebook?",
+          "start_s": 0,
+          "end_s": 3.4
+        },
+        {
+          "shot": 2,
+          "kind": "caption",
+          "text": "Company, project, you, each agent.",
+          "start_s": 3.4,
+          "end_s": 6.9
+        },
+        {
+          "shot": 3,
+          "kind": "caption",
+          "text": "Lock it. No agent switches it off.",
+          "start_s": 6.9,
+          "end_s": 10.6
+        },
+        {
+          "shot": 4,
+          "kind": "caption",
+          "text": "One merged set for every harness.",
+          "start_s": 10.6,
+          "end_s": 14.4
+        },
+        {
+          "shot": 5,
+          "kind": "caption",
+          "text": "Only a person publishes.",
+          "start_s": 14.4,
+          "end_s": 16.1
+        },
+        {
+          "shot": 6,
+          "kind": "caption",
+          "text": "Every version kept.",
+          "start_s": 16.1,
+          "end_s": 19
+        },
+        {
+          "shot": 7,
+          "kind": "caption",
+          "text": "Every agent starts with them.",
+          "start_s": 19,
+          "end_s": 25.5
+        },
+        {
+          "shot": 8,
+          "kind": "answer",
+          "text": "Now they do. One rulebook.",
+          "start_s": 23.6,
+          "end_s": 25.5
+        }
+      ],
+      "duration_s": 30,
+      "formats": {
+        "16x9": {
+          "file": "w16/v1/16x9.mp4",
+          "width": 1920,
+          "height": 1080,
+          "fps": 60,
+          "bytes": 16859345,
+          "sha256": "d2c60f845d96626b5fc59bd6473c4b3a7e806693fa02ff1dd591d0abb6481e4d",
+          "web": {
+            "file": "w16/v1/16x9-720.mp4",
+            "width": 1280,
+            "height": 720,
+            "fps": 30,
+            "bytes": 2216348,
+            "sha256": "e30bec87b0728608d2e7040d63f33a5b98d40962a53e919b108c0b6aef0524b6"
+          }
+        },
+        "9x16": {
+          "file": "w16/v1/9x16.mp4",
+          "width": 1080,
+          "height": 1920,
+          "fps": 60,
+          "bytes": 19617692,
+          "sha256": "4be2d002bee571fd01f5386c2a18147a8ca09cdbc62bb5134b7eed57c9729bd0",
+          "web": {
+            "file": "w16/v1/9x16-720.mp4",
+            "width": 720,
+            "height": 1280,
+            "fps": 30,
+            "bytes": 2570715,
+            "sha256": "d46cc3dd20abfb196d6476e6f02eba6e810f5f809d09da5fb336b7b7ba855cc3"
+          }
+        }
+      },
+      "poster": {
+        "16x9": "w16/v1/poster-16x9.jpg",
+        "9x16": "w16/v1/poster-9x16.jpg",
+        "16x9_small": "w16/v1/poster-16x9-small.jpg",
+        "9x16_small": "w16/v1/poster-9x16-small.jpg"
+      },
+      "published": "2026-10-19"
+    },
+    {
+      "id": "W17",
+      "version": 1,
+      "question": "What if agent costs were an open book?",
+      "answer": "Open book. No surprises.",
+      "tagline": "The self-improving software factory.",
+      "subline": "You decide. PAIMOS learns.",
+      "link": "www.paimos.com",
+      "words": [
+        {
+          "shot": 1,
+          "kind": "question",
+          "text": "What if agent costs were an open book?",
+          "start_s": 0,
+          "end_s": 3.4
+        },
+        {
+          "shot": 2,
+          "kind": "caption",
+          "text": "Tokens and spend at a glance.",
+          "start_s": 3.4,
+          "end_s": 6.9
+        },
+        {
+          "shot": 3,
+          "kind": "caption",
+          "text": "Every agent, every ticket.",
+          "start_s": 6.9,
+          "end_s": 10.6
+        },
+        {
+          "shot": 4,
+          "kind": "caption",
+          "text": "Subscriptions show what’s left.",
+          "start_s": 10.6,
+          "end_s": 14.4
+        },
+        {
+          "shot": 5,
+          "kind": "caption",
+          "text": "API keys show their spend.",
+          "start_s": 14.4,
+          "end_s": 16.1
+        },
+        {
+          "shot": 6,
+          "kind": "caption",
+          "text": "By project, harness or model.",
+          "start_s": 16.1,
+          "end_s": 19
+        },
+        {
+          "shot": 7,
+          "kind": "caption",
+          "text": "All on one page.",
+          "start_s": 19,
+          "end_s": 25.5
+        },
+        {
+          "shot": 8,
+          "kind": "answer",
+          "text": "Open book. No surprises.",
+          "start_s": 23.6,
+          "end_s": 25.5
+        }
+      ],
+      "duration_s": 30,
+      "formats": {
+        "16x9": {
+          "file": "w17/v1/16x9.mp4",
+          "width": 1920,
+          "height": 1080,
+          "fps": 60,
+          "bytes": 18363408,
+          "sha256": "9a3f748d7a89237796e105bc01e42ca52675daca30d032d266f9267b21039f6c",
+          "web": {
+            "file": "w17/v1/16x9-720.mp4",
+            "width": 1280,
+            "height": 720,
+            "fps": 30,
+            "bytes": 2317359,
+            "sha256": "4b191dcd18ca0d56026109bd92ce29ec73269e47fea55fe55c5d0419283927d6"
+          }
+        },
+        "9x16": {
+          "file": "w17/v1/9x16.mp4",
+          "width": 1080,
+          "height": 1920,
+          "fps": 60,
+          "bytes": 20405829,
+          "sha256": "bc85d496245ef9170693280cf7fe30edf2a8cad2931fed49b816cae72e935aa8",
+          "web": {
+            "file": "w17/v1/9x16-720.mp4",
+            "width": 720,
+            "height": 1280,
+            "fps": 30,
+            "bytes": 2525724,
+            "sha256": "a07399e457d7f80ae7072aabfef188e740a22aa180409f4f800251a867c218c5"
+          }
+        }
+      },
+      "poster": {
+        "16x9": "w17/v1/poster-16x9.jpg",
+        "9x16": "w17/v1/poster-9x16.jpg",
+        "16x9_small": "w17/v1/poster-16x9-small.jpg",
+        "9x16_small": "w17/v1/poster-9x16-small.jpg"
+      },
+      "published": "2026-10-19"
+    }
+  ]
+}

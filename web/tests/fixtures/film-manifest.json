@@ -1,0 +1,285 @@
+{
+  "schema": 1,
+  "generated": "2026-10-19T18:00:00+02:00",
+  "base": "https://media.example.com/films/",
+  "episodes": [
+    {
+      "id": "W09",
+      "version": 6,
+      "question": "What if fixture film three asked its question?",
+      "answer": "Fixture answer three.",
+      "tagline": "The self-improving software factory.",
+      "subline": "You decide. PAIMOS learns.",
+      "link": "www.paimos.com",
+      "words": [
+        {
+          "shot": 1,
+          "kind": "question",
+          "text": "What if fixture film three asked its question?",
+          "start_s": 0.0,
+          "end_s": 3.4
+        },
+        {
+          "shot": 2,
+          "kind": "caption",
+          "text": "Fixture caption three.",
+          "start_s": 3.4,
+          "end_s": 6.9
+        },
+        {
+          "shot": 3,
+          "kind": "answer",
+          "text": "Fixture answer three.",
+          "start_s": 24.0,
+          "end_s": 27.0
+        }
+      ],
+      "duration_s": 30.0,
+      "formats": {
+        "16x9": {
+          "file": "w09/v6/16x9.mp4",
+          "width": 1920,
+          "height": 1080,
+          "fps": 60,
+          "bytes": 17000000,
+          "sha256": "f3dc5efaaecfb81a1834f38bb0d3e755b61fcc67649ec9309d3dc59febc53a2f",
+          "web": {
+            "file": "w09/v6/16x9-web.mp4",
+            "width": 1280,
+            "height": 720,
+            "fps": 30,
+            "bytes": 4000000,
+            "sha256": "1470d375bd4ec18a1fc7b18b5437d7d9f42b8ec16cac58f52f17a0c437c18867"
+          }
+        },
+        "9x16": {
+          "file": "w09/v6/9x16.mp4",
+          "width": 1080,
+          "height": 1920,
+          "fps": 60,
+          "bytes": 17000000,
+          "sha256": "3e33976104e4e2f4ffe176bb5058b0ede0a1787ae5c9f68d9f6c7236fcc5f7ba",
+          "web": {
+            "file": "w09/v6/9x16-web.mp4",
+            "width": 720,
+            "height": 1280,
+            "fps": 30,
+            "bytes": 4000000,
+            "sha256": "84b2e124e84455d4f0fa167b6c06870a79e48ee9d59a8919c970243ee32626bc"
+          }
+        }
+      },
+      "poster": {
+        "16x9": "w09/v6/poster-16x9.jpg",
+        "9x16": "w09/v6/poster-9x16.jpg",
+        "16x9_small": "w09/v6/poster-16x9-small.jpg",
+        "9x16_small": "w09/v6/poster-9x16-small.jpg"
+      },
+      "published": "2026-10-19"
+    },
+    {
+      "id": "W05",
+      "version": 6,
+      "question": "What if fixture film one asked its question?",
+      "answer": "Fixture answer one.",
+      "tagline": "The self-improving software factory.",
+      "subline": "You decide. PAIMOS learns.",
+      "link": "www.paimos.com",
+      "words": [
+        {
+          "shot": 1,
+          "kind": "question",
+          "text": "What if fixture film one asked its question?",
+          "start_s": 0.0,
+          "end_s": 3.4
+        },
+        {
+          "shot": 2,
+          "kind": "caption",
+          "text": "Fixture caption one.",
+          "start_s": 3.4,
+          "end_s": 6.9
+        },
+        {
+          "shot": 3,
+          "kind": "answer",
+          "text": "Fixture answer one.",
+          "start_s": 24.0,
+          "end_s": 27.0
+        }
+      ],
+      "duration_s": 30.0,
+      "formats": {
+        "16x9": {
+          "file": "w05/v6/16x9.mp4",
+          "width": 1920,
+          "height": 1080,
+          "fps": 60,
+          "bytes": 17000000,
+          "sha256": "56651162acaa84862d723cc305bd5027b837d58abb7a7ce31cb5a538537dd800",
+          "web": {
+            "file": "w05/v6/16x9-web.mp4",
+            "width": 1280,
+            "height": 720,
+            "fps": 30,
+            "bytes": 4000000,
+            "sha256": "014538bd26c8b8ed5b1f81cfe2b2095fe7337b26e2162aa083fa4996ae63ae60"
+          }
+        },
+        "9x16": {
+          "file": "w05/v6/9x16.mp4",
+          "width": 1080,
+          "height": 1920,
+          "fps": 60,
+          "bytes": 17000000,
+          "sha256": "d550d2edfab6f096215cfb11c21ef70b193e864d9f6eea6cb43c8d9914794089",
+          "web": {
+            "file": "w05/v6/9x16-web.mp4",
+            "width": 720,
+            "height": 1280,
+            "fps": 30,
+            "bytes": 4000000,
+            "sha256": "d10ef91e31e6cb6fffb4a4a9a06e5b16f29b749db1485b8c2ee8e1094da88fa1"
+          }
+        }
+      },
+      "poster": {
+        "16x9": "w05/v6/poster-16x9.jpg",
+        "9x16": "w05/v6/poster-9x16.jpg",
+        "16x9_small": "w05/v6/poster-16x9-small.jpg",
+        "9x16_small": "w05/v6/poster-9x16-small.jpg"
+      },
+      "published": "2026-10-19"
+    },
+    {
+      "id": "W16",
+      "version": 1,
+      "question": "What if fixture film two asked its question?",
+      "answer": "Fixture answer two.",
+      "tagline": "The self-improving software factory.",
+      "subline": "You decide. PAIMOS learns.",
+      "link": "www.paimos.com",
+      "words": [
+        {
+          "shot": 1,
+          "kind": "question",
+          "text": "What if fixture film two asked its question?",
+          "start_s": 0.0,
+          "end_s": 3.4
+        },
+        {
+          "shot": 2,
+          "kind": "caption",
+          "text": "Fixture caption two.",
+          "start_s": 3.4,
+          "end_s": 6.9
+        },
+        {
+          "shot": 3,
+          "kind": "answer",
+          "text": "Fixture answer two.",
+          "start_s": 24.0,
+          "end_s": 27.0
+        }
+      ],
+      "duration_s": 30.0,
+      "formats": {
+        "16x9": {
+          "file": "w16/v1/16x9.mp4",
+          "width": 1920,
+          "height": 1080,
+          "fps": 60,
+          "bytes": 17000000,
+          "sha256": "483a1a1794dc7c4f34b984c8d403911c966b3fa6f16e7f909d9cd2e9349b5d99"
+        },
+        "9x16": {
+          "file": "w16/v1/9x16.mp4",
+          "width": 1080,
+          "height": 1920,
+          "fps": 60,
+          "bytes": 17000000,
+          "sha256": "123ff35f37f017c612a1dcd98a69c3603ccac84a3429a89f35d7733db1308bb6"
+        }
+      },
+      "poster": {
+        "16x9": "w16/v1/poster-16x9.jpg",
+        "9x16": "w16/v1/poster-9x16.jpg"
+      },
+      "published": "2026-10-19"
+    },
+    {
+      "id": "W33",
+      "version": 1,
+      "question": "What if fixture film four asked its question?",
+      "answer": "Fixture answer four.",
+      "tagline": "The self-improving software factory.",
+      "subline": "You decide. PAIMOS learns.",
+      "link": "www.paimos.com",
+      "words": [
+        {
+          "shot": 1,
+          "kind": "question",
+          "text": "What if fixture film four asked its question?",
+          "start_s": 0.0,
+          "end_s": 3.4
+        },
+        {
+          "shot": 2,
+          "kind": "caption",
+          "text": "Fixture caption four.",
+          "start_s": 3.4,
+          "end_s": 6.9
+        },
+        {
+          "shot": 3,
+          "kind": "answer",
+          "text": "Fixture answer four.",
+          "start_s": 24.0,
+          "end_s": 27.0
+        }
+      ],
+      "duration_s": 30.0,
+      "formats": {
+        "16x9": {
+          "file": "w33/v1/16x9.mp4",
+          "width": 1920,
+          "height": 1080,
+          "fps": 60,
+          "bytes": 17000000,
+          "sha256": "dd07f85c3617bb72a5b6a896686edeeebf7e8f3453c80ce00c2765a159075356",
+          "web": {
+            "file": "w33/v1/16x9-web.mp4",
+            "width": 1280,
+            "height": 720,
+            "fps": 30,
+            "bytes": 4000000,
+            "sha256": "5c46334148e3a2ac39b187da1bc62581bb949c306f7e990b0066037d8accf925"
+          }
+        },
+        "9x16": {
+          "file": "w33/v1/9x16.mp4",
+          "width": 1080,
+          "height": 1920,
+          "fps": 60,
+          "bytes": 17000000,
+          "sha256": "8ea0ab2a39363c58d8707239390920a6d03225f435e0a743de797302c837413c",
+          "web": {
+            "file": "w33/v1/9x16-web.mp4",
+            "width": 720,
+            "height": 1280,
+            "fps": 30,
+            "bytes": 4000000,
+            "sha256": "7965c81b39b9f9be566216fcf0d1b29abca763fac5df25a6f02ac07bd69c9d6a"
+          }
+        }
+      },
+      "poster": {
+        "16x9": "w33/v1/poster-16x9.jpg",
+        "9x16": "w33/v1/poster-9x16.jpg",
+        "16x9_small": "w33/v1/poster-16x9-small.jpg",
+        "9x16_small": "w33/v1/poster-9x16-small.jpg"
+      },
+      "published": "2026-10-19"
+    }
+  ]
+}

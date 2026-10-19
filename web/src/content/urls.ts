@@ -8,6 +8,9 @@ export const siteUrls = {
   overview: "https://www.inspr.at/overview/",
   overviewGerman: "https://www.inspr.at/de/ueberblick/",
   paimos: "https://paimos.inspr.at",
+  // INSPR-572: the public front door with the films; paimos.inspr.at stays
+  // the product and specification site.
+  paimosCom: "https://paimos.com",
   pharos: "https://pharos.inspr.at",
   janus: "https://janus.inspr.at",
   aithema: "https://aithema.inspr.at",

@@ -18,6 +18,9 @@ const pages = [
   // INSPR-544: the engine section took the place of the retired Journey.
   { name: "paimos", path: new URL("../dist/paimos/index.html", import.meta.url), minimum: 13, expectedRails: 0 },
   { name: "paimos-de", path: new URL("../dist/paimos/de/index.html", import.meta.url), minimum: 13, expectedRails: 0 },
+  // INSPR-572: paimos.com, the front door. The hero and the footer CTA
+  // always; the film stage joins them once a film is cleared.
+  { name: "paimos-com", path: new URL("../dist/paimos-com/index.html", import.meta.url), minimum: 2, expectedRails: 0 },
 ];
 
 for (const page of pages) {

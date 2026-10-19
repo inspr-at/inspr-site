@@ -1,0 +1,639 @@
+/*
+ * INSPR-572: paimos.com, the front door. Built on microsites.css (shell,
+ * footer) and the shared PAIMOS tokens; the page has no site header. One
+ * screen in two states:
+ *
+ *   idle  the gold arc with the AEON mark under it, the tagline and Watch now
+ *         on pearl, with the player
+ *         bar waiting at the foot of the screen. On a fresh arrival
+ *         (html[data-intro="play"], set by public/scripts/paimos-intro.js)
+ *         the arc draws itself and the rest follows.
+ *   open  a black curtain over the whole page, the film full screen, the bar
+ *         fixed in the same place, light on dark, hiding while a film plays.
+ *
+ * --cinema-fade matches FADE in PaimosLanding's script. Loaded only by
+ * PaimosLanding.
+ */
+@layer components {
+  html.cinema-open {
+    overflow: hidden;
+  }
+
+  .landing {
+    background: var(--aeon-pearl);
+  }
+
+  .landing-accent {
+    display: block;
+    font-family: var(--font-display);
+    font-style: normal;
+    font-weight: 330;
+    letter-spacing: -0.05em;
+    color: var(--aeon-gold-deep);
+  }
+
+  .cinema {
+    --cinema-fade: 480ms;
+    --cinema-ink: var(--ink);
+    position: relative;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    min-height: 100svh;
+    background: var(--aeon-pearl);
+  }
+
+  /* ---- Idle: the opening screen -------------------------------------- */
+
+  .cinema__intro {
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    padding-block: clamp(2rem, 6vh, 4rem);
+    text-align: center;
+  }
+
+  /* The mark sits in the hollow under the arc: the arc is a quarter as tall
+     as it is wide, so pulling the mark up by an eighth of the width centres
+     it under the curve at every size. */
+  .cinema__arc {
+    display: block;
+    width: min(100%, 46rem);
+    margin-bottom: calc(min(100vw - 2.5rem, 46rem) * -0.13);
+    overflow: visible;
+  }
+
+  .cinema__mark {
+    display: block;
+    width: clamp(3rem, 5vw, 4.25rem);
+    height: auto;
+    margin-bottom: clamp(1rem, 2.4vh, 1.6rem);
+  }
+
+  .cinema__arc path {
+    fill: none;
+    stroke: url(#cinema-arc-gold);
+    stroke-linecap: round;
+  }
+
+  .cinema__arc-line {
+    stroke-width: 2.4;
+  }
+
+  .cinema__arc-glow {
+    stroke-width: 9;
+    opacity: 0.32;
+    filter: blur(6px);
+  }
+
+  .cinema h1 {
+    max-width: 16ch;
+    margin-top: 1rem;
+    font-size: clamp(2.6rem, 6.2vw + 0.6rem, 6.4rem);
+    line-height: 0.98;
+    text-wrap: balance;
+  }
+
+  .cinema h1 > span {
+    display: block;
+  }
+
+  .cinema h1 .landing-accent {
+    margin-top: 0.35em;
+    font-size: 0.56em;
+    line-height: 1.1;
+  }
+
+  .cinema__watch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.9rem;
+    min-height: 4rem;
+    margin-top: clamp(2rem, 5vh, 3.2rem);
+    padding: 0.5rem 1.6rem 0.5rem 0.55rem;
+    color: white;
+    background: var(--aeon-night);
+    border-radius: 999px;
+    box-shadow: 0 24px 50px -24px rgb(5 24 39 / 0.6);
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform 240ms var(--ease), box-shadow 240ms var(--ease);
+  }
+
+  .cinema__watch:hover {
+    color: white;
+    box-shadow: 0 28px 56px -22px rgb(5 24 39 / 0.7), 0 0 0 6px rgb(214 155 49 / 0.18);
+    transform: translateY(-2px);
+  }
+
+  .cinema__watch:focus-visible {
+    outline: 3px solid var(--aeon-gold);
+    outline-offset: 4px;
+  }
+
+  .cinema__watch-disc {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    color: var(--aeon-night);
+    background: var(--aeon-gold-bright);
+    border-radius: 50%;
+  }
+
+  .cinema__watch-disc svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    margin-left: 0.15rem;
+  }
+
+  .cinema__watch-time {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 500;
+    opacity: 0.65;
+  }
+
+  /* ---- Open: curtain and screen --------------------------------------- */
+
+  .cinema__curtain,
+  .cinema__screen {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .cinema__curtain {
+    z-index: 80;
+    background: black;
+    opacity: 0;
+    transition: opacity var(--cinema-fade) ease;
+  }
+
+  .cinema__screen {
+    z-index: 81;
+  }
+
+  .cinema[data-state="open"] .cinema__curtain {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .cinema[data-state="open"] .cinema__screen {
+    pointer-events: auto;
+  }
+
+  .cinema__video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 0;
+    transition: opacity var(--cinema-fade) ease;
+  }
+
+  .cinema__video[data-shown] {
+    opacity: 1;
+  }
+
+  /* A ring only when a film is actually waiting for data, after a beat. */
+  @keyframes cinema-spin {
+    to { transform: rotate(1turn); }
+  }
+
+  @keyframes cinema-appear {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .cinema[data-buffering][data-state="open"] .cinema__screen::after {
+    position: absolute;
+    top: calc(50% - 1.25rem);
+    left: calc(50% - 1.25rem);
+    width: 2.5rem;
+    height: 2.5rem;
+    content: "";
+    border: 2px solid rgb(255 255 255 / 0.2);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: cinema-spin 900ms linear infinite, cinema-appear 200ms ease 400ms both;
+  }
+
+  /* ---- The bar --------------------------------------------------------- */
+
+  .cinema__bar {
+    position: relative;
+    z-index: 82;
+    color: var(--cinema-ink);
+    transition: color var(--cinema-fade) ease, opacity 320ms ease, background var(--cinema-fade) ease;
+  }
+
+  .cinema__bar[hidden],
+  .cinema__close[hidden] {
+    display: none;
+  }
+
+  .cinema[data-state="open"] .cinema__bar {
+    position: fixed;
+    inset: auto 0 0;
+    color: white;
+    background: linear-gradient(to top, rgb(0 0 0 / 0.72), rgb(0 0 0 / 0.35) 60%, transparent);
+  }
+
+  /* Controls leave slowly and come back quickly, the cursor with them. */
+  .cinema[data-state="open"] .cinema__bar,
+  .cinema[data-state="open"] .cinema__close {
+    transition: color var(--cinema-fade) ease, opacity 200ms ease, background var(--cinema-fade) ease, visibility 0s;
+  }
+
+  .cinema[data-state="open"][data-controls="hidden"] .cinema__bar,
+  .cinema[data-state="open"][data-controls="hidden"] .cinema__close {
+    opacity: 0;
+    pointer-events: none;
+    transition: color var(--cinema-fade) ease, opacity 700ms ease, background var(--cinema-fade) ease, visibility 0s;
+  }
+
+  .cinema[data-state="open"][data-controls="hidden"],
+  .cinema[data-state="open"][data-controls="hidden"] * {
+    cursor: none;
+  }
+
+  .cinema__bar-inner {
+    display: grid;
+    grid-template-columns: auto auto auto auto minmax(0, 1fr) auto auto auto;
+    align-items: center;
+    gap: clamp(0.25rem, 0.8vw, 0.6rem);
+    padding-block: 0.9rem clamp(1rem, 2.5vh, 1.6rem);
+  }
+
+  .cinema__icon {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 180ms ease, transform 180ms ease;
+  }
+
+  .cinema__icon svg {
+    width: 1.3rem;
+    height: 1.3rem;
+  }
+
+  .cinema__icon:hover {
+    background: color-mix(in srgb, currentColor 12%, transparent);
+  }
+
+  .cinema__icon:active {
+    transform: scale(0.94);
+  }
+
+  .cinema__icon:focus-visible,
+  .cinema__track:focus-visible,
+  .cinema__chapters button:focus-visible {
+    outline: 2px solid var(--aeon-gold);
+    outline-offset: 2px;
+  }
+
+  .cinema__icon--primary {
+    width: 3.1rem;
+    height: 3.1rem;
+    color: var(--aeon-pearl);
+    background: var(--cinema-ink);
+  }
+
+  .cinema__icon--primary:hover {
+    background: var(--cinema-ink);
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--aeon-gold) 30%, transparent);
+  }
+
+  .cinema[data-state="open"] .cinema__icon--primary {
+    color: black;
+    background: white;
+  }
+
+  .cinema__glyph-pause,
+  .cinema__glyph-muted,
+  .cinema__glyph-exit,
+  [data-playing] > .cinema__glyph-play,
+  [data-muted] > .cinema__glyph-sound,
+  [data-full] > .cinema__glyph-enter {
+    display: none;
+  }
+
+  [data-playing] > .cinema__glyph-pause,
+  [data-muted] > .cinema__glyph-muted,
+  [data-full] > .cinema__glyph-exit {
+    display: block;
+  }
+
+  .cinema__time {
+    padding-inline: 0.35rem 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    opacity: 0.75;
+  }
+
+  /* The timeline: one segment per film, its question above it. */
+  .cinema__timeline {
+    display: grid;
+    gap: 0.2rem;
+    min-width: 0;
+    padding-inline: 0.4rem;
+  }
+
+  .cinema__chapters,
+  .cinema__track {
+    display: flex;
+    gap: 6px;
+  }
+
+  .cinema__chapters {
+    padding: 0;
+    list-style: none;
+  }
+
+  .cinema__chapters li {
+    flex: var(--share) 1 0;
+    min-width: 0;
+  }
+
+  .cinema__chapters button {
+    display: block;
+    width: 100%;
+    padding: 0.15rem 0;
+    overflow: hidden;
+    color: inherit;
+    background: none;
+    border: 0;
+    font: inherit;
+    font-size: 0.78rem;
+    text-align: left;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    opacity: 0.6;
+    cursor: pointer;
+    transition: opacity 200ms ease;
+  }
+
+  .cinema__chapters button:hover,
+  .cinema__chapters button[aria-current="true"] {
+    opacity: 1;
+  }
+
+  .cinema__chapters button[data-watched]::before {
+    display: inline-block;
+    width: 0.4rem;
+    height: 0.4rem;
+    margin-right: 0.4rem;
+    vertical-align: 0.1rem;
+    content: "";
+    background: var(--aeon-gold);
+    border-radius: 50%;
+  }
+
+  .cinema__track {
+    position: relative;
+    align-items: center;
+    height: 1.25rem;
+    cursor: pointer;
+    touch-action: none;
+  }
+
+  .cinema__segment {
+    position: relative;
+    flex: var(--share) 1 0;
+    height: 4px;
+    overflow: hidden;
+    background: color-mix(in srgb, currentColor 22%, transparent);
+    border-radius: 2px;
+    transition: height 160ms ease;
+  }
+
+  .cinema__track:hover .cinema__segment,
+  .cinema__track:focus-visible .cinema__segment {
+    height: 6px;
+  }
+
+  .cinema__fill {
+    position: absolute;
+    inset: 0;
+    background: var(--aeon-gold-bright);
+    transform: scaleX(var(--fill, 0));
+    transform-origin: left;
+  }
+
+  .cinema__handle {
+    position: absolute;
+    top: 50%;
+    left: var(--handle, 0px);
+    width: 0.85rem;
+    height: 0.85rem;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.4);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6);
+    transition: opacity 160ms ease, transform 160ms ease;
+    pointer-events: none;
+  }
+
+  .cinema[data-state="open"] .cinema__track:is(:hover, :focus-visible) .cinema__handle {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+
+  .cinema__close {
+    position: fixed;
+    top: clamp(0.75rem, 2vw, 1.25rem);
+    right: clamp(0.75rem, 2vw, 1.25rem);
+    z-index: 83;
+    color: white;
+    background: rgb(0 0 0 / 0.4);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 320ms ease, visibility 0s linear 320ms;
+  }
+
+  .cinema[data-state="open"] .cinema__close {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 320ms ease, visibility 0s;
+  }
+
+  /* The transcript: read by screen readers and search engines at all times,
+     shown as a panel on request, following the line on screen. */
+  .cinema__transcript {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .cinema[data-transcript] .cinema__transcript {
+    position: fixed;
+    right: clamp(0.75rem, 2vw, 1.5rem);
+    bottom: 6.5rem;
+    z-index: 84;
+    width: min(24rem, calc(100vw - 1.5rem));
+    height: auto;
+    max-height: min(50vh, 26rem);
+    padding: 1.2rem 1.3rem;
+    overflow: auto;
+    color: white;
+    background: rgb(8 18 28 / 0.82);
+    border: 1px solid rgb(255 255 255 / 0.14);
+    border-radius: 1rem;
+    clip-path: none;
+    white-space: normal;
+    backdrop-filter: blur(14px);
+  }
+
+  .cinema__transcript-title {
+    color: var(--aeon-gold-bright);
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 620;
+    letter-spacing: normal;
+  }
+
+  .cinema__transcript ol {
+    padding: 0;
+    list-style: none;
+  }
+
+  .cinema[data-transcript] [data-cinema-text]:not([data-current]) {
+    display: none;
+  }
+
+  .cinema__transcript h3 {
+    margin-top: 0.6rem;
+    color: white;
+    font-size: 1.05rem;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+  }
+
+  .cinema__transcript li li {
+    margin-top: 0.45rem;
+    color: rgb(255 255 255 / 0.55);
+    font-size: 0.92rem;
+    transition: color 240ms ease;
+  }
+
+  .cinema__transcript li li[data-now] {
+    color: white;
+  }
+
+  .cinema__transcript li li[data-kind="endcard"] {
+    color: var(--aeon-gold-bright);
+  }
+
+  /* ---- Phones ---------------------------------------------------------- */
+  @media (max-width: 47.99rem) {
+    .cinema__bar-inner {
+      grid-template-columns: auto minmax(0, 1fr) auto auto;
+      row-gap: 0.1rem;
+    }
+
+    .cinema__step,
+    .cinema__time,
+    [data-cinema-fullscreen] {
+      display: none;
+    }
+
+    .cinema__chapters button {
+      font-size: 0.72rem;
+    }
+
+    .cinema[data-transcript] .cinema__transcript {
+      bottom: 5.5rem;
+    }
+  }
+
+  /* ---- The opening: backwards fill only, so every element returns to its
+     own styles (auto-hide, hover) once it has arrived --------------------- */
+  @keyframes cinema-arc-draw {
+    from { stroke-dashoffset: 1; }
+    to { stroke-dashoffset: 0; }
+  }
+
+  @keyframes cinema-glow-settle {
+    0% { opacity: 0.32; }
+    40% { opacity: 0.62; }
+    100% { opacity: 0.32; }
+  }
+
+  @keyframes cinema-rise {
+    from { opacity: 0; transform: translateY(0.9rem); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @keyframes cinema-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  html[data-intro="play"] .cinema__arc path {
+    stroke-dasharray: 1;
+    animation: cinema-arc-draw 1500ms cubic-bezier(0.65, 0, 0.35, 1) 150ms backwards;
+  }
+
+  html[data-intro="play"] .cinema__arc-glow {
+    animation:
+      cinema-arc-draw 1500ms cubic-bezier(0.65, 0, 0.35, 1) 150ms backwards,
+      cinema-glow-settle 1400ms ease-in-out 1500ms backwards;
+  }
+
+  @keyframes cinema-mark-in {
+    from { opacity: 0; transform: scale(0.82); }
+    to { opacity: 1; transform: none; }
+  }
+
+  html[data-intro="play"] .cinema__mark {
+    animation: cinema-mark-in 900ms var(--ease) 950ms backwards;
+  }
+
+  html[data-intro="play"] .cinema .eyebrow {
+    animation: cinema-rise 700ms var(--ease) 1150ms backwards;
+  }
+
+  html[data-intro="play"] .cinema h1 > span {
+    animation: cinema-rise 900ms var(--ease) 1300ms backwards;
+  }
+
+  html[data-intro="play"] .cinema h1 .landing-accent {
+    animation: cinema-rise 900ms var(--ease) 1550ms backwards;
+  }
+
+  html[data-intro="play"] .cinema__watch {
+    animation: cinema-rise 800ms var(--ease) 1800ms backwards;
+  }
+
+  html[data-intro="play"] .cinema__bar {
+    animation: cinema-fade-in 900ms ease 2050ms backwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cinema {
+      --cinema-fade: 120ms;
+    }
+
+    .cinema__segment,
+    .cinema__handle,
+    .cinema__watch,
+    .cinema__icon {
+      transition: none;
+    }
+  }
+}

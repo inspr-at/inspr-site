@@ -46,6 +46,8 @@ export const DOCUMENTS = Object.freeze([
   "paimos/index.html", "paimos/de/index.html",
   "paimos-aeon/index.html", "paimos-aeon/de/index.html", "pharos/index.html", "pharos/de/index.html",
   "janus/index.html", "janus/de/index.html",
+  // INSPR-572: paimos.com.
+  "paimos-com/index.html", "paimos-com/robots.txt",
 ]);
 
 // Log "<name>\t<arg>\t<arg>..." before acting, like the transport assertions expect.

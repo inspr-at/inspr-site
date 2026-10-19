@@ -1081,7 +1081,7 @@ fi
 say "verifying CSP hashes"
 python3 "$ROOT/web/scripts/verify-csp.py"
 
-# 3. Confirm the one-build/five-site output contract.
+# 3. Confirm the one-build output contract for every host (paimos.com: INSPR-572).
 required_documents=(
   "index.html"
   "overview/index.html"
@@ -1094,6 +1094,8 @@ required_documents=(
   "pharos/de/index.html"
   "janus/index.html"
   "janus/de/index.html"
+  "paimos-com/index.html"
+  "paimos-com/robots.txt"
   "release.json"
 )
 if [ -d "$ROOT/web/src/pages/aithema" ]; then
@@ -1265,6 +1267,7 @@ remote_ssh "set -eu
   test -f '$REMOTE_INCOMING/pharos/de/index.html'
   test -f '$REMOTE_INCOMING/janus/index.html'
   test -f '$REMOTE_INCOMING/janus/de/index.html'
+  test -f '$REMOTE_INCOMING/paimos-com/index.html'
   test -f '$REMOTE_INCOMING/release-set.json'
   test -n \"\$(find '$REMOTE_INCOMING/_astro' -maxdepth 1 -type f -name '*.css' -print -quit)\"
   test -f '$REMOTE_EDGE_INCOMING/Caddyfile'

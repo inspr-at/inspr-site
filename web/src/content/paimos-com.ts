@@ -1,10 +1,11 @@
 import { paimosAeonContent, paimosRelease } from "./paimos-aeon";
 import { siteUrls } from "./urls";
 
-// INSPR-572: paimos.com, the public front door: the tagline, the
-// "What if…?" films and a way to learn more. paimos.inspr.at stays the product and specification site,
-// and every claim here repeats one it already makes (no compliance, EU or
-// competitor lines). English only at launch. The tagline was chosen by Markus.
+// INSPR-572: paimos.com, the public front door: one screen with the tagline
+// and one button that plays the "What if…?" films. paimos.inspr.at stays the
+// product and specification site, and every claim here repeats one it already
+// makes (no compliance, EU or competitor lines). English only at launch. The
+// tagline was chosen by Markus.
 const product = siteUrls.paimos;
 
 export const paimosComContent = {
@@ -22,36 +23,29 @@ export const paimosComContent = {
     eyebrow: "PAIMOS AEON · Open source",
     title: "The self-improving software factory.",
     accent: "You decide. PAIMOS learns.",
-    lead: paimosAeonContent.hero.lead,
-    filmsLabel: "Watch the films",
-    runningLabel: "See it running",
-    runningHref: `${product}/#screens`,
-    productLabel: "Learn more",
-    sourceLabel: "View the source",
-    // Used for the share image while no film is cleared.
+    // Without a cleared film the one button leads to the product site.
+    learnLabel: "Learn more",
+    // The share image while no film is cleared.
     screenAlt: "PAIMOS Delivery in Live mode, with release and change timelines and the current delivery status.",
-    pauseMotion: "Pause motion",
-    playMotion: "Play motion",
   },
-  films: {
-    title: "What if…?",
+  player: {
+    watch: "Watch now",
     label: "What if…? films",
-    slide: "Question {n} of {total}",
-    watch: "Watch",
-    transcript: "Transcript",
-    previous: "Previous question",
-    next: "Next question",
-    chapters: "Questions",
-    back: "Back to the questions",
+    play: "Play",
     pause: "Pause",
-    resume: "Play",
-    soundOn: "Sound on",
-    soundOff: "Sound off",
+    seek: "Position in the films",
+    film: "Film {n} of {total}",
+    soundOn: "Turn sound on",
+    soundOff: "Turn sound off",
+    transcript: "Transcript",
+    transcriptTitle: "What the films say",
     fullscreen: "Full screen",
     exitFullscreen: "Exit full screen",
+    previous: "Previous film",
+    next: "Next film",
+    close: "Close the films",
   },
   nav: {
-    films: { label: "Films", href: "#films" },
     product: { label: "Learn more", href: product },
   },
   finalCta: paimosAeonContent.finalCta,

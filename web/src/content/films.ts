@@ -33,12 +33,15 @@ export interface Film {
   version: number;
   question: string;
   answer: string;
-  /** The film's words in order, then its end card (tagline, subline, link). */
-  words: Array<{ kind: string; text: string }>;
+  /** The film's words in order with their timing, then its end card (tagline, subline, link). */
+  words: Array<{ kind: string; text: string; start?: number; end?: number }>;
   durationSeconds: number;
   published: string;
-  /** The lighter web rendition when VID ships one, else the full file. */
-  video: Record<"16x9" | "9x16", FilmSource>;
+  /**
+   * Per orientation: the full file and, when VID ships one, the lighter web
+   * rendition. The player picks one per screen and connection.
+   */
+  video: Record<"16x9" | "9x16", { full: FilmSource; web?: FilmSource }>;
   /** Full-size posters: the small ones are thumbnails, too soft for the stage. */
   poster: Record<"16x9" | "9x16", string>;
 }
@@ -50,9 +53,14 @@ export const filmBase = manifest ? new URL(manifest.base).origin : undefined;
 export const films: Film[] = manifest
   ? orderFilms(manifest.episodes).map((film) => {
       const url = (path: string) => filmUrl(manifest.base, path);
+      const source = (rendition: { file: string; width: number; height: number }) => ({
+        src: url(rendition.file),
+        width: rendition.width,
+        height: rendition.height,
+      });
       const video = (format: "16x9" | "9x16") => {
-        const chosen = film.formats[format].web ?? film.formats[format];
-        return { src: url(chosen.file), width: chosen.width, height: chosen.height };
+        const { web } = film.formats[format];
+        return { full: source(film.formats[format]), web: web ? source(web) : undefined };
       };
       return {
         id: film.id,
@@ -60,7 +68,7 @@ export const films: Film[] = manifest
         question: film.question,
         answer: film.answer,
         words: [
-          ...film.words.map((word) => ({ kind: word.kind, text: word.text })),
+          ...film.words.map((word) => ({ kind: word.kind, text: word.text, start: word.start_s, end: word.end_s })),
           ...[film.tagline, film.subline, film.link]
             .filter((line): line is string => line !== undefined)
             .map((line) => ({ kind: "endcard", text: line })),

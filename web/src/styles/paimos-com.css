@@ -1,19 +1,22 @@
 /*
  * INSPR-572: paimos.com, the front door. Built on microsites.css (shell,
- * buttons, header, footer) and the shared PAIMOS tokens. Two scenes:
+ * header, footer) and the shared PAIMOS tokens. One screen in two states:
  *
- *   The hero: the gold arc and the tagline on pearl, over the first film at a
- *   tenth of its strength. On a fresh arrival (html[data-intro="play"], set by
- *   public/scripts/paimos-intro.js) the arc draws itself and the words follow.
+ *   idle  the gold arc, the tagline and Watch now on pearl, with the player
+ *         bar waiting at the foot of the screen. On a fresh arrival
+ *         (html[data-intro="play"], set by public/scripts/paimos-intro.js)
+ *         the arc draws itself and the rest follows.
+ *   open  a black curtain over the whole page, the film full screen, the bar
+ *         fixed in the same place, light on dark, hiding while a film plays.
  *
- *   The stage: one question in front, its film faint behind it. Backdrops
- *   crossfade in place; questions slide with the direction of travel. Watch
- *   dips to black, swaps to the full frame unseen and rises; leaving reverses
- *   it. The script's DIP matches --reel-dip.
- *
- * Loaded only by PaimosLanding.
+ * --cinema-fade matches FADE in PaimosLanding's script. Loaded only by
+ * PaimosLanding.
  */
 @layer components {
+  html.cinema-open {
+    overflow: hidden;
+  }
+
   .landing {
     background: var(--aeon-pearl);
   }
@@ -27,67 +30,50 @@
     color: var(--aeon-gold-deep);
   }
 
-  /* ---- Hero ------------------------------------------------------------ */
-
-  .landing-hero {
+  .cinema {
+    --cinema-fade: 480ms;
+    --cinema-ink: var(--ink);
     position: relative;
-    isolation: isolate;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    min-height: calc(100svh - var(--cinema-header, 5.5rem));
+    background: var(--aeon-pearl);
+  }
+
+  /* ---- Idle: the opening screen -------------------------------------- */
+
+  .cinema__intro {
     display: grid;
     align-content: center;
-    overflow: hidden;
-    padding-block: clamp(2.5rem, 6vw, 5rem) clamp(4rem, 9vw, 7rem);
+    justify-items: center;
+    padding-block: clamp(2rem, 6vh, 4rem);
     text-align: center;
   }
 
-  .landing-hero--film {
-    min-height: calc(100svh - 5.5rem);
-  }
-
-  .landing-hero__film {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 1800ms var(--ease);
-  }
-
-  .landing-hero__film[data-playing] {
-    opacity: 0.1;
-  }
-
-  .landing-hero__copy {
-    display: grid;
-    justify-items: center;
-  }
-
-  .landing-hero__arc {
+  .cinema__arc {
     display: block;
     width: min(100%, 46rem);
     margin-bottom: clamp(-1.6rem, -2vw, -0.6rem);
     overflow: visible;
   }
 
-  .landing-hero__arc path {
+  .cinema__arc path {
     fill: none;
-    stroke: url(#landing-arc-gold);
+    stroke: url(#cinema-arc-gold);
     stroke-linecap: round;
   }
 
-  .landing-hero__arc-line {
+  .cinema__arc-line {
     stroke-width: 2.4;
   }
 
-  .landing-hero__arc-glow {
+  .cinema__arc-glow {
     stroke-width: 9;
     opacity: 0.32;
     filter: blur(6px);
   }
 
-  .landing-hero h1 {
+  .cinema h1 {
     max-width: 16ch;
     margin-top: 1rem;
     font-size: clamp(2.6rem, 6.2vw + 0.6rem, 6.4rem);
@@ -95,583 +81,531 @@
     text-wrap: balance;
   }
 
-  .landing-hero h1 > span {
+  .cinema h1 > span {
     display: block;
   }
 
-  .landing-hero h1 .landing-accent {
+  .cinema h1 .landing-accent {
     margin-top: 0.35em;
     font-size: 0.56em;
     line-height: 1.1;
   }
 
-  .landing-hero__lead {
-    max-width: 44rem;
-    margin-top: 1.6rem;
-    color: var(--ink-soft);
-    font-size: clamp(1.08rem, 0.75vw + 0.92rem, 1.36rem);
-    line-height: 1.54;
-    text-wrap: pretty;
+  .cinema__watch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.9rem;
+    min-height: 4rem;
+    margin-top: clamp(2rem, 5vh, 3.2rem);
+    padding: 0.5rem 1.6rem 0.5rem 0.55rem;
+    color: white;
+    background: var(--aeon-night);
+    border-radius: 999px;
+    box-shadow: 0 24px 50px -24px rgb(5 24 39 / 0.6);
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform 240ms var(--ease), box-shadow 240ms var(--ease);
   }
 
-  .landing-hero .button-row {
-    justify-content: center;
+  .cinema__watch:hover {
+    color: white;
+    box-shadow: 0 28px 56px -22px rgb(5 24 39 / 0.7), 0 0 0 6px rgb(214 155 49 / 0.18);
+    transform: translateY(-2px);
   }
 
-  .motion-toggle {
-    min-height: 2.25rem;
-    padding: 0.35rem 0.85rem;
+  .cinema__watch:focus-visible {
+    outline: 3px solid var(--aeon-gold);
+    outline-offset: 4px;
+  }
+
+  .cinema__watch-disc {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    color: var(--aeon-night);
+    background: var(--aeon-gold-bright);
+    border-radius: 50%;
+  }
+
+  .cinema__watch-disc svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    margin-left: 0.15rem;
+  }
+
+  .cinema__watch-time {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 500;
+    opacity: 0.65;
+  }
+
+  /* ---- Open: curtain and screen --------------------------------------- */
+
+  .cinema__curtain,
+  .cinema__screen {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .cinema__curtain {
+    z-index: 80;
+    background: black;
+    opacity: 0;
+    transition: opacity var(--cinema-fade) ease;
+  }
+
+  .cinema__screen {
+    z-index: 81;
+  }
+
+  .cinema[data-state="open"] .cinema__curtain {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .cinema[data-state="open"] .cinema__screen {
+    pointer-events: auto;
+  }
+
+  .cinema[data-state="open"][data-controls="hidden"] .cinema__screen {
+    cursor: none;
+  }
+
+  .cinema__video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 0;
+    transition: opacity var(--cinema-fade) ease;
+  }
+
+  .cinema__video[data-shown] {
+    opacity: 1;
+  }
+
+  /* A ring only when a film is actually waiting for data, after a beat. */
+  @keyframes cinema-spin {
+    to { transform: rotate(1turn); }
+  }
+
+  @keyframes cinema-appear {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .cinema[data-buffering][data-state="open"] .cinema__screen::after {
+    position: absolute;
+    top: calc(50% - 1.25rem);
+    left: calc(50% - 1.25rem);
+    width: 2.5rem;
+    height: 2.5rem;
+    content: "";
+    border: 2px solid rgb(255 255 255 / 0.2);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: cinema-spin 900ms linear infinite, cinema-appear 200ms ease 400ms both;
+  }
+
+  /* ---- The bar --------------------------------------------------------- */
+
+  .cinema__bar {
+    position: relative;
+    z-index: 82;
+    color: var(--cinema-ink);
+    transition: color var(--cinema-fade) ease, opacity 320ms ease, background var(--cinema-fade) ease;
+  }
+
+  .cinema__bar[hidden],
+  .cinema__close[hidden] {
+    display: none;
+  }
+
+  .cinema[data-state="open"] .cinema__bar {
+    position: fixed;
+    inset: auto 0 0;
+    color: white;
+    background: linear-gradient(to top, rgb(0 0 0 / 0.72), rgb(0 0 0 / 0.35) 60%, transparent);
+  }
+
+  .cinema[data-state="open"][data-controls="hidden"] .cinema__bar,
+  .cinema[data-state="open"][data-controls="hidden"] .cinema__close {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .cinema__bar-inner {
+    display: grid;
+    grid-template-columns: auto auto auto auto minmax(0, 1fr) auto auto auto;
+    align-items: center;
+    gap: clamp(0.25rem, 0.8vw, 0.6rem);
+    padding-block: 0.9rem clamp(1rem, 2.5vh, 1.6rem);
+  }
+
+  .cinema__icon {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 180ms ease, transform 180ms ease;
+  }
+
+  .cinema__icon svg {
+    width: 1.3rem;
+    height: 1.3rem;
+  }
+
+  .cinema__icon:hover {
+    background: color-mix(in srgb, currentColor 12%, transparent);
+  }
+
+  .cinema__icon:active {
+    transform: scale(0.94);
+  }
+
+  .cinema__icon:focus-visible,
+  .cinema__track:focus-visible,
+  .cinema__chapters button:focus-visible {
+    outline: 2px solid var(--aeon-gold);
+    outline-offset: 2px;
+  }
+
+  .cinema__icon--primary {
+    width: 3.1rem;
+    height: 3.1rem;
+    color: var(--aeon-pearl);
+    background: var(--cinema-ink);
+  }
+
+  .cinema__icon--primary:hover {
+    background: var(--cinema-ink);
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--aeon-gold) 30%, transparent);
+  }
+
+  .cinema[data-state="open"] .cinema__icon--primary {
+    color: black;
+    background: white;
+  }
+
+  .cinema__glyph-pause,
+  .cinema__glyph-muted,
+  .cinema__glyph-exit,
+  [data-playing] > .cinema__glyph-play,
+  [data-muted] > .cinema__glyph-sound,
+  [data-full] > .cinema__glyph-enter {
+    display: none;
+  }
+
+  [data-playing] > .cinema__glyph-pause,
+  [data-muted] > .cinema__glyph-muted,
+  [data-full] > .cinema__glyph-exit {
+    display: block;
+  }
+
+  .cinema__time {
+    padding-inline: 0.35rem 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    opacity: 0.75;
+  }
+
+  /* The timeline: one segment per film, its question above it. */
+  .cinema__timeline {
+    display: grid;
+    gap: 0.2rem;
+    min-width: 0;
+    padding-inline: 0.4rem;
+  }
+
+  .cinema__chapters,
+  .cinema__track {
+    display: flex;
+    gap: 6px;
+  }
+
+  .cinema__chapters {
+    padding: 0;
+    list-style: none;
+  }
+
+  .cinema__chapters li {
+    flex: var(--share) 1 0;
+    min-width: 0;
+  }
+
+  .cinema__chapters button {
+    display: block;
+    width: 100%;
+    padding: 0.15rem 0;
+    overflow: hidden;
+    color: inherit;
+    background: none;
+    border: 0;
     font: inherit;
+    font-size: 0.78rem;
+    text-align: left;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    opacity: 0.6;
+    cursor: pointer;
+    transition: opacity 200ms ease;
+  }
+
+  .cinema__chapters button:hover,
+  .cinema__chapters button[aria-current="true"] {
+    opacity: 1;
+  }
+
+  .cinema__chapters button[data-watched]::before {
+    display: inline-block;
+    width: 0.4rem;
+    height: 0.4rem;
+    margin-right: 0.4rem;
+    vertical-align: 0.1rem;
+    content: "";
+    background: var(--aeon-gold);
+    border-radius: 50%;
+  }
+
+  .cinema__track {
+    position: relative;
+    align-items: center;
+    height: 1.25rem;
+    cursor: pointer;
+    touch-action: none;
+  }
+
+  .cinema__segment {
+    position: relative;
+    flex: var(--share) 1 0;
+    height: 4px;
+    overflow: hidden;
+    background: color-mix(in srgb, currentColor 22%, transparent);
+    border-radius: 2px;
+    transition: height 160ms ease;
+  }
+
+  .cinema__track:hover .cinema__segment,
+  .cinema__track:focus-visible .cinema__segment {
+    height: 6px;
+  }
+
+  .cinema__fill {
+    position: absolute;
+    inset: 0;
+    background: var(--aeon-gold-bright);
+    transform: scaleX(var(--fill, 0));
+    transform-origin: left;
+  }
+
+  .cinema__handle {
+    position: absolute;
+    top: 50%;
+    left: var(--handle, 0px);
+    width: 0.85rem;
+    height: 0.85rem;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.4);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6);
+    transition: opacity 160ms ease, transform 160ms ease;
+    pointer-events: none;
+  }
+
+  .cinema[data-state="open"] .cinema__track:is(:hover, :focus-visible) .cinema__handle {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+
+  .cinema__close {
+    position: fixed;
+    top: clamp(0.75rem, 2vw, 1.25rem);
+    right: clamp(0.75rem, 2vw, 1.25rem);
+    z-index: 83;
+    color: white;
+    background: rgb(0 0 0 / 0.4);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 320ms ease, visibility 0s linear 320ms;
+  }
+
+  .cinema[data-state="open"] .cinema__close {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 320ms ease, visibility 0s;
+  }
+
+  /* The transcript: read by screen readers and search engines at all times,
+     shown as a panel on request, following the line on screen. */
+  .cinema__transcript {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .cinema[data-transcript] .cinema__transcript {
+    position: fixed;
+    right: clamp(0.75rem, 2vw, 1.5rem);
+    bottom: 6.5rem;
+    z-index: 84;
+    width: min(24rem, calc(100vw - 1.5rem));
+    height: auto;
+    max-height: min(50vh, 26rem);
+    padding: 1.2rem 1.3rem;
+    overflow: auto;
+    color: white;
+    background: rgb(8 18 28 / 0.82);
+    border: 1px solid rgb(255 255 255 / 0.14);
+    border-radius: 1rem;
+    clip-path: none;
+    white-space: normal;
+    backdrop-filter: blur(14px);
+  }
+
+  .cinema__transcript-title {
+    color: var(--aeon-gold-bright);
+    font-family: var(--font-body);
     font-size: 0.8rem;
     font-weight: 620;
-    border-radius: 999px;
-    cursor: pointer;
+    letter-spacing: normal;
   }
 
-  .landing-hero__motion {
-    position: absolute;
-    right: var(--gutter);
-    bottom: 1.25rem;
-    color: var(--ink-soft);
-    background: rgb(255 255 255 / 0.55);
-    border: 1px solid var(--line);
+  .cinema__transcript ol {
+    padding: 0;
+    list-style: none;
   }
 
-  .landing-hero__motion:hover {
-    color: var(--ink);
-    border-color: var(--line-strong);
+  .cinema[data-transcript] [data-cinema-text]:not([data-current]) {
+    display: none;
   }
 
-  /* The opening. Every element ends exactly where the static page has it. */
-  @keyframes landing-arc-draw {
+  .cinema__transcript h3 {
+    margin-top: 0.6rem;
+    color: white;
+    font-size: 1.05rem;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+  }
+
+  .cinema__transcript li li {
+    margin-top: 0.45rem;
+    color: rgb(255 255 255 / 0.55);
+    font-size: 0.92rem;
+    transition: color 240ms ease;
+  }
+
+  .cinema__transcript li li[data-now] {
+    color: white;
+  }
+
+  .cinema__transcript li li[data-kind="endcard"] {
+    color: var(--aeon-gold-bright);
+  }
+
+  /* ---- Phones ---------------------------------------------------------- */
+  @media (max-width: 47.99rem) {
+    .cinema__bar-inner {
+      grid-template-columns: auto minmax(0, 1fr) auto auto;
+      row-gap: 0.1rem;
+    }
+
+    .cinema__step,
+    .cinema__time,
+    [data-cinema-fullscreen] {
+      display: none;
+    }
+
+    .cinema__chapters button {
+      font-size: 0.72rem;
+    }
+
+    .cinema[data-transcript] .cinema__transcript {
+      bottom: 5.5rem;
+    }
+  }
+
+  /* ---- The opening: backwards fill only, so every element returns to its
+     own styles (auto-hide, hover) once it has arrived --------------------- */
+  @keyframes cinema-arc-draw {
     from { stroke-dashoffset: 1; }
     to { stroke-dashoffset: 0; }
   }
 
-  @keyframes landing-glow-settle {
+  @keyframes cinema-glow-settle {
     0% { opacity: 0.32; }
     40% { opacity: 0.62; }
     100% { opacity: 0.32; }
   }
 
-  @keyframes landing-rise {
+  @keyframes cinema-rise {
     from { opacity: 0; transform: translateY(0.9rem); }
     to { opacity: 1; transform: none; }
   }
 
-  @keyframes landing-fade {
+  @keyframes cinema-fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
   }
 
-  html[data-intro="play"] .landing-hero__arc path {
+  html[data-intro="play"] .cinema__arc path {
     stroke-dasharray: 1;
-    animation: landing-arc-draw 1500ms cubic-bezier(0.65, 0, 0.35, 1) 150ms both;
+    animation: cinema-arc-draw 1500ms cubic-bezier(0.65, 0, 0.35, 1) 150ms backwards;
   }
 
-  html[data-intro="play"] .landing-hero__arc-glow {
+  html[data-intro="play"] .cinema__arc-glow {
     animation:
-      landing-arc-draw 1500ms cubic-bezier(0.65, 0, 0.35, 1) 150ms both,
-      landing-glow-settle 1400ms ease-in-out 1500ms both;
+      cinema-arc-draw 1500ms cubic-bezier(0.65, 0, 0.35, 1) 150ms backwards,
+      cinema-glow-settle 1400ms ease-in-out 1500ms backwards;
   }
 
-  html[data-intro="play"] .landing-hero .eyebrow {
-    animation: landing-rise 700ms var(--ease) 900ms both;
+  html[data-intro="play"] .cinema .eyebrow {
+    animation: cinema-rise 700ms var(--ease) 900ms backwards;
   }
 
-  html[data-intro="play"] .landing-hero h1 > span {
-    animation: landing-rise 900ms var(--ease) 1050ms both;
+  html[data-intro="play"] .cinema h1 > span {
+    animation: cinema-rise 900ms var(--ease) 1050ms backwards;
   }
 
-  html[data-intro="play"] .landing-hero h1 .landing-accent {
-    animation: landing-rise 900ms var(--ease) 1300ms both;
+  html[data-intro="play"] .cinema h1 .landing-accent {
+    animation: cinema-rise 900ms var(--ease) 1300ms backwards;
   }
 
-  html[data-intro="play"] .landing-hero__lead {
-    animation: landing-rise 800ms var(--ease) 1500ms both;
+  html[data-intro="play"] .cinema__watch {
+    animation: cinema-rise 800ms var(--ease) 1550ms backwards;
   }
 
-  html[data-intro="play"] .landing-hero .button-row {
-    animation: landing-rise 800ms var(--ease) 1650ms both;
-  }
-
+  html[data-intro="play"] .cinema__bar,
   html[data-intro="play"] .site-header {
-    animation: landing-fade 900ms ease 1700ms both;
-  }
-
-  /* ---- Stage ----------------------------------------------------------- */
-
-  .reel {
-    --reel-ambient: 0.24;
-    --reel-dip: 420ms;
-    --reel-out: 260ms;
-    --reel-in: 620ms;
-    position: relative;
-    isolation: isolate;
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-    min-height: 100svh;
-    overflow: hidden;
-    color: white;
-    background: var(--aeon-night);
-    transition: background-color var(--reel-dip) ease;
-  }
-
-  .reel[data-frame="full"] {
-    background: black;
-  }
-
-  .reel__backdrops {
-    display: none;
-  }
-
-  [data-enhanced] .reel__backdrops {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    display: block;
-  }
-
-  /* Legibility for the question: a vignette over the faint film. */
-  [data-enhanced] .reel__backdrops::after {
-    position: absolute;
-    inset: 0;
-    content: "";
-    background:
-      radial-gradient(ellipse 70% 60% at 50% 50%, rgb(5 24 39 / 0.25), rgb(5 24 39 / 0.85)),
-      linear-gradient(to top, rgb(5 24 39 / 0.9), transparent 35%);
-    transition: opacity var(--reel-dip) ease;
-  }
-
-  .reel[data-mode="watch"] .reel__backdrops::after {
-    opacity: 0;
-  }
-
-  .reel__video {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0;
-    transition: opacity 700ms var(--ease);
-  }
-
-  .reel__video[data-current] {
-    opacity: var(--reel-ambient);
-  }
-
-  .reel[data-mode="watch"] .reel__video[data-current] {
-    opacity: 1;
-  }
-
-  .reel[data-phase="dip"] .reel__video[data-current] {
-    opacity: 0;
-    transition-duration: var(--reel-dip);
-    transition-timing-function: ease;
-  }
-
-  .reel[data-frame="full"] .reel__video[data-current] {
-    object-fit: contain;
-  }
-
-  .reel__progress {
-    position: absolute;
-    inset: 0 0 auto;
-    height: 2px;
-    background: rgb(255 255 255 / 0.12);
-    opacity: 0;
-    transition: opacity var(--reel-dip) ease;
-  }
-
-  .reel__progress span {
-    display: block;
-    height: 100%;
-    background: var(--aeon-gold-bright);
-    transform: scaleX(var(--reel-progress, 0));
-    transform-origin: left;
-  }
-
-  .reel[data-mode="watch"] .reel__progress {
-    opacity: 1;
-  }
-
-  .reel__top {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 1rem;
-    padding-top: clamp(1.4rem, 3vw, 2.4rem);
-    transition: opacity var(--reel-dip) ease;
-  }
-
-  .reel__title {
-    color: var(--aeon-gold-bright);
-    font-family: var(--font-body);
-    font-size: 0.95rem;
-    font-weight: 620;
-    letter-spacing: normal;
-  }
-
-  .reel__counter {
-    color: rgb(255 255 255 / 0.6);
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    font-variant-numeric: tabular-nums;
-  }
-
-  /* The questions. Without the enhancement they are a plain list. */
-  .reel__films {
-    display: grid;
-    gap: clamp(3rem, 8vw, 6rem);
-    align-content: center;
-    justify-items: center;
-    padding-block: clamp(3rem, 8vw, 6rem);
-    padding-inline: 0;
-    text-align: center;
-    list-style: none;
-  }
-
-  .reel__film {
-    display: grid;
-    justify-items: center;
-    gap: clamp(1rem, 2vw, 1.5rem);
-  }
-
-  [data-enhanced] .reel__films {
-    gap: 0;
-  }
-
-  [data-enhanced] .reel__film {
-    grid-area: 1 / 1;
-    transition:
-      opacity var(--reel-out) ease-in,
-      transform var(--reel-out) ease-in,
-      visibility 0s linear var(--reel-out);
-  }
-
-  [data-enhanced] .reel__film[data-position="before"],
-  [data-enhanced] .reel__film[data-position="after"] {
-    visibility: hidden;
-    opacity: 0;
-  }
-
-  [data-enhanced] .reel__film[data-position="before"] {
-    transform: translateX(-7vw);
-  }
-
-  [data-enhanced] .reel__film[data-position="after"] {
-    transform: translateX(7vw);
-  }
-
-  [data-enhanced] .reel__film[data-position="current"] {
-    visibility: visible;
-    opacity: 1;
-    transform: none;
-    transition:
-      opacity var(--reel-in) var(--ease) 140ms,
-      transform var(--reel-in) var(--ease) 140ms,
-      visibility 0s;
-  }
-
-  [data-enhanced] .reel__film[data-position][data-instant] {
-    transition: none;
-  }
-
-  .reel__question {
-    max-width: 15ch;
-    color: white;
-    font-size: clamp(2.3rem, 5.6vw + 0.6rem, 6.6rem);
-    line-height: 1;
-    text-wrap: balance;
-  }
-
-  /* The answer is the film's pay-off: shown after watching, not before. */
-  .reel__answer {
-    color: var(--aeon-gold-bright);
-    font-family: var(--font-display);
-    font-size: clamp(1.25rem, 1.4vw + 0.9rem, 2.1rem);
-    font-weight: 330;
-    letter-spacing: -0.03em;
-  }
-
-  [data-enhanced] .reel__answer {
-    opacity: 0;
-    transform: translateY(0.5rem);
-    transition: opacity 600ms var(--ease) 260ms, transform 600ms var(--ease) 260ms;
-  }
-
-  [data-enhanced] .reel__film[data-watched] .reel__answer {
-    opacity: 1;
-    transform: none;
-  }
-
-  .reel__actions {
-    display: grid;
-    justify-items: center;
-    gap: 0.9rem;
-    margin-top: clamp(0.6rem, 1.5vw, 1.2rem);
-  }
-
-  .reel__watch {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.75rem;
-    min-height: 3.4rem;
-    padding: 0 1.5rem 0 1.25rem;
-    color: var(--aeon-night);
-    background: var(--aeon-gold-bright);
-    border-radius: 999px;
-    box-shadow: 0 18px 40px -18px rgb(241 197 109 / 0.7);
-    font-size: 1.05rem;
-    font-weight: 700;
-    text-decoration: none;
-    transition: transform 220ms var(--ease), box-shadow 220ms var(--ease), background 220ms ease;
-  }
-
-  .reel__watch:hover {
-    color: var(--aeon-night);
-    background: #f6d48c;
-    box-shadow: 0 22px 46px -16px rgb(241 197 109 / 0.85);
-    transform: translateY(-2px);
-  }
-
-  .reel__watch:focus-visible,
-  .reel button:focus-visible,
-  .reel summary:focus-visible {
-    outline: 2px solid var(--aeon-gold-bright);
-    outline-offset: 3px;
-  }
-
-  .reel__watch-icon {
-    width: 0;
-    height: 0;
-    border-block: 0.42rem solid transparent;
-    border-left: 0.68rem solid currentColor;
-  }
-
-  .reel__watch-time {
-    font-family: var(--font-mono);
-    font-size: 0.82rem;
-    font-weight: 500;
-    opacity: 0.7;
-  }
-
-  .reel__transcript {
-    max-width: 38rem;
-    color: rgb(255 255 255 / 0.7);
-    font-size: 0.9rem;
-  }
-
-  .reel__transcript summary {
-    width: fit-content;
-    margin-inline: auto;
-    cursor: pointer;
-  }
-
-  .reel__transcript ol {
-    display: grid;
-    gap: 0.3rem;
-    margin-top: 0.8rem;
-    padding: 0;
-    list-style: none;
-  }
-
-  .reel__transcript li[data-kind="endcard"] {
-    color: var(--aeon-gold-bright);
-  }
-
-  /* Ask controls: arrows, chapters with their bars, motion. */
-  .reel__bottom {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto auto;
-    align-items: center;
-    gap: clamp(0.75rem, 2vw, 1.5rem);
-    padding-bottom: clamp(1.4rem, 3vw, 2.4rem);
-  }
-
-  .reel__bottom[hidden] {
-    display: none;
-  }
-
-  .reel__arrow {
-    display: grid;
-    place-items: center;
-    width: 3.25rem;
-    height: 3.25rem;
-    color: white;
-    background: rgb(255 255 255 / 0.06);
-    border: 1px solid rgb(255 255 255 / 0.22);
-    border-radius: 50%;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: background 200ms ease, border-color 200ms ease;
-  }
-
-  .reel__arrow:hover {
-    background: rgb(255 255 255 / 0.12);
-    border-color: var(--aeon-gold-bright);
-  }
-
-  .reel__arrow--previous {
-    grid-column: 1;
-  }
-
-  .reel__chapters {
-    display: grid;
-    grid-auto-columns: minmax(0, 1fr);
-    grid-auto-flow: column;
-    gap: clamp(0.6rem, 1.5vw, 1.2rem);
-    padding: 0;
-    list-style: none;
-  }
-
-  .reel__chapters button {
-    display: grid;
-    gap: 0.6rem;
-    width: 100%;
-    padding: 0.4rem 0;
-    color: rgb(255 255 255 / 0.5);
-    background: none;
-    border: 0;
-    font: inherit;
-    font-size: 0.85rem;
-    text-align: left;
-    cursor: pointer;
-    transition: color 300ms ease;
-  }
-
-  .reel__chapters button:hover,
-  .reel__chapters button[aria-current="true"] {
-    color: white;
-  }
-
-  .reel__chapter-bar {
-    height: 2px;
-    background: rgb(255 255 255 / 0.22);
-    transition: background 400ms ease;
-  }
-
-  .reel__chapters button[data-watched] .reel__chapter-bar {
-    background: var(--aeon-gold);
-  }
-
-  .reel__chapters button[aria-current="true"] .reel__chapter-bar {
-    background: white;
-  }
-
-  .reel__chapter-text {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-
-  .reel__motion {
-    color: rgb(255 255 255 / 0.7);
-    background: none;
-    border: 1px solid rgb(255 255 255 / 0.22);
-  }
-
-  /* Watch controls: one row at the foot of the film, hidden while idle. */
-  .reel__player {
-    position: absolute;
-    inset: auto 0 clamp(1.2rem, 3vw, 2rem);
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.6rem;
-  }
-
-  .reel__player[hidden] {
-    display: none;
-  }
-
-  .reel__player button {
-    min-height: 2.75rem;
-    padding: 0.5rem 1.1rem;
-    color: white;
-    background: rgb(0 0 0 / 0.45);
-    border: 1px solid rgb(255 255 255 / 0.25);
-    border-radius: 999px;
-    font: inherit;
-    font-size: 0.9rem;
-    font-weight: 620;
-    cursor: pointer;
-    backdrop-filter: blur(8px);
-  }
-
-  .reel__player button:hover {
-    border-color: var(--aeon-gold-bright);
-  }
-
-  /* Mode visibility: each control set fades rather than popping. */
-  [data-enhanced] .reel__films,
-  [data-enhanced] .reel__bottom,
-  [data-enhanced] .reel__player {
-    transition: opacity var(--reel-dip) ease, visibility 0s linear 0s;
-  }
-
-  .reel[data-mode="watch"] .reel__films,
-  .reel[data-mode="watch"] .reel__bottom,
-  .reel[data-mode="watch"] .reel__top {
-    visibility: hidden;
-    opacity: 0;
-    transition: opacity var(--reel-dip) ease, visibility 0s linear var(--reel-dip);
-  }
-
-  .reel[data-mode="ask"] .reel__player,
-  .reel[data-controls="hidden"] .reel__player {
-    visibility: hidden;
-    opacity: 0;
-    transition: opacity var(--reel-dip) ease, visibility 0s linear var(--reel-dip);
-  }
-
-  .reel[data-mode="watch"][data-controls="hidden"] {
-    cursor: none;
-  }
-
-  .reel:fullscreen {
-    min-height: 100vh;
-  }
-
-  /* Phones held upright: the 9:16 cut fills the stage; chapters become bars. */
-  @media (max-width: 47.99rem) {
-    .reel__question {
-      font-size: clamp(2rem, 9vw, 3.4rem);
-    }
-
-    .reel__bottom {
-      grid-template-columns: auto minmax(0, 1fr) auto;
-    }
-
-    .reel__chapter-text {
-      display: none;
-    }
-
-    .reel__motion {
-      grid-column: 1 / -1;
-      justify-self: center;
-    }
-
-    .landing-hero__motion {
-      bottom: 0.75rem;
-    }
+    animation: cinema-fade-in 900ms ease 1800ms backwards;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .landing-hero__film,
-    .reel,
-    .reel__video,
-    [data-enhanced] .reel__film,
-    [data-enhanced] .reel__film[data-position="current"],
-    [data-enhanced] .reel__answer {
-      transition-duration: 120ms;
-      transition-delay: 0s;
+    .cinema {
+      --cinema-fade: 120ms;
     }
 
-    [data-enhanced] .reel__film[data-position="before"],
-    [data-enhanced] .reel__film[data-position="after"] {
-      transform: none;
+    .cinema__segment,
+    .cinema__handle,
+    .cinema__watch,
+    .cinema__icon {
+      transition: none;
     }
   }
 }

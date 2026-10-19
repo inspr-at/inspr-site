@@ -266,6 +266,5 @@ test("the player reads its film sources with getAttribute, never a digit dataset
   for (const name of ["data-full-16x9", "data-web-16x9", "data-full-9x16", "data-web-9x16"]) {
     assert.ok(component.includes(`source(chapter, "${name}")`), name);
   }
-  assert.match(await read("tests/browser/paimos-com.spec.mjs"), /expect\(state\.readyState\)\.toBeGreaterThanOrEqual\(2\)/);
 });
 

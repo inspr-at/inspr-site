@@ -1,23 +1,31 @@
 ---
 /**
- * INSPR-572: paimos.com, the public front door. A short pitch on the films'
- * pearl ground, the "What if…?" showreel, three answers that link into
- * paimos.inspr.at, and the plain facts. The showreel renders only when the
- * committed film manifest lists a cleared film (src/content/films.ts), so the
- * page is complete with none.
+ * INSPR-572: paimos.com, the public front door: the gold arc and the tagline
+ * over the first film running full screen at a tenth of its strength, then
+ * the "What if…?" stage, then the shared footer. The films render only when
+ * the committed film manifest lists a cleared one (src/content/films.ts), so
+ * the page is complete with none. On a fresh arrival the arc draws itself and
+ * the words follow (public/scripts/paimos-intro.js decides, storing nothing).
  *
- * Without JavaScript the films are a swipeable list whose posters link to the
- * video files. The enhancement plays the visible film muted, one at a time, and
- * adds pause, sound and previous/next controls; reduced motion and Save-Data
- * keep every film on its poster until a person presses play.
+ * The stage puts one question in front, with its film faint behind it. People
+ * click, swipe or key through the questions, and Watch plays that film at full
+ * strength with sound; when it ends, the question returns with its answer.
+ * Backdrops crossfade in place while questions slide with the direction of
+ * travel, and every switch between a faint loop and the full film dips
+ * through black, so a restart or a change of framing is never seen.
+ *
+ * Without JavaScript the questions are a plain list whose Watch links open
+ * the video files. Reduced motion and Save-Data never start a film on their
+ * own, and both motion controls pause every ambient film.
  */
-import { Image, getImage } from "astro:assets";
+import { getImage } from "astro:assets";
 import MicrositeLayout from "../layouts/MicrositeLayout.astro";
 import MicrositeHeader from "./MicrositeHeader.astro";
 import MicrositeFooter from "./MicrositeFooter.astro";
 import { paimosComContent as content } from "../content/paimos-com";
 import { films } from "../content/films";
 import { siteUrls } from "../content/urls";
+import { releaseMetadata } from "../../release-metadata.mjs";
 import "@fontsource-variable/geist/index.css";
 import "../styles/paimos-tokens.css";
 import "../styles/paimos-com.css";
@@ -25,21 +33,26 @@ import "../styles/paimos-com.css";
 import aeonMark from "../assets/products/paimos/logo.svg";
 import deliveryShot from "../assets/products/paimos-aeon/delivery.png";
 
-// Phones held upright get the 9:16 cut; everything else gets 16:9. The video
-// sources, the posters and the stage's aspect ratio all use this one query.
+// Phones held upright get the 9:16 cut; everything else gets 16:9. Video
+// sources, posters and the script all use this one query.
 const portrait = "(max-width: 47.99rem) and (orientation: portrait)";
-const og = await getImage({ src: deliveryShot, width: 1200, format: "jpg", quality: 82 });
-const ogImage = new URL(og.src, siteUrls.paimosCom).href;
 const hasFilms = films.length > 0;
+const lead = films[0];
 
-const nav = [
-  ...(hasFilms ? [content.nav.films] : []),
-  content.nav.answers,
-  content.nav.facts,
-  content.nav.product,
-];
-const countLabel = (index: number) =>
-  content.films.of.replace("{n}", String(index + 1)).replace("{total}", String(films.length));
+// The share card is the first film's poster; before any film is cleared it is
+// a real screen with demo data.
+const fallbackOg = await getImage({ src: deliveryShot, width: 1200, format: "jpg", quality: 82 });
+const ogImage = lead ? lead.poster["16x9"] : new URL(fallbackOg.src, siteUrls.paimosCom).href;
+const ogImageAlt = lead ? lead.question : content.hero.screenAlt;
+
+const nav = [...(hasFilms ? [content.nav.films] : []), content.nav.product];
+const pad = (n: number) => String(n).padStart(2, "0");
+const slideLabel = (index: number) =>
+  content.films.slide.replace("{n}", String(index + 1)).replace("{total}", String(films.length));
+const duration = (seconds: number) => {
+  const total = Math.round(seconds);
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
+};
 ---
 
 <MicrositeLayout
@@ -47,10 +60,11 @@ const countLabel = (index: number) =>
   description={content.seo.description}
   canonical={content.canonicalUrl}
   ogImage={ogImage}
-  ogImageAlt={content.hero.screenAlt}
+  ogImageAlt={ogImageAlt}
   favicon={aeonMark.src}
   theme="paimos"
 >
+  <script is:inline slot="head" src={`/scripts/paimos-intro.js?v=${releaseMetadata.releaseId}`}></script>
   <MicrositeHeader
     name={content.name}
     category={content.category}
@@ -61,8 +75,37 @@ const countLabel = (index: number) =>
   />
 
   <main id="main-content" class="landing">
-    <section class="landing-hero" aria-labelledby="landing-title" data-section-pattern="front-door-hero">
+    <section class:list={["landing-hero", hasFilms && "landing-hero--film"]} aria-labelledby="landing-title" data-section-pattern="front-door-hero" data-hero>
+      {lead && (
+        <video
+          class="landing-hero__film"
+          muted
+          playsinline
+          loop
+          preload="none"
+          aria-hidden="true"
+          tabindex="-1"
+          data-ambient
+          data-poster-16x9={lead.poster["16x9"]}
+          data-poster-9x16={lead.poster["9x16"]}
+        >
+          <source media={portrait} src={lead.video["9x16"].src} type="video/mp4" />
+          <source src={lead.video["16x9"].src} type="video/mp4" />
+        </video>
+      )}
       <div class="landing-hero__copy page-shell">
+        <svg class="landing-hero__arc" viewBox="0 0 600 150" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id="landing-arc-gold" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0" stop-color="#d69b31" stop-opacity="0.15" />
+              <stop offset="0.5" stop-color="#e6b04c" />
+              <stop offset="1" stop-color="#d69b31" stop-opacity="0.15" />
+            </linearGradient>
+          </defs>
+          <!-- Apex at y 20, ends at y 138: the stroke and its glow stay inside the viewBox. -->
+          <path class="landing-hero__arc-glow" d="M30 138 A368 368 0 0 1 570 138" pathLength="1" />
+          <path class="landing-hero__arc-line" d="M30 138 A368 368 0 0 1 570 138" pathLength="1" />
+        </svg>
         <p class="eyebrow">{content.hero.eyebrow}</p>
         <h1 id="landing-title">
           <span>{content.hero.title}</span>
@@ -81,153 +124,124 @@ const countLabel = (index: number) =>
           </a>
         </div>
       </div>
-
-      <figure class="landing-hero__stage page-shell">
-        <svg class="landing-hero__arc" viewBox="0 0 600 150" aria-hidden="true" focusable="false">
-          <defs>
-            <linearGradient id="landing-arc-gold" x1="0" x2="1" y1="0" y2="0">
-              <stop offset="0" stop-color="#d69b31" stop-opacity="0.15" />
-              <stop offset="0.5" stop-color="#e6b04c" />
-              <stop offset="1" stop-color="#d69b31" stop-opacity="0.15" />
-            </linearGradient>
-          </defs>
-          <path d="M30 138 A368 368 0 0 1 570 138" />
-        </svg>
-        <div class="landing-hero__screen">
-          <Image
-            src={deliveryShot}
-            alt={content.hero.screenAlt}
-            widths={[800, 1280, 1800, 2400]}
-            sizes="(min-width: 80rem) 72rem, 94vw"
-            loading="eager"
-            fetchpriority="high"
-          />
-        </div>
-        <figcaption>{content.hero.screenCaption}</figcaption>
-      </figure>
+      {lead && (
+        <button
+          type="button"
+          class="motion-toggle landing-hero__motion"
+          aria-pressed="false"
+          data-motion-toggle
+          data-label-pause={content.hero.pauseMotion}
+          data-label-play={content.hero.playMotion}
+          hidden
+        >{content.hero.pauseMotion}</button>
+      )}
     </section>
 
     {hasFilms && (
-      <section id="films" class="landing-films" aria-labelledby="films-title" data-section-pattern="film-carousel" data-showreel>
-        <div class="page-shell">
-          <div class="landing-head">
-            <p class="eyebrow">{content.films.eyebrow}</p>
-            <h2 id="films-title">{content.films.title}</h2>
-            <p class="section-lead">{content.films.lead}</p>
-          </div>
-
-          <ol class="reel__track" aria-label={content.films.listLabel} data-reel-track>
-            {films.map((film, index) => {
-              const poster16 = film.poster["16x9"];
-              const poster9 = film.poster["9x16"];
-              const transcriptId = `film-${film.id.toLowerCase()}-transcript`;
-              return (
-                <li
-                  class="reel__item"
-                  id={`film-${film.id.toLowerCase()}`}
-                  aria-label={`${countLabel(index)}: ${film.question}`}
-                  data-reel-item
-                >
-                  <figure class="reel__stage">
-                    <video
-                      class="reel__video"
-                      muted
-                      playsinline
-                      preload="none"
-                      width={film.video["16x9"].width}
-                      height={film.video["16x9"].height}
-                      aria-describedby={transcriptId}
-                      data-reel-video
-                    >
-                      <source media={portrait} src={film.video["9x16"].src} type="video/mp4" />
-                      <source src={film.video["16x9"].src} type="video/mp4" />
-                    </video>
-                    <a class="reel__poster" href={film.video["16x9"].src} data-reel-poster>
-                      <picture>
-                        <source media={portrait} srcset={poster9} width={film.video["9x16"].width} height={film.video["9x16"].height} />
-                        <img
-                          src={poster16}
-                          alt=""
-                          width={film.video["16x9"].width}
-                          height={film.video["16x9"].height}
-                          loading={index === 0 ? "eager" : "lazy"}
-                          decoding="async"
-                        />
-                      </picture>
-                      <span class="reel__play"><span aria-hidden="true">▶</span> {content.films.play}</span>
-                    </a>
-                  </figure>
-                  <div class="reel__copy">
-                    <p class="reel__count">{countLabel(index)}</p>
-                    <h3>{film.question}</h3>
-                    <p class="reel__answer">{film.answer}</p>
-                    <details class="reel__transcript" id={transcriptId}>
-                      <summary>{content.films.transcript}</summary>
-                      <ol>
-                        {film.words.map((word) => <li data-kind={word.kind}>{word.text}</li>)}
-                      </ol>
-                    </details>
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
-
-          <div class="reel__controls" data-reel-controls hidden>
-            <button type="button" class="reel__step" data-reel-previous aria-label={content.films.previous}><span aria-hidden="true">←</span></button>
-            <ol class="reel__picks">
-              {films.map((film, index) => (
-                <li>
-                  <button type="button" data-reel-pick={index} aria-controls={`film-${film.id.toLowerCase()}`}>{film.question}</button>
-                </li>
-              ))}
-            </ol>
-            <button type="button" class="reel__step" data-reel-next aria-label={content.films.next}><span aria-hidden="true">→</span></button>
-            <div class="reel__toggles">
-              <button type="button" data-reel-pause data-label-pause={content.films.pause} data-label-play={content.films.resume}>{content.films.pause}</button>
-              <button type="button" data-reel-sound aria-pressed="false" data-label-on={content.films.soundOn} data-label-off={content.films.soundOff}>{content.films.soundOn}</button>
-            </div>
-          </div>
+      <section
+        id="films"
+        class="reel"
+        aria-labelledby="films-title"
+        aria-roledescription="carousel"
+        data-section-pattern="film-carousel"
+        data-reel
+        data-mode="ask"
+      >
+        <div class="reel__backdrops" aria-hidden="true">
+          {films.map((film, index) => (
+            <video
+              class="reel__video"
+              muted
+              playsinline
+              loop
+              preload="none"
+              tabindex="-1"
+              data-reel-video={index}
+              data-poster-16x9={film.poster["16x9"]}
+              data-poster-9x16={film.poster["9x16"]}
+            >
+              <source media={portrait} src={film.video["9x16"].src} type="video/mp4" />
+              <source src={film.video["16x9"].src} type="video/mp4" />
+            </video>
+          ))}
         </div>
+        <div class="reel__progress" aria-hidden="true"><span></span></div>
+
+        <div class="reel__top page-shell">
+          <h2 id="films-title" class="reel__title">{content.films.title}</h2>
+          <p class="reel__counter" aria-hidden="true" data-reel-counter>{pad(1)} / {pad(films.length)}</p>
+        </div>
+
+        <ol class="reel__films page-shell" aria-label={content.films.label}>
+          {films.map((film, index) => {
+            const transcriptId = `film-${film.id.toLowerCase()}-transcript`;
+            return (
+              <li
+                class="reel__film"
+                id={`film-${film.id.toLowerCase()}`}
+                role="group"
+                aria-roledescription="slide"
+                aria-label={slideLabel(index)}
+                data-reel-film={index}
+              >
+                <h3 class="reel__question">{film.question}</h3>
+                <p class="reel__answer">{film.answer}</p>
+                <div class="reel__actions">
+                  <a class="reel__watch" href={film.video["16x9"].src} aria-describedby={transcriptId} data-reel-watch={index}>
+                    <span class="reel__watch-icon" aria-hidden="true"></span>
+                    {content.films.watch}
+                    <span class="reel__watch-time">{duration(film.durationSeconds)}</span>
+                  </a>
+                  <details class="reel__transcript" id={transcriptId}>
+                    <summary>{content.films.transcript}</summary>
+                    <ol>
+                      {film.words.map((word) => <li data-kind={word.kind}>{word.text}</li>)}
+                    </ol>
+                  </details>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+
+        <div class="reel__bottom page-shell" data-reel-ask-controls hidden>
+          <button type="button" class="reel__arrow reel__arrow--previous" aria-label={content.films.previous} data-reel-step="-1">
+            <span aria-hidden="true">←</span>
+          </button>
+          <ol class="reel__chapters" aria-label={content.films.chapters}>
+            {films.map((film, index) => (
+              <li>
+                <button type="button" aria-controls={`film-${film.id.toLowerCase()}`} aria-current={index === 0 ? "true" : "false"} data-reel-pick={index}>
+                  <span class="reel__chapter-bar" aria-hidden="true"></span>
+                  <span class="reel__chapter-text">{film.question}</span>
+                </button>
+              </li>
+            ))}
+          </ol>
+          <button type="button" class="reel__arrow reel__arrow--next" aria-label={content.films.next} data-reel-step="1">
+            <span aria-hidden="true">→</span>
+          </button>
+          <button
+            type="button"
+            class="motion-toggle reel__motion"
+            aria-pressed="false"
+            data-motion-toggle
+            data-label-pause={content.hero.pauseMotion}
+            data-label-play={content.hero.playMotion}
+          >{content.hero.pauseMotion}</button>
+        </div>
+
+        <div class="reel__player page-shell" data-reel-player hidden>
+          <button type="button" data-reel-pause data-label-pause={content.films.pause} data-label-play={content.films.resume}>{content.films.pause}</button>
+          <button type="button" aria-pressed="true" data-reel-sound data-label-on={content.films.soundOn} data-label-off={content.films.soundOff}>{content.films.soundOff}</button>
+          <button type="button" data-reel-fullscreen data-label-enter={content.films.fullscreen} data-label-exit={content.films.exitFullscreen}>{content.films.fullscreen}</button>
+          <button type="button" class="reel__back" data-reel-back>{content.films.back}</button>
+        </div>
+
+        <p class="visually-hidden" aria-live="polite" data-reel-status></p>
       </section>
     )}
 
-    <section id="answers" class="landing-answers section" aria-labelledby="answers-title" data-section-pattern="answer-triptych">
-      <div class="page-shell">
-        <div class="landing-head">
-          <p class="eyebrow">{content.answers.eyebrow}</p>
-          <h2 id="answers-title">{content.answers.title}</h2>
-        </div>
-        <ul class="landing-answers__grid">
-          {content.answers.items.map((item) => (
-            <li>
-              <p class="landing-answers__kicker">{item.kicker}</p>
-              <h3>{item.title}</h3>
-              <p>{item.body}</p>
-              <a href={item.href}>{item.linkLabel} <span aria-hidden="true">↗</span></a>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
-
-    <section id="what" class="landing-facts section" aria-labelledby="facts-title" data-section-pattern="fact-list">
-      <div class="page-shell landing-facts__grid">
-        <div class="landing-head">
-          <p class="eyebrow">{content.facts.eyebrow}</p>
-          <h2 id="facts-title">{content.facts.title}</h2>
-          <a class="button button--ghost" href={siteUrls.paimos}>{content.facts.linkLabel} <span aria-hidden="true">↗</span></a>
-        </div>
-        <dl>
-          {content.facts.items.map((item) => (
-            <div>
-              <dt>{item.term}</dt>
-              <dd>{item.detail}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-    </section>
   </main>
 
   <MicrositeFooter
@@ -241,118 +255,342 @@ const countLabel = (index: number) =>
 </MicrositeLayout>
 
 <script>
-  // The showreel enhancement, bundled by Astro into a same-origin module.
+  // The films' behaviour, bundled by Astro into a same-origin module. Timings
+  // match paimos-com.css: a dip to black takes DIP ms, a question swap SWAP ms.
+  const PORTRAIT = "(max-width: 47.99rem) and (orientation: portrait)";
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
+  const DIP = reducedMotion.matches ? 120 : 420;
+  const wait = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
+  const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
-  for (const root of document.querySelectorAll<HTMLElement>("[data-showreel]")) {
-    const track = root.querySelector<HTMLElement>("[data-reel-track]");
-    const controls = root.querySelector<HTMLElement>("[data-reel-controls]");
-    const items = [...root.querySelectorAll<HTMLElement>("[data-reel-item]")];
-    const videos = items.map((item) => item.querySelector<HTMLVideoElement>("[data-reel-video]"));
+  // One motion preference for every ambient film on the page.
+  let motionPaused = reducedMotion.matches || saveData;
+  const motionListeners = new Set<() => void>();
+  const motionToggles = [...document.querySelectorAll<HTMLButtonElement>("[data-motion-toggle]")];
+  const renderMotion = () => {
+    for (const toggle of motionToggles) {
+      toggle.hidden = false;
+      toggle.textContent = (motionPaused ? toggle.dataset.labelPlay : toggle.dataset.labelPause) ?? "";
+      toggle.setAttribute("aria-pressed", String(motionPaused));
+    }
+  };
+  for (const toggle of motionToggles) {
+    toggle.addEventListener("click", () => {
+      motionPaused = !motionPaused;
+      renderMotion();
+      motionListeners.forEach((listener) => listener());
+    });
+  }
+  renderMotion();
+
+  // Posters double as each film's first frame, so a crossfade never shows black.
+  const usePoster = (video: HTMLVideoElement) => {
+    const poster = window.matchMedia(PORTRAIT).matches ? video.dataset.poster9x16 : video.dataset.poster16x9;
+    if (poster && video.poster !== poster) video.poster = poster;
+  };
+  const play = (video: HTMLVideoElement) => {
+    if (video.preload !== "auto") video.preload = "auto";
+    return video.play().then(() => true, () => false);
+  };
+  const markPlaying = (video: HTMLVideoElement) => {
+    video.addEventListener("playing", () => video.setAttribute("data-playing", ""));
+  };
+
+  // The hero: the first film at a tenth of its strength, fading in once it plays.
+  const hero = document.querySelector<HTMLElement>("[data-hero]");
+  const heroFilm = hero?.querySelector<HTMLVideoElement>("[data-ambient]");
+  if (hero && heroFilm) {
+    let heroInView = false;
+    // No poster: the hero film stays invisible until it plays.
+    markPlaying(heroFilm);
+    const syncHero = () => {
+      if (heroInView && !motionPaused && !document.hidden) void play(heroFilm);
+      else heroFilm.pause();
+    };
+    new IntersectionObserver(([entry]) => {
+      heroInView = entry.isIntersecting;
+      syncHero();
+    }).observe(hero);
+    motionListeners.add(syncHero);
+    document.addEventListener("visibilitychange", syncHero);
+  }
+
+  for (const root of document.querySelectorAll<HTMLElement>("[data-reel]")) {
+    const slides = [...root.querySelectorAll<HTMLElement>("[data-reel-film]")];
+    const videos = [...root.querySelectorAll<HTMLVideoElement>("[data-reel-video]")];
     const picks = [...root.querySelectorAll<HTMLButtonElement>("[data-reel-pick]")];
+    const askControls = root.querySelector<HTMLElement>("[data-reel-ask-controls]");
+    const questions = root.querySelector<HTMLElement>(".reel__films");
+    const player = root.querySelector<HTMLElement>("[data-reel-player]");
+    const counter = root.querySelector<HTMLElement>("[data-reel-counter]");
+    const status = root.querySelector<HTMLElement>("[data-reel-status]");
     const pauseButton = root.querySelector<HTMLButtonElement>("[data-reel-pause]");
     const soundButton = root.querySelector<HTMLButtonElement>("[data-reel-sound]");
-    if (!track || !controls || !pauseButton || !soundButton || videos.some((video) => !video)) continue;
+    const fullscreenButton = root.querySelector<HTMLButtonElement>("[data-reel-fullscreen]");
+    const backButton = root.querySelector<HTMLButtonElement>("[data-reel-back]");
+    if (!askControls || !questions || !player || !pauseButton || !soundButton || !fullscreenButton || !backButton) continue;
+    if (slides.length !== videos.length) continue;
+
+    const total = slides.length;
+    let index = 0;
+    let mode: "ask" | "watch" = "ask";
+    let busy = false;
+    let inView = false;
+    let sound = true;
+    let hideTimer = 0;
+    const pad = (n: number) => String(n).padStart(2, "0");
 
     root.dataset.enhanced = "";
-    controls.hidden = false;
-    let active = 0;
-    let inView = false;
-    // Autoplay is a default a person can switch off; motion preferences and
-    // Save-Data start with it off.
-    let playing = !reducedMotion.matches && !saveData;
-    let sound = false;
+    // Both control sets stay in the layout so they can fade; the mode decides
+    // which one is visible (paimos-com.css) and which one takes input.
+    askControls.hidden = false;
+    player.hidden = false;
+    const renderMode = () => {
+      askControls.inert = mode !== "ask";
+      questions.inert = mode !== "ask";
+      player.inert = mode !== "watch";
+    };
+    renderMode();
+    videos.forEach(markPlaying);
 
-    const render = () => {
-      items.forEach((item, index) => item.toggleAttribute("data-active", index === active));
-      picks.forEach((pick, index) => pick.setAttribute("aria-current", index === active ? "true" : "false"));
-      pauseButton.textContent = playing ? pauseButton.dataset.labelPause ?? "" : pauseButton.dataset.labelPlay ?? "";
-      soundButton.textContent = sound ? soundButton.dataset.labelOff ?? "" : soundButton.dataset.labelOn ?? "";
-      soundButton.setAttribute("aria-pressed", String(sound));
+    // Positions: the current question, the ones before it and after it. A
+    // change of current slides the old one out and the new one in, so the
+    // direction always follows the click, including the wrap at either end.
+    const place = (slide: HTMLElement, position: "before" | "current" | "after", instant = false) => {
+      if (instant) slide.setAttribute("data-instant", "");
+      slide.dataset.position = position;
+      const current = position === "current";
+      slide.toggleAttribute("inert", !current);
+      slide.setAttribute("aria-hidden", String(!current));
+    };
+    slides.forEach((slide, i) => place(slide, i === 0 ? "current" : "after", true));
+    videos.forEach((video, i) => video.toggleAttribute("data-current", i === 0));
+
+    const renderAsk = () => {
+      picks.forEach((pick, i) => pick.setAttribute("aria-current", String(i === index)));
+      if (counter) counter.textContent = `${pad(index + 1)} / ${pad(total)}`;
     };
 
-    const sync = () => {
-      videos.forEach((video, index) => {
-        if (!video) return;
-        video.muted = !sound;
-        if (index === active && playing && inView && !document.hidden) {
-          video.preload = "auto";
-          video.play().catch(() => {
-            // A browser that refuses autoplay keeps the poster and its play link.
-            playing = false;
-            render();
-          });
+    // Ambient films: only the current one runs, muted and looping, while the
+    // stage is on screen, motion is allowed and the tab is visible. The next
+    // one gets its metadata so a click lands on a ready film.
+    const syncAmbient = () => {
+      videos.forEach((video, i) => {
+        if (mode === "watch" && i === index) return;
+        if (mode === "ask" && i === index && inView && !motionPaused && !document.hidden) {
+          usePoster(video);
+          video.muted = true;
+          video.loop = true;
+          void play(video);
         } else if (!video.paused) {
           video.pause();
         }
       });
-      render();
-    };
-
-    const show = (index: number, scroll = true) => {
-      active = Math.max(0, Math.min(items.length - 1, index));
-      if (scroll) {
-        track.scrollTo({
-          left: items[active].offsetLeft - track.offsetLeft,
-          behavior: reducedMotion.matches ? "auto" : "smooth",
-        });
+      const upcoming = videos[(index + 1) % total];
+      if (inView && upcoming.preload === "none") {
+        usePoster(upcoming);
+        upcoming.preload = "metadata";
       }
-      sync();
+    };
+    motionListeners.add(syncAmbient);
+
+    const show = async (target: number, direction: 1 | -1) => {
+      if (busy || mode !== "ask") return;
+      const next = (target + total) % total;
+      if (next === index) return;
+      busy = true;
+      const incoming = slides[next];
+      const outgoing = slides[index];
+      // Park the incoming question on the side it comes from, then move it.
+      place(incoming, direction > 0 ? "after" : "before", true);
+      usePoster(videos[next]);
+      await nextFrame();
+      incoming.removeAttribute("data-instant");
+      await nextFrame();
+      place(outgoing, direction > 0 ? "before" : "after");
+      place(incoming, "current");
+      videos[index].removeAttribute("data-current");
+      videos[next].setAttribute("data-current", "");
+      index = next;
+      renderAsk();
+      if (status) status.textContent = `${slides[index].getAttribute("aria-label")}: ${slides[index].querySelector("h3")?.textContent ?? ""}`;
+      syncAmbient();
+      busy = false;
     };
 
-    videos.forEach((video, index) => {
-      video?.addEventListener("playing", () => items[index].setAttribute("data-started", ""));
-      // One pass through the films, then the last end card stays.
-      video?.addEventListener("ended", () => {
-        if (index < items.length - 1) show(index + 1);
-        else {
-          playing = false;
-          render();
-        }
-      });
-    });
+    // Watch mode: the controls hide after a moment without input.
+    const showControls = () => {
+      root.dataset.controls = "shown";
+      window.clearTimeout(hideTimer);
+      if (mode !== "watch") return;
+      hideTimer = window.setTimeout(() => {
+        if (mode === "watch" && !videos[index].paused && !player.contains(document.activeElement)) root.dataset.controls = "hidden";
+      }, 2600);
+    };
+    const renderPlayer = () => {
+      const video = videos[index];
+      pauseButton.textContent = (video.paused ? pauseButton.dataset.labelPlay : pauseButton.dataset.labelPause) ?? "";
+      soundButton.textContent = (sound ? soundButton.dataset.labelOff : soundButton.dataset.labelOn) ?? "";
+      soundButton.setAttribute("aria-pressed", String(sound));
+      const full = document.fullscreenElement === root;
+      fullscreenButton.textContent = (full ? fullscreenButton.dataset.labelExit : fullscreenButton.dataset.labelEnter) ?? "";
+    };
+    const progress = () => {
+      if (mode !== "watch") return;
+      const video = videos[index];
+      if (video.duration > 0) root.style.setProperty("--reel-progress", String(video.currentTime / video.duration));
+      requestAnimationFrame(progress);
+    };
 
-    root.querySelectorAll<HTMLAnchorElement>("[data-reel-poster]").forEach((poster, index) => {
-      poster.addEventListener("click", (event) => {
+    const watch = async (target: number) => {
+      if (busy || mode !== "ask") return;
+      busy = true;
+      if (target !== index) {
+        busy = false;
+        await show(target, target > index ? 1 : -1);
+        busy = true;
+      }
+      const video = videos[index];
+      // Dip: the question and the faint loop fade out together.
+      root.dataset.mode = "watch";
+      root.dataset.phase = "dip";
+      mode = "watch";
+      renderMode();
+      await wait(DIP);
+      video.pause();
+      video.loop = false;
+      video.muted = !sound;
+      video.currentTime = 0;
+      root.style.setProperty("--reel-progress", "0");
+      // The full frame (contain, not cover) is set while the stage is black.
+      root.dataset.frame = "full";
+      const started = await play(video);
+      if (!started) {
+        // A browser that refuses sound without a fresh gesture still shows the film.
+        sound = false;
+        video.muted = true;
+        await play(video);
+      }
+      // Rise: the film fades up from black at full strength.
+      root.dataset.phase = "rise";
+      backButton.focus({ preventScroll: true });
+      renderPlayer();
+      showControls();
+      requestAnimationFrame(progress);
+      busy = false;
+    };
+
+    const fadeVolume = async (video: HTMLVideoElement) => {
+      if (video.muted || reducedMotion.matches) return;
+      const start = video.volume;
+      const begun = performance.now();
+      while (performance.now() - begun < DIP) {
+        video.volume = start * (1 - (performance.now() - begun) / DIP);
+        await nextFrame();
+      }
+      video.volume = start;
+    };
+
+    const leave = async (ended: boolean) => {
+      if (busy || mode !== "watch") return;
+      busy = true;
+      const video = videos[index];
+      root.dataset.phase = "dip";
+      await Promise.all([fadeVolume(video), wait(DIP)]);
+      video.pause();
+      if (document.fullscreenElement === root) await document.exitFullscreen().catch(() => {});
+      if (ended) {
+        slides[index].setAttribute("data-watched", "");
+        picks[index].setAttribute("data-watched", "");
+      }
+      video.currentTime = 0;
+      video.muted = true;
+      video.loop = true;
+      delete root.dataset.frame;
+      mode = "ask";
+      renderMode();
+      root.dataset.mode = "ask";
+      root.dataset.controls = "shown";
+      root.style.removeProperty("--reel-progress");
+      await nextFrame();
+      root.dataset.phase = "";
+      slides[index].querySelector<HTMLElement>("[data-reel-watch]")?.focus({ preventScroll: true });
+      syncAmbient();
+      busy = false;
+    };
+
+    videos.forEach((video, i) => video.addEventListener("ended", () => {
+      if (mode === "watch" && i === index) void leave(true);
+    }));
+
+    root.querySelectorAll<HTMLAnchorElement>("[data-reel-watch]").forEach((link) => {
+      link.addEventListener("click", (event) => {
         event.preventDefault();
-        playing = true;
-        show(index);
+        void watch(Number(link.dataset.reelWatch));
       });
     });
-    picks.forEach((pick, index) => pick.addEventListener("click", () => show(index)));
-    root.querySelector("[data-reel-previous]")?.addEventListener("click", () => show(active - 1));
-    root.querySelector("[data-reel-next]")?.addEventListener("click", () => show(active + 1));
+    picks.forEach((pick, i) => pick.addEventListener("click", () => void show(i, i > index ? 1 : -1)));
+    root.querySelectorAll<HTMLButtonElement>("[data-reel-step]").forEach((step) => {
+      const direction = Number(step.dataset.reelStep) > 0 ? 1 : -1;
+      step.addEventListener("click", () => void show(index + direction, direction));
+    });
     pauseButton.addEventListener("click", () => {
-      playing = !playing;
-      sync();
+      const video = videos[index];
+      if (video.paused) void play(video);
+      else video.pause();
+      renderPlayer();
+      showControls();
     });
     soundButton.addEventListener("click", () => {
       sound = !sound;
-      sync();
+      videos[index].muted = !sound;
+      renderPlayer();
+      showControls();
     });
+    fullscreenButton.addEventListener("click", async () => {
+      if (document.fullscreenElement === root) await document.exitFullscreen().catch(() => {});
+      else if (root.requestFullscreen) await root.requestFullscreen().catch(() => {});
+      else (videos[index] as HTMLVideoElement & { webkitEnterFullscreen?: () => void }).webkitEnterFullscreen?.();
+      renderPlayer();
+    });
+    document.addEventListener("fullscreenchange", renderPlayer);
+    backButton.addEventListener("click", () => void leave(false));
 
-    // A swipe or scroll that brings another film into view makes it active.
-    const itemObserver = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          const index = items.indexOf(entry.target as HTMLElement);
-          if (entry.isIntersecting && index !== active) show(index, false);
-        }
-      },
-      { root: track, threshold: 0.6 },
-    );
-    items.forEach((item) => itemObserver.observe(item));
+    root.addEventListener("keydown", (event) => {
+      if (event.target instanceof HTMLElement && event.target.closest("summary, details[open] li")) return;
+      if (mode === "watch") {
+        if (event.key === "Escape") void leave(false);
+        showControls();
+        return;
+      }
+      if (event.key === "ArrowRight") void show(index + 1, 1);
+      else if (event.key === "ArrowLeft") void show(index - 1, -1);
+    });
+    for (const type of ["pointermove", "pointerdown", "focusin"] as const) root.addEventListener(type, showControls);
 
-    // Films play only while the showreel is on screen and the tab is visible.
-    new IntersectionObserver(
-      ([entry]) => {
-        inView = entry.isIntersecting;
-        sync();
-      },
-      { threshold: 0.35 },
-    ).observe(root);
-    document.addEventListener("visibilitychange", sync);
-    render();
+    // A horizontal swipe moves through the questions; vertical scrolling stays the page's.
+    let swipeStart: { x: number; y: number } | null = null;
+    root.addEventListener("pointerdown", (event) => {
+      if (event.pointerType !== "mouse" && mode === "ask") swipeStart = { x: event.clientX, y: event.clientY };
+    });
+    root.addEventListener("pointerup", (event) => {
+      if (!swipeStart) return;
+      const dx = event.clientX - swipeStart.x;
+      const dy = event.clientY - swipeStart.y;
+      swipeStart = null;
+      if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) void show(index + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
+    });
+    root.addEventListener("pointercancel", () => { swipeStart = null; });
+
+    new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      if (inView) videos.forEach(usePoster);
+      if (!inView && mode === "watch") videos[index].pause();
+      syncAmbient();
+      renderPlayer();
+    }, { threshold: 0.3 }).observe(root);
+    document.addEventListener("visibilitychange", syncAmbient);
+    renderAsk();
   }
 </script>

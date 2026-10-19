@@ -79,6 +79,7 @@ const {
 
     <link rel="icon" type="image/svg+xml" href={favicon} />
     <meta name="generator" content={Astro.generator} />
+    <slot name="head" />
     {alternateEnglish && alternateGerman && (
       <script
         is:inline

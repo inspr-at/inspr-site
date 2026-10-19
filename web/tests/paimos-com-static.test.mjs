@@ -160,3 +160,37 @@ test("paimos.com copy keeps to the agreed words", async () => {
   assert.match(component, /preload="none"/);
   assert.match(component, /muted\s+playsinline/);
 });
+
+test("the opening plays on a fresh arrival only and stores nothing", async () => {
+  const intro = await read("public/scripts/paimos-intro.js");
+  assert.doesNotMatch(intro, /localStorage|sessionStorage|document\.cookie|indexedDB|fetch\(|XMLHttpRequest/);
+  assert.match(intro, /entry\.type === "navigate"/);
+  assert.match(intro, /prefers-reduced-motion: reduce/);
+  assert.match(intro, /!location\.hash/);
+  assert.match(intro, /dataset\.intro = "play"/);
+  const component = await read("src/components/PaimosLanding.astro");
+  assert.match(component, /<script is:inline slot="head" src=\{`\/scripts\/paimos-intro\.js\?v=\$\{releaseMetadata\.releaseId\}`\}><\/script>/);
+  assert.match(await read("src/layouts/MicrositeLayout.astro"), /<slot name="head" \/>/);
+  const css = await read("src/styles/paimos-com.css");
+  assert.match(css, /html\[data-intro="play"\] \.landing-hero__arc path \{/);
+  assert.match(component, /class="landing-hero__arc-line" d="M30 138 A368 368 0 0 1 570 138" pathLength="1"/);
+});
+
+test("the stage keeps the question in front and dips through black between faint and full", async () => {
+  const component = await read("src/components/PaimosLanding.astro");
+  const css = await read("src/styles/paimos-com.css");
+  // One backdrop layer that crossfades, one question layer that slides.
+  assert.match(component, /class="reel__backdrops" aria-hidden="true"/);
+  assert.match(component, /class="reel__films page-shell"/);
+  assert.match(css, /\.reel__video\[data-current\] \{\n\s+opacity: var\(--reel-ambient\);/);
+  assert.match(css, /\.reel\[data-phase="dip"\] \.reel__video\[data-current\] \{\n\s+opacity: 0;/);
+  // The framing changes only while the stage is black.
+  assert.match(css, /\.reel\[data-frame="full"\] \.reel__video\[data-current\] \{\n\s+object-fit: contain;/);
+  assert.match(component, /root\.dataset\.frame = "full";\n\s+const started = await play\(video\);/);
+  const dip = Number(css.match(/--reel-dip: (\d+)ms;/)[1]);
+  assert.match(component, new RegExp(`const DIP = reducedMotion\\.matches \\? 120 : ${dip};`), "script and CSS share the dip");
+  // The answer is the pay-off, revealed after a film ends.
+  assert.match(css, /\[data-enhanced\] \.reel__film\[data-watched\] \.reel__answer \{/);
+  // The front door is the films: no answer cards, no fact list.
+  assert.doesNotMatch(component, /landing-answers|landing-facts/);
+});

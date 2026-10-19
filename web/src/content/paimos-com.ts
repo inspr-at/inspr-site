@@ -1,8 +1,8 @@
 import { paimosAeonContent, paimosRelease } from "./paimos-aeon";
 import { siteUrls } from "./urls";
 
-// INSPR-572: paimos.com, the public front door: a short pitch and the
-// "What if…?" films. paimos.inspr.at stays the product and specification site,
+// INSPR-572: paimos.com, the public front door: the tagline, the
+// "What if…?" films and a way to learn more. paimos.inspr.at stays the product and specification site,
 // and every claim here repeats one it already makes (no compliance, EU or
 // competitor lines). English only at launch. The tagline was chosen by Markus.
 const product = siteUrls.paimos;
@@ -26,72 +26,33 @@ export const paimosComContent = {
     filmsLabel: "Watch the films",
     runningLabel: "See it running",
     runningHref: `${product}/#screens`,
-    productLabel: "How it works",
+    productLabel: "Learn more",
     sourceLabel: "View the source",
-    screenCaption: `Real screen, demo data · release ${paimosRelease.number}`,
+    // Used for the share image while no film is cleared.
     screenAlt: "PAIMOS Delivery in Live mode, with release and change timelines and the current delivery status.",
+    pauseMotion: "Pause motion",
+    playMotion: "Play motion",
   },
   films: {
-    eyebrow: "What if…?",
-    title: "One question, one film.",
-    lead: "Each film asks one question and answers it with AEON's own screens. They play without sound until you turn it on.",
-    listLabel: "Films",
+    title: "What if…?",
+    label: "What if…? films",
+    slide: "Question {n} of {total}",
+    watch: "Watch",
     transcript: "Transcript",
-    play: "Play film",
+    previous: "Previous question",
+    next: "Next question",
+    chapters: "Questions",
+    back: "Back to the questions",
     pause: "Pause",
     resume: "Play",
     soundOn: "Sound on",
     soundOff: "Sound off",
-    previous: "Previous film",
-    next: "Next film",
-    of: "{n} of {total}",
-  },
-  answers: {
-    eyebrow: "What changes",
-    title: "Many agents. One place to decide.",
-    items: [
-      {
-        kicker: "Decision Desk",
-        title: "Agents ask. People decide.",
-        body: "Questions and approvals from your agents wait on one desk, for a person. Decide once, or always.",
-        linkLabel: "How authority works",
-        href: `${product}/#authority`,
-      },
-      {
-        kicker: "Rules",
-        title: "One rulebook, six layers.",
-        body: "Company, project, person, role, named agent and task merge into one versioned rulebook. A higher layer can lock a rule for every layer below it.",
-        linkLabel: "How the rules work",
-        href: `${product}/#rules`,
-      },
-      {
-        kicker: "Pace",
-        title: "You set the pace.",
-        body: "The admission dial sets how many agents run at once, with limits per harness and per account, reset times, and careful or full use.",
-        linkLabel: "How the engine runs",
-        href: `${product}/#engine`,
-      },
-    ],
-  },
-  facts: {
-    eyebrow: "What it is",
-    title: "One binary. One database. One log.",
-    items: [
-      { term: "Open source", detail: "AGPL-3.0-only. Inspect, self-host, fork and modify AEON." },
-      {
-        term: "Self-hosted or operated for you",
-        detail: "One server binary and a Postgres 18 database on your own infrastructure, or an instance Augmentoring operates for you.",
-      },
-      { term: "Your machines", detail: "aeon-agentd starts Claude Code, Codex, Cursor and pi on computers you pair." },
-      { term: "One log", detail: "People and agents write to one append-only event log per tenant." },
-    ],
-    linkLabel: "Read the product page",
+    fullscreen: "Full screen",
+    exitFullscreen: "Exit full screen",
   },
   nav: {
     films: { label: "Films", href: "#films" },
-    answers: { label: "What changes", href: "#answers" },
-    facts: { label: "What it is", href: "#what" },
-    product: { label: "Product", href: product },
+    product: { label: "Learn more", href: product },
   },
   finalCta: paimosAeonContent.finalCta,
 } as const;

@@ -83,8 +83,8 @@ test("privacy describes the invited admin area, its necessary cookie and its loc
     "für bis zu fünf Minuten", "für bis zu acht Stunden oder bis zur Abmeldung",
     "nur Ihre ZITADEL-Kennung (sub) und die Ablaufzeit",
     "Die öffentlichen Seiten setzen weiterhin keine Cookies.",
-    "remembers your display choices in your browser's local storage", "never sent to the server",
-    "merkt sich der Bereich Ihre Anzeigeeinstellungen im lokalen Speicher Ihres Browsers", "nie an den Server übertragen",
+    "remembers your display choices in your browser's local storage", "the film format you choose decides which video file your browser requests",
+    "merkt sich der Bereich Ihre Anzeigeeinstellungen im lokalen Speicher Ihres Browsers", "das gewählte Filmformat bestimmt, welche Videodatei Ihr Browser anfordert",
     "Last updated: 20 October 2026", "Stand: 20. Oktober 2026",
   ]) assert.ok(legal.includes(phrase), phrase);
   assert.doesNotMatch(legal, /\u2014/);

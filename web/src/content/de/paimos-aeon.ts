@@ -588,7 +588,7 @@ export const paimosAeonContentDe = {
     title: "Open Source, AGPL-3.0.",
     body: paimosRelease.tag
       ? `Sie können AEON unter AGPL-3.0-only prüfen, selbst betreiben, forken und verändern. Quellcode-Links zeigen auf den Tag von Release ${paimosRelease.number}.`
-      : `Sie können AEON unter AGPL-3.0-only prüfen, selbst betreiben, forken und verändern. Quellcode-Links zeigen auf den Quellstand ${sourceRevision}, der die Arbeit für Release ${paimosRelease.number} enthält, bis dessen Release-Tag veröffentlicht ist.`,
+      : `Sie können AEON unter AGPL-3.0-only prüfen, selbst betreiben, forken und verändern. Quellcode-Links zeigen auf den Quellstand ${sourceRevision}, bis der Tag von Release ${paimosRelease.number} veröffentlicht ist.`,
     links: [
       { label: "GitHub-Repository", href: repositoryUrl, external: true },
       { label: "Releases auf GitHub", href: paimosReleaseUrl, external: true },

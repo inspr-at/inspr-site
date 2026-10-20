@@ -617,7 +617,7 @@ export const paimosAeonContent = {
     title: "Open source, AGPL-3.0.",
     body: paimosRelease.tag
       ? `Inspect, self-host, fork and modify AEON under AGPL-3.0-only. Source links point at the release ${paimosRelease.number} tag.`
-      : `Inspect, self-host, fork and modify AEON under AGPL-3.0-only. Source links point at revision ${sourceRevision}, which contains the release ${paimosRelease.number} work, until its release tag is published.`,
+      : `Inspect, self-host, fork and modify AEON under AGPL-3.0-only. Source links point at revision ${sourceRevision} until the release ${paimosRelease.number} tag is published.`,
     links: [
       { label: "GitHub repository", href: repositoryUrl, external: true },
       { label: "Releases on GitHub", href: paimosReleaseUrl, external: true },

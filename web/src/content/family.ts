@@ -184,12 +184,11 @@ export const flow: {
         "Short-lived coding agents, each in its own worktree; another model family reviews.",
         "Kurzlebige Entwicklungsagenten, jeder in einer eigenen Arbeitskopie des Repositorys; eine andere Modellfamilie prüft.",
       ),
-      // INSPR-556: AEON-851 ships the setting; AEON-890 previews automated
-      // review rounds. Pairing-only agents keep this step partly live.
+      // INSPR-578: adapters do not establish managed readiness or verification.
       status: "partly",
       statusNote: t(
-        "Review gates live; Claude Code, Codex, Cursor and pi start under Paimos, Grok runs tool-free; Gemini and OpenCode pairing only. Cross-family review as a company or project setting: live; automatic review rounds: preview",
-        "Prüfschritte live; Claude Code, Codex, Cursor und pi starten unter Paimos, Grok läuft ohne Werkzeuge; Gemini und OpenCode: nur Kopplung, Start geplant. Prüfung durch eine andere Modellfamilie als Unternehmens- oder Projekteinstellung: live; automatische Prüfrunden: Vorschau",
+        "Review gates live; Claude Code, Codex, Cursor and pi start under Paimos, with live acceptance still open. Grok runs tool-free on Apple silicon. Gemini and OpenCode adapters available; managed readiness and verification remain unqualified. Cross-family review setting: live; automatic review rounds: shadow preview",
+        "Prüfschritte live; Claude Code, Codex, Cursor und pi starten unter Paimos, die Abnahme im Live-Betrieb steht noch aus. Grok läuft ohne Werkzeuge auf Apple Silicon. Adapter für Gemini und OpenCode verfügbar; Betriebsbereitschaft für verwaltete Läufe und Verifikation bleiben unqualifiziert. Prüfung durch eine andere Modellfamilie als Einstellung: live; automatische Prüfrunden: Vorschau im Schattenbetrieb",
       ),
     },
     productStep("deploy", t("Deploy", "Bereitstellung"), "pharos"),
@@ -199,11 +198,15 @@ export const flow: {
       label: t("Learn", "Lernen"),
       who: t("Routines", "Routinen"),
       line: t(
-        "Recurring runs feed what was learned back into knowledge.",
-        "Wiederkehrende Läufe führen Erkenntnisse ins Wissen zurück.",
+        "Set up recurring work and inspect its run logbooks.",
+        "Wiederkehrende Arbeit einrichten und ihre Laufprotokolle ansehen.",
       ),
       status: "partly",
-      statusNote: t("Scheduler live; Routines planned", "Zeitplanung live; Routinen geplant"),
+      // INSPR-578: routine setup is available; automatic execution stays preview.
+      statusNote: t(
+        "Recurring tickets live; routine setup and logbooks available; automatic execution preview, off by default, pending qualification and person consent; learning planned",
+        "Wiederkehrende Tickets live; Routinen einrichten und Laufprotokolle verfügbar; automatische Ausführung als Vorschau, standardmäßig aus, bis zur Qualifikation und Zustimmung einer Person; Lernen geplant",
+      ),
     },
   ],
   underneath: {
@@ -284,7 +287,11 @@ export const actors: Array<{
       "Dauerhafte Bots führen Routinen aus und fragen, bevor sie nach außen handeln.",
     ),
     status: "planned",
-    statusNote: t("Recurring tickets live; bots and Routines planned", "Wiederkehrende Tickets live; Bots und Routinen geplant"),
+    // INSPR-578: perpetual bots stay planned despite available routine setup.
+    statusNote: t(
+      "Recurring tickets live; routine setup and logbooks available; automatic execution preview, off by default, pending qualification and person consent; perpetual bots and learning planned",
+      "Wiederkehrende Tickets live; Routinen einrichten und Laufprotokolle verfügbar; automatische Ausführung als Vorschau, standardmäßig aus, bis zur Qualifikation und Zustimmung einer Person; dauerhafte Bots und Lernen geplant",
+    ),
   },
   {
     key: "people",
@@ -307,18 +314,18 @@ export const buildOrder: Array<{
     label: t("The engine for builders", "Die Arbeitssteuerung für Entwicklungsagenten"),
     status: "partly",
     statusNote: t(
-      "Delivery status per ticket and stall alerts, admission dial, cross-family review setting, Decision Desk and inbox, audit: live. Starts, queueing, model routing, reviews and shipping: shadow preview. Pull requests and merges through Paimos: planned",
-      "Lieferstatus je Ticket und Fristwarnungen, Zulassungsregler, Prüfung durch andere Modellfamilie, Entscheidungsübersicht („Decision Desk“) und Posteingang, Prüfprotokoll: live. Starts, Warteschlangen, Modellwahl, Prüfungen und Auslieferung: Vorschau im Schattenbetrieb. Pull Requests und Zusammenführungen über Paimos: geplant",
+      "Managed starts with admission limits, Models routing, goals and delivery measurements, workflow checks, header Decision Desk and reporting: available. Broader admission, automatic review and shipping: shadow preview. Routine PR actions and admission-queue operations: gated preview, off by default",
+      "Verwaltete Starts mit Zulassungsgrenzen, Modellwahl über Models, Ziele und Auslieferungsmessungen, Prüfregeln, Entscheidungsübersicht („Decision Desk“) im Kopfbereich und Berichte: verfügbar. Übergreifende Zulassung, automatische Prüfung und Auslieferung: Vorschau im Schattenbetrieb. Routinenaktionen für Pull Requests und Zulassungswarteschlange: Vorschau mit Freigabevoraussetzungen, standardmäßig aus",
     ),
   },
   {
     key: "bots",
     label: t("Bots and Routines", "Bots und Routinen"),
-    // INSPR-556: AEON-573 live recurring tickets; AEON-680/693 planned routines.
-    status: "planned",
+    // INSPR-578: setup and logbooks exist; execution qualification is separate.
+    status: "partly",
     statusNote: t(
-      "Recurring tickets on a schedule or on events are live; Routines that run agents on a schedule and learn from earlier runs are planned",
-      "Wiederkehrende Tickets nach Zeitplan oder Ereignissen live; Routinen, die Agenten nach Zeitplan ausführen und aus früheren Läufen lernen, geplant",
+      "Recurring tickets live; Routines preview: definitions, assignments, templates and logbooks available. Automatic execution remains off pending qualification and person consent; perpetual bots and learning planned",
+      "Wiederkehrende Tickets live; Routinen-Vorschau: Definitionen, Zuweisungen, Vorlagen und Laufprotokolle verfügbar. Automatische Ausführung bleibt bis zur Qualifikation und Zustimmung einer Person aus; dauerhafte Bots und Lernen geplant",
     ),
   },
   {
@@ -349,51 +356,51 @@ export const engineJobs: Array<{
   {
     key: "state",
     label: t("State and deadlines", "Zustand und Fristen"),
-    // INSPR-556: AEON-848/849.
+    // INSPR-578: goal freshness and build measurements extend reported state.
     status: "live",
     note: t(
-      "Per-session state, delivery status per ticket and stall alerts are live, with GitHub connected.",
-      "Sitzungszustand, Lieferstatus je Ticket und Fristwarnungen sind live, mit verbundenem GitHub.",
+      "Reported session state, goal progress and ETA freshness are live. With GitHub connected, delivery status and stall alerts use reported steps; build-to-merge measurements show first-try success, rounds and idle time.",
+      "Gemeldeter Sitzungszustand, Zielfortschritt und Aktualität der Ankunftszeiten sind live. Mit verbundenem GitHub nutzen Lieferstatus und Fristwarnungen gemeldete Schritte; Messungen vom ersten Build bis zur Zusammenführung zeigen Erfolg im ersten Versuch, Runden und Wartezeit.",
     ),
   },
   {
     key: "admission",
     label: t("Fair admission", "Faire Zulassung"),
-    // INSPR-556: AEON-864/880/883/886/887.
+    // INSPR-578: actual start checks coexist with the broader shadow projection.
     status: "partly",
     note: t(
-      "The admission dial, per-harness limits, account limits, reset times and careful or full use are live; start decisions run in shadow mode (preview). Host-load throttling is planned.",
-      "Zulassungsregler, Grenzen je Agentenprogramm, Kontogrenzen, Rücksetzzeiten und vorsichtige oder volle Nutzung sind live; Startentscheidungen laufen im Schattenbetrieb (Vorschau). Drosselung nach Rechnerlast ist geplant.",
+      "Managed starts enforce daily limits and account permissions, with model fallbacks. Host-load checks for new starts are available when enabled, off by default. The broader admission projection remains shadow preview.",
+      "Verwaltete Starts setzen Tagesgrenzen und Kontoberechtigungen durch und nutzen Ausweichmodelle. Rechnerlastprüfungen für neue Starts sind nach Aktivierung verfügbar und standardmäßig aus. Die übergreifende Zulassungsprojektion bleibt Vorschau im Schattenbetrieb.",
     ),
   },
   {
     key: "rules",
     label: t("Rules as settings", "Regeln als Einstellungen"),
-    // INSPR-556: AEON-851/890/1011.
+    // INSPR-578: fallback orders and workflow definitions are available settings.
     status: "live",
     note: t(
-      "One default model and a few exceptions, review gates and cross-family review as a company or project setting are live. Automatic review and fix rounds are preview, in shadow mode.",
-      "Ein Standardmodell und wenige Ausnahmen, Prüfschritte und die Prüfung durch eine andere Modellfamilie als Unternehmens- oder Projekteinstellung sind live. Automatische Prüf- und Korrekturrunden sind eine Vorschau im Schattenbetrieb.",
+      "Model fallback orders with per-step reasoning, workflow readiness and completion definitions, and cross-family review settings are live. Permitted people can override workflow checks with a recorded reason. Automatic review and fix rounds remain shadow preview.",
+      "Reihenfolgen für Ausweichmodelle mit Denkaufwand je Schritt, Prüfregeln für Arbeitsbeginn und Abschluss sowie Einstellungen zur Prüfung durch eine andere Modellfamilie sind live. Berechtigte Personen können Prüfregeln mit dokumentierter Begründung übersteuern. Automatische Prüf- und Korrekturrunden bleiben Vorschau im Schattenbetrieb.",
     ),
   },
   {
     key: "effects",
     label: t("Effects only through Paimos", "Wirkungen nur über Paimos"),
-    // INSPR-556: AEON-852/891.
+    // INSPR-578: PR and queue machinery is gated preview, not autonomous shipping.
     status: "partly",
     note: t(
-      "The GitHub App can post the cross-family review status, and the merge audit flags skipped queues or missing verified reviews (live with GitHub connected). Pull requests and merges through Paimos remain planned; shipping runs in shadow mode (preview).",
-      "Die GitHub-App kann den Status der Prüfung durch eine andere Modellfamilie setzen. Die Merge-Prüfung meldet übersprungene Zusammenführungswarteschlangen oder fehlende verifizierte Prüfungen (live mit verbundenem GitHub). Pull Requests und Zusammenführungen über Paimos bleiben geplant; Auslieferung läuft im Schattenbetrieb (Vorschau).",
+      "With GitHub connected, review status and the merge audit are live. Routine PR actions and admission-queue operations are gated preview, with automatic execution and queue enforcement off by default. Shadow shipping does not merge or deploy; a person's live confirmation is recorded separately.",
+      "Mit verbundenem GitHub sind Prüfstatus und Merge-Prüfung live. Routinenaktionen für Pull Requests und die Zulassungswarteschlange sind Vorschau mit Freigabevoraussetzungen; automatische Ausführung und Warteschlangendurchsetzung sind standardmäßig aus. Auslieferung im Schattenbetrieb führt weder zusammen noch stellt sie bereit; die Live-Bestätigung einer Person wird getrennt erfasst.",
     ),
   },
   {
     key: "escalation",
     label: t("Escalation", "Eskalation"),
-    // INSPR-556: AEON-569 cutover pending.
+    // INSPR-578: the header Desk follows the completed Agents cutover.
     status: "live",
     note: t(
-      "The Decision Desk and its durable inbox are live. It does not yet replace Needs you on Agents.",
-      "Die Entscheidungsübersicht („Decision Desk“) und ihr dauerhafter Posteingang sind live. Sie ersetzt den Bereich Braucht Sie bei den Agenten noch nicht.",
+      "The header Decision Desk brings questions, approvals, step-ups, prepared lessons and definition decisions together, including on phones. Sign-in chores and ticket triage keep their own surfaces.",
+      "Die Entscheidungsübersicht („Decision Desk“) im Kopfbereich bündelt Fragen, Freigaben, erneute Bestätigungen, vorbereitete Lernergebnisse und Entscheidungen zu Prüfregeln, auch am Telefon. Anmeldung und Ticket-Triage behalten eigene Ansichten.",
     ),
   },
   {
@@ -401,8 +408,8 @@ export const engineJobs: Array<{
     label: t("Audit", "Prüfprotokoll"),
     status: "live",
     note: t(
-      "Events, worker attribution, outcomes and session, token and cost reporting are live.",
-      "Ereignisse, Zuordnung der Arbeit zu den ausführenden Agenten, Ergebnisse sowie Berichte zu Sitzungen, Token und Kosten sind live.",
+      "Events, worker attribution, outcomes and session, token and cost reporting are live. Ordinary audit history is protected; selected account-probe and heartbeat telemetry can be pruned after 14 days.",
+      "Ereignisse, Zuordnung der Arbeit, Ergebnisse sowie Berichte zu Sitzungen, Token und Kosten sind live. Gewöhnliche Prüfhistorie ist geschützt; ausgewählte Konto- und Lebenszeichen-Telemetrie kann nach 14 Tagen gelöscht werden.",
     ),
   },
 ];

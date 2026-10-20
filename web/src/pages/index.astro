@@ -185,7 +185,8 @@ const releaseDate = (iso: string) =>
   locale === "de" ? `Release vom ${iso.split("-").reverse().join(".")}` : `Release of ${iso}`;
 const productReleases = {
   aithema: copy(`Requirements core ${aithemaReleaseVersion}`, `Anforderungskern ${aithemaReleaseVersion}`),
-  paimos: `Release ${paimosRelease.number} · ${paimosRelease.codename}`,
+  // INSPR-578: an untagged baseline has no codename to append.
+  paimos: [`Release ${paimosRelease.number}`, paimosRelease.codename].filter(Boolean).join(" · "),
   pharos: releaseDate(pharosRelease.date),
   janus: releaseDate(janusRelease.date),
 };

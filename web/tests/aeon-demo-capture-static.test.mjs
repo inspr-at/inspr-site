@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import test, { after } from "node:test";
+import { runInNewContext } from "node:vm";
 import ts from "typescript";
 import { captureTextProblems, createCaptureSanitizer, loadCaptureDenylist, emailPattern, ipv4Pattern, hostPattern, domainPattern } from "../scripts/capture-aeon-demo/privacy.mjs";
 
@@ -220,10 +221,21 @@ test("the source audit also rejects private domain literals in strings, regexes 
   }
 });
 
-test("demo lens captions share the theatre bodies without changing capability claims", async () => {
+test("demo lenses share theatre bodies and label the two related historical screens (INSPR-578)", async () => {
   const [page, grid] = await Promise.all([read("src/components/AeonPage.astro"), read("src/components/SpecsGrid.astro")]);
   assert.match(page, /content\.theatre\.screens\.find\(\(screen\) => screen\.id === demo\.screen\)/);
-  assert.match(page, /body: screen\.body/);
+  assert.match(page, /body: relatedCaption \?\? screen\.body/);
+  // Existing lenses still use their theatre body; only the two added cards
+  // describe a related older screen instead of implying a new capture.
+  const related = page.match(/const relatedCaption = ([\s\S]*?);\n/)[1];
+  for (const locale of ["en", "de"]) {
+    for (let i = 1; i <= 20; i++) {
+      assert.equal(runInNewContext(related, { locale, lensKey: String(i).padStart(2, "0") }), undefined);
+    }
+    for (const lensKey of ["goals", "checks"]) {
+      assert.match(runInNewContext(related, { locale, lensKey }), /not pictured here|nicht abgebildet/);
+    }
+  }
   for (const variant of ["note", "noteEli10"]) {
     assert.ok(grid.includes(`lens.images[i]?.body ?? specs.items[i]?.${variant}`));
   }

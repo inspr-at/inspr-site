@@ -70,10 +70,11 @@ test("the engine's six jobs, the build order and the actors are complete", () =>
   ]);
   assert.deepEqual(family.engineJobs.map((job) => job.status), [
     // INSPR-556: AEON-848/849 delivery state, AEON-851 review setting live.
-    // AEON-887/891 acting remains shadow; AEON-569 desk cutover is pending.
+    // INSPR-578: broader orchestration stays shadow; the Desk cutover is complete.
     "live", "partly", "live", "partly", "live", "live",
   ]);
   assert.equal(family.buildOrder.length, 5);
+  assert.deepEqual(family.buildOrder.map((step) => step.status), ["partly", "partly", "planned", "planned", "planned"]);
   assert.deepEqual(family.actors.map((actor) => actor.key), ["builders", "bots", "people"]);
   assert.equal(family.actors.find((actor) => actor.key === "bots").status, "planned");
   assert.equal(family.contract.steps.length, 5);
@@ -81,6 +82,24 @@ test("the engine's six jobs, the build order and the actors are complete", () =>
     family.contract.steps.map((step) => step.en.toLowerCase()).join(" → ") + ".",
     family.contract.line.en.toLowerCase(),
   );
+});
+
+test("routine, host and queue previews keep their execution limits in both languages (INSPR-578)", () => {
+  for (const locale of ["en", "de"]) {
+    const routine = family.buildOrder.find((step) => step.key === "bots").statusNote[locale];
+    assert.match(routine, /preview|Vorschau/);
+    assert.match(routine, /off pending qualification and person consent|bis zur Qualifikation und Zustimmung einer Person aus/);
+    assert.match(routine, /learning planned|Lernen geplant/);
+    const admission = family.engineJobs.find((job) => job.key === "admission").note[locale];
+    assert.match(admission, /off by default|standardmäßig aus/);
+    assert.match(admission, /shadow preview|Vorschau im Schattenbetrieb/);
+    const effects = family.engineJobs.find((job) => job.key === "effects").note[locale];
+    assert.match(effects, /off by default|standardmäßig aus/);
+    assert.match(effects, /does not merge or deploy|führt weder zusammen noch stellt sie bereit/);
+    const audit = family.engineJobs.find((job) => job.key === "audit").note[locale];
+    assert.match(audit, /14 days|14 Tagen/);
+    for (const step of family.buildOrder) assert.doesNotMatch(step.statusNote?.[locale] ?? "", /\b20\d\d-\d\d-\d\d\b|\b[Rr]elease \d/);
+  }
 });
 
 test("family.ts carries no host names, internal domains or personal names", async () => {

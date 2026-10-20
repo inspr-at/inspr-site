@@ -77,7 +77,7 @@ const bezelMap = `data:image/svg+xml,${encodeURIComponent(bezelSvg)}`;
     </span>
     <span class="aeon-plaque__meta">
       <span class="aeon-plaque__label">{release.label}</span>
-      <span>{release.sourceRevision}</span>
+      <code>{release.sourceRevision}</code>
       {release.version && <code>{release.version}</code>}
       {release.publishedAt && release.publishedLabel && <time datetime={release.publishedAt}>{release.publishedLabel}</time>}
     </span>

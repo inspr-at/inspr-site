@@ -201,15 +201,15 @@ const demoLens: Record<string, { image: ImageMetadata; name: string; screen: str
 const lensKinds: Record<string, LensImage["kind"]> = { live: "live", demo: "demo", generated: "art", "public-web": "web" };
 const lensImages: LensImage[] = content.specs.items.map((item, i) => {
   const lensKey = lensKeys[i];
-  const key = lensKey === "goals" ? "11" : lensKey === "checks" ? "08" : lensKey;
+  const key = lensKey === "goals" ? "11" : lensKey === "checks" ? "07" : lensKey;
   const relatedCaption = lensKey === "goals"
     ? (locale === "de"
-      ? "Verwandte frühere Ansicht: der Arbeitsbaum mit Epics, Tickets, Zustand, Schätzungen und Ankunftszeiten. Die neue Ziele-Ansicht ist hier nicht abgebildet."
-      : "Related earlier screen: the work tree with epics, tickets, status, estimates and ETAs. The new Goals view is not pictured here.")
+      ? "Verwandte Ansicht: der Arbeitsbaum mit Epics, Tickets, Schätzungen und Ankunftszeiten."
+      : "Related screen: the work tree with epics, tickets, estimates and ETAs.")
     : lensKey === "checks"
       ? (locale === "de"
-        ? "Verwandte Aufnahme aus Release 128: die Einstellungen zur Prüfung durch eine andere Modellfamilie. Die neuen Prüfregeln für Arbeitsbeginn und Abschluss sind hier nicht abgebildet."
-        : "Related release-128 screen: cross-family review settings. The new readiness and completion definitions are not pictured here.")
+        ? "Verwandte Ansicht: die Agentenregeln für das Unternehmen, mit aktiven Regelsätzen und gesperrten Regeln."
+        : "Related screen: company agent rules, with enabled sets and locked rules.")
       : undefined;
   const demo = demoLens[key];
   if (demo) {

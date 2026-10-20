@@ -236,8 +236,8 @@ test("the home-page bot status distinguishes released recurring tickets from pla
   const family = await source("content/family.ts");
   const bots = family.slice(family.indexOf('key: "bots"'), family.indexOf('key: "people"'));
   assert.match(bots, /status: "planned"/);
-  assert.match(bots, /Recurring tickets live; routine setup and logbooks available; automatic execution preview, off by default, pending qualification and person consent; perpetual bots and learning planned/);
-  assert.match(bots, /Wiederkehrende Tickets live; Routinen einrichten und Laufprotokolle verfügbar; automatische Ausführung als Vorschau, standardmäßig aus, bis zur Qualifikation und Zustimmung einer Person; dauerhafte Bots und Lernen geplant/);
+  assert.match(bots, /Recurring tickets live; Routines in preview, automatic runs off by default; bots and learning planned/);
+  assert.match(bots, /Wiederkehrende Tickets live; Routinen in Vorschau, automatische Läufe standardmäßig aus; Bots und Lernen geplant/);
   assert.doesNotMatch(bots, /First adapter live|Erster Adapter live/);
 });
 

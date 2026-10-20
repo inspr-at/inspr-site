@@ -233,7 +233,9 @@ test("demo lenses share theatre bodies and label the two related historical scre
       assert.equal(runInNewContext(related, { locale, lensKey: String(i).padStart(2, "0") }), undefined);
     }
     for (const lensKey of ["goals", "checks"]) {
-      assert.match(runInNewContext(related, { locale, lensKey }), /not pictured here|nicht abgebildet/);
+      const caption = runInNewContext(related, { locale, lensKey });
+      assert.match(caption, /^Related screen:|^Verwandte\sAnsicht:/);
+      assert.doesNotMatch(caption, /not pictured here|nicht abgebildet/);
     }
   }
   for (const variant of ["note", "noteEli10"]) {

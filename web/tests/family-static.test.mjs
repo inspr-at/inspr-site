@@ -84,20 +84,26 @@ test("the engine's six jobs, the build order and the actors are complete", () =>
   );
 });
 
-test("routine, host and queue previews keep their execution limits in both languages (INSPR-578)", () => {
+test("short family notes preserve preview limits in both languages (INSPR-578 round 2)", () => {
   for (const locale of ["en", "de"]) {
     const routine = family.buildOrder.find((step) => step.key === "bots").statusNote[locale];
     assert.match(routine, /preview|Vorschau/);
-    assert.match(routine, /off pending qualification and person consent|bis zur Qualifikation und Zustimmung einer Person aus/);
+    assert.match(routine, /automatic runs off by default|automatische Läufe standardmäßig aus/);
     assert.match(routine, /learning planned|Lernen geplant/);
     const admission = family.engineJobs.find((job) => job.key === "admission").note[locale];
     assert.match(admission, /off by default|standardmäßig aus/);
-    assert.match(admission, /shadow preview|Vorschau im Schattenbetrieb/);
+    assert.match(admission, /Daily limits|Tagesgrenzen/);
     const effects = family.engineJobs.find((job) => job.key === "effects").note[locale];
     assert.match(effects, /off by default|standardmäßig aus/);
-    assert.match(effects, /does not merge or deploy|führt weder zusammen noch stellt sie bereit/);
+    assert.match(effects, /in preview|in Vorschau/);
     const audit = family.engineJobs.find((job) => job.key === "audit").note[locale];
-    assert.match(audit, /14 days|14 Tagen/);
+    assert.match(audit, /Protected audit history|Geschützte Audit-Historie/);
+    assert.doesNotMatch(audit, /14 days|14 Tagen/);
+    const notes = [...family.flow.steps.map((step) => step.statusNote?.[locale]), ...family.actors.map((actor) => actor.statusNote?.[locale]), ...family.buildOrder.map((step) => step.statusNote?.[locale]), ...family.engineJobs.map((job) => job.note[locale])].filter(Boolean);
+    for (const note of notes) {
+      assert.ok(note.split(/\s+/).length <= 24, `${locale}: family note stays near twenty words`);
+      assert.doesNotMatch(note, /qualification|unqualified|shadow preview|gated preview|heartbeat|telemetry|projection|machinery|step-ups|Qualifikation|unqualifiziert|Schattenbetrieb|Lebenszeichen|Telemetrie|Freigabevoraussetzungen/i);
+    }
     for (const step of family.buildOrder) assert.doesNotMatch(step.statusNote?.[locale] ?? "", /\b20\d\d-\d\d-\d\d\b|\b[Rr]elease \d/);
   }
 });

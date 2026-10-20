@@ -184,11 +184,11 @@ export const flow: {
         "Short-lived coding agents, each in its own worktree; another model family reviews.",
         "Kurzlebige Entwicklungsagenten, jeder in einer eigenen Arbeitskopie des Repositorys; eine andere Modellfamilie prüft.",
       ),
-      // INSPR-578: adapters do not establish managed readiness or verification.
+      // INSPR-578: round 2 keeps shared notes short; the product page holds support details.
       status: "partly",
       statusNote: t(
-        "Review gates live; Claude Code, Codex, Cursor and pi start under Paimos, with live acceptance still open. Grok runs tool-free on Apple silicon. Gemini and OpenCode adapters available; managed readiness and verification remain unqualified. Cross-family review setting: live; automatic review rounds: shadow preview",
-        "Prüfschritte live; Claude Code, Codex, Cursor und pi starten unter Paimos, die Abnahme im Live-Betrieb steht noch aus. Grok läuft ohne Werkzeuge auf Apple Silicon. Adapter für Gemini und OpenCode verfügbar; Betriebsbereitschaft für verwaltete Läufe und Verifikation bleiben unqualifiziert. Prüfung durch eine andere Modellfamilie als Einstellung: live; automatische Prüfrunden: Vorschau im Schattenbetrieb",
+        "Claude Code, Codex, Cursor and pi supported; cross-family review settings live; automatic review rounds in preview",
+        "Claude Code, Codex, Cursor und pi unterstützt; Einstellungen zur Prüfung durch andere Modellfamilien live; automatische Prüfrunden in Vorschau",
       ),
     },
     productStep("deploy", t("Deploy", "Bereitstellung"), "pharos"),
@@ -204,8 +204,8 @@ export const flow: {
       status: "partly",
       // INSPR-578: routine setup is available; automatic execution stays preview.
       statusNote: t(
-        "Recurring tickets live; routine setup and logbooks available; automatic execution preview, off by default, pending qualification and person consent; learning planned",
-        "Wiederkehrende Tickets live; Routinen einrichten und Laufprotokolle verfügbar; automatische Ausführung als Vorschau, standardmäßig aus, bis zur Qualifikation und Zustimmung einer Person; Lernen geplant",
+        "Recurring tickets live; Routines in preview, automatic runs off by default; bots and learning planned",
+        "Wiederkehrende Tickets live; Routinen in Vorschau, automatische Läufe standardmäßig aus; Bots und Lernen geplant",
       ),
     },
   ],
@@ -289,8 +289,8 @@ export const actors: Array<{
     status: "planned",
     // INSPR-578: perpetual bots stay planned despite available routine setup.
     statusNote: t(
-      "Recurring tickets live; routine setup and logbooks available; automatic execution preview, off by default, pending qualification and person consent; perpetual bots and learning planned",
-      "Wiederkehrende Tickets live; Routinen einrichten und Laufprotokolle verfügbar; automatische Ausführung als Vorschau, standardmäßig aus, bis zur Qualifikation und Zustimmung einer Person; dauerhafte Bots und Lernen geplant",
+      "Recurring tickets live; Routines in preview, automatic runs off by default; bots and learning planned",
+      "Wiederkehrende Tickets live; Routinen in Vorschau, automatische Läufe standardmäßig aus; Bots und Lernen geplant",
     ),
   },
   {
@@ -314,18 +314,18 @@ export const buildOrder: Array<{
     label: t("The engine for builders", "Die Arbeitssteuerung für Entwicklungsagenten"),
     status: "partly",
     statusNote: t(
-      "Managed starts with admission limits, Models routing, goals and delivery measurements, workflow checks, header Decision Desk and reporting: available. Broader admission, automatic review and shipping: shadow preview. Routine PR actions and admission-queue operations: gated preview, off by default",
-      "Verwaltete Starts mit Zulassungsgrenzen, Modellwahl über Models, Ziele und Auslieferungsmessungen, Prüfregeln, Entscheidungsübersicht („Decision Desk“) im Kopfbereich und Berichte: verfügbar. Übergreifende Zulassung, automatische Prüfung und Auslieferung: Vorschau im Schattenbetrieb. Routinenaktionen für Pull Requests und Zulassungswarteschlange: Vorschau mit Freigabevoraussetzungen, standardmäßig aus",
+      "Managed starts, model routing, goals, workflow checks and Decision Desk live; automatic queueing, review rounds and shipping in preview",
+      "Verwaltete Starts, Modellwahl, Ziele, Arbeitsablaufprüfungen und Entscheidungsübersicht live; automatische Warteschlangen, Prüfrunden und Auslieferung in Vorschau",
     ),
   },
   {
     key: "bots",
     label: t("Bots and Routines", "Bots und Routinen"),
-    // INSPR-578: setup and logbooks exist; execution qualification is separate.
+    // INSPR-578: setup and logbooks exist; automatic runs remain a default-off preview.
     status: "partly",
     statusNote: t(
-      "Recurring tickets live; Routines preview: definitions, assignments, templates and logbooks available. Automatic execution remains off pending qualification and person consent; perpetual bots and learning planned",
-      "Wiederkehrende Tickets live; Routinen-Vorschau: Definitionen, Zuweisungen, Vorlagen und Laufprotokolle verfügbar. Automatische Ausführung bleibt bis zur Qualifikation und Zustimmung einer Person aus; dauerhafte Bots und Lernen geplant",
+      "Recurring tickets live; Routines in preview, automatic runs off by default; bots and learning planned",
+      "Wiederkehrende Tickets live; Routinen in Vorschau, automatische Läufe standardmäßig aus; Bots und Lernen geplant",
     ),
   },
   {
@@ -359,18 +359,18 @@ export const engineJobs: Array<{
     // INSPR-578: goal freshness and build measurements extend reported state.
     status: "live",
     note: t(
-      "Reported session state, goal progress and ETA freshness are live. With GitHub connected, delivery status and stall alerts use reported steps; build-to-merge measurements show first-try success, rounds and idle time.",
-      "Gemeldeter Sitzungszustand, Zielfortschritt und Aktualität der Ankunftszeiten sind live. Mit verbundenem GitHub nutzen Lieferstatus und Fristwarnungen gemeldete Schritte; Messungen vom ersten Build bis zur Zusammenführung zeigen Erfolg im ersten Versuch, Runden und Wartezeit.",
+      "Reported session state, goal progress and arrival estimates live; delivery metrics use recorded steps, with GitHub connected.",
+      "Gemeldeter Sitzungszustand, Zielfortschritt und Ankunftsschätzungen live; Auslieferungsmessungen nutzen erfasste Schritte, mit verbundenem GitHub.",
     ),
   },
   {
     key: "admission",
     label: t("Fair admission", "Faire Zulassung"),
-    // INSPR-578: actual start checks coexist with the broader shadow projection.
+    // INSPR-578: the engine section explains the preview; this note names the live checks.
     status: "partly",
     note: t(
-      "Managed starts enforce daily limits and account permissions, with model fallbacks. Host-load checks for new starts are available when enabled, off by default. The broader admission projection remains shadow preview.",
-      "Verwaltete Starts setzen Tagesgrenzen und Kontoberechtigungen durch und nutzen Ausweichmodelle. Rechnerlastprüfungen für neue Starts sind nach Aktivierung verfügbar und standardmäßig aus. Die übergreifende Zulassungsprojektion bleibt Vorschau im Schattenbetrieb.",
+      "Daily limits, account permissions and model fallbacks live; checks for busy computers available, off by default.",
+      "Tagesgrenzen, Kontoberechtigungen und Ausweichmodelle live; Prüfungen auf Rechnerlast verfügbar, standardmäßig aus.",
     ),
   },
   {
@@ -379,18 +379,18 @@ export const engineJobs: Array<{
     // INSPR-578: fallback orders and workflow definitions are available settings.
     status: "live",
     note: t(
-      "Model fallback orders with per-step reasoning, workflow readiness and completion definitions, and cross-family review settings are live. Permitted people can override workflow checks with a recorded reason. Automatic review and fix rounds remain shadow preview.",
-      "Reihenfolgen für Ausweichmodelle mit Denkaufwand je Schritt, Prüfregeln für Arbeitsbeginn und Abschluss sowie Einstellungen zur Prüfung durch eine andere Modellfamilie sind live. Berechtigte Personen können Prüfregeln mit dokumentierter Begründung übersteuern. Automatische Prüf- und Korrekturrunden bleiben Vorschau im Schattenbetrieb.",
+      "Model fallback orders, reasoning levels, workflow checks and cross-family review settings live; automatic review and fix rounds in preview.",
+      "Ausweichmodelle, Denkaufwand, Arbeitsablaufprüfungen und Einstellungen zur Prüfung durch eine andere Modellfamilie live; automatische Prüf- und Korrekturrunden in Vorschau.",
     ),
   },
   {
     key: "effects",
     label: t("Effects only through Paimos", "Wirkungen nur über Paimos"),
-    // INSPR-578: PR and queue machinery is gated preview, not autonomous shipping.
+    // INSPR-578: preview actions retain their default-off status.
     status: "partly",
     note: t(
-      "With GitHub connected, review status and the merge audit are live. Routine PR actions and admission-queue operations are gated preview, with automatic execution and queue enforcement off by default. Shadow shipping does not merge or deploy; a person's live confirmation is recorded separately.",
-      "Mit verbundenem GitHub sind Prüfstatus und Merge-Prüfung live. Routinenaktionen für Pull Requests und die Zulassungswarteschlange sind Vorschau mit Freigabevoraussetzungen; automatische Ausführung und Warteschlangendurchsetzung sind standardmäßig aus. Auslieferung im Schattenbetrieb führt weder zusammen noch stellt sie bereit; die Live-Bestätigung einer Person wird getrennt erfasst.",
+      "Review status and merge audit live with GitHub; routine PR actions and automatic queueing in preview, off by default.",
+      "Prüfstatus und Merge-Prüfung mit GitHub live; Routinenaktionen für Pull Requests und automatische Warteschlangen in Vorschau, standardmäßig aus.",
     ),
   },
   {
@@ -399,17 +399,17 @@ export const engineJobs: Array<{
     // INSPR-578: the header Desk follows the completed Agents cutover.
     status: "live",
     note: t(
-      "The header Decision Desk brings questions, approvals, step-ups, prepared lessons and definition decisions together, including on phones. Sign-in chores and ticket triage keep their own surfaces.",
-      "Die Entscheidungsübersicht („Decision Desk“) im Kopfbereich bündelt Fragen, Freigaben, erneute Bestätigungen, vorbereitete Lernergebnisse und Entscheidungen zu Prüfregeln, auch am Telefon. Anmeldung und Ticket-Triage behalten eigene Ansichten.",
+      "Questions, approvals and suggested lessons together in the header Decision Desk, also on phones.",
+      "Fragen, Freigaben und vorgeschlagene Erkenntnisse in der Entscheidungsübersicht im Kopfbereich, auch am Telefon.",
     ),
   },
   {
     key: "audit",
-    label: t("Audit", "Prüfprotokoll"),
+    label: t("Audit", "Audit-Historie"),
     status: "live",
     note: t(
-      "Events, worker attribution, outcomes and session, token and cost reporting are live. Ordinary audit history is protected; selected account-probe and heartbeat telemetry can be pruned after 14 days.",
-      "Ereignisse, Zuordnung der Arbeit, Ergebnisse sowie Berichte zu Sitzungen, Token und Kosten sind live. Gewöhnliche Prüfhistorie ist geschützt; ausgewählte Konto- und Lebenszeichen-Telemetrie kann nach 14 Tagen gelöscht werden.",
+      "Protected audit history with worker attribution, outcomes, and reports on sessions, tokens and costs.",
+      "Geschützte Audit-Historie mit Zuordnung der Arbeit, Ergebnissen sowie Berichten zu Sitzungen, Token und Kosten.",
     ),
   },
 ];

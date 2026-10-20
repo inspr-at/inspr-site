@@ -31,11 +31,14 @@ package main
 
 import (
 	"context"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -153,6 +156,14 @@ func main() {
 		Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
 	}
 	verifier = provider.Verifier(&oidc.Config{ClientID: clientID})
+	admin, err := loadAdminAuth()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if admin != nil {
+		admin.oauthCfg.Endpoint = provider.Endpoint()
+		admin.verifier = provider.Verifier(&oidc.Config{ClientID: admin.oauthCfg.ClientID})
+	}
 
 	tmpl = template.Must(template.ParseFiles(
 		"templates/welcome.html",
@@ -189,7 +200,7 @@ func main() {
 		issuer, baseURL, listen, signupStatus, edgeStatus)
 	server := &http.Server{
 		Addr:              listen,
-		Handler:           mux,
+		Handler:           withAdminAuth(mux, admin),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      15 * time.Second,
@@ -197,6 +208,237 @@ func main() {
 		MaxHeaderBytes:    32 << 10,
 	}
 	log.Fatal(server.ListenAndServe())
+}
+
+// Admin sessions are independent of the apex cookies and signup edge contract.
+// Only the request Host and our authenticated cookie participate in this scope.
+const adminCookieName = "__Secure-paimos_admin"
+
+type adminAuth struct {
+	baseURL         string
+	oauthCfg        *oauth2.Config
+	verifier        *oidc.IDTokenVerifier
+	cipher          cipher.AEAD
+	allowedSubjects map[string]bool
+}
+
+type adminLoginAttempt struct {
+	State    string `json:"state"`
+	Nonce    string `json:"nonce"`
+	Verifier string `json:"verifier"`
+	Exp      int64  `json:"exp"`
+}
+
+type adminSession struct {
+	Subject string `json:"sub"`
+	Exp     int64  `json:"exp"`
+}
+
+func loadAdminAuth() (*adminAuth, error) {
+	names := []string{"ADMIN_BASE_URL", "ADMIN_OIDC_CLIENT_ID", "ADMIN_OIDC_CLIENT_SECRET", "ADMIN_COOKIE_KEY"}
+	configured := os.Getenv("ADMIN_ALLOWED_SUBJECTS") != ""
+	for _, name := range names {
+		configured = configured || os.Getenv(name) != ""
+	}
+	if !configured {
+		return nil, nil
+	}
+	for _, name := range names {
+		if os.Getenv(name) == "" {
+			return nil, fmt.Errorf("admin: missing required env: %s", name)
+		}
+	}
+	adminBaseURL := strings.TrimSuffix(os.Getenv("ADMIN_BASE_URL"), "/")
+	if adminBaseURL != "https://paimos.com" {
+		return nil, errors.New("admin: ADMIN_BASE_URL must be https://paimos.com")
+	}
+	adminClientID := os.Getenv("ADMIN_OIDC_CLIENT_ID")
+	if adminClientID == clientID {
+		return nil, errors.New("admin: ADMIN_OIDC_CLIENT_ID must differ from OIDC_CLIENT_ID")
+	}
+	key, err := hex.DecodeString(os.Getenv("ADMIN_COOKIE_KEY"))
+	if err != nil || len(key) != 32 {
+		return nil, errors.New("admin: ADMIN_COOKIE_KEY must be exactly 64 hex characters")
+	}
+	if hmac.Equal(key, cookieKey) {
+		return nil, errors.New("admin: ADMIN_COOKIE_KEY must differ from COOKIE_KEY")
+	}
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, errors.New("admin: cookie cipher unavailable")
+	}
+	aead, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, errors.New("admin: cookie cipher unavailable")
+	}
+	allowed := make(map[string]bool)
+	for _, subject := range strings.Split(os.Getenv("ADMIN_ALLOWED_SUBJECTS"), ",") {
+		if subject = strings.TrimSpace(subject); subject != "" {
+			allowed[subject] = true
+		}
+	}
+	return &adminAuth{
+		baseURL: adminBaseURL,
+		oauthCfg: &oauth2.Config{
+			ClientID:     adminClientID,
+			ClientSecret: os.Getenv("ADMIN_OIDC_CLIENT_SECRET"),
+			RedirectURL:  adminBaseURL + "/admin/callback",
+			Scopes:       []string{oidc.ScopeOpenID},
+		},
+		cipher:          aead,
+		allowedSubjects: allowed,
+	}, nil
+}
+
+func withAdminAuth(apex http.Handler, admin *adminAuth) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.EqualFold(r.Host, "paimos.com") || strings.EqualFold(r.Host, "paimos.com:443") {
+			if r.URL.Path == "/admin" || strings.HasPrefix(r.URL.Path, "/admin/") {
+				w.Header().Set("Cache-Control", "private, no-store")
+				w.Header().Set("X-Robots-Tag", "noindex, nofollow, noarchive")
+				w.Header().Set("Referrer-Policy", "same-origin")
+				w.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
+			}
+			if admin == nil {
+				http.NotFound(w, r)
+				return
+			}
+			admin.ServeHTTP(w, r)
+			return
+		}
+		apex.ServeHTTP(w, r)
+	})
+}
+
+func (a *adminAuth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	allowedMethod := r.Method == http.MethodGet
+	switch r.URL.Path {
+	case "/admin/login", "/admin/callback", "/admin/_auth/verify":
+		w.Header().Set("Allow", "GET")
+	case "/admin/logout":
+		allowedMethod = allowedMethod || r.Method == http.MethodPost
+		w.Header().Set("Allow", "GET, POST")
+	default:
+		http.NotFound(w, r)
+		return
+	}
+	if !allowedMethod {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	w.Header().Del("Allow")
+	switch r.URL.Path {
+	case "/admin/login":
+		attempt := adminLoginAttempt{
+			State: randString(24), Nonce: randString(24), Verifier: oauth2.GenerateVerifier(),
+			Exp: time.Now().Add(stateTTL).Unix(),
+		}
+		if err := a.writeCookie(w, "login", attempt, stateTTL); err != nil {
+			http.Error(w, "login failed", http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, a.oauthCfg.AuthCodeURL(attempt.State, oidc.Nonce(attempt.Nonce), oauth2.S256ChallengeOption(attempt.Verifier)), http.StatusFound)
+	case "/admin/callback":
+		a.handleCallback(w, r)
+	case "/admin/_auth/verify":
+		var session adminSession
+		if err := a.readCookie(r, "session", &session); err != nil || session.Exp <= time.Now().Unix() || session.Subject == "" || !a.allowedSubjects[session.Subject] {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	case "/admin/logout":
+		a.clearCookie(w)
+		http.Redirect(w, r, a.baseURL+"/", http.StatusSeeOther)
+	}
+}
+
+func (a *adminAuth) handleCallback(w http.ResponseWriter, r *http.Request) {
+	// The same cookie holds the five-minute attempt and then the session.
+	// Purpose-bound encryption prevents an attempt from authorizing file access.
+	a.clearCookie(w)
+	callback, err := parseLoginCallback(r.URL.RawQuery)
+	var attempt adminLoginAttempt
+	if err != nil || callback.failure != "" || callback.code == "" || callback.state == "" ||
+		a.readCookie(r, "login", &attempt) != nil || attempt.Exp <= time.Now().Unix() ||
+		attempt.State == "" || attempt.Nonce == "" || attempt.Verifier == "" ||
+		subtle.ConstantTimeCompare([]byte(attempt.State), []byte(callback.state)) != 1 {
+		http.Error(w, "login failed", http.StatusBadRequest)
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), zitadelHTTPTimeout)
+	defer cancel()
+	token, err := a.oauthCfg.Exchange(ctx, callback.code, oauth2.VerifierOption(attempt.Verifier))
+	if err != nil {
+		http.Error(w, "login failed", http.StatusBadRequest)
+		return
+	}
+	rawIDToken, _ := token.Extra("id_token").(string)
+	idToken, err := a.verifier.Verify(ctx, rawIDToken)
+	if err != nil || subtle.ConstantTimeCompare([]byte(attempt.Nonce), []byte(idToken.Nonce)) != 1 || idToken.Subject == "" {
+		http.Error(w, "login failed", http.StatusBadRequest)
+		return
+	}
+	if !a.allowedSubjects[idToken.Subject] {
+		http.Error(w, "access denied", http.StatusForbidden)
+		return
+	}
+	session := adminSession{Subject: idToken.Subject, Exp: time.Now().Add(sessionTTL).Unix()}
+	if err := a.writeCookie(w, "session", session, sessionTTL); err != nil {
+		http.Error(w, "login failed", http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, a.baseURL+"/admin/", http.StatusSeeOther)
+}
+
+func (a *adminAuth) cookieContext(purpose string) []byte {
+	return []byte("paimos-admin-v1|" + a.baseURL + "|" + adminCookieName + "|" + purpose)
+}
+
+func (a *adminAuth) writeCookie(w http.ResponseWriter, purpose string, payload any, ttl time.Duration) error {
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+	nonce := make([]byte, a.cipher.NonceSize())
+	if _, err := rand.Read(nonce); err != nil {
+		return err
+	}
+	sealed := a.cipher.Seal(nonce, nonce, body, a.cookieContext(purpose))
+	value := base64.RawURLEncoding.EncodeToString(sealed)
+	if len(value) > 3800 {
+		return errors.New("admin: cookie payload too large")
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name: adminCookieName, Value: value, Path: "/admin",
+		MaxAge: int(ttl.Seconds()), Expires: time.Now().Add(ttl).UTC(),
+		Secure: true, HttpOnly: true, SameSite: http.SameSiteLaxMode,
+	})
+	return nil
+}
+
+func (a *adminAuth) readCookie(r *http.Request, purpose string, payload any) error {
+	cookies := r.CookiesNamed(adminCookieName)
+	if len(cookies) != 1 || len(cookies[0].Value) > 3800 {
+		return errors.New("admin: missing or ambiguous cookie")
+	}
+	sealed, err := base64.RawURLEncoding.DecodeString(cookies[0].Value)
+	if err != nil || len(sealed) < a.cipher.NonceSize()+a.cipher.Overhead() {
+		return errors.New("admin: invalid cookie")
+	}
+	nonce := sealed[:a.cipher.NonceSize()]
+	body, err := a.cipher.Open(nil, nonce, sealed[a.cipher.NonceSize():], a.cookieContext(purpose))
+	if err != nil {
+		return errors.New("admin: invalid cookie")
+	}
+	return json.Unmarshal(body, payload)
+}
+
+func (a *adminAuth) clearCookie(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name: adminCookieName, Value: "", Path: "/admin", MaxAge: -1,
+		Expires: time.Unix(1, 0).UTC(), Secure: true, HttpOnly: true, SameSite: http.SameSiteLaxMode,
+	})
 }
 
 // ── Handlers ──────────────────────────────────────────────────────────────

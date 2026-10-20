@@ -1,7 +1,7 @@
 // INSPR-572: the build gate for the paimos.com films. It validates the
 // committed manifest snapshot and, once it lists a film, requires the edge to
 // let paimos.com load that media origin: the Content-Security-Policy that
-// applies to paimos.com (its own handle's, else the shared one) must name the
+// applies to the public paimos.com pages must name the
 // manifest's origin in media-src and img-src, or every film would be blocked.
 // The privacy-facts audit separately refuses a media origin the privacy notice
 // does not name.
@@ -33,7 +33,8 @@ const caddyfile = await readFile(caddyfileUrl, "utf8");
 const block = caddyfile.match(/handle @paimos_com \{([\s\S]*?)\n\t\}/)?.[1];
 if (!block) throw new Error("film manifest: the Caddyfile has no `handle @paimos_com` block");
 const shared = caddyfile.match(/\n\theader \{([\s\S]*?)\n\t\}/)?.[1] ?? "";
-const policy = (block.match(/Content-Security-Policy "([^"]+)"/) ?? shared.match(/Content-Security-Policy "([^"]+)"/))?.[1];
+const publicPages = caddyfile.match(/\n\theader @not_paimos_admin \{([\s\S]*?)\n\t\}/)?.[1] ?? "";
+const policy = (block.match(/Content-Security-Policy "([^"]+)"/) ?? publicPages.match(/Content-Security-Policy "([^"]+)"/) ?? shared.match(/Content-Security-Policy "([^"]+)"/))?.[1];
 if (!policy) throw new Error("film manifest: no Content-Security-Policy applies to paimos.com");
 const directive = (name) =>
   policy.split(";").map((part) => part.trim().split(/\s+/)).find(([key]) => key === name)?.slice(1) ?? [];

@@ -29,12 +29,32 @@
 	# JSON-LD payloads. New or stale hashes fail web/scripts/verify-csp.py.
 	header {
 		X-Content-Type-Options "nosniff"
-		Referrer-Policy "strict-origin-when-cross-origin"
 		Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=(), browsing-topics=()"
 		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
 		Cross-Origin-Opener-Policy "same-origin"
-		Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://media.inspr.at; font-src 'self' data:; script-src 'self' 'sha256-DSv7vgLSN1bj36CyJzlHeafVeifZaqgNDlDDlgnScFY=' 'sha256-Fv81oDJzdp+/94PhyvQ+peTsyAV+EVPhgH5qCPv1PSg=' 'sha256-m1oZ+c962dAU/hl4PW1RH/9IRS93TjhsGDA7JYYIXXk=' 'sha256-eBDjGmuPzGRCCoF4yQvT6pfwxCBCv1hXC7FU0FDEu9o='; connect-src 'self' https://media.inspr.at; media-src 'self' https://media.inspr.at; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
 		-Server
+	}
+	# Policies that differ for admin must stay outside the deferred shared block.
+	@paimos_admin {
+		host paimos.com
+		path /admin /admin/*
+	}
+	@not_paimos_admin {
+		not {
+			host paimos.com
+			path /admin /admin/*
+		}
+	}
+	header @not_paimos_admin {
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://media.inspr.at; font-src 'self' data:; script-src 'self' 'sha256-DSv7vgLSN1bj36CyJzlHeafVeifZaqgNDlDDlgnScFY=' 'sha256-Fv81oDJzdp+/94PhyvQ+peTsyAV+EVPhgH5qCPv1PSg=' 'sha256-m1oZ+c962dAU/hl4PW1RH/9IRS93TjhsGDA7JYYIXXk=' 'sha256-eBDjGmuPzGRCCoF4yQvT6pfwxCBCv1hXC7FU0FDEu9o='; connect-src 'self' https://media.inspr.at; media-src 'self' https://media.inspr.at; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
+	}
+	header @paimos_admin {
+		X-Robots-Tag "noindex, nofollow, noarchive"
+		Cache-Control "private, no-store"
+		Referrer-Policy "same-origin"
+		Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; script-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
+		defer
 	}
 
 	# INSPR-572: paimos.com embeds the films and posters from media.inspr.at, so
@@ -170,9 +190,53 @@
 	# INSPR-572: paimos.com, the front door with the films.
 	@paimos_com host paimos.com
 	handle @paimos_com {
-		root * /srv/releases/current/paimos-com
-		try_files {path} {path}.html {path}/index.html
-		file_server
+		@admin_auth path /admin/login /admin/callback /admin/logout
+		handle @admin_auth {
+			request_header -Forwarded
+			request_header -X-Forwarded-*
+			reverse_proxy inspr-auth:8080 {
+				header_up X-Forwarded-For {remote_host}
+				header_up X-Forwarded-Host {http.request.hostport}
+				header_up X-Forwarded-Proto https
+				header_up X-Forwarded-Method {method}
+				header_up X-Forwarded-Uri {uri}
+			}
+		}
+		# The studio's links are relative to /admin/, so the bare path gains its slash.
+		redir /admin /admin/ 308
+		handle @paimos_admin {
+			# Keep verification ahead of rewrites and every private filesystem read.
+			route {
+				request_header -Forwarded
+				request_header -X-Forwarded-*
+				forward_auth inspr-auth:8080 {
+					uri /admin/_auth/verify
+					header_up X-Forwarded-For {remote_host}
+					header_up X-Forwarded-Host {http.request.hostport}
+					header_up X-Forwarded-Proto https
+					header_up X-Forwarded-Method {method}
+					header_up X-Forwarded-Uri {uri}
+					# A page load without a session goes to sign-in; a background
+					# request (the studio's live-update poll) gets a plain 401, so
+					# a script never follows a redirect into the sign-in pages.
+					@denied status 401
+					handle_response @denied {
+						@navigation expression `{http.request.header.Sec-Fetch-Mode} == "navigate" || ({http.request.header.Sec-Fetch-Mode} == "" && {http.request.header.Accept}.contains("text/html"))`
+						redir @navigation /admin/login 302
+						respond "401 Unauthorized" 401
+					}
+				}
+				uri strip_prefix /admin
+				root * /srv/admin
+				try_files {path} {path}/index.html
+				file_server
+			}
+		}
+		handle {
+			root * /srv/releases/current/paimos-com
+			try_files {path} {path}.html {path}/index.html
+			file_server
+		}
 	}
 
 	@pharos host pharos.inspr.at
@@ -204,6 +268,17 @@
 	handle_errors {
 		# A film that is not synced yet must not be cached as a 404 for a year.
 		header Cache-Control "no-store"
+		@admin_error {
+			host paimos.com
+			expression `{http.request.orig_uri.path} == "/admin" || {http.request.orig_uri.path}.startsWith("/admin/")`
+		}
+		header @admin_error {
+			X-Robots-Tag "noindex, nofollow, noarchive"
+			Cache-Control "private, no-store"
+			Referrer-Policy "same-origin"
+			Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; script-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
+			defer
+		}
 		respond "{err.status_code} {err.status_text}" {err.status_code}
 	}
 }

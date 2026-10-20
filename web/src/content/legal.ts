@@ -1,12 +1,13 @@
 // INSPR-539: the operator notice and the privacy notice for the INSPR sites.
 // Markus Barta is the operator and controller (decision 2026-10-02). The
-// statements below only claim what the sites verifiably do: no accounts, no
-// cookies set by the pages, no analytics or third-party requests, display
+// statements below only claim what the public pages verifiably do: no accounts,
+// no cookies, no analytics or third-party requests, display
 // preferences in local storage only, delivery through Cloudflare, and web
 // servers configured without access logs. Re-verify those facts whenever the
 // edge, the layout scripts or the hosting change. Not legal advice.
 // INSPR-572: paimos.com joins the hosts, and its films come from
 // media.inspr.at, which is not delivered through Cloudflare.
+// INSPR-576: the invited admin area uses ZITADEL and one necessary cookie.
 
 export const operator = {
   name: "Markus Barta",
@@ -148,7 +149,13 @@ export const legalContent: Record<"legal" | "privacy", Record<"en" | "de", Legal
         {
           heading: "What these websites do not do",
           paragraphs: [
-            "There are no accounts, no cookies set by these pages, no analytics or tracking tools and no scripts, fonts or images from third parties. Fonts and images come from the same host as the page. The films on paimos.com, their preview images and the list of films come from media.inspr.at, my own media host on the same server.",
+            "On the public pages there are no accounts, no cookies set by these pages, no analytics or tracking tools and no scripts, fonts or images from third parties. Fonts and images come from the same host as the page. The films on paimos.com, their preview images and the list of films come from media.inspr.at, my own media host on the same server.",
+          ],
+        },
+        {
+          heading: "Invited sign-in area",
+          paragraphs: [
+            "The sign-in area at paimos.com/admin/ is for invited people only. Signing in goes through ZITADEL at auth.inspr.at. The area sets one strictly necessary, encrypted session cookie, limited to /admin on paimos.com. It protects the sign-in attempt for up to five minutes and, after successful sign-in, keeps you signed in for up to eight hours or until you sign out. After sign-in it contains only your ZITADEL subject identifier and expiry, used to check the invitation list before serving private files. The public pages still set no cookies.",
           ],
         },
         {
@@ -213,7 +220,13 @@ export const legalContent: Record<"legal" | "privacy", Record<"en" | "de", Legal
         {
           heading: "Was diese Websites nicht tun",
           paragraphs: [
-            "Es gibt keine Benutzerkonten, keine von diesen Seiten gesetzten Cookies, keine Analyse- oder Tracking-Werkzeuge und keine Skripte, Schriften oder Bilder von Dritten. Schriften und Bilder kommen vom selben Host wie die Seite. Die Filme auf paimos.com, ihre Vorschaubilder und die Filmliste kommen von media.inspr.at, meinem eigenen Medien-Host auf demselben Server.",
+            "Auf den öffentlichen Seiten gibt es keine Benutzerkonten, keine von diesen Seiten gesetzten Cookies, keine Analyse- oder Tracking-Werkzeuge und keine Skripte, Schriften oder Bilder von Dritten. Schriften und Bilder kommen vom selben Host wie die Seite. Die Filme auf paimos.com, ihre Vorschaubilder und die Filmliste kommen von media.inspr.at, meinem eigenen Medien-Host auf demselben Server.",
+          ],
+        },
+        {
+          heading: "Anmeldebereich für eingeladene Personen",
+          paragraphs: [
+            "Der Anmeldebereich unter paimos.com/admin/ ist nur für eingeladene Personen bestimmt. Die Anmeldung erfolgt über ZITADEL unter auth.inspr.at. Der Bereich setzt ein einziges, unbedingt erforderliches, verschlüsseltes Sitzungscookie, beschränkt auf /admin auf paimos.com. Es schützt den Anmeldeversuch für bis zu fünf Minuten und hält Sie nach erfolgreicher Anmeldung für bis zu acht Stunden oder bis zur Abmeldung angemeldet. Nach der Anmeldung enthält es nur Ihre ZITADEL-Kennung (sub) und die Ablaufzeit, mit denen die Einladungsliste vor der Auslieferung privater Dateien geprüft wird. Die öffentlichen Seiten setzen weiterhin keine Cookies.",
           ],
         },
         {

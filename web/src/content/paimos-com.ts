@@ -1,4 +1,4 @@
-import { paimosAeonContent, paimosRelease } from "./paimos-aeon";
+import { paimosAeonContent, paimosSourceRef } from "./paimos-aeon";
 import { siteUrls } from "./urls";
 
 // INSPR-572: paimos.com, the public front door: one screen with the tagline
@@ -13,7 +13,8 @@ export const paimosComContent = {
   category: paimosAeonContent.category,
   canonicalUrl: `${siteUrls.paimosCom}/`,
   repositoryUrl: paimosAeonContent.repositoryUrl,
-  licenseUrl: `${paimosAeonContent.repositoryUrl}/blob/${paimosRelease.tag}/LICENSE`,
+  // INSPR-578: the license follows source evidence before a release tag exists.
+  licenseUrl: `${paimosAeonContent.repositoryUrl}/blob/${paimosSourceRef}/LICENSE`,
   seo: {
     title: "PAIMOS · The self-improving software factory",
     description:

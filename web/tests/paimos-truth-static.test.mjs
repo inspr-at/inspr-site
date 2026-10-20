@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { runInNewContext } from "node:vm";
+import ts from "typescript";
 
 // INSPR-544 (INSPR-529, 530, 531): the Paimos page tells the truth. One release,
 // no retired Journey, no host names, the harness matrix as released, the
@@ -13,21 +15,159 @@ const editions = [
   { locale: "de", content: "content/de/paimos-aeon.ts" },
 ];
 
-test("one constant names the presented release (INSPR-529)", async () => {
+// INSPR-578: evaluate the content with public URL fixtures, including a future
+// tag set in the one release object. No browser or PAIMOS checkout is needed.
+const contentModules = async (english) => {
+  english ??= await source("content/paimos-aeon.ts");
+  const family = await import(new URL("src/content/family.ts", webUrl));
+  const captureManifest = JSON.parse(await source("assets/products/paimos-aeon/capture-manifest.json"));
+  const siteUrls = { paimos: "https://paimos.example", paimosCom: "https://paimos.example.com" };
+  const evaluate = (text, imports) => {
+    const exports = {};
+    const { outputText } = ts.transpileModule(text, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } });
+    runInNewContext(outputText, { exports, require: (name) => {
+      assert.ok(Object.hasOwn(imports, name), `unexpected content import: ${name}`);
+      return imports[name];
+    } });
+    return exports;
+  };
+  const shared = evaluate(english, {
+    "./urls": { siteUrls }, "./family": family,
+    "../assets/products/paimos-aeon/capture-manifest.json": captureManifest,
+  });
+  const german = evaluate(await source("content/de/paimos-aeon.ts"), {
+    "../urls": { siteUrls }, "../family": family, "../paimos-aeon": shared,
+  });
+  const frontDoor = evaluate(await source("content/paimos-com.ts"), {
+    "./urls": { siteUrls }, "./paimos-aeon": shared,
+  });
+  return { ...shared, german: german.paimosAeonContentDe, frontDoor: frontDoor.paimosComContent };
+};
+
+test("one constant names release 138, with source evidence and no invented release metadata (INSPR-578)", async () => {
   const english = await source("content/paimos-aeon.ts");
-  const release = english.match(/export const paimosRelease = \{([\s\S]*?)\n\};/)?.[1] ?? "";
-  assert.match(release, /number: "128"/);
-  assert.match(release, /codename: "Hidden Helium"/);
-  assert.match(release, /tag: "v261009095632\.0\.0"/);
-  assert.equal((english.match(/v26\d{10}\.0\.0/g) ?? []).length, 1, "the tag literal appears exactly once");
+  const release = english.match(/export const paimosRelease: PaimosRelease = \{([\s\S]*?)\n\};/)?.[1] ?? "";
+  assert.match(release, /number: "138"/);
+  assert.match(release, /sourceRef: "[0-9a-f]{40}"/);
+  assert.doesNotMatch(release, /\b(?:tag|codename|publishedAt|publishedLabel):/, "unpublished metadata is absent");
+  assert.equal((english.match(/number: "138"/g) ?? []).length, 1, "one presented-release literal");
+  assert.equal((english.match(/[0-9a-f]{40}/g) ?? []).length, 1, "the source revision literal appears exactly once");
   const german = await source("content/de/paimos-aeon.ts");
-  assert.match(german, /import \{ paimosRelease \} from "\.\.\/paimos-aeon";/);
-  assert.doesNotMatch(german, /v26\d{10}\.0\.0/, "the German edition holds no tag literal");
+  assert.match(german, /import \{ paimosRelease,.*\} from "\.\.\/paimos-aeon";/);
+  assert.doesNotMatch(german, /v26\d{10}\.0\.0|[0-9a-f]{40}/, "the German edition holds no tag or SHA literal");
+  const { paimosRelease, paimosAeonContent, german: de, frontDoor } = await contentModules(english);
+  assert.equal(paimosRelease.sourceRef.slice(0, 8), "c52e27a6");
+  const sourceUrls = (value) => JSON.stringify(value).match(/https:\/\/github\.com\/inspr-at\/paimos\/(?:blob|tree)\/[^" ]+/g) ?? [];
+  for (const content of [paimosAeonContent, de]) {
+    assert.equal(content.release.label, "Release 138");
+    for (const field of ["codename", "version", "publishedAt", "publishedLabel"]) assert.equal(content.release[field], undefined);
+    assert.equal(content.release.sourceRevision, paimosRelease.sourceRef.slice(0, 8));
+    assert.equal(content.release.url, `${content.repositoryUrl}/releases`);
+    assert.doesNotMatch(JSON.stringify(content), /releases\/tag\//, "no tag link before a tag exists");
+    assert.ok(sourceUrls(content).length >= 5, "the tree, API and open-source proofs are pinned");
+    for (const url of sourceUrls(content)) assert.ok(url.includes(`/${paimosRelease.sourceRef}`), url);
+  }
+  assert.equal(frontDoor.licenseUrl, `${paimosAeonContent.repositoryUrl}/blob/${paimosRelease.sourceRef}/LICENSE`);
   for (const { locale, content } of editions) {
     const text = await source(content);
-    assert.doesNotMatch(text, /PAIMOS 7|Release 14|Hinged Hangar|260930115354/, `${locale}: no other release is named`);
-    assert.match(text, /releases\/tag\/\$\{tag\}/, `${locale}: the release links to its GitHub release page`);
+    assert.doesNotMatch(text, /PAIMOS 7|Release 14|Hinged Hangar|Hidden Helium|260930115354/, `${locale}: no stale release identity`);
+    assert.match(text, /label: "Releases (on|auf) GitHub", href: paimosReleaseUrl/, `${locale}: neutral release-list label`);
   }
+});
+
+test("setting publication fields in paimosRelease re-pins both editions and licenses (INSPR-578)", async () => {
+  const tag = "v261101120000.0.0"; // Synthetic future metadata, never published.
+  const english = (await source("content/paimos-aeon.ts")).replace(
+    'number: "138",',
+    `number: "138", tag: "${tag}", codename: "Test Fixture", publishedAt: "2026-11-01", publishedLabel: { en: "Test date", de: "Testdatum" },`,
+  );
+  const { paimosAeonContent, german, frontDoor } = await contentModules(english);
+  for (const content of [paimosAeonContent, german]) {
+    assert.equal(content.sourceTreeUrl, `${content.repositoryUrl}/tree/${tag}`);
+    assert.equal(content.release.url, `${content.repositoryUrl}/releases/tag/${tag}`);
+    assert.equal(content.release.codename, "Test Fixture");
+    assert.equal(content.release.publishedAt, "2026-11-01");
+    for (const link of content.openSource.links.filter((link) => /\/(blob|tree)\//.test(link.href))) assert.ok(link.href.includes(`/${tag}/`));
+    assert.match(content.openSource.body, /Tag|tag/);
+    assert.doesNotMatch(content.hero.depths.technical, /undefined/);
+  }
+  assert.equal(frontDoor.licenseUrl, `${paimosAeonContent.repositoryUrl}/blob/${tag}/LICENSE`);
+  assert.equal(paimosAeonContent.release.publishedLabel, "Test date");
+  assert.equal(german.release.publishedLabel, "Testdatum");
+});
+
+test("the plaque omits unavailable fields and joins a clean accessible name (INSPR-578)", async () => {
+  const plaque = await source("components/AeonReleasePlaque.astro");
+  const { paimosAeonContent, german } = await contentModules();
+  const aria = plaque.match(/const ariaLabel = ([\s\S]*?);/)[1];
+  for (const release of [paimosAeonContent.release, german.release]) {
+    assert.equal(runInNewContext(aria, { label: "Release", release, live: "Live" }), `Release: AEON, Release 138, ${release.sourceRevision}, Live`);
+  }
+  assert.match(plaque, /release\.codename && <span class="aeon-plaque__codename"/);
+  assert.match(plaque, /release\.publishedAt && release\.publishedLabel && <time/);
+  assert.match(plaque, /<code>\{release\.sourceRevision\}<\/code>/);
+  const page = await source("components/AeonPage.astro");
+  assert.match(page, /licenseUrl=\{proofHref\(\{ label: "License", path: "LICENSE" \}\)\}/);
+  const overview = await source("pages/index.astro");
+  const label = overview.match(/paimos: (\[`Release [^\n]+)/)[1].replace(/,$/, "");
+  assert.equal(runInNewContext(label, { paimosRelease: { number: "138" } }), "Release 138");
+});
+
+test("plain capability copy preserves measured data and honest preview statuses (INSPR-578)", async () => {
+  const { paimosAeonContent, german } = await contentModules();
+  for (const content of [paimosAeonContent, german]) {
+    assert.doesNotMatch(content.hero.lead, /every session|jede Sitzung/);
+    const card = (en, de) => content.specs.items.find((item) => item.label === en || item.label === de);
+    // INSPR-578 round 2: omit streaming and idle-launch claims, retaining their truth boundary.
+    assert.doesNotMatch(JSON.stringify(content), /streaming|Live-Streaming/i);
+    assert.match(content.controlRoom.items[2].body, /where supported|soweit unterstützt/);
+    assert.match(content.controlRoom.items[2].body, /some other agents|einige andere Agenten/);
+    assert.match(content.controlRoom.items[2].caveat, /Claude (on|unter) macOS/);
+    assert.match(card("Clear usage", "Klare Nutzung").note, /last measured|zuletzt gemessenen/);
+    assert.match(card("Clear usage", "Klare Nutzung").note, /old or missing|alte oder fehlende/);
+    assert.doesNotMatch(card("Clear usage", "Klare Nutzung").note, /idle|Leerlauf|between runs|zwischen Läufen/i);
+    assert.match(card("Accounts and models", "Konten und Modelle").note, /opt-in|müssen Sie aktivieren/);
+    assert.match(card("Protected audit history", "Geschützte Audit-Historie").note, /14 days|14 Tagen/);
+    assert.match(content.controlRoom.harnessMatrix.rows[0].note, /live acceptance is still open|Abnahme im Live-Betrieb steht noch aus/);
+    assert.match(content.controlRoom.harnessMatrix.rows[2].note, /Adapters available|Adapter verfügbar/);
+    assert.match(content.controlRoom.harnessMatrix.rows[2].note, /not yet verified for managed runs|für verwaltete Läufe noch nicht verifiziert/);
+    assert.match(content.rules.learning, /preview|Vorschau/);
+    assert.match(content.rules.learning, /automatic runs are off by default|automatische Läufe sind standardmäßig aus/);
+    assert.match(content.rules.learning, /Bots that learn from earlier runs are planned|Bots, die aus früheren Läufen lernen, sind geplant/);
+    assert.match(card("One work tree", "Ein Arbeitsbaum").note, /Where configured|Wo eingerichtet/);
+    assert.match(card("One work tree", "Ein Arbeitsbaum").note, /person-confirmed|von einer Person bestätigtes/);
+    assert.doesNotMatch(content.specs.items.map((item) => item.label).join(" "), /Routines|Routinen/, "routine preview is outside the capability count");
+  }
+});
+
+test("visitor copy is short, with retention and technical terms in their intended places (INSPR-578 round 2)", async () => {
+  const { paimosAeonContent, german } = await contentModules();
+  const banned = /\b(?:unqualified|qualification|advertised|interruptible|yielded|ACP|heartbeat|telemetry|narrow service authority|projection|machinery|gated preview|shadow preview|step-ups?|installation opt-in|unqualifiziert\w*|qualifiziert\w*|Qualifikation\w*|Lebenszeichen\w*|Telemetrie\w*|unterbrechbar\w*|pausierend\w*|Freigabevoraussetzungen|Projektion\w*|Schattenbetrieb)\b/i;
+  const copy = (value, path = "") => typeof value === "string" ? [[path, value]]
+    : value && typeof value === "object" ? Object.entries(value).flatMap(([key, child]) =>
+      ["path", "href", "url", "sourceTreeUrl", "repositoryUrl", "canonicalUrl"].includes(key) ? [] : copy(child, path ? `${path}.${key}` : key)) : [];
+  for (const [locale, content] of [["en", paimosAeonContent], ["de", german]]) {
+    const sentences = (text) => [...new Intl.Segmenter(locale, { granularity: "sentence" }).segment(text)].length;
+    const words = (text) => text.trim().split(/\s+/).length;
+    for (const item of content.specs.items) {
+      assert.ok(sentences(item.note) <= 2 && words(item.note) <= 40, `${locale}: ${item.label} note is short`);
+      assert.ok(sentences(item.noteEli10) <= 2 && words(item.noteEli10) <= 30, `${locale}: ${item.label} plain note is short`);
+    }
+    for (const [path, text] of copy(content)) {
+      if (!path.endsWith(".technical") && path !== "engine.shadow") assert.doesNotMatch(text, banned, `${locale}: ${path}`);
+      if (path.endsWith(".simple")) assert.ok(sentences(text) <= 2, `${locale}: ${path} is short`);
+    }
+    assert.deepEqual(copy(content).filter(([, text]) => /14 (days|Tagen)/.test(text)).map(([path]) => path).sort(), [
+      "architecture.depths.technical", "architecture.notes.0.body", "specs.items.8.note",
+    ], `${locale}: retention has three deliberate homes`);
+    assert.ok(sentences(content.faq[0].answer) <= 3, `${locale}: harness FAQ is short`);
+    assert.ok(content.controlRoom.proof.length <= 10, `${locale}: at most six additions to the four original control proofs`);
+    assert.doesNotMatch(content.controlRoom.proof.map((proof) => proof.path).join(" "), /internal\/config|internal\/agentruns|CapacitySection|internal\/delivery\/deploy/);
+    assert.match(content.engine.shadow, /records next to your current process|zeichnet neben Ihrem aktuellen Ablauf auf/);
+    assert.match(content.engine.shadow, /shadow mode|Schattenbetrieb/);
+    assert.doesNotMatch(content.engine.shadow, /does not merge or deploy|führt weder zusammen/);
+  }
+  assert.doesNotMatch(JSON.stringify(german), /Prüfhistorie|Prüfprotokoll|Prüfereignisse/);
 });
 
 test("the retired Journey is gone from the page, its styles and its content (INSPR-544)", async () => {
@@ -75,8 +215,12 @@ test("no host name appears on the page, in captions or in content comments", asy
   for (const { locale, content } of editions) {
     const text = await source(content);
     // INSPR-556: release-128 fixture screens replace internal theatre captures.
-    assert.match(text, /note: `(Real screen, demo data|Echter Bildschirm, Beispieldaten) · (release|Version) \$\{paimosRelease\.number\}`/, `${locale}: theatre provenance names demo data and release`);
+    assert.match(text, /note: `(Real screen, demo data|Echter Bildschirm, Beispieldaten) · (release|Version) \$\{paimosScreenRelease\}`/, `${locale}: theatre provenance follows captures`);
+    assert.doesNotMatch(text, /title: `[^`]*\$\{paimosRelease\.number\}[^`]*\.`/, `${locale}: theatre title makes no current-release claim`);
   }
+  const { paimosAeonContent, german } = await contentModules();
+  assert.equal(paimosAeonContent.theatre.note, "Real screen, demo data · release 128");
+  assert.equal(german.theatre.note, "Echter Bildschirm, Beispieldaten · Version 128");
   const page = await source("components/AeonPage.astro");
   assert.match(page, /frame: "Paimos"/);
   // INSPR-556 / GUI-27: show the actual crop without decorative browser chrome.
@@ -95,23 +239,48 @@ test("the harness matrix and the capability count tell what is released (INSPR-5
     assert.doesNotMatch(text, /Claude, Codex, Cursor, Grok (and|und) pi/, `${locale}: no unqualified five-harness list`);
     assert.doesNotMatch(text, /available today|heute verfügbar/i, `${locale}: no "available today"`);
     const items = (text.match(/^\s*group:\s*"/gm) ?? []).length;
-    assert.equal(items, 19, `${locale}: 19 released capabilities`);
+    assert.equal(items, 20, `${locale}: 20 released capabilities`);
+    // INSPR-578 round 3: PW's visual review requires full desktop and phone rows.
+    assert.ok(items % 5 === 0 && items % 2 === 0, `${locale}: five- and two-column grids end on full rows`);
   }
-  assert.match(await source("content/paimos-aeon.ts"), /lead: "Nineteen released capabilities\./);
-  assert.match(await source("content/de/paimos-aeon.ts"), /lead: "Neunzehn veröffentlichte Fähigkeiten\./);
+  assert.match(await source("content/paimos-aeon.ts"), /lead: "Twenty released capabilities\./);
+  assert.match(await source("content/de/paimos-aeon.ts"), /lead: "Zwanzig veröffentlichte Fähigkeiten\./);
 
   // INSPR-556: demo model settings replace the generated capacity scene;
   // five changed lenses use matching real demo frames, leaving six illustrations.
   const manifest = JSON.parse(await source("assets/products/paimos-aeon/capture-manifest.json"));
   const changedKeys = ["02", "06", "08", "15", "16"];
   const retained = manifest.files.filter((file) => file.name.startsWith("specs/") && !["14", ...changedKeys].some((key) => file.name.startsWith(`specs/${key}-`)));
-  assert.equal(retained.length + changedKeys.length, 19);
+  assert.equal(retained.length + changedKeys.length, 19, "nineteen distinct retained images serve twenty cards");
   assert.equal(retained.filter((file) => file.kind === "generated").length, 6);
   assert.match(await source("content/paimos-aeon.ts"), /Six of the images are illustrations/);
   assert.match(await source("content/de/paimos-aeon.ts"), /Sechs der Bilder sind Illustrationen/);
   const page = await source("components/AeonPage.astro");
   assert.match(page, /retiredLensKeys = new Set\(\["14"\]\)/);
+  assert.match(page, /key === "11" \? \["13", "goals"\] : key === "12" \? \[key, "checks"\] : key === "13" \? \[\]/);
+  assert.match(page, /Related screen: the work tree with epics, tickets, estimates and ETAs/);
+  assert.match(page, /Related screen: company agent rules, with enabled sets and locked rules/);
+  assert.match(page, /lensKey === "checks" \? "07"/);
+  assert.match(page, /body: relatedCaption \?\? knowledgeCaption/);
+  assert.match(page, /Knowledge entries link with \[\[slug\]\] references and open as a graph beside the work/);
+  assert.match(page, /Wissenseinträge verknüpfen sich über \[\[slug\]\]-Verweise und öffnen sich als Graph neben der Arbeit/);
+  assert.doesNotMatch(page, /not pictured here|nicht abgebildet/);
+  // INSPR-578 round 3: both live screens remain used once after merging the cards.
+  const keys = Array.from(runInNewContext(page.match(/const lensKeys = ([\s\S]*?);\n/)[1], { retiredLensKeys: new Set(["14"]) }));
+  assert.equal(keys.length, 20, "one lens per card");
+  assert.deepEqual(keys.slice(10, 14), ["13", "goals", "12", "checks"]);
+  const imageKeys = keys.map((key) => key === "goals" ? "11" : key === "checks" ? "07" : key);
+  const demos = Object.fromEntries([...page.matchAll(/"(\d\d)": \{ image: [^,]+, name: "([^"]+)"/g)].map(([, key, name]) => [key, name]));
+  const images = imageKeys.map((key) => manifest.files.find((file) => demos[key] ? file.name === demos[key] : file.name.startsWith(`specs/${key}-`)));
+  for (const image of images) assert.ok(image && ["live", "demo", "generated", "public-web"].includes(image.kind), "each card has an image of a known kind");
+  assert.equal(images.filter((image) => image.kind === "generated").length, 6, "six illustrated cards in the final composition");
+  assert.equal(new Set(images.map((image) => image.name)).size, 19);
+  for (const name of ["specs/11-one-work-tree.jpg", "specs/13-knowledge-graph.jpg"]) {
+    assert.equal(images.filter((image) => image.name === name).length, 1, `${name}: used once`);
+    assert.equal(manifest.files.find((file) => file.name === name).kind, "live");
+  }
   for (const key of ["14", ...changedKeys]) assert.ok(page.includes(`"!../assets/products/paimos-aeon/specs/${key}-*"`), `${key}: unused lens is not bundled`);
+  for (const key of ["11", "13"]) assert.ok(!page.includes(`"!../assets/products/paimos-aeon/specs/${key}-*"`), `${key}: used lens remains bundled`);
   for (const name of ["chat.png", "models.png", "ticket-delivery-review.png", "accounts-usage.png", "delivery.png"]) {
     assert.equal(manifest.files.find((file) => file.name === name)?.kind, "demo");
   }

@@ -24,7 +24,15 @@ interface Props {
 const { release, mark, label } = Astro.props;
 // The same word in both editions.
 const live = "Live";
-const ariaLabel = `${label}: ${release.name} ${release.codename}, ${release.label}, ${release.version}, ${release.publishedLabel}, ${live}`;
+// INSPR-578: a presentation baseline has no invented codename, tag or date.
+const ariaLabel = `${label}: ${[
+  [release.name, release.codename].filter(Boolean).join(" "),
+  release.label,
+  release.sourceRevision,
+  release.version,
+  release.publishedAt && release.publishedLabel,
+  live,
+].filter(Boolean).join(", ")}`;
 
 // The refraction map, a 96px SVG image: red ramps across x, green down y,
 // 128 (no shift) in the middle and a bend at each edge, so the backdrop
@@ -61,7 +69,7 @@ const bezelMap = `data:image/svg+xml,${encodeURIComponent(bezelSvg)}`;
     </span>
     <span class="aeon-plaque__title">
       <span class="aeon-plaque__name">{release.name}</span>
-      <span class="aeon-plaque__codename">{release.codename}</span>
+      {release.codename && <span class="aeon-plaque__codename">{release.codename}</span>}
     </span>
     <span class="aeon-plaque__live">
       <i aria-hidden="true"></i>
@@ -69,8 +77,9 @@ const bezelMap = `data:image/svg+xml,${encodeURIComponent(bezelSvg)}`;
     </span>
     <span class="aeon-plaque__meta">
       <span class="aeon-plaque__label">{release.label}</span>
-      <code>{release.version}</code>
-      <time datetime={release.publishedAt}>{release.publishedLabel}</time>
+      <code>{release.sourceRevision}</code>
+      {release.version && <code>{release.version}</code>}
+      {release.publishedAt && release.publishedLabel && <time datetime={release.publishedAt}>{release.publishedLabel}</time>}
     </span>
     <span class="aeon-plaque__go" aria-hidden="true">
       <svg viewBox="0 0 16 16" focusable="false"><path d="M4 12 L12 4 M6 4 H12 V10" /></svg>

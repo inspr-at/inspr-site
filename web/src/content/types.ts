@@ -276,15 +276,16 @@ export type AeonContent = {
   category: string;
   canonicalUrl: string;
   repositoryUrl: string;
-  /** Proof links resolve against this tree URL, pinned to the release tag. */
+  /** INSPR-578: proof links use the source revision until a release tag exists. */
   sourceTreeUrl: string;
   release: {
     name: string;
-    codename: string;
+    codename?: string;
     label: string;
-    version: string;
-    publishedAt: string;
-    publishedLabel: string;
+    version?: string;
+    sourceRevision: string;
+    publishedAt?: string;
+    publishedLabel?: string;
     url: string;
   };
   seo: { title: string; description: string };

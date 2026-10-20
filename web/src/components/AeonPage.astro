@@ -184,7 +184,11 @@ const lensFiles = import.meta.glob<ImageMetadata>(
   ["../assets/products/paimos-aeon/specs/*.{png,jpg,jpeg,webp}", "!../assets/products/paimos-aeon/specs/14-*", "!../assets/products/paimos-aeon/specs/02-*", "!../assets/products/paimos-aeon/specs/06-*", "!../assets/products/paimos-aeon/specs/08-*", "!../assets/products/paimos-aeon/specs/15-*", "!../assets/products/paimos-aeon/specs/16-*"],
   { eager: true, import: "default" },
 );
-const lensKeys = Array.from({ length: 20 }, (_, i) => String(i + 1).padStart(2, "0")).filter((key) => !retiredLensKeys.has(key));
+// INSPR-578 round 3: the work tree uses the knowledge graph screen; Goals keeps
+// the tree screen. Remove the separate knowledge card without dropping either image.
+const lensKeys = Array.from({ length: 20 }, (_, i) => String(i + 1).padStart(2, "0"))
+  .filter((key) => !retiredLensKeys.has(key))
+  .flatMap((key) => key === "11" ? ["13", "goals"] : key === "12" ? [key, "checks"] : key === "13" ? [] : [key]);
 // INSPR-556: changed capabilities use release-128 demo frames. Older lens
 // files remain recorded until INSPR-LEAD removes the listed unused assets.
 const demoLens: Record<string, { image: ImageMetadata; name: string; screen: string }> = {
@@ -196,14 +200,30 @@ const demoLens: Record<string, { image: ImageMetadata; name: string; screen: str
 };
 const lensKinds: Record<string, LensImage["kind"]> = { live: "live", demo: "demo", generated: "art", "public-web": "web" };
 const lensImages: LensImage[] = content.specs.items.map((item, i) => {
-  const key = lensKeys[i];
+  const lensKey = lensKeys[i];
+  const key = lensKey === "goals" ? "11" : lensKey === "checks" ? "07" : lensKey;
+  const relatedCaption = lensKey === "goals"
+    ? (locale === "de"
+      ? "Verwandte Ansicht: der Arbeitsbaum mit Epics, Tickets, Schätzungen und Ankunftszeiten."
+      : "Related screen: the work tree with epics, tickets, estimates and ETAs.")
+    : lensKey === "checks"
+      ? (locale === "de"
+        ? "Verwandte Ansicht: die Agentenregeln für das Unternehmen, mit aktiven Regelsätzen und gesperrten Regeln."
+        : "Related screen: company agent rules, with enabled sets and locked rules.")
+      : undefined;
+  // INSPR-578 round 3: keep the knowledge screen's existing description.
+  const knowledgeCaption = key === "13"
+    ? (locale === "de"
+      ? "Wissenseinträge verknüpfen sich über [[slug]]-Verweise und öffnen sich als Graph neben der Arbeit."
+      : "Knowledge entries link with [[slug]] references and open as a graph beside the work.")
+    : undefined;
   const demo = demoLens[key];
   if (demo) {
     const recorded = captureManifest.files.find((file) => file.name === demo.name);
     if (recorded?.kind !== "demo") throw new Error(`INSPR-556: ${demo.name} needs demo provenance`);
     const screen = content.theatre.screens.find((screen) => screen.id === demo.screen);
     if (!screen) throw new Error(`INSPR-556: ${demo.name} needs a theatre description`);
-    return { image: demo.image, kind: "demo", body: screen.body };
+    return { image: demo.image, kind: "demo", body: relatedCaption ?? screen.body };
   }
   const hit = Object.entries(lensFiles).find(([path]) => path.includes(`/specs/${key}-`));
   if (!hit) throw new Error(`INSPR-492: missing lens image ${key} for "${item.label}" in src/assets/products/paimos-aeon/specs/`);
@@ -211,7 +231,7 @@ const lensImages: LensImage[] = content.specs.items.map((item, i) => {
   const recorded = captureManifest.files.find((file) => file.name === name);
   const kind = recorded ? lensKinds[recorded.kind] : undefined;
   if (!kind) throw new Error(`INSPR-492: lens image ${name} has no known kind in capture-manifest.json`);
-  return { image: hit[1], kind };
+  return { image: hit[1], kind, body: relatedCaption ?? knowledgeCaption };
 });
 const captionTail = content.theatre.note;
 
@@ -763,7 +783,7 @@ const stripPrefix = (text: string) => text.replace(/^(Early access|Early|Früh):
     name={content.name}
     repositoryUrl={content.repositoryUrl}
     licenseName="AGPL-3.0-only"
-    licenseUrl={`${content.repositoryUrl}/blob/${content.release.version}/LICENSE`}
+    licenseUrl={proofHref({ label: "License", path: "LICENSE" })}
     ctaTitle={content.finalCta.title}
     ctaBody={content.finalCta.body}
     locale={locale}

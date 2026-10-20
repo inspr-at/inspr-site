@@ -1,49 +1,65 @@
 import { siteUrls } from "./urls";
 import { buildOrder, engineJobs } from "./family";
 import type { AeonContent } from "./types";
+import captureManifest from "../assets/products/paimos-aeon/capture-manifest.json";
 
 // INSPR-544: PAIMOS AEON as the one released product on this page. Every claim
 // comes from the AEON lead's release brief and is checked against the source at
-// the release tag; proof paths resolve against `sourceTreeUrl`. Planned work
+// the pinned source; proof paths resolve against `sourceTreeUrl`. Planned work
 // appears only through the shared build order, with a status and no date. Left
 // out on purpose: the business module, MCP issue and knowledge tools (early),
 // embedding-ranked search and voice. INSPR-556: release-128 demo screens keep
 // their release and fixture provenance; older screens keep their own capture date.
 const repositoryUrl = "https://github.com/inspr-at/paimos";
 
-// INSPR-529: the one place that names the presented release. A new release is
-// one edit here; every label, link and proof path below follows it.
-export const paimosRelease = {
-  number: "128",
-  codename: "Hidden Helium",
-  tag: "v261009095632.0.0",
-  publishedAt: "2026-10-09",
-  publishedLabel: { en: "9 October 2026", de: "9. Oktober 2026" },
+type PaimosRelease = {
+  number: string;
+  sourceRef: string;
+  codename?: string;
+  tag?: string;
+  publishedAt?: string;
+  publishedLabel?: { en: string; de: string };
 };
 
-const tag = paimosRelease.tag;
+// INSPR-578: present release 138 with separate source evidence until its tag
+// exists. Re-pin in this object alone: add tag, codename and publication fields;
+// source links, release links and both editions follow without consumer edits.
+export const paimosRelease: PaimosRelease = {
+  number: "138",
+  sourceRef: "c52e27a68e4785f911e9ac64d90508ad738a584c",
+};
+
+export const paimosSourceRef = paimosRelease.tag ?? paimosRelease.sourceRef;
+export const paimosReleaseUrl = paimosRelease.tag
+  ? `${repositoryUrl}/releases/tag/${paimosRelease.tag}`
+  : `${repositoryUrl}/releases`;
+const sourceRevision = paimosRelease.sourceRef.slice(0, 8);
+// INSPR-578: changing the presented release cannot update retained images.
+export const paimosScreenRelease = captureManifest.source.match(/^release-(\d+) /)?.[1];
+if (!paimosScreenRelease) throw new Error("INSPR-578: demo captures need a recorded release");
 // A trailing slash selects a directory; other destinations select files.
-const blob = (path: string) => `${repositoryUrl}/${path.endsWith("/") ? "tree" : "blob"}/${tag}/${path}`;
+const blob = (path: string) => `${repositoryUrl}/${path.endsWith("/") ? "tree" : "blob"}/${paimosSourceRef}/${path}`;
 
 export const paimosAeonContent = {
   name: "PAIMOS AEON",
   category: "Agents-first work platform",
   canonicalUrl: siteUrls.paimos,
   repositoryUrl,
-  sourceTreeUrl: `${repositoryUrl}/tree/${tag}`,
+  sourceTreeUrl: `${repositoryUrl}/tree/${paimosSourceRef}`,
   release: {
     name: "AEON",
     codename: paimosRelease.codename,
     label: `Release ${paimosRelease.number}`,
-    version: tag,
+    version: paimosRelease.tag,
+    sourceRevision,
     publishedAt: paimosRelease.publishedAt,
-    publishedLabel: paimosRelease.publishedLabel.en,
-    url: `${repositoryUrl}/releases/tag/${tag}`,
+    publishedLabel: paimosRelease.publishedLabel?.en,
+    url: paimosReleaseUrl,
   },
   seo: {
     title: "PAIMOS AEON · Your agents, your machines, your rules",
     description:
-      "The agents-first work platform where people stay in charge: start Claude Code, Codex, Cursor and pi on your own machines, see every session in one control room, and leave every gated decision to a person.",
+      "The agents-first work platform where people stay in charge: start Claude Code, Codex, Cursor and pi on your own machines, see registered sessions in one control room, and leave gated decisions to a person.",
   },
   nav: [
     { label: "Screens", href: "#screens" },
@@ -60,11 +76,11 @@ export const paimosAeonContent = {
     titleLead: "Your agents. Your machines.",
     titleAccent: "Your rules.",
     lead:
-      "AEON starts Claude Code, Codex, Cursor and pi on your own computers, shows every session in one control room, and leaves every gated decision to a person.",
+      "AEON starts Claude Code, Codex, Cursor and pi on your own computers, shows registered sessions in one control room, and leaves gated decisions to a person.",
     depths: {
       simple:
-        "AEON lets your team and its AI helpers work on the same projects. The helpers run on your computers, you see what each one does, and people approve the important steps.",
-      technical: `Release ${paimosRelease.number} “${paimosRelease.codename}”: one Go binary with an embedded Vue app, Postgres 18 under FORCE row-level security, an append-only event log per tenant, one OpenAPI 3.1 contract, and aeon-agentd starting Claude Code, Codex, Cursor and pi on paired machines.`,
+        "AEON lets your team and its AI helpers work on the same projects. The helpers run on your computers, you see their reported work, and people approve the important steps.",
+      technical: `Release ${paimosRelease.number}${paimosRelease.codename ? ` “${paimosRelease.codename}”` : ""}: one Go binary with an embedded Vue app, Postgres 18 under FORCE row-level security, protected audit history per tenant, one OpenAPI 3.1 contract, and aeon-agentd starting Claude Code, Codex, Cursor and pi on paired machines.`,
     },
     primaryLabel: "See it running",
     primaryHref: "#screens",
@@ -88,7 +104,7 @@ export const paimosAeonContent = {
       href: "#rules",
     },
     {
-      claim: "People and agents write to one append-only event log per tenant.",
+      claim: "People and agents write to one event log per tenant, with protected audit history.",
       linkLabel: "See the architecture",
       href: "#architecture",
     },
@@ -101,9 +117,9 @@ export const paimosAeonContent = {
   ],
   theatre: {
     eyebrow: "Real screens",
-    title: `AEON at release ${paimosRelease.number}.`,
-    lead: "Delivery, independent review and conversations with managed agents, shown in the released app with fictional project data.",
-    note: `Real screen, demo data · release ${paimosRelease.number}`,
+    title: "AEON in real screens.",
+    lead: `Delivery, independent review and conversations with managed agents, shown in screens from release ${paimosScreenRelease} with fictional project data.`,
+    note: `Real screen, demo data · release ${paimosScreenRelease}`,
     openLabel: "Open full size",
     screens: [
       {
@@ -124,7 +140,7 @@ export const paimosAeonContent = {
         id: "chat",
         tab: "Chat",
         title: "Chat with an agent",
-        body: "A conversation with the release-lead agent: a code block with Copy, a Read receipt on your message, a message queued for after this turn, and Stop on Esc.",
+        body: "A conversation with the lead: a code block with Copy, a Read receipt, a message queued for after this turn, and Stop on Esc.",
         alt: "PAIMOS agent chat with a read receipt, a queued message, a code block and Stop control.",
       },
       {
@@ -138,14 +154,14 @@ export const paimosAeonContent = {
         id: "models",
         tab: "Models",
         title: "One default model",
-        body: "One default model for all work, with exceptions for UI design (locked), docs and copy, and concepts. Reviews always go to another family, and the next backend build and its reviewer are named.",
+        body: "A default model, exceptions for UI design (locked), docs and copy, and concepts. Cross-family review is selected, and the next backend build and its reviewer are named.",
         alt: "PAIMOS Models settings with one default model, task exceptions and independent reviews.",
       },
       {
         id: "usage",
         tab: "Usage",
         title: "Usage",
-        body: "A shared weekly quota with 42% left and its reset time, the two computers signed in, and a usage choice of Careful (selected), Balanced or Max out, with a 10% floor.",
+        body: "A shared weekly quota with 42% left and its reset time, two signed-in computers, and the Careful, Balanced and Max out choices with a 10% floor.",
         alt: "PAIMOS account usage with a careful-use policy, limits, remaining capacity and reset times.",
       },
     ],
@@ -153,22 +169,23 @@ export const paimosAeonContent = {
   specs: {
     eyebrow: "Specs",
     title: "What you get.",
-    lead: "Nineteen released capabilities. Six of the images are illustrations and say so. Hover or tap a card for the detail.",
-    leadEli10: "The same nineteen, in plain words.",
+    // INSPR-578: round 3 merges knowledge into the work tree for full grid rows.
+    lead: "Twenty released capabilities. Six of the images are illustrations and say so. Hover or tap a card for the detail.",
+    leadEli10: "The same twenty, in plain words.",
     items: [
       {
         label: "Agents first",
         icon: "workflow",
         group: "ai",
-        note: "Claude Code, Codex, Cursor and pi start under Paimos in the same projects as people, each under its own key and scopes. Grok runs tool-free on Apple silicon; Gemini and OpenCode pair only.",
+        note: "Start Claude Code, Codex, Cursor and pi alongside your team, using their own keys and permissions. Grok runs tool-free on Apple silicon; Gemini and OpenCode are not yet verified for managed runs.",
         noteEli10: "AI helpers from several makers work in the same projects as your people, and each one wears its own badge. A few join with fewer abilities for now.",
       },
       {
         label: "Control room",
         icon: "panels-top-left",
         group: "ai",
-        note: "Lead and worker trees, live state, model and effort. Talk to managed agents in a chat that shows sent, delivered and read, renders code cleanly, and stops a reply with Esc.",
-        noteEli10: "See what each helper is doing and chat with managed helpers. You can see whether a message arrived or was read, read their code, and stop a reply with Esc.",
+        note: "Find registered sessions by project, with their tickets, state, model, effort and saved conversations. Inbox receipts show when a message was sent, delivered and read.",
+        noteEli10: "Find registered helpers and their conversations by project. See whether an inbox message arrived or was read.",
       },
       {
         label: "Your machines",
@@ -195,29 +212,29 @@ export const paimosAeonContent = {
         label: "Accounts and models",
         icon: "route",
         group: "ai",
-        note: "PAIMOS sees each subscription's limits and reset times, lets you choose careful or full use, and adopts newer versions of the models you use automatically. Usage reading is available where enabled; automatic model updates are opt-in. Choose one default model and a few exceptions.",
-        noteEli10: "See how much each AI account has left and when it refills. Choose careful or full use, one usual model and a few exceptions. Turn on usage reading and automatic model updates if you want them.",
+        note: "Choose account permissions, daily percentage points or Use everything, plus model fallback orders with reasoning levels and wait reasons. Boost is available for today; automatic model updates stay opt-in.",
+        noteEli10: "Choose which accounts a project uses and which models it tries in order. Set their daily use and how hard they think.",
       },
       {
         label: "Governed rules",
         icon: "scroll-text",
         group: "ai",
         note: "Rules layer from company to task, publish as immutable versions with locked floors and byte budgets, and doctrine is read from git at a pinned commit, with drift checks.",
-        noteEli10: "House rules build on each other, from company to task. Important rules stay locked, size limits keep them readable, and a check tells you when a helper has a different copy.",
+        noteEli10: "House rules build from company to task. Important rules stay locked; a check shows when a helper has a different copy.",
       },
       {
         label: "Cross-family review",
         icon: "git-compare-arrows",
         group: "ai",
-        note: "Choose per company or project that every change needs a review from another model family; PAIMOS checks the author from its own records and flags merges that skipped the queue or a verified review.",
-        noteEli10: "Choose that each change needs a check by a helper from another AI maker. With GitHub connected, PAIMOS checks who wrote it and flags missing review or queue steps. Running the reviews and fixes itself is still a preview.",
+        note: "Choose cross-family review per company or project. With GitHub connected, PAIMOS checks the recorded author and flags merges that skipped the queue or a verified review.",
+        noteEli10: "Choose reviews by a helper from another AI maker. With GitHub connected, PAIMOS flags missing reviews or skipped queues; automatic review and fix rounds are in preview.",
       },
       {
-        label: "Append-only log",
+        label: "Protected audit history",
         icon: "file-check-2",
         group: "security",
-        note: "Every change is appended to one event log per tenant; a database trigger refuses updates and deletes.",
-        noteEli10: "Everything that happens is written down in order, and the record stays exactly as it was written.",
+        note: "The database protects the audit trail; selected routine account checks and status pings can be deleted after 14 days.",
+        noteEli10: "See who did what in a protected audit trail.",
       },
       {
         label: "Tenant isolation",
@@ -230,8 +247,16 @@ export const paimosAeonContent = {
         label: "One work tree",
         icon: "list-tree",
         group: "work",
-        note: "Projects, epics, tickets, releases, work orders and knowledge are nodes in one tree with typed relations.",
-        noteEli10: "Everything lives in one tree, so you always see how a task connects to the bigger picture.",
+        note: "Projects, epics, tickets, releases, work orders and knowledge share one tree with typed relations, and knowledge links open as a graph beside the work. Where configured, a START conversation becomes a person-confirmed project.",
+        noteEli10: "Projects, tasks and knowledge share a tree, with linked knowledge shown as a map. Where configured, a START conversation becomes a project after a person confirms it.",
+      },
+      {
+        // INSPR-578: goals and workflow checks are the two added capabilities.
+        label: "Goals and progress",
+        icon: "circle-dot",
+        group: "work",
+        note: "See goals and epics with progress over time, agent-set arrival estimates, remaining work estimates and decisions waiting for you. Updates show their author and age.",
+        noteEli10: "See how a goal is moving, what work remains and which decisions need you. Estimates and updates show who set them and how old they are.",
       },
       {
         label: "Work orders",
@@ -241,32 +266,32 @@ export const paimosAeonContent = {
         noteEli10: "A job for a helper comes with a budget and a finish line, and it counts as done with proof.",
       },
       {
-        label: "Knowledge graph",
-        icon: "network",
+        label: "Workflow checks",
+        icon: "ticket-check",
         group: "work",
-        note: "Knowledge entries link with [[slug]] references and open as a graph beside the work.",
-        noteEli10: "Project know-how is written once, linked together and shown as a map.",
+        note: "Set what must be ready before work starts and what counts as finished. Agents must meet those checks; people with permission can make an exception and record why.",
+        noteEli10: "Set a clear start and finish line for work. Only a person with permission can make an exception and must record why.",
       },
       {
         label: "Clear usage",
         icon: "eye",
         group: "ops",
-        note: "Tokens per session, ticket and epic, with list-price estimates kept apart from subscription use. With usage reading enabled, see reported usage, limits and reset times per account, even between runs.",
-        noteEli10: "See how much AI each task used and, when usage reading is enabled, how much each account has left and when it refills. Estimates stay clearly marked.",
+        note: "See tokens by session, ticket and epic, with price estimates separate from subscription use. Shared quota history shows last measured use, reading age and reset times, plus usage and refill forecasts; old or missing data stays marked.",
+        noteEli10: "See recorded AI use and forecasts from shared measurements. Old or missing readings stay marked.",
       },
       {
         label: "Delivery dashboard",
         icon: "waypoints",
         group: "ops",
-        note: "See per project how fast changes reach live; watch a release live, replay a past one, or compare it with a target. For data the project reports: CI and merge queue via GitHub, release steps when reported.",
-        noteEli10: "See how long changes take to go live. Follow a release, replay an earlier one, or compare it with a goal, using the steps your project reports.",
+        note: "See first-try success, build rounds, idle time and time from first build to merge, using recorded steps. With GitHub connected, follow or replay delivery, compare targets, and see a person's live confirmation separately.",
+        noteEli10: "See how many tries a change took and where it waited. A person's confirmation that it is live is recorded separately.",
       },
       {
         label: "Contract first",
         icon: "braces",
         group: "ops",
         note: "One OpenAPI 3.1 file with more than 500 paths, served by a single binary that embeds the web app.",
-        noteEli10: "Everything the app can do is described in one public contract that other tools can use.",
+        noteEli10: "A public contract describes the HTTP API that other tools can use.",
       },
       {
         label: "Hosted or self-hosted",
@@ -313,7 +338,7 @@ export const paimosAeonContent = {
         id: "openapi",
         term: "OpenAPI",
         matches: ["OpenAPI 3.1"],
-        body: "A machine-readable description of every endpoint, so other tools can call the API without guessing.",
+        body: "A machine-readable description of HTTP API endpoints, so other tools can call them without guessing.",
       },
     ],
   },
@@ -327,31 +352,31 @@ export const paimosAeonContent = {
   },
   controlRoom: {
     eyebrow: "Control room",
-    title: "Every agent in one view.",
+    title: "Registered agents in one view.",
     lead:
-      "Lead and worker trees, live state, model and effort, and messages that show when they were sent, delivered and read.",
+      "Keep registered sessions, tickets and conversations together by project. See leads, workers, models and effort, with message receipts for inbox delivery.",
     depths: {
       simple:
-        "One screen shows every AI helper: what it works on, who it reports to, and whether it read your message.",
+        "Find registered AI helpers by project: what they work on, who they report to, their conversations and the controls their sessions offer.",
       technical:
-        "AgentsView renders harness sessions reported over the daemon protocol, with lead handover, managed control (steer, interrupt, stop) and session recovery; inbox deliveries are tracked as Sent, Delivered and Read.",
+        "AgentsView shows sessions reported by aeon-agentd. People can make an eligible coordinator they own the lead, while starts keep their existing permission and conflict checks. Chat input and stop controls depend on the session.",
     },
     items: [
       {
         icon: "users-round",
         title: "Lead and worker trees",
-        body: "Every lead with the workers it started, and what each one is doing now.",
+        body: "See registered leads and workers by project, with their reported state and tickets. You can make a running coordinator the lead.",
       },
       {
         icon: "radio-tower",
         title: "Messages with receipts",
-        body: "Sent, Delivered, Read. For sessions with an inbox, delivery is tracked and inbox hooks carry messages into the session. Cursor sessions have no inbox and take interrupts only.",
+        body: "See when an inbox message was sent, delivered and read. Some agents can queue your input for their next turn.",
       },
       {
         icon: "sliders-horizontal",
         title: "Steer, interrupt, stop",
-        body: "Redirect a managed session while it runs, or stop it cleanly.",
-        caveat: "Steering: Claude on macOS. Cursor: interrupt only",
+        body: "Redirect a running session or stop its current step where supported. Claude and Codex take steering directly, pi takes your input at its next step, and some other agents queue it for their next turn.",
+        caveat: "Full managed control: Claude on macOS.",
       },
       {
         icon: "hard-drive",
@@ -360,7 +385,7 @@ export const paimosAeonContent = {
       },
     ],
     screenAlt:
-      "The AEON sessions view in dark mode: lead agents with their workers, each with ticket, model, effort, progress and heartbeat.",
+      "The AEON sessions view in dark mode: lead agents with their workers, with ticket, model, effort and progress.",
     pairing: {
       eyebrow: "Pairing",
       title: "A new computer joins with one command and a person's yes.",
@@ -381,18 +406,25 @@ export const paimosAeonContent = {
         {
           status: "partly",
           harnesses: ["Grok"],
-          note: "Runs tool-free on Apple silicon: a single-turn conversation for verification and review, not a general builder.",
+          note: "Tool-free on Apple silicon for single-turn verification and review. Ordinary chat can continue with queued input where enabled; builder use is not yet verified.",
         },
         {
           status: "planned",
           harnesses: ["Gemini", "OpenCode"],
-          note: "Pairing only for now. Starting them is planned.",
+          note: "Adapters available; not yet verified for managed runs.",
         },
       ],
     },
     proof: [
       { label: "Agents workspace", path: "web/src/views/AgentsView.vue" },
       { label: "Managed control", path: "internal/agentd/managed_control.go" },
+      // INSPR-578: six new proofs for visitor-facing capabilities, without setup gates.
+      { label: "Chat input", path: "docs/features/chat-live-composer.md" },
+      { label: "Goals and progress", path: "docs/features/goals-view.md" },
+      { label: "Model fallback orders", path: "docs/features/models-v2-resolver.md" },
+      { label: "Daily usage", path: "docs/features/agents-daily-plan.md" },
+      { label: "Quota forecasts", path: "internal/agentaccounts/quota_outlook.go" },
+      { label: "Delivery measurements", path: "docs/features/delivery-page.md" },
       { label: "Harness adapters", path: "internal/agentd/adapters.go" },
       { label: "Agent integration", path: "docs/AGENT_INTEGRATION.md" },
     ],
@@ -450,6 +482,8 @@ export const paimosAeonContent = {
       { label: "Approval enforcement", path: "internal/db/migrations/0202_agent_approvals.sql" },
       { label: "Capacity", path: "internal/capacity" },
       { label: "Usage dashboard", path: "internal/usagedashboard" },
+      { label: "Workflow checks", path: "internal/workorders/entry_checks.go" },
+      { label: "Person-confirmed project creation", path: "internal/projectdraft/create.go" },
     ],
   },
   rules: {
@@ -476,8 +510,8 @@ export const paimosAeonContent = {
       { title: "Byte budgets", body: "Each layer has a size budget, so what an agent loads stays readable." },
       { title: "Drift detection", body: "aeon rules compare and aeon doctor show where a harness differs from what was published." },
     ],
-    // INSPR-556: AEON-378/444 live proposals; AEON-680/693 planned routines.
-    learning: "Outcomes already turn into rule proposals a person approves (live). Routines that run agents on a schedule and learn from earlier runs are next (planned).",
+    // INSPR-578: round 2 states the preview once and leaves future learning planned.
+    learning: "Outcomes can become rule proposals for a person to approve. Routines are in preview: set up definitions, templates and assignments, and inspect run logbooks; automatic runs are off by default. Bots that learn from earlier runs are planned.",
     early: "Early access: rule edits as pull requests, once an operator enables them.",
     screenAlt:
       "The AEON agent rules view: company and project rule sets with their locks, one opened set of locked kernel rules, the byte budget and doctrine pinned from git.",
@@ -486,6 +520,8 @@ export const paimosAeonContent = {
       { label: "Rules compare", path: "internal/rulescompare" },
       { label: "README: Agent rules", path: "README.md" },
       { label: "Rule proposals from outcomes", path: "internal/rules/doctrine/analysis_job.go" },
+      { label: "Routine setup and limits", path: "docs/features/routines.md" },
+      { label: "Routine logbooks", path: "docs/features/recurring-work.md" },
     ],
   },
   // INSPR-544: the retired Journey gives way to the engine, told from the
@@ -495,12 +531,13 @@ export const paimosAeonContent = {
     title: "The engine that runs the work.",
     lead:
       "Six jobs run the work around the tickets. Four are live, two are partly live: each one says how far it has shipped.",
-    shadow: "Before PAIMOS takes over starts, queueing, model routing, reviews or shipping, it records next to your current process what it would have done, so you compare before switching it on per project. This shadow mode is in preview.",
+    // INSPR-578: explain shadow mode once, scoped to the orchestration still in preview.
+    shadow: "Managed starts and model routing are live. Queueing, automatic review rounds and shipping are in preview, in shadow mode: PAIMOS records next to your current process what it would have done, so you can compare before switching it on per project.",
     depths: {
       simple:
         "The engine is the part of AEON that keeps agents and people in step. Some of its jobs already work; others are still being built.",
       technical:
-        "Live today: delivery status per ticket and stall alerts with GitHub connected; the admission dial, account limits, reset times and careful or full use; one default model and a few exceptions, with cross-family review as a company or project setting; the merge audit; the Decision Desk and its durable inbox; and events with worker attribution, outcomes and session, token and cost reporting. The desk does not yet replace Needs you on Agents. Starts, queueing, model routing, automatic review rounds and shipping run in shadow mode; host-load throttling is planned.",
+        "Managed starts enforce account permissions and daily limits; Models selects fallback orders and reasoning levels. Goals and Delivery report progress and recorded build steps, while the header Decision Desk brings questions, approvals and suggested lessons together, also on phones. Host-load checks are available when enabled, off by default; routine PR actions and automatic queue enforcement remain in preview, off by default.",
     },
     jobs: engineJobs.map((job) => ({ label: job.label.en, status: job.status, note: job.note.en })),
     flowNote: {
@@ -514,9 +551,9 @@ export const paimosAeonContent = {
     lead: "Few moving parts, and the guarantees live in the database.",
     depths: {
       simple:
-        "Under the hood, AEON is deliberately simple: one program, one database, and a record of everything that happened.",
+        "AEON uses one program and one database, with protected audit history.",
       technical:
-        "A single Go binary embeds the Vue app and serves the OpenAPI 3.1 contract. Postgres 18 with pgvector holds tenant data under FORCE row-level security, an append-only event table drives history and server-sent live updates, and aeon-agentd speaks one daemon protocol to the harness adapters.",
+        "A single Go binary embeds the Vue app and serves the OpenAPI 3.1 contract. Postgres 18 with pgvector holds tenant data under FORCE row-level security. Protected audit events drive history and server-sent live updates; selected account-probe and heartbeat telemetry can be pruned after 14 days. aeon-agentd speaks one daemon protocol to the harness adapters.",
     },
     diagram: {
       clientsLabel: "People and tools",
@@ -524,7 +561,7 @@ export const paimosAeonContent = {
       serverLabel: "One server",
       server: ["Single Go binary", "Embedded web app", "OpenAPI 3.1 contract"],
       databaseLabel: "One database",
-      database: ["Postgres 18", "FORCE row-level security", "Append-only event log"],
+      database: ["Postgres 18", "FORCE row-level security", "Protected audit history"],
       daemonLabel: "Your machines",
       daemon: "aeon-agentd",
       harnesses: ["Claude Code", "Codex", "Cursor", "pi", "Grok (tool-free)"],
@@ -532,9 +569,9 @@ export const paimosAeonContent = {
     },
     notes: [
       {
-        title: "One log, kept whole",
-        body: "A trigger lets the event log only grow; history and live updates both read from it.",
-        proof: { label: "Event log schema", path: "internal/db/migrations/0101_relations_events.sql" },
+        title: "Protected audit history",
+        body: "The audit trail records who did what. Selected routine account checks and status pings can be deleted after 14 days.",
+        proof: { label: "Audit trail protection", path: "internal/db/migrations/1369_telemetry_retention.sql" },
       },
       {
         title: "Tenancy in the database",
@@ -566,8 +603,8 @@ export const paimosAeonContent = {
       title: "Good to know",
       items: [
         "These harnesses are supported, and live acceptance is still open.",
-        "Steering and session settings are qualified for Claude on macOS; Cursor supports interrupt only.",
-        "Claude and Grok on Apple silicon have qualified tool-free verification; Codex and Cursor connect without an automatic verification run.",
+        "Full managed control and session settings: Claude on macOS. Chat input and stop controls depend on the session.",
+        "Claude and Grok on Apple silicon support tool-free verification; Codex and Cursor connect without an automatic verification run.",
         "Attaching a running session is in early access, from macOS terminals.",
         "Issues, knowledge and search run through the CLI and HTTP API; the MCP server is in early access.",
         "Rule edits as pull requests are available once an operator enables them.",
@@ -578,10 +615,12 @@ export const paimosAeonContent = {
   openSource: {
     eyebrow: "Open source",
     title: "Open source, AGPL-3.0.",
-    body: `Inspect, self-host, fork and modify AEON under AGPL-3.0-only. Every source link on this page points at the release ${paimosRelease.number} tag.`,
+    body: paimosRelease.tag
+      ? `Inspect, self-host, fork and modify AEON under AGPL-3.0-only. Source links point at the release ${paimosRelease.number} tag.`
+      : `Inspect, self-host, fork and modify AEON under AGPL-3.0-only. Source links point at revision ${sourceRevision}, which contains the release ${paimosRelease.number} work, until its release tag is published.`,
     links: [
       { label: "GitHub repository", href: repositoryUrl, external: true },
-      { label: `Release ${paimosRelease.number} on GitHub`, href: `${repositoryUrl}/releases/tag/${tag}`, external: true },
+      { label: "Releases on GitHub", href: paimosReleaseUrl, external: true },
       { label: "Project license (AGPL-3.0-only)", href: blob("LICENSE"), external: true },
       { label: "Security policy", href: blob("SECURITY.md"), external: true },
       { label: "Agent integration", href: blob("docs/AGENT_INTEGRATION.md"), external: true },
@@ -591,7 +630,7 @@ export const paimosAeonContent = {
     {
       question: "Which agents can we use?",
       answer:
-        "Claude Code, Codex, Cursor and pi start under Paimos on macOS and Linux, including OpenRouter models through pi. Grok runs tool-free on Apple silicon. Gemini and OpenCode pair only; starting them is planned. They run through aeon-agentd on computers you pair, with your own subscriptions.",
+        "Claude Code, Codex, Cursor and pi run on paired macOS and Linux computers using your subscriptions, with live acceptance still open. Grok supports single-turn tool-free verification and review on Apple silicon; Gemini and OpenCode adapters are not yet verified for managed runs. OpenRouter models are available through pi.",
     },
     {
       question: "Where does our data live?",

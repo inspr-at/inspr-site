@@ -1,38 +1,39 @@
 import { siteUrls } from "../urls";
 import { buildOrder, engineJobs } from "../family";
-import { paimosRelease } from "../paimos-aeon";
+import { paimosRelease, paimosReleaseUrl, paimosScreenRelease, paimosSourceRef } from "../paimos-aeon";
 import type { AeonContent } from "../types";
 
 // German edition of the PAIMOS AEON page, served at paimos.inspr.at/de/
 // (INSPR-492, INSPR-544). Facts, links, proof paths, icons and structure mirror
 // ../paimos-aeon.ts; only language-visible values differ. The release comes
-// from the same paimosRelease constant. AEON's web UI is English, so on-screen
-// names such as "Decision Desk" stay English, as do the release codenames. Keep
-// both files in sync when product claims change.
+// from the same paimosRelease constant. INSPR-578: the UI also has German
+// workflow and delivery wording; retain English names where the view uses them.
+// Source evidence and retained-screen provenance follow the English edition.
 const repositoryUrl = "https://github.com/inspr-at/paimos";
-const tag = paimosRelease.tag;
+const sourceRevision = paimosRelease.sourceRef.slice(0, 8);
 // A trailing slash selects a directory; other destinations select files.
-const blob = (path: string) => `${repositoryUrl}/${path.endsWith("/") ? "tree" : "blob"}/${tag}/${path}`;
+const blob = (path: string) => `${repositoryUrl}/${path.endsWith("/") ? "tree" : "blob"}/${paimosSourceRef}/${path}`;
 
 export const paimosAeonContentDe = {
   name: "PAIMOS AEON",
   category: "Agentenorientierte Arbeitsplattform",
   canonicalUrl: `${siteUrls.paimos}/de/`,
   repositoryUrl,
-  sourceTreeUrl: `${repositoryUrl}/tree/${tag}`,
+  sourceTreeUrl: `${repositoryUrl}/tree/${paimosSourceRef}`,
   release: {
     name: "AEON",
     codename: paimosRelease.codename,
     label: `Release ${paimosRelease.number}`,
-    version: tag,
+    version: paimosRelease.tag,
+    sourceRevision,
     publishedAt: paimosRelease.publishedAt,
-    publishedLabel: paimosRelease.publishedLabel.de,
-    url: `${repositoryUrl}/releases/tag/${tag}`,
+    publishedLabel: paimosRelease.publishedLabel?.de,
+    url: paimosReleaseUrl,
   },
   seo: {
     title: "PAIMOS AEON · Ihre Agenten, Ihre Rechner, Ihre Regeln",
     description:
-      "Die agentenorientierte Arbeitsplattform, in der Menschen das Sagen behalten: Claude Code, Codex, Cursor und pi starten auf Ihren eigenen Rechnern, jede Sitzung ist in einem Kontrollraum sichtbar, und jede geschützte Entscheidung trifft eine Person.",
+      "Die agentenorientierte Arbeitsplattform, in der Menschen das Sagen behalten: Claude Code, Codex, Cursor und pi starten auf Ihren eigenen Rechnern, registrierte Sitzungen sind in einem Kontrollraum sichtbar, und geschützte Entscheidungen trifft eine Person.",
   },
   nav: [
     { label: "Bildschirme", href: "#screens" },
@@ -49,11 +50,11 @@ export const paimosAeonContentDe = {
     titleLead: "Ihre Agenten. Ihre Rechner.",
     titleAccent: "Ihre Regeln.",
     lead:
-      "AEON startet Claude Code, Codex, Cursor und pi auf Ihren eigenen Rechnern, zeigt jede Sitzung in einem Kontrollraum und überlässt jede geschützte Entscheidung einer Person.",
+      "AEON startet Claude Code, Codex, Cursor und pi auf Ihren eigenen Rechnern, zeigt registrierte Sitzungen in einem Kontrollraum und überlässt geschützte Entscheidungen einer Person.",
     depths: {
       simple:
-        "Mit AEON arbeiten Ihr Team und seine KI-Helfer an denselben Projekten. Die Helfer laufen auf Ihren Computern, Sie sehen, was jeder tut, und Menschen geben die wichtigen Schritte frei.",
-      technical: `Release ${paimosRelease.number} „${paimosRelease.codename}“: eine Go-Binärdatei mit eingebetteter Vue-Anwendung, Postgres 18 unter Sicherheit auf Zeilenebene im FORCE-Modus, ein Ereignisprotokoll je Mandant, das nur ergänzt wird, ein Vertrag nach OpenAPI 3.1 und aeon-agentd, das Claude Code, Codex, Cursor und pi auf gekoppelten Rechnern startet.`,
+        "Mit AEON arbeiten Ihr Team und seine KI-Helfer an denselben Projekten. Die Helfer laufen auf Ihren Computern, Sie sehen die gemeldete Arbeit, und Menschen geben die wichtigen Schritte frei.",
+      technical: `Release ${paimosRelease.number}${paimosRelease.codename ? ` „${paimosRelease.codename}“` : ""}: eine Go-Binärdatei mit eingebetteter Vue-Anwendung, Postgres 18 unter Sicherheit auf Zeilenebene im FORCE-Modus, eine geschützte Audit-Historie je Mandant, ein Vertrag nach OpenAPI 3.1 und aeon-agentd, das Claude Code, Codex, Cursor und pi auf gekoppelten Rechnern startet.`,
     },
     primaryLabel: "Im Einsatz ansehen",
     primaryHref: "#screens",
@@ -77,7 +78,7 @@ export const paimosAeonContentDe = {
       href: "#rules",
     },
     {
-      claim: "Menschen und Agenten schreiben in ein Ereignisprotokoll je Mandant, das nur ergänzt wird.",
+      claim: "Menschen und Agenten schreiben in ein Ereignisprotokoll je Mandant, mit geschützter Audit-Historie.",
       linkLabel: "Zur Architektur",
       href: "#architecture",
     },
@@ -89,9 +90,9 @@ export const paimosAeonContentDe = {
   ],
   theatre: {
     eyebrow: "Echte Bildschirme",
-    title: `AEON in Version ${paimosRelease.number}.`,
-    lead: "Auslieferung, unabhängige Prüfung und Gespräche mit verwalteten Agenten, gezeigt in der veröffentlichten Anwendung mit erfundenen Projektdaten.",
-    note: `Echter Bildschirm, Beispieldaten · Version ${paimosRelease.number}`,
+    title: "AEON in echten Ansichten.",
+    lead: `Auslieferung, unabhängige Prüfung und Gespräche mit verwalteten Agenten, gezeigt in Ansichten aus Release ${paimosScreenRelease} mit erfundenen Projektdaten.`,
+    note: `Echter Bildschirm, Beispieldaten · Version ${paimosScreenRelease}`,
     openLabel: "In voller Größe öffnen",
     screens: [
       {
@@ -112,7 +113,7 @@ export const paimosAeonContentDe = {
         id: "chat",
         tab: "Chat",
         title: "Chat mit einem Agenten",
-        body: "Ein Gespräch mit dem Leitagenten des Releases: ein Codeblock mit Kopierfunktion, eine Lesebestätigung für Ihre Nachricht, eine Nachricht in der Warteschlange für nach diesem Arbeitsschritt und Stoppen mit Esc.",
+        body: "Ein Gespräch mit dem Leitagenten: ein Codeblock mit Kopierfunktion, eine Lesebestätigung, eine Nachricht für nach diesem Arbeitsschritt und Stoppen mit Esc.",
         alt: "PAIMOS-Chat mit einem Agenten, Lesebestätigung, wartender Nachricht, Codeblock und Stop-Steuerung.",
       },
       {
@@ -126,14 +127,14 @@ export const paimosAeonContentDe = {
         id: "models",
         tab: "Modelle",
         title: "Ein Standardmodell",
-        body: "Ein Standardmodell für alle Arbeiten, mit Ausnahmen für Oberflächengestaltung (gesperrt), Dokumentation und Texte sowie Konzepte. Prüfungen gehen immer an eine andere Modellfamilie. Das nächste Modell für die Entwicklung des Backends und das zugehörige Prüfmodell sind angegeben.",
+        body: "Ein Standardmodell und Ausnahmen für Oberflächengestaltung (gesperrt), Dokumentation und Texte sowie Konzepte. Die Prüfung durch eine andere Modellfamilie ist ausgewählt; das nächste Entwicklungsmodell für das Backend und sein Prüfmodell sind angegeben.",
         alt: "PAIMOS-Modelleinstellungen mit einem Standardmodell, Ausnahmen nach Aufgabe und unabhängigen Prüfungen.",
       },
       {
         id: "usage",
         tab: "Nutzung",
         title: "Nutzung",
-        body: "Ein gemeinsames Wochenkontingent mit 42 % Rest und Rücksetzzeit, die zwei angemeldeten Rechner und die Wahl zwischen vorsichtiger Nutzung (ausgewählt), ausgewogener Nutzung oder voller Ausschöpfung, mit einer Untergrenze von 10 %.",
+        body: "Ein gemeinsames Wochenkontingent mit 42 % Rest und Rücksetzzeit, zwei angemeldete Rechner und die Wahl zwischen vorsichtiger, ausgewogener oder voller Nutzung mit einer Untergrenze von 10 %.",
         alt: "PAIMOS-Kontonutzung mit vorsichtiger Nutzung, Grenzen, verbleibender Kapazität und Rücksetzzeiten.",
       },
     ],
@@ -141,22 +142,23 @@ export const paimosAeonContentDe = {
   specs: {
     eyebrow: "Eckdaten",
     title: "Was Sie bekommen.",
-    lead: "Neunzehn veröffentlichte Fähigkeiten. Sechs der Bilder sind Illustrationen und als solche gekennzeichnet. Fahren Sie über eine Karte oder tippen Sie darauf, um die Details zu sehen.",
-    leadEli10: "Dieselben neunzehn, in einfachen Worten.",
+    // INSPR-578: round 3 merges knowledge into the work tree for full grid rows.
+    lead: "Zwanzig veröffentlichte Fähigkeiten. Sechs der Bilder sind Illustrationen und als solche gekennzeichnet. Fahren Sie über eine Karte oder tippen Sie darauf, um die Details zu sehen.",
+    leadEli10: "Dieselben zwanzig, in einfachen Worten.",
     items: [
       {
         label: "Agenten zuerst",
         icon: "workflow",
         group: "ai",
-        note: "Claude Code, Codex, Cursor und pi starten unter Paimos in denselben Projekten wie Personen, jeder mit eigenem Schlüssel und eigenen Scopes. Grok läuft ohne Werkzeuge auf Apple Silicon; Gemini und OpenCode: nur Kopplung, Start geplant.",
+        note: "Nutzen Sie Claude Code, Codex, Cursor und pi neben Ihrem Team, mit eigenen Schlüsseln und Berechtigungen. Grok läuft ohne Werkzeuge auf Apple Silicon; Gemini und OpenCode sind für verwaltete Läufe noch nicht verifiziert.",
         noteEli10: "KI-Helfer mehrerer Hersteller arbeiten in denselben Projekten wie Ihre Leute, und jeder trägt sein eigenes Kennzeichen. Einige kommen vorerst mit weniger Fähigkeiten dazu.",
       },
       {
         label: "Kontrollraum",
         icon: "panels-top-left",
         group: "ai",
-        note: "Leitagenten und ausführende Agenten als Baum, aktueller Zustand, Modell und Denkaufwand. Sprechen Sie mit verwalteten Agenten in einem Chat, der Gesendet, Zugestellt und Gelesen zeigt, Code gut lesbar darstellt und eine Antwort mit Esc stoppt.",
-        noteEli10: "Sehen Sie, was jeder Helfer tut, und sprechen Sie mit verwalteten Helfern. Sie sehen, ob Ihre Nachricht angekommen oder gelesen ist, können ihren Code lesen und eine Antwort mit Esc stoppen.",
+        note: "Finden Sie registrierte Sitzungen nach Projekt, mit Tickets, Zustand, Modell, Denkaufwand und gespeicherten Gesprächen. Empfangsbestätigungen zeigen, wann Nachrichten gesendet, zugestellt und gelesen wurden.",
+        noteEli10: "Finden Sie registrierte Helfer und ihre Gespräche nach Projekt. Sehen Sie, ob eine Nachricht im Posteingang angekommen oder gelesen ist.",
       },
       {
         label: "Ihre Rechner",
@@ -183,29 +185,29 @@ export const paimosAeonContentDe = {
         label: "Konten und Modelle",
         icon: "route",
         group: "ai",
-        note: "PAIMOS sieht die Grenzen und Rücksetzzeiten jedes Abos, lässt Sie vorsichtige oder volle Nutzung wählen und übernimmt neuere Versionen Ihrer Modelle automatisch. Nutzungsdaten werden ausgelesen, wo Sie dies aktiviert haben; automatische Modellaktualisierungen müssen Sie ebenfalls aktivieren. Wählen Sie ein Standardmodell und wenige Ausnahmen.",
-        noteEli10: "Sehen Sie, wie viel jedes KI-Konto noch übrig hat und wann es wieder aufgefüllt wird. Wählen Sie vorsichtige oder volle Nutzung, ein übliches Modell und wenige Ausnahmen. Aktivieren Sie das Auslesen der Nutzung und automatische Modellaktualisierungen, wenn Sie möchten.",
+        note: "Wählen Sie Kontoberechtigungen, tägliche Prozentpunkte oder volle Nutzung sowie Ausweichmodelle mit Denkaufwand und Wartegründen. Boost gilt für heute; automatische Modellaktualisierungen müssen Sie aktivieren.",
+        noteEli10: "Wählen Sie Konten, Tagesnutzung und die Reihenfolge der Modelle. Legen Sie fest, wie viel Denkaufwand die Modelle einsetzen.",
       },
       {
         label: "Verwaltete Regeln",
         icon: "scroll-text",
         group: "ai",
         note: "Regeln bauen vom Unternehmen bis zur Aufgabe aufeinander auf und werden als unveränderliche Versionen mit gesperrten Untergrenzen und Größenbudgets veröffentlicht. Die Doktrin wird bei einem festgelegten Commit aus Git gelesen; Prüfungen erkennen Abweichungen.",
-        noteEli10: "Hausregeln bauen vom Unternehmen bis zur Aufgabe aufeinander auf. Wichtige Regeln bleiben gesperrt, Größenlimits halten sie lesbar, und eine Prüfung meldet, wenn ein Helfer eine andere Kopie hat.",
+        noteEli10: "Hausregeln bauen vom Unternehmen bis zur Aufgabe aufeinander auf. Wichtige Regeln bleiben gesperrt; eine Prüfung zeigt, wenn ein Helfer eine andere Kopie hat.",
       },
       {
         label: "Prüfung durch andere Modellfamilie",
         icon: "git-compare-arrows",
         group: "ai",
-        note: "Wählen Sie je Unternehmen oder Projekt, dass jede Änderung eine Prüfung durch eine andere Modellfamilie braucht; PAIMOS prüft den Urheber anhand seiner eigenen Aufzeichnungen und meldet Zusammenführungen, die die Warteschlange oder eine verifizierte Prüfung übersprungen haben.",
-        noteEli10: "Wählen Sie, dass jede Änderung eine Prüfung durch einen Helfer eines anderen KI-Herstellers braucht. Mit verbundenem GitHub prüft PAIMOS, wer sie geschrieben hat, und meldet fehlende Prüfungen oder übersprungene Warteschlangen. Selbstständige Prüfungen und Korrekturen sind noch eine Vorschau.",
+        note: "Legen Sie je Unternehmen oder Projekt die Prüfung durch eine andere Modellfamilie fest. Mit verbundenem GitHub prüft PAIMOS den erfassten Urheber und meldet Zusammenführungen ohne Warteschlange oder verifizierte Prüfung.",
+        noteEli10: "Nutzen Sie einen Prüfer aus einer anderen KI-Familie. Mit verbundenem GitHub meldet PAIMOS fehlende Prüfungen oder übersprungene Warteschlangen; automatische Prüfungen und Korrekturen sind in Vorschau.",
       },
       {
-        label: "Protokoll, das nur ergänzt wird",
+        label: "Geschützte Audit-Historie",
         icon: "file-check-2",
         group: "security",
-        note: "Jede Änderung wird an ein Ereignisprotokoll je Mandant angefügt; ein Trigger in der Datenbank verweigert nachträgliche Änderungen und Löschungen.",
-        noteEli10: "Alles, was passiert, wird der Reihe nach aufgeschrieben, und die Aufzeichnung bleibt genau so, wie sie geschrieben wurde.",
+        note: "Die Datenbank schützt die Audit-Historie; ausgewählte Kontoprüfungen und Statusmeldungen können nach 14 Tagen gelöscht werden.",
+        noteEli10: "Die geschützte Audit-Historie zeigt, wer was getan hat.",
       },
       {
         label: "Mandantentrennung",
@@ -218,8 +220,16 @@ export const paimosAeonContentDe = {
         label: "Ein Arbeitsbaum",
         icon: "list-tree",
         group: "work",
-        note: "Projekte, Epics, Tickets, Releases, Arbeitsaufträge und Wissen sind Knoten in einem Baum mit typisierten Beziehungen.",
-        noteEli10: "Alles steht in einem Baum, sodass Sie immer sehen, wie eine Aufgabe mit dem großen Ganzen zusammenhängt.",
+        note: "Projekte, Epics, Tickets, Releases, Arbeitsaufträge und Wissen teilen sich einen Baum mit typisierten Beziehungen, und verknüpftes Wissen lässt sich daneben als Graph öffnen. Wo eingerichtet, wird aus einem START-Gespräch ein von einer Person bestätigtes Projekt.",
+        noteEli10: "Projekte, Aufgaben und Wissen teilen sich einen Baum; verknüpftes Wissen sehen Sie als Landkarte. Wo eingerichtet, wird aus einem START-Gespräch nach Bestätigung einer Person ein Projekt.",
+      },
+      {
+        // INSPR-578: goals and workflow checks are the two added capabilities.
+        label: "Ziele und Fortschritt",
+        icon: "circle-dot",
+        group: "work",
+        note: "Sehen Sie Ziele und Epics mit Fortschrittsverlauf, Ankunftsschätzungen der Agenten, geschätztem Restaufwand und anstehenden Entscheidungen. Meldungen zeigen, von wem sie stammen und wie alt sie sind.",
+        noteEli10: "Sehen Sie, wie ein Ziel vorankommt, welche Arbeit noch fehlt und welche Entscheidungen Sie brauchen. Schätzungen und Meldungen zeigen, von wem sie stammen und wie alt sie sind.",
       },
       {
         label: "Arbeitsaufträge",
@@ -229,32 +239,32 @@ export const paimosAeonContentDe = {
         noteEli10: "Ein Auftrag für einen Helfer kommt mit Budget und klarer Ziellinie, und mit Nachweis gilt er als erledigt.",
       },
       {
-        label: "Wissensgraph",
-        icon: "network",
+        label: "Prüfungen im Arbeitsablauf",
+        icon: "ticket-check",
         group: "work",
-        note: "Wissenseinträge verknüpfen sich über [[slug]]-Verweise und öffnen sich als Graph neben der Arbeit.",
-        noteEli10: "Projektwissen wird einmal aufgeschrieben, miteinander verknüpft und als Landkarte gezeigt.",
+        note: "Legen Sie fest, was vor Arbeitsbeginn bereit sein muss und wann eine Aufgabe fertig ist. Agenten müssen diese Prüfungen erfüllen; berechtigte Personen können mit dokumentierter Begründung eine Ausnahme machen.",
+        noteEli10: "Legen Sie klare Bedingungen für Arbeitsbeginn und Abschluss fest. Nur eine berechtigte Person darf eine Ausnahme machen und muss den Grund festhalten.",
       },
       {
         label: "Klare Nutzung",
         icon: "eye",
         group: "ops",
-        note: "Token je Sitzung, Ticket und Epic, mit Schätzungen zu Listenpreisen getrennt von der Abo-Nutzung. Bei aktiviertem Auslesen sehen Sie gemeldete Nutzung, Grenzen und Rücksetzzeiten je Konto, auch zwischen Läufen.",
-        noteEli10: "Sehen Sie, wie viel KI jede Aufgabe verbraucht hat und, bei aktiviertem Auslesen, wie viel jedes Konto noch übrig hat und wann es wieder aufgefüllt wird. Schätzungen bleiben klar gekennzeichnet.",
+        note: "Sehen Sie Token je Sitzung, Ticket und Epic, mit Preisschätzungen getrennt von der Abo-Nutzung. Der freigegebene Kontingentverlauf zeigt zuletzt gemessenen Verbrauch, Alter und Rücksetzzeiten sowie Verbrauchs- und Auffüllprognosen; alte oder fehlende Daten sind markiert.",
+        noteEli10: "Sehen Sie erfassten KI-Verbrauch und Prognosen aus freigegebenen Messungen. Alte oder fehlende Werte bleiben markiert.",
       },
       {
         label: "Auslieferungsübersicht",
         icon: "waypoints",
         group: "ops",
-        note: "Sehen Sie je Projekt, wie schnell Änderungen live gehen; verfolgen Sie eine Auslieferung, spielen Sie eine frühere nach oder vergleichen Sie sie mit einem Ziel. Grundlage sind die vom Projekt gemeldeten Daten: automatische Prüfungen und Zusammenführungswarteschlange über GitHub, Auslieferungsschritte, wenn sie gemeldet werden.",
-        noteEli10: "Sehen Sie, wie lange Änderungen bis zum Live-Betrieb brauchen. Verfolgen Sie eine Auslieferung, spielen Sie eine frühere nach oder vergleichen Sie sie mit einem Ziel, anhand der Schritte, die Ihr Projekt meldet.",
+        note: "Sehen Sie Erfolg im ersten Versuch, Entwicklungsrunden, Wartezeit und die Dauer vom ersten Build bis zur Zusammenführung anhand erfasster Schritte. Mit verbundenem GitHub können Sie Auslieferungen verfolgen, nachspielen, Ziele vergleichen und die Live-Bestätigung einer Person getrennt sehen.",
+        noteEli10: "Sehen Sie, wie viele Versuche eine Änderung braucht und wo sie wartet. Die Live-Bestätigung einer Person wird getrennt erfasst.",
       },
       {
         label: "Vertrag zuerst",
         icon: "braces",
         group: "ops",
         note: "Eine Datei nach OpenAPI 3.1 mit mehr als 500 Pfaden, bereitgestellt von einer einzigen Binärdatei, die die Web-Anwendung einbettet.",
-        noteEli10: "Alles, was die Anwendung kann, ist in einem öffentlichen Vertrag beschrieben, den auch andere Werkzeuge nutzen können.",
+        noteEli10: "Ein öffentlicher Vertrag beschreibt die HTTP-API, die andere Werkzeuge nutzen können.",
       },
       {
         label: "Gehostet oder selbst gehostet",
@@ -301,7 +311,7 @@ export const paimosAeonContentDe = {
         id: "openapi",
         term: "OpenAPI",
         matches: ["OpenAPI 3.1"],
-        body: "Eine maschinenlesbare Beschreibung jedes Endpunkts, sodass andere Werkzeuge die API aufrufen können, ohne zu raten.",
+        body: "Eine maschinenlesbare Beschreibung von HTTP-API-Endpunkten, sodass andere Werkzeuge sie aufrufen können, ohne zu raten.",
       },
     ],
   },
@@ -315,31 +325,31 @@ export const paimosAeonContentDe = {
   },
   controlRoom: {
     eyebrow: "Kontrollraum",
-    title: "Alle Agenten in einer Ansicht.",
+    title: "Registrierte Agenten in einer Ansicht.",
     lead:
-      "Leitagenten und ausführende Agenten als Baum, Live-Zustand, Modell und Denkaufwand sowie Nachrichten, die zeigen, wann sie gesendet, zugestellt und gelesen wurden.",
+      "Behalten Sie registrierte Sitzungen, Tickets und Gespräche nach Projekt im Blick. Sehen Sie Leitagenten, ausführende Agenten, Modelle und Denkaufwand sowie Empfangsbestätigungen für Nachrichten im Posteingang.",
     depths: {
       simple:
-        "Ein Bildschirm zeigt jeden KI-Helfer: woran er arbeitet, wem er berichtet und ob er Ihre Nachricht gelesen hat.",
+        "Finden Sie registrierte KI-Helfer nach Projekt: woran sie arbeiten, wem sie berichten, ihre Gespräche und die Steuerungsmöglichkeiten ihrer Sitzung.",
       technical:
-        "AgentsView stellt Sitzungen der Agentenprogramme dar, die über das Daemon-Protokoll gemeldet werden, mit Übergabe der Leitung, verwalteter Steuerung (steuern, unterbrechen, stoppen) und Wiederherstellung von Sitzungen; Zustellungen in den Posteingang werden als Gesendet, Zugestellt und Gelesen verfolgt.",
+        "AgentsView zeigt von aeon-agentd gemeldete Sitzungen. Personen können einen geeigneten Koordinator im eigenen Besitz zum Leitagenten machen; Starts behalten ihre Berechtigungs- und Konfliktprüfungen. Chat-Eingaben und Stoppen hängen von der Sitzung ab.",
     },
     items: [
       {
         icon: "users-round",
         title: "Leitagenten und ausführende Agenten als Baum",
-        body: "Jeder Leitagent mit den ausführenden Agenten, die er gestartet hat, und was jeder gerade tut.",
+        body: "Sehen Sie registrierte Leitagenten und ausführende Agenten nach Projekt, mit gemeldetem Zustand und Tickets. Sie können einen laufenden Koordinator zum Leitagenten machen.",
       },
       {
         icon: "radio-tower",
         title: "Nachrichten mit Empfangsbestätigung",
-        body: "Gesendet, Zugestellt, Gelesen. Bei Sitzungen mit Posteingang wird die Zustellung verfolgt, und Hooks für den Posteingang bringen Nachrichten in die Sitzung. Cursor-Sitzungen haben keinen Posteingang und nehmen nur Unterbrechungen an.",
+        body: "Sehen Sie, wann eine Nachricht gesendet, zugestellt und gelesen wurde. Einige Agenten merken Eingaben für den nächsten Gesprächsschritt vor.",
       },
       {
         icon: "sliders-horizontal",
         title: "Steuern, unterbrechen, stoppen",
-        body: "Lenken Sie eine verwaltete Sitzung während des Laufs um, oder stoppen Sie sie sauber.",
-        caveat: "Steuern: Claude unter macOS. Cursor: nur Unterbrechen",
+        body: "Lenken Sie eine laufende Sitzung um oder stoppen Sie ihren aktuellen Schritt, soweit unterstützt. Claude und Codex übernehmen Eingaben direkt, pi beim nächsten Schritt; einige andere Agenten merken sie für den nächsten Gesprächsschritt vor.",
+        caveat: "Vollständige verwaltete Steuerung: Claude unter macOS.",
       },
       {
         icon: "hard-drive",
@@ -348,7 +358,7 @@ export const paimosAeonContentDe = {
       },
     ],
     screenAlt:
-      "Die Sitzungsansicht von AEON im dunklen Modus: Leitagenten mit ihren ausführenden Agenten, jeweils mit Ticket, Modell, Denkaufwand, Fortschritt und Lebenszeichen.",
+      "Die Sitzungsansicht von AEON im dunklen Modus: Leitagenten mit ihren ausführenden Agenten, mit Ticket, Modell, Denkaufwand und Fortschritt.",
     pairing: {
       eyebrow: "Kopplung",
       title: "Ein neuer Rechner kommt mit einem Befehl und dem Ja einer Person dazu.",
@@ -369,18 +379,25 @@ export const paimosAeonContentDe = {
         {
           status: "partly",
           harnesses: ["Grok"],
-          note: "Läuft ohne Werkzeuge auf Apple Silicon: ein Gespräch in einem einzigen Schritt für Prüfungen, kein allgemeiner Entwicklungsagent.",
+          note: "Ohne Werkzeuge auf Apple Silicon für Verifikation und Prüfung in einem Gesprächsschritt. Gewöhnliche Chats können mit vorgemerkten Eingaben weitergehen, wo dies aktiviert ist; der Einsatz als Entwicklungsagent ist noch nicht verifiziert.",
         },
         {
           status: "planned",
           harnesses: ["Gemini", "OpenCode"],
-          note: "Vorerst nur Kopplung. Der Start ist geplant.",
+          note: "Adapter verfügbar; für verwaltete Läufe noch nicht verifiziert.",
         },
       ],
     },
     proof: [
       { label: "Arbeitsbereich für Agenten", path: "web/src/views/AgentsView.vue" },
       { label: "Verwaltete Steuerung", path: "internal/agentd/managed_control.go" },
+      // INSPR-578: six new proofs for visitor-facing capabilities, without setup gates.
+      { label: "Chat-Eingaben", path: "docs/features/chat-live-composer.md" },
+      { label: "Ziele und Fortschritt", path: "docs/features/goals-view.md" },
+      { label: "Reihenfolge für Ausweichmodelle", path: "docs/features/models-v2-resolver.md" },
+      { label: "Tägliche Nutzung", path: "docs/features/agents-daily-plan.md" },
+      { label: "Kontingentprognosen", path: "internal/agentaccounts/quota_outlook.go" },
+      { label: "Auslieferungsmessungen", path: "docs/features/delivery-page.md" },
       { label: "Adapter für Agentenprogramme", path: "internal/agentd/adapters.go" },
       { label: "Agenten-Integration", path: "docs/AGENT_INTEGRATION.md" },
     ],
@@ -438,6 +455,8 @@ export const paimosAeonContentDe = {
       { label: "Durchsetzung der Freigaben", path: "internal/db/migrations/0202_agent_approvals.sql" },
       { label: "Kapazität", path: "internal/capacity" },
       { label: "Nutzungsübersicht", path: "internal/usagedashboard" },
+      { label: "Prüfungen im Arbeitsablauf", path: "internal/workorders/entry_checks.go" },
+      { label: "Von Personen bestätigte Projekterstellung", path: "internal/projectdraft/create.go" },
     ],
   },
   rules: {
@@ -464,8 +483,8 @@ export const paimosAeonContentDe = {
       { title: "Byte-Budgets", body: "Jede Ebene hat ein Größenbudget, damit lesbar bleibt, was ein Agent lädt." },
       { title: "Abweichungen erkennen", body: "aeon rules compare und aeon doctor zeigen, wo ein Agentenprogramm von der veröffentlichten Fassung abweicht." },
     ],
-    // INSPR-556: AEON-378/444 live proposals; AEON-680/693 planned routines.
-    learning: "Ergebnisse werden bereits zu Regelvorschlägen, die eine Person freigibt (live). Als Nächstes folgen Routinen, die Agenten nach Zeitplan ausführen und aus früheren Läufen lernen (geplant).",
+    // INSPR-578: round 2 states the preview once and leaves future learning planned.
+    learning: "Aus Ergebnissen können Regelvorschläge entstehen, die eine Person freigibt. Routinen sind in Vorschau: Definitionen, Vorlagen und Zuweisungen einrichten, Laufprotokolle ansehen; automatische Läufe sind standardmäßig aus. Bots, die aus früheren Läufen lernen, sind geplant.",
     early: "Früh: Regeländerungen als Pull Requests, sobald ein Betreiber sie aktiviert.",
     screenAlt:
       "Die Agentenregeln in AEON: Regelsätze für Unternehmen und Projekt mit ihren Sperren, ein geöffneter Satz gesperrter Kernregeln, das Byte-Budget und die aus Git an einem festgelegten Commit gelesene Doktrin.",
@@ -474,6 +493,8 @@ export const paimosAeonContentDe = {
       { label: "Regelvergleich", path: "internal/rulescompare" },
       { label: "README: Agentenregeln", path: "README.md" },
       { label: "Regelvorschläge aus Ergebnissen", path: "internal/rules/doctrine/analysis_job.go" },
+      { label: "Routinen einrichten und begrenzen", path: "docs/features/routines.md" },
+      { label: "Routinenprotokolle", path: "docs/features/recurring-work.md" },
     ],
   },
   engine: {
@@ -481,12 +502,13 @@ export const paimosAeonContentDe = {
     title: "So wird die Arbeit gesteuert.",
     lead:
       "Sechs Aufgaben halten die Arbeit in Gang. Vier sind live, zwei sind teilweise live: Jede sagt, wie weit sie ausgeliefert ist.",
-    shadow: "Bevor PAIMOS Starts, Warteschlangen, Modellwahl, Prüfungen oder Auslieferung übernimmt, zeichnet es neben Ihrem aktuellen Ablauf auf, was es getan hätte. So vergleichen Sie, bevor Sie es je Projekt einschalten. Dieser Schattenbetrieb ist eine Vorschau.",
+    // INSPR-578: explain shadow mode once, scoped to the orchestration still in preview.
+    shadow: "Verwaltete Starts und Modellwahl sind live. Warteschlangen, automatische Prüfrunden und Auslieferung laufen als Vorschau im Schattenbetrieb: PAIMOS zeichnet neben Ihrem aktuellen Ablauf auf, was es getan hätte, damit Sie vergleichen können, bevor Sie es je Projekt einschalten.",
     depths: {
       simple:
         "Die Arbeitssteuerung ist der Teil von AEON, der Agenten und Menschen im Takt hält. Einige ihrer Aufgaben funktionieren schon, andere sind noch im Aufbau.",
       technical:
-        "Heute live: Lieferstatus je Ticket und Fristwarnungen mit verbundenem GitHub; Zulassungsregler, Kontogrenzen, Rücksetzzeiten und vorsichtige oder volle Nutzung; ein Standardmodell und wenige Ausnahmen, mit Prüfung durch eine andere Modellfamilie als Unternehmens- oder Projekteinstellung; die Merge-Prüfung; die Entscheidungsübersicht („Decision Desk“) mit dauerhaftem Posteingang; sowie Ereignisse mit Zuordnung der Arbeit, Ergebnissen und Berichten zu Sitzungen, Token und Kosten. Die Entscheidungsübersicht („Decision Desk“) ersetzt den Bereich Braucht Sie bei den Agenten noch nicht. Starts, Warteschlangen, Modellwahl, automatische Prüfrunden und Auslieferung laufen im Schattenbetrieb; Drosselung nach Rechnerlast ist geplant.",
+        "Verwaltete Starts setzen Kontoberechtigungen und Tagesgrenzen durch; Models wählt Ausweichmodelle und Denkaufwand. Ziele und Auslieferungsansicht zeigen Fortschritt und erfasste Entwicklungsschritte; die Entscheidungsübersicht im Kopfbereich bündelt Fragen, Freigaben und vorgeschlagene Erkenntnisse, auch am Telefon. Rechnerlastprüfungen sind nach Aktivierung verfügbar und standardmäßig aus; Routinenaktionen für Pull Requests und automatische Warteschlangendurchsetzung bleiben in Vorschau, standardmäßig aus.",
     },
     jobs: engineJobs.map((job) => ({ label: job.label.de, status: job.status, note: job.note.de })),
     flowNote: {
@@ -500,9 +522,9 @@ export const paimosAeonContentDe = {
     lead: "Wenige bewegliche Teile, und die Garantien liegen in der Datenbank.",
     depths: {
       simple:
-        "Unter der Haube ist AEON bewusst einfach: ein Programm, eine Datenbank und eine Aufzeichnung von allem, was geschehen ist.",
+        "AEON nutzt ein Programm und eine Datenbank, mit geschützter Audit-Historie.",
       technical:
-        "Eine einzelne Go-Binärdatei bettet die Vue-Anwendung ein und stellt den Vertrag nach OpenAPI 3.1 bereit. Postgres 18 mit pgvector hält Mandantendaten unter Sicherheit auf Zeilenebene im FORCE-Modus, eine Ereignistabelle, die nur ergänzt wird, speist die Historie und Live-Aktualisierungen per Server-Sent Events, und aeon-agentd spricht ein Daemon-Protokoll mit den Adaptern für Agentenprogramme.",
+        "Eine einzelne Go-Binärdatei bettet die Vue-Anwendung ein und stellt den Vertrag nach OpenAPI 3.1 bereit. Postgres 18 mit pgvector hält Mandantendaten unter Sicherheit auf Zeilenebene im FORCE-Modus. Geschützte Audit-Ereignisse speisen Historie und Live-Aktualisierungen per Server-Sent Events; ausgewählte Konto- und Lebenszeichen-Telemetrie kann nach 14 Tagen gelöscht werden. aeon-agentd spricht ein Daemon-Protokoll mit den Adaptern für Agentenprogramme.",
     },
     diagram: {
       clientsLabel: "Menschen und Werkzeuge",
@@ -510,7 +532,7 @@ export const paimosAeonContentDe = {
       serverLabel: "Ein Server",
       server: ["Eine Go-Binärdatei", "Eingebettete Web-Anwendung", "Vertrag nach OpenAPI 3.1"],
       databaseLabel: "Eine Datenbank",
-      database: ["Postgres 18", "Sicherheit auf Zeilenebene (FORCE)", "Ereignisprotokoll, das nur ergänzt wird"],
+      database: ["Postgres 18", "Sicherheit auf Zeilenebene (FORCE)", "Geschützte Audit-Historie"],
       daemonLabel: "Ihre Rechner",
       daemon: "aeon-agentd",
       harnesses: ["Claude Code", "Codex", "Cursor", "pi", "Grok (ohne Werkzeuge)"],
@@ -518,9 +540,9 @@ export const paimosAeonContentDe = {
     },
     notes: [
       {
-        title: "Ein Ereignisprotokoll, vollständig erhalten",
-        body: "Ein Trigger lässt das Ereignisprotokoll nur wachsen; Historie und Live-Aktualisierungen lesen beide daraus.",
-        proof: { label: "Schema des Ereignisprotokolls", path: "internal/db/migrations/0101_relations_events.sql" },
+        title: "Geschützte Audit-Historie",
+        body: "Die Audit-Historie hält fest, wer was getan hat. Ausgewählte Kontoprüfungen und Statusmeldungen können nach 14 Tagen gelöscht werden.",
+        proof: { label: "Schutz der Audit-Historie", path: "internal/db/migrations/1369_telemetry_retention.sql" },
       },
       {
         title: "Mandantentrennung in der Datenbank",
@@ -552,8 +574,8 @@ export const paimosAeonContentDe = {
       title: "Gut zu wissen",
       items: [
         "Diese Agentenprogramme sind unterstützt, und die Abnahme im Live-Betrieb steht noch aus.",
-        "Steuerung und Sitzungseinstellungen sind für Claude unter macOS qualifiziert; Cursor unterstützt nur Unterbrechen.",
-        "Claude und Grok auf Apple Silicon haben eine qualifizierte Verifikation ohne Werkzeuge; Codex und Cursor verbinden sich ohne automatischen Verifikationslauf.",
+        "Vollständige verwaltete Steuerung und Sitzungseinstellungen: Claude unter macOS. Chat-Eingaben und Stoppen hängen von der Sitzung ab.",
+        "Claude und Grok auf Apple Silicon unterstützen Verifikation ohne Werkzeuge; Codex und Cursor verbinden sich ohne automatischen Verifikationslauf.",
         "Das Anbinden einer laufenden Sitzung ist früh verfügbar, aus macOS-Terminals.",
         "Tickets, Wissen und Suche laufen über die CLI und die HTTP-API; der MCP-Server ist früh verfügbar.",
         "Regeländerungen als Pull Requests stehen bereit, sobald ein Betreiber sie aktiviert.",
@@ -564,10 +586,12 @@ export const paimosAeonContentDe = {
   openSource: {
     eyebrow: "Open Source",
     title: "Open Source, AGPL-3.0.",
-    body: `Sie können AEON unter AGPL-3.0-only prüfen, selbst betreiben, forken und verändern. Jeder Quellcode-Link auf dieser Seite zeigt auf den Tag von Release ${paimosRelease.number}.`,
+    body: paimosRelease.tag
+      ? `Sie können AEON unter AGPL-3.0-only prüfen, selbst betreiben, forken und verändern. Quellcode-Links zeigen auf den Tag von Release ${paimosRelease.number}.`
+      : `Sie können AEON unter AGPL-3.0-only prüfen, selbst betreiben, forken und verändern. Quellcode-Links zeigen auf den Quellstand ${sourceRevision}, der die Arbeit für Release ${paimosRelease.number} enthält, bis dessen Release-Tag veröffentlicht ist.`,
     links: [
       { label: "GitHub-Repository", href: repositoryUrl, external: true },
-      { label: `Release ${paimosRelease.number} auf GitHub`, href: `${repositoryUrl}/releases/tag/${tag}`, external: true },
+      { label: "Releases auf GitHub", href: paimosReleaseUrl, external: true },
       { label: "Projektlizenz (AGPL-3.0-only)", href: blob("LICENSE"), external: true },
       { label: "Sicherheitsrichtlinie", href: blob("SECURITY.md"), external: true },
       { label: "Agenten-Integration", href: blob("docs/AGENT_INTEGRATION.md"), external: true },
@@ -577,7 +601,7 @@ export const paimosAeonContentDe = {
     {
       question: "Welche Agenten können wir nutzen?",
       answer:
-        "Claude Code, Codex, Cursor und pi starten unter Paimos auf macOS und Linux, einschließlich OpenRouter-Modellen über pi. Grok läuft ohne Werkzeuge auf Apple Silicon. Gemini und OpenCode: nur Kopplung, Start geplant. Sie laufen über aeon-agentd auf Rechnern, die Sie koppeln, mit Ihren eigenen Abos.",
+        "Claude Code, Codex, Cursor und pi laufen auf gekoppelten macOS- und Linux-Rechnern mit Ihren Abos; die Abnahme im Live-Betrieb steht noch aus. Grok unterstützt Verifikation und Prüfung ohne Werkzeuge auf Apple Silicon in einem Gesprächsschritt; Adapter für Gemini und OpenCode sind für verwaltete Läufe noch nicht verifiziert. OpenRouter-Modelle sind über pi verfügbar.",
     },
     {
       question: "Wo liegen unsere Daten?",

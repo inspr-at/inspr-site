@@ -68,21 +68,21 @@ test("the old /paimos-aeon preview URL redirects to /paimos/", async () => {
   assert.match(config, /assetsInlineLimit: 0/, "the CSP-relevant build setting stays");
 });
 
-test("both editions declare their canonical, the release tag and no stray claims", async () => {
+test("both editions declare their canonical, pinned source and no stray claims", async () => {
   const forbidden = [
     [/—/, "an em dash"],
     [/TALKBOX/i, "an operator session"],
     [/from-classic|classic import/i, "classic Paimos"],
     [/\bquotes?\b|\bAngebot/i, "the business module"],
     [/semantic search|semantische Suche/i, "semantic search as live"],
-    [/\/blob\/main\//, "a link that is not pinned to the release tag"],
+    [/\/blob\/main\//, "a link that is not pinned to the source reference"],
   ];
   for (const { locale, content, exportName, canonical } of editions) {
     const text = await source(content);
     assert.match(text, new RegExp(`export const ${exportName} = \\{`));
     assert.match(text, canonical, `${locale} canonical`);
-    // INSPR-544: the release comes from the one paimosRelease constant.
-    assert.match(text, /const tag = paimosRelease\.tag;/, `${locale} reads the release tag from paimosRelease`);
+    // INSPR-578: tag publication and source evidence are separate.
+    assert.match(text, /sourceTreeUrl: `\$\{repositoryUrl\}\/tree\/\$\{paimosSourceRef\}`/, `${locale} uses the shared source reference`);
     assert.match(text, /\} satisfies AeonContent;/);
     for (const [pattern, reason] of forbidden) {
       assert.doesNotMatch(text, pattern, `${locale} content must not contain ${reason}`);
@@ -102,7 +102,7 @@ test("every AEON icon and group resolves in ContextIcon and the specs union", as
   for (const { locale, content } of editions) {
     const text = await source(content);
     const icons = [...text.matchAll(/^\s*icon:\s*"([^"]*)"/gm)].map((match) => match[1]);
-    assert.ok(icons.length >= 19, `${locale} declares its icons`);
+    assert.ok(icons.length >= 20, `${locale} declares its icons`);
     for (const icon of icons) assert.ok(iconNames.has(icon), `${locale}: icon "${icon}" is not registered`);
     for (const [, group] of text.matchAll(/^\s*group:\s*"([^"]*)"/gm)) {
       assert.ok(groups.has(group), `${locale}: group "${group}" is not in the specs union`);
@@ -143,7 +143,7 @@ test("the capture gate covers every published AEON image with a digest", async (
   const manifest = JSON.parse(await source("assets/products/paimos-aeon/capture-manifest.json"));
   const specs = manifest.files.filter((file) => file.name.startsWith("specs/"));
   // INSPR-544: capture 14 shows the retired Journey; it stays recorded but the
-  // page leaves it out, so 19 capabilities use 19 of the 20 recorded images.
+  // page leaves it out. INSPR-578 round 3: twenty cards share nineteen used images.
   assert.equal(specs.length, 20, "the manifest keeps every recorded lens image");
   for (const file of manifest.files) assert.match(file.sha256, /^[0-9a-f]{64}$/, `${file.name} digest`);
   const pkg = JSON.parse(await webFile("package.json"));
@@ -234,20 +234,24 @@ test("absolute URLs in AEON content and built pages use public hosts", async (t)
 
 test("the home-page bot status distinguishes released recurring tickets from planned bots", async () => {
   const family = await source("content/family.ts");
-  const bots = family.slice(family.indexOf('key: "bots"'), family.indexOf('key: "bots"') + 700);
+  const bots = family.slice(family.indexOf('key: "bots"'), family.indexOf('key: "people"'));
   assert.match(bots, /status: "planned"/);
-  assert.match(bots, /Recurring tickets live; bots and Routines planned/);
-  assert.match(bots, /Wiederkehrende Tickets live; Bots und Routinen geplant/);
+  assert.match(bots, /Recurring tickets live; Routines in preview, automatic runs off by default; bots and learning planned/);
+  assert.match(bots, /Wiederkehrende Tickets live; Routinen in Vorschau, automatische Läufe standardmäßig aus; Bots und Lernen geplant/);
   assert.doesNotMatch(bots, /First adapter live|Erster Adapter live/);
 });
 
-test("the 19 capability cards keep distinct review and delivery icons", async () => {
+test("the 20 capability cards keep distinct review and delivery icons", async () => {
   for (const file of ["content/paimos-aeon.ts", "content/de/paimos-aeon.ts"]) {
     const text = await source(file);
     const cards = text.slice(text.indexOf("items: ["), text.indexOf("glossary: ["));
     const icons = [...cards.matchAll(/icon: "([^"]+)"/g)].map((match) => match[1]);
-    assert.equal(icons.length, 19);
+    assert.equal(icons.length, 20);
     for (const icon of ["git-compare-arrows", "waypoints"]) assert.equal(icons.filter((name) => name === icon).length, 1);
     assert.match(cards, /label: "(?:Accounts and models|Konten und Modelle)"/);
+    assert.match(cards, /label: "(?:Goals and progress|Ziele und Fortschritt)"/);
+    assert.match(cards, /label: "(?:Workflow checks|Prüfungen im Arbeitsablauf)"/);
+    assert.match(cards, /label: "(?:One work tree|Ein Arbeitsbaum)"/);
+    assert.doesNotMatch(cards, /label: "(?:Knowledge graph|Wissensgraph)"/);
   }
 });

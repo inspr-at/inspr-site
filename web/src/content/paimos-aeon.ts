@@ -169,9 +169,9 @@ export const paimosAeonContent = {
   specs: {
     eyebrow: "Specs",
     title: "What you get.",
-    // INSPR-578: two new cards; round 2 keeps benefits short and details scoped.
-    lead: "Twenty-one released capabilities. Six of the images are illustrations and say so. Hover or tap a card for the detail.",
-    leadEli10: "The same twenty-one, in plain words.",
+    // INSPR-578: round 3 merges knowledge into the work tree for full grid rows.
+    lead: "Twenty released capabilities. Six of the images are illustrations and say so. Hover or tap a card for the detail.",
+    leadEli10: "The same twenty, in plain words.",
     items: [
       {
         label: "Agents first",
@@ -247,8 +247,8 @@ export const paimosAeonContent = {
         label: "One work tree",
         icon: "list-tree",
         group: "work",
-        note: "Projects, epics, tickets, releases, work orders and knowledge are nodes in one tree with typed relations. Where configured, a START conversation becomes a person-confirmed project with structured work.",
-        noteEli10: "Projects, tasks and knowledge share a tree, so you can see how work connects. Where set up, a START conversation can become a project after a person confirms it.",
+        note: "Projects, epics, tickets, releases, work orders and knowledge share one tree with typed relations, and knowledge links open as a graph beside the work. Where configured, a START conversation becomes a person-confirmed project.",
+        noteEli10: "Projects, tasks and knowledge share a tree, with linked knowledge shown as a map. Where configured, a START conversation becomes a project after a person confirms it.",
       },
       {
         // INSPR-578: goals and workflow checks are the two added capabilities.
@@ -271,13 +271,6 @@ export const paimosAeonContent = {
         group: "work",
         note: "Set what must be ready before work starts and what counts as finished. Agents must meet those checks; people with permission can make an exception and record why.",
         noteEli10: "Set a clear start and finish line for work. Only a person with permission can make an exception and must record why.",
-      },
-      {
-        label: "Knowledge graph",
-        icon: "network",
-        group: "work",
-        note: "Knowledge entries link with [[slug]] references and open as a graph beside the work.",
-        noteEli10: "Project know-how is written once, linked together and shown as a map.",
       },
       {
         label: "Clear usage",

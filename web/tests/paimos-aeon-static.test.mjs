@@ -102,7 +102,7 @@ test("every AEON icon and group resolves in ContextIcon and the specs union", as
   for (const { locale, content } of editions) {
     const text = await source(content);
     const icons = [...text.matchAll(/^\s*icon:\s*"([^"]*)"/gm)].map((match) => match[1]);
-    assert.ok(icons.length >= 21, `${locale} declares its icons`);
+    assert.ok(icons.length >= 20, `${locale} declares its icons`);
     for (const icon of icons) assert.ok(iconNames.has(icon), `${locale}: icon "${icon}" is not registered`);
     for (const [, group] of text.matchAll(/^\s*group:\s*"([^"]*)"/gm)) {
       assert.ok(groups.has(group), `${locale}: group "${group}" is not in the specs union`);
@@ -143,7 +143,7 @@ test("the capture gate covers every published AEON image with a digest", async (
   const manifest = JSON.parse(await source("assets/products/paimos-aeon/capture-manifest.json"));
   const specs = manifest.files.filter((file) => file.name.startsWith("specs/"));
   // INSPR-544: capture 14 shows the retired Journey; it stays recorded but the
-  // page leaves it out. INSPR-578: twenty-one cards share nineteen used images.
+  // page leaves it out. INSPR-578 round 3: twenty cards share nineteen used images.
   assert.equal(specs.length, 20, "the manifest keeps every recorded lens image");
   for (const file of manifest.files) assert.match(file.sha256, /^[0-9a-f]{64}$/, `${file.name} digest`);
   const pkg = JSON.parse(await webFile("package.json"));
@@ -241,15 +241,17 @@ test("the home-page bot status distinguishes released recurring tickets from pla
   assert.doesNotMatch(bots, /First adapter live|Erster Adapter live/);
 });
 
-test("the 21 capability cards keep distinct review and delivery icons", async () => {
+test("the 20 capability cards keep distinct review and delivery icons", async () => {
   for (const file of ["content/paimos-aeon.ts", "content/de/paimos-aeon.ts"]) {
     const text = await source(file);
     const cards = text.slice(text.indexOf("items: ["), text.indexOf("glossary: ["));
     const icons = [...cards.matchAll(/icon: "([^"]+)"/g)].map((match) => match[1]);
-    assert.equal(icons.length, 21);
+    assert.equal(icons.length, 20);
     for (const icon of ["git-compare-arrows", "waypoints"]) assert.equal(icons.filter((name) => name === icon).length, 1);
     assert.match(cards, /label: "(?:Accounts and models|Konten und Modelle)"/);
     assert.match(cards, /label: "(?:Goals and progress|Ziele und Fortschritt)"/);
     assert.match(cards, /label: "(?:Workflow checks|Prüfungen im Arbeitsablauf)"/);
+    assert.match(cards, /label: "(?:One work tree|Ein Arbeitsbaum)"/);
+    assert.doesNotMatch(cards, /label: "(?:Knowledge graph|Wissensgraph)"/);
   }
 });

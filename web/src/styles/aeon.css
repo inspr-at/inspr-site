@@ -667,7 +667,7 @@
   }
 
   /* ── Specs, the AEON edition ──────────────────────────────────────── */
-  /* INSPR-578: twenty-one capability controls in stable order over a full-bleed light
+  /* INSPR-578: twenty capability controls in stable order over a full-bleed light
      field. Hover or focus on a card fades its image in as the section's
      background at 20%; click or tap fades the cards out and opens the
      full-screen carousel. Markup: SpecsGrid.astro (the aeon branches);

@@ -239,28 +239,48 @@ test("the harness matrix and the capability count tell what is released (INSPR-5
     assert.doesNotMatch(text, /Claude, Codex, Cursor, Grok (and|und) pi/, `${locale}: no unqualified five-harness list`);
     assert.doesNotMatch(text, /available today|heute verfügbar/i, `${locale}: no "available today"`);
     const items = (text.match(/^\s*group:\s*"/gm) ?? []).length;
-    assert.equal(items, 21, `${locale}: 21 released capabilities`);
+    assert.equal(items, 20, `${locale}: 20 released capabilities`);
+    // INSPR-578 round 3: PW's visual review requires full desktop and phone rows.
+    assert.ok(items % 5 === 0 && items % 2 === 0, `${locale}: five- and two-column grids end on full rows`);
   }
-  assert.match(await source("content/paimos-aeon.ts"), /lead: "Twenty-one released capabilities\./);
-  assert.match(await source("content/de/paimos-aeon.ts"), /lead: "Einundzwanzig veröffentlichte Fähigkeiten\./);
+  assert.match(await source("content/paimos-aeon.ts"), /lead: "Twenty released capabilities\./);
+  assert.match(await source("content/de/paimos-aeon.ts"), /lead: "Zwanzig veröffentlichte Fähigkeiten\./);
 
   // INSPR-556: demo model settings replace the generated capacity scene;
   // five changed lenses use matching real demo frames, leaving six illustrations.
   const manifest = JSON.parse(await source("assets/products/paimos-aeon/capture-manifest.json"));
   const changedKeys = ["02", "06", "08", "15", "16"];
   const retained = manifest.files.filter((file) => file.name.startsWith("specs/") && !["14", ...changedKeys].some((key) => file.name.startsWith(`specs/${key}-`)));
-  assert.equal(retained.length + changedKeys.length, 19, "nineteen distinct retained images serve twenty-one cards");
+  assert.equal(retained.length + changedKeys.length, 19, "nineteen distinct retained images serve twenty cards");
   assert.equal(retained.filter((file) => file.kind === "generated").length, 6);
   assert.match(await source("content/paimos-aeon.ts"), /Six of the images are illustrations/);
   assert.match(await source("content/de/paimos-aeon.ts"), /Sechs der Bilder sind Illustrationen/);
   const page = await source("components/AeonPage.astro");
   assert.match(page, /retiredLensKeys = new Set\(\["14"\]\)/);
-  assert.match(page, /key === "11" \? \[key, "goals"\] : key === "12" \? \[key, "checks"\]/);
+  assert.match(page, /key === "11" \? \["13", "goals"\] : key === "12" \? \[key, "checks"\] : key === "13" \? \[\]/);
   assert.match(page, /Related screen: the work tree with epics, tickets, estimates and ETAs/);
   assert.match(page, /Related screen: company agent rules, with enabled sets and locked rules/);
   assert.match(page, /lensKey === "checks" \? "07"/);
+  assert.match(page, /body: relatedCaption \?\? knowledgeCaption/);
+  assert.match(page, /Knowledge entries link with \[\[slug\]\] references and open as a graph beside the work/);
+  assert.match(page, /Wissenseinträge verknüpfen sich über \[\[slug\]\]-Verweise und öffnen sich als Graph neben der Arbeit/);
   assert.doesNotMatch(page, /not pictured here|nicht abgebildet/);
+  // INSPR-578 round 3: both live screens remain used once after merging the cards.
+  const keys = Array.from(runInNewContext(page.match(/const lensKeys = ([\s\S]*?);\n/)[1], { retiredLensKeys: new Set(["14"]) }));
+  assert.equal(keys.length, 20, "one lens per card");
+  assert.deepEqual(keys.slice(10, 14), ["13", "goals", "12", "checks"]);
+  const imageKeys = keys.map((key) => key === "goals" ? "11" : key === "checks" ? "07" : key);
+  const demos = Object.fromEntries([...page.matchAll(/"(\d\d)": \{ image: [^,]+, name: "([^"]+)"/g)].map(([, key, name]) => [key, name]));
+  const images = imageKeys.map((key) => manifest.files.find((file) => demos[key] ? file.name === demos[key] : file.name.startsWith(`specs/${key}-`)));
+  for (const image of images) assert.ok(image && ["live", "demo", "generated", "public-web"].includes(image.kind), "each card has an image of a known kind");
+  assert.equal(images.filter((image) => image.kind === "generated").length, 6, "six illustrated cards in the final composition");
+  assert.equal(new Set(images.map((image) => image.name)).size, 19);
+  for (const name of ["specs/11-one-work-tree.jpg", "specs/13-knowledge-graph.jpg"]) {
+    assert.equal(images.filter((image) => image.name === name).length, 1, `${name}: used once`);
+    assert.equal(manifest.files.find((file) => file.name === name).kind, "live");
+  }
   for (const key of ["14", ...changedKeys]) assert.ok(page.includes(`"!../assets/products/paimos-aeon/specs/${key}-*"`), `${key}: unused lens is not bundled`);
+  for (const key of ["11", "13"]) assert.ok(!page.includes(`"!../assets/products/paimos-aeon/specs/${key}-*"`), `${key}: used lens remains bundled`);
   for (const name of ["chat.png", "models.png", "ticket-delivery-review.png", "accounts-usage.png", "delivery.png"]) {
     assert.equal(manifest.files.find((file) => file.name === name)?.kind, "demo");
   }

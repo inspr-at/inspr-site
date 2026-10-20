@@ -142,9 +142,9 @@ export const paimosAeonContentDe = {
   specs: {
     eyebrow: "Eckdaten",
     title: "Was Sie bekommen.",
-    // INSPR-578: two new cards; round 2 keeps benefits short and details scoped.
-    lead: "Einundzwanzig veröffentlichte Fähigkeiten. Sechs der Bilder sind Illustrationen und als solche gekennzeichnet. Fahren Sie über eine Karte oder tippen Sie darauf, um die Details zu sehen.",
-    leadEli10: "Dieselben einundzwanzig, in einfachen Worten.",
+    // INSPR-578: round 3 merges knowledge into the work tree for full grid rows.
+    lead: "Zwanzig veröffentlichte Fähigkeiten. Sechs der Bilder sind Illustrationen und als solche gekennzeichnet. Fahren Sie über eine Karte oder tippen Sie darauf, um die Details zu sehen.",
+    leadEli10: "Dieselben zwanzig, in einfachen Worten.",
     items: [
       {
         label: "Agenten zuerst",
@@ -220,8 +220,8 @@ export const paimosAeonContentDe = {
         label: "Ein Arbeitsbaum",
         icon: "list-tree",
         group: "work",
-        note: "Projekte, Epics, Tickets, Releases, Arbeitsaufträge und Wissen sind Knoten in einem Baum mit typisierten Beziehungen. Wo eingerichtet, wird aus einem START-Gespräch ein von einer Person bestätigtes Projekt mit strukturierter Arbeit.",
-        noteEli10: "Projekte, Aufgaben und Wissen teilen sich einen Baum, sodass Sie Zusammenhänge sehen. Wo eingerichtet, kann aus einem START-Gespräch nach Bestätigung einer Person ein Projekt werden.",
+        note: "Projekte, Epics, Tickets, Releases, Arbeitsaufträge und Wissen teilen sich einen Baum mit typisierten Beziehungen, und verknüpftes Wissen lässt sich daneben als Graph öffnen. Wo eingerichtet, wird aus einem START-Gespräch ein von einer Person bestätigtes Projekt.",
+        noteEli10: "Projekte, Aufgaben und Wissen teilen sich einen Baum; verknüpftes Wissen sehen Sie als Landkarte. Wo eingerichtet, wird aus einem START-Gespräch nach Bestätigung einer Person ein Projekt.",
       },
       {
         // INSPR-578: goals and workflow checks are the two added capabilities.
@@ -244,13 +244,6 @@ export const paimosAeonContentDe = {
         group: "work",
         note: "Legen Sie fest, was vor Arbeitsbeginn bereit sein muss und wann eine Aufgabe fertig ist. Agenten müssen diese Prüfungen erfüllen; berechtigte Personen können mit dokumentierter Begründung eine Ausnahme machen.",
         noteEli10: "Legen Sie klare Bedingungen für Arbeitsbeginn und Abschluss fest. Nur eine berechtigte Person darf eine Ausnahme machen und muss den Grund festhalten.",
-      },
-      {
-        label: "Wissensgraph",
-        icon: "network",
-        group: "work",
-        note: "Wissenseinträge verknüpfen sich über [[slug]]-Verweise und öffnen sich als Graph neben der Arbeit.",
-        noteEli10: "Projektwissen wird einmal aufgeschrieben, miteinander verknüpft und als Landkarte gezeigt.",
       },
       {
         label: "Klare Nutzung",

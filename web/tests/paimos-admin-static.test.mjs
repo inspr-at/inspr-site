@@ -66,7 +66,7 @@ test("all admin responses including errors carry private policies without weaken
   assert.doesNotMatch(await rootFile("web/public/paimos-com/sitemap.xml"), /\/admin/);
 });
 
-test("privacy describes the invited admin area and necessary cookie in both languages", async () => {
+test("privacy describes the invited admin area, its necessary cookie and its local display choices in both languages", async () => {
   const legal = await rootFile("web/src/content/legal.ts");
   for (const phrase of [
     "On the public pages there are no accounts, no cookies set by these pages",
@@ -83,7 +83,9 @@ test("privacy describes the invited admin area and necessary cookie in both lang
     "für bis zu fünf Minuten", "für bis zu acht Stunden oder bis zur Abmeldung",
     "nur Ihre ZITADEL-Kennung (sub) und die Ablaufzeit",
     "Die öffentlichen Seiten setzen weiterhin keine Cookies.",
-    "Last updated: 19 October 2026", "Stand: 19. Oktober 2026",
+    "remembers your display choices in your browser's local storage", "never sent to the server",
+    "merkt sich der Bereich Ihre Anzeigeeinstellungen im lokalen Speicher Ihres Browsers", "nie an den Server übertragen",
+    "Last updated: 20 October 2026", "Stand: 20. Oktober 2026",
   ]) assert.ok(legal.includes(phrase), phrase);
   assert.doesNotMatch(legal, /\u2014/);
   const privacy = legal.slice(legal.indexOf("  privacy: {"));

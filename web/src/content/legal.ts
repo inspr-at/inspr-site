@@ -139,7 +139,7 @@ export const legalContent: Record<"legal" | "privacy", Record<"en" | "de", Legal
       lead: "Very little. This page says what, who is responsible and how to reach them.",
       contactLabel: "Controller",
       emailLabel: "Email",
-      updated: "Last updated: 19 October 2026",
+      updated: "Last updated: 20 October 2026",
       blocks: [
         {
           heading: "Controller",
@@ -155,7 +155,7 @@ export const legalContent: Record<"legal" | "privacy", Record<"en" | "de", Legal
         {
           heading: "Invited sign-in area",
           paragraphs: [
-            "The sign-in area at paimos.com/admin/ is for invited people only. Signing in goes through ZITADEL at auth.inspr.at. The area sets one strictly necessary, encrypted session cookie, limited to /admin on paimos.com. It protects the sign-in attempt for up to five minutes and, after successful sign-in, keeps you signed in for up to eight hours or until you sign out. After sign-in it contains only your ZITADEL subject identifier and expiry, used to check the invitation list before serving private files. The public pages still set no cookies.",
+            "The sign-in area at paimos.com/admin/ is for invited people only. Signing in goes through ZITADEL at auth.inspr.at. The area sets one strictly necessary, encrypted session cookie, limited to /admin on paimos.com. It protects the sign-in attempt for up to five minutes and, after successful sign-in, keeps you signed in for up to eight hours or until you sign out. After sign-in it contains only your ZITADEL subject identifier and expiry, used to check the invitation list before serving private files. The area also remembers your display choices in your browser's local storage: day or night view, film format and whether it updates automatically. They stay on your device and are never sent to the server. The public pages still set no cookies.",
           ],
         },
         {
@@ -210,7 +210,7 @@ export const legalContent: Record<"legal" | "privacy", Record<"en" | "de", Legal
       lead: "Sehr wenig. Diese Seite sagt, was, wer verantwortlich ist und wie Sie ihn erreichen.",
       contactLabel: "Verantwortlicher",
       emailLabel: "E-Mail",
-      updated: "Stand: 19. Oktober 2026",
+      updated: "Stand: 20. Oktober 2026",
       blocks: [
         {
           heading: "Verantwortlicher",
@@ -226,7 +226,7 @@ export const legalContent: Record<"legal" | "privacy", Record<"en" | "de", Legal
         {
           heading: "Anmeldebereich für eingeladene Personen",
           paragraphs: [
-            "Der Anmeldebereich unter paimos.com/admin/ ist nur für eingeladene Personen bestimmt. Die Anmeldung erfolgt über ZITADEL unter auth.inspr.at. Der Bereich setzt ein einziges, unbedingt erforderliches, verschlüsseltes Sitzungscookie, beschränkt auf /admin auf paimos.com. Es schützt den Anmeldeversuch für bis zu fünf Minuten und hält Sie nach erfolgreicher Anmeldung für bis zu acht Stunden oder bis zur Abmeldung angemeldet. Nach der Anmeldung enthält es nur Ihre ZITADEL-Kennung (sub) und die Ablaufzeit, mit denen die Einladungsliste vor der Auslieferung privater Dateien geprüft wird. Die öffentlichen Seiten setzen weiterhin keine Cookies.",
+            "Der Anmeldebereich unter paimos.com/admin/ ist nur für eingeladene Personen bestimmt. Die Anmeldung erfolgt über ZITADEL unter auth.inspr.at. Der Bereich setzt ein einziges, unbedingt erforderliches, verschlüsseltes Sitzungscookie, beschränkt auf /admin auf paimos.com. Es schützt den Anmeldeversuch für bis zu fünf Minuten und hält Sie nach erfolgreicher Anmeldung für bis zu acht Stunden oder bis zur Abmeldung angemeldet. Nach der Anmeldung enthält es nur Ihre ZITADEL-Kennung (sub) und die Ablaufzeit, mit denen die Einladungsliste vor der Auslieferung privater Dateien geprüft wird. Außerdem merkt sich der Bereich Ihre Anzeigeeinstellungen im lokalen Speicher Ihres Browsers: Tag- oder Nachtansicht, Filmformat und ob er sich automatisch aktualisiert. Sie bleiben auf Ihrem Gerät und werden nie an den Server übertragen. Die öffentlichen Seiten setzen weiterhin keine Cookies.",
           ],
         },
         {

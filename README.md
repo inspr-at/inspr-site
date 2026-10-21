@@ -450,9 +450,9 @@ limit or deny already-known email keys. The pinned
 endpoint, event, and role evidence is recorded in
 [`auth/ZITADEL-CONTRACT.md`](auth/ZITADEL-CONTRACT.md).
 
-The image running on the web host (`ghcr.io/inspr-at/inspr-auth:legacy-20260511`) was
-built from this `auth/` source; the host's working copy differs only by the
-later AGPL image label and the module path from the organisation move.
+The web host runs a pinned image from the private package
+`ghcr.io/inspr-at/inspr-site/inspr-auth`, built from this `auth/` source by the
+workflow below.
 
 `.github/workflows/auth-image.yml` (INSPR-253) builds and publishes the bridge
 to `ghcr.io/inspr-at/inspr-site/inspr-auth`: pull requests that touch `auth/`
@@ -481,12 +481,12 @@ base image moving; do not silence the scan.
 Cut a release with `git tag -a auth-vX.Y.Z -m "..." && git push origin
 auth-vX.Y.Z`. The package is private by decision; the web host's compose units
 authenticate with a scoped read token (nixcfg NIX-384). Moving the web host's
-digest pin to a published version is a reviewed nixcfg change (INSPR-253,
-step 3). `auth-legacy-rehome.yml` (dispatch only) copies the hand-built
-2026-05-11 rescue manifest into this package as `legacy-20260511`, digest
-preserved and cosign-signed as chain of custody; it is the rollback target
-for the pin swap, after which the old public `ghcr.io/inspr-at/inspr-auth`
-package is deleted.
+pin to a newer published image is a reviewed nixcfg change.
+`auth-legacy-rehome.yml` (dispatch only) copies the hand-built 2026-05-11
+rescue manifest into this package as `legacy-20260511`, digest preserved and
+cosign-signed as chain of custody; that tag is the rollback target. The old public
+`ghcr.io/inspr-at/inspr-auth` package holds only that rescue image, is no longer
+used by the web host, and is due for deletion (INSPR-314).
 
 Never commit a populated `.env`, machine key, OIDC secret, cookie key, or
 bootstrap token. The checked `.env.example` contains placeholders only.

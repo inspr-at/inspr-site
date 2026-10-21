@@ -482,11 +482,21 @@ Cut a release with `git tag -a auth-vX.Y.Z -m "..." && git push origin
 auth-vX.Y.Z`. The package is private by decision; the web host's compose units
 authenticate with a scoped read token (nixcfg NIX-384). Moving the web host's
 pin to a newer published image is a reviewed nixcfg change.
-`auth-legacy-rehome.yml` (dispatch only) copies the hand-built 2026-05-11
-rescue manifest into this package as `legacy-20260511`, digest preserved and
-cosign-signed as chain of custody; that tag is the rollback target. The old public
-`ghcr.io/inspr-at/inspr-auth` package holds only that rescue image, is no longer
-used by the web host, and is due for deletion (INSPR-314).
+
+The rollback target is `legacy-20260511` in this package: the hand-built
+2026-05-11 rescue manifest, copied with its digest preserved on 2026-08-25 by
+the one-off workflow `auth-legacy-rehome.yml` and cosign-signed as chain of
+custody (not build provenance). The workflow ran once and is retired; it
+remains in git history. Verify the custody signature with:
+
+```bash
+cosign verify ghcr.io/inspr-at/inspr-site/inspr-auth:legacy-20260511 \
+  --certificate-identity 'https://github.com/inspr-at/inspr-site/.github/workflows/auth-legacy-rehome.yml@refs/heads/main' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+```
+
+The old public `ghcr.io/inspr-at/inspr-auth` package, the source of that copy,
+is no longer used and is due for deletion (INSPR-314).
 
 Never commit a populated `.env`, machine key, OIDC secret, cookie key, or
 bootstrap token. The checked `.env.example` contains placeholders only.
